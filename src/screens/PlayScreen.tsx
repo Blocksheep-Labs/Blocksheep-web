@@ -22,10 +22,10 @@ function PlayScreen() {
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined)
   const [modalIsOpen, setIsOpen] = useState(false);
   const onClickLike = () => {
-    ref.current?.swipeRight();
+    ref.current?.swipeLeft();
   }
   const onClickDislike = () => {
-    ref.current?.swipeLeft();
+    ref.current?.swipeRight();
   }
 
   function openLoadingModal() {

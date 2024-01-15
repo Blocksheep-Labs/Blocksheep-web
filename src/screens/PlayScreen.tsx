@@ -1,6 +1,3 @@
-import ProgressGradient from "../assets/gameplay/progress-gradient.png";
-import Timer from "../assets/gameplay/timer.png";
-
 import BottomTab from '../assets/gameplay/bottom-tab.png';
 import SelectionBtnBox from '../components/SelectionBtnBox';
 import SwipeSelection from '../components/SwipeSelection';
@@ -8,19 +5,38 @@ import UserCount from '../components/UserCount';
 import { RefObject, useEffect, useRef, useState } from "react";
 import LoadingModal from "../components/LoadingModal";
 import WinModal from "../components/WinModal";
-
+import RaceModal from "../components/RaceModal";
+import Timer from '../components/Timer';
+import {useTimer} from "react-timer-hook"
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
 }
 
-type ModalType = 'loading' | 'win'
+type ModalType = 'loading' | 'win' | 'race'
 
 function PlayScreen() {
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0)
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined)
   const [modalIsOpen, setIsOpen] = useState(false);
+  const [progress, setProgress] = useState(Array.from({ length: 9 }, (_, i) => 0))
+  const [flipState, setFlipState] = useState(true);
+
+  const time = new Date();
+  time.setSeconds(time.getSeconds() + 10);
+
+  useEffect(() => {
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+    restart(time);
+  }, [flipState])
+
+  const { totalSeconds, restart } = useTimer({ expiryTimestamp: time, onExpire: () => setFlipState(!flipState) })
+  
+  const updateProgress = () => {
+    setProgress(old => old.map(v => (v + Math.ceil(Math.random() * 2)) % 10))
+  }
   const onClickLike = () => {
     ref.current?.swipeLeft();
   }
@@ -46,6 +62,18 @@ function PlayScreen() {
   function closeWinModal() {
     setIsOpen(false);
     setModalType(undefined)
+    updateProgress();
+    openRaceModal();
+  }
+
+  function openRaceModal() {
+    setIsOpen(true);
+    setModalType('race')
+  }
+
+  function closeRaceModal() {
+    setIsOpen(false);
+    setModalType(undefined)
     setRoundId(roundId + 1);
   }
 
@@ -61,12 +89,7 @@ function PlayScreen() {
   return (
     <div className="flex flex-col mx-auto w-full h-dvh bg-play_pattern bg-cover bg-bottom">
       <div className='relative my-4'>
-        <div className='w-[54%] mx-auto flex flex-col items-center'>
-          <img src={Timer} alt="" className='w-4 mb-2'/>
-          <div className='bg-white'>
-            <img src={ProgressGradient} alt="" className='w-[65%]'/>
-          </div>
-        </div>
+        <Timer seconds={totalSeconds}/>
         <div className='absolute top-0 right-4'>
           <UserCount />
         </div>
@@ -79,7 +102,7 @@ function PlayScreen() {
         <img src={BottomTab} alt="" className='w-full'/>
       </div>
 
-      {modalIsOpen && (modalType === 'loading' ? <LoadingModal /> : <WinModal handleClose={closeWinModal} /> )}
+      {modalIsOpen && (modalType === 'loading' ? <LoadingModal /> : modalType === 'win' ? <WinModal handleClose={closeWinModal} /> : <RaceModal progress={progress} handleClose={closeRaceModal}/> )}
     </div>
   )
 }

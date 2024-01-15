@@ -17,16 +17,19 @@ export interface API {
 const questions = [
   {
     "question": "Is it better to have nice or smart kids?",
+    "image": "questions/question1.png",
     "right": "smart",
     "left": "nice",
   },
   {
     "question": "Would you rather explore the depths of the ocean or outer space?",
+    "image": "questions/question2.png",
     "right": "ocean",
     "left": "space",
   },
   {
     "question": "Would you rather read minds or being able to teleport?",
+    "image": "questions/question3.png",
     "right": "read",
     "left": "teleport",
   },
@@ -119,7 +122,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
   return (
     <div className="relative py-2">
       <div className='cardContainer'>
-        {data.map(({question, left, right}, index) => (
+        {data.map(({question, left, right, image}, index) => (
           <TinderCard
             ref={childRefs[index]}
             className='swipe scale-50'
@@ -131,7 +134,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
           >
             <div className="m-[12px]">
               <div className="relative">
-                <img src={PlayCard} alt="play-card" />
+                <img src={image} alt="play-card" />
                 <img src={BottomYellowBg} alt="bottom-yellow-top" className="absolute bottom-0 left-0 right-0"/>
               </div>
               <Content question={question} />

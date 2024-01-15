@@ -17,6 +17,7 @@
     "react-dom": "^18.2.0",
     "react-modal": "^3.16.1",
     "react-scripts": "5.0.1",
+    "react-timer-hook": "^3.0.7",
     "react-tinder-card": "^1.6.4",
     "typescript": "^4.9.5",
     "uuid": "^9.0.1",

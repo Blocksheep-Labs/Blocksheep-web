@@ -1,21 +1,20 @@
-import React from 'react'
+import React from "react";
 import ProgressGradient from "../assets/gameplay/progress-gradient.png";
-import Clock from "../assets/gameplay/timer.png";
+import Clock from "../assets/common/timer.png";
 
 export type TimerProps = {
   seconds: number;
-}
+};
 
 function Timer({ seconds }: TimerProps) {
-  console.log("seconds", seconds)
   return (
-    <div className='w-[54%] mx-auto flex flex-col items-center'>
-      <img src={Clock} alt="" className='w-4 mb-2'/>
-      <div className='bg-white w-full'>
-        <img src={ProgressGradient} alt="" style={{width: `${seconds*10}%`, height: 7}}/>
+    <div className="mx-auto flex w-[54%] flex-col items-center">
+      <img src={Clock} alt="" className="mb-2 w-4" />
+      <div className="w-full bg-white">
+        <img src={ProgressGradient} alt="" style={{ width: `${seconds * 10}%`, height: 7 }} />
       </div>
     </div>
-  )
+  );
 }
 
-export default Timer
+export default Timer;

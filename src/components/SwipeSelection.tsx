@@ -1,141 +1,142 @@
-
-
-import TinderCard from "react-tinder-card"
-import PlayCard from "../assets/gameplay/card-top-bg.png"
+import TinderCard from "react-tinder-card";
 import BottomYellowBg from "../assets/gameplay/bottom-yellow-top.svg";
 
-import { RefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react"
-import React from "react"
+import { RefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import React from "react";
 
-type Direction = 'left' | 'right' | 'up' | 'down'
+type Direction = "left" | "right" | "up" | "down";
 
 export interface API {
-  swipe(dir?: Direction): Promise<void>
-  restoreCard(): Promise<void>
+  // eslint-disable-next-line no-unused-vars
+  swipe(dir?: Direction): Promise<void>;
+  restoreCard(): Promise<void>;
 }
 
 const questions = [
   {
-    "question": "Is it better to have nice or smart kids?",
-    "image": "questions/question1.png",
-    "right": "smart",
-    "left": "nice",
+    question: "Is it better to have nice or smart kids?",
+    image: "/questions/question1.png",
+    right: "smart",
+    left: "nice",
   },
   {
-    "question": "Would you rather explore the depths of the ocean or outer space?",
-    "image": "questions/question2.png",
-    "right": "ocean",
-    "left": "space",
+    question: "Would you rather explore the depths of the ocean or outer space?",
+    image: "/questions/question2.png",
+    right: "ocean",
+    left: "space",
   },
   {
-    "question": "Would you rather read minds or being able to teleport?",
-    "image": "questions/question3.png",
-    "right": "read",
-    "left": "teleport",
+    question: "Would you rather read minds or being able to teleport?",
+    image: "/questions/question3.png",
+    right: "read",
+    left: "teleport",
   },
-]
+];
 
-const Content = ({ question }: {question: string}) => (
+const Content = ({ question }: { question: string }) => (
   <div className="flex h-[100%] items-center justify-center bg-[#FFEEB9]">
-    <p className="text-xl p-3 z-20 text-center font-[Berlin]">
-      {question}
-    </p>
+    <p className="z-20 p-3 text-center font-[Berlin] text-xl">{question}</p>
   </div>
-)
+);
 
 export type SwipeSelectionProps = {
   onSwipe: () => void;
   onFinish: () => void;
-}
+};
 
+// eslint-disable-next-line react/display-name
 const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFinish }, ref) => {
-  const [data, setData] = useState(questions)
-  const [currentIndex, setCurrentIndex] = useState(data.length - 1)
-  const [lastDirection, setLastDirection] = useState<Direction>()
+  // const [data, setData] = useState(questions);
+  const data = questions;
+  const [currentIndex, setCurrentIndex] = useState(data.length - 1);
+  // const [lastDirection, setLastDirection] = useState<Direction>();
   // used for outOfFrame closure
-  const currentIndexRef = useRef<number>(currentIndex)
+  const currentIndexRef = useRef<number>(currentIndex);
 
   useImperativeHandle(ref, () => {
     return {
       swipeLeft() {
-        swipe('left')
+        swipe("left");
       },
       swipeRight() {
-        swipe('right')
+        swipe("right");
       },
-    }
-  })
+    };
+  });
 
   const childRefs: RefObject<API>[] = useMemo(
     () =>
       Array(data.length)
         .fill(0)
-        .map((i) => React.createRef()),
-    []
-  )
+        .map(() => React.createRef()),
+    [],
+  );
 
   const updateCurrentIndex = (val: number) => {
-    setCurrentIndex(val)
-    currentIndexRef.current = val
-  }
+    setCurrentIndex(val);
+    currentIndexRef.current = val;
+  };
 
-  const canGoBack = currentIndex < data.length - 1
+  // const canGoBack = currentIndex < data.length - 1;
 
-  const canSwipe = currentIndex >= 0
+  const canSwipe = currentIndex >= 0;
 
   // set last direction and decrease current index
   const swiped = (direction: Direction, nameToDelete: string, index: number) => {
-    setLastDirection(direction)
-    updateCurrentIndex(index - 1)
-    
-  }
+    // setLastDirection(direction);
+    updateCurrentIndex(index - 1);
+  };
 
   const outOfFrame = (name: string, idx: number) => {
-    console.log(`${name} (${idx}) left the screen!`, currentIndexRef.current)
+    console.log(`${name} (${idx}) left the screen!`, currentIndexRef.current);
     // handle the case in which go back is pressed before card goes outOfFrame
-    currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard()
+    currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard();
     // TODO: when quickly swipe and restore multiple times the same card,
     // it happens multiple outOfFrame events are queued and the card disappear
     // during latest swipes. Only the last outOfFrame event should be considered valid
 
     if (idx > 0) {
-      onSwipe()
+      onSwipe();
     } else {
-      onFinish()
+      onFinish();
     }
-  }
+  };
 
   const swipe = async (dir: Direction) => {
     if (canSwipe && currentIndex < data.length) {
-      await childRefs[currentIndex].current?.swipe(dir) // Swipe the card!
+      await childRefs[currentIndex].current?.swipe(dir); // Swipe the card!
     }
-  }
+  };
 
   // increase current index and show card
-  const goBack = async () => {
-    if (!canGoBack) return
-    const newIndex = currentIndex + 1
-    updateCurrentIndex(newIndex)
-    await childRefs[newIndex].current?.restoreCard()
-  }
+  // const goBack = async () => {
+  //   if (!canGoBack) return;
+  //   const newIndex = currentIndex + 1;
+  //   updateCurrentIndex(newIndex);
+  //   await childRefs[newIndex].current?.restoreCard();
+  // };
 
   return (
     <div className="relative py-2">
-      <div className='cardContainer'>
-        {data.map(({question, left, right, image}, index) => (
+      <div className="cardContainer">
+        {data.map(({ question, image }, index) => (
           <TinderCard
             ref={childRefs[index]}
-            className='swipe scale-50'
+            className="swipe scale-50"
             key={question}
             onSwipe={(dir) => swiped(dir, question, index)}
             onCardLeftScreen={() => outOfFrame(question, index)}
             swipeRequirementType="position"
-            preventSwipe={['up', 'down']}
+            preventSwipe={["up", "down"]}
           >
-            <div className="m-[12px]">
-              <div className="relative">
+            <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
+              <div className="relative ">
                 <img src={image} alt="play-card" />
-                <img src={BottomYellowBg} alt="bottom-yellow-top" className="absolute bottom-0 left-0 right-0"/>
+                <img
+                  src={BottomYellowBg}
+                  alt="bottom-yellow-top"
+                  className="absolute inset-x-0 bottom-0"
+                />
               </div>
               <Content question={question} />
             </div>
@@ -143,7 +144,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
         ))}
       </div>
     </div>
-  )
-})
+  );
+});
 
-export default SwipeSelection
+export default SwipeSelection;

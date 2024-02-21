@@ -1,10 +1,25 @@
-import React from 'react';
-import PlayScreen from './screens/PlayScreen';
+import React from "react";
+import SelectRaceScreen from "./screens/SelectRaceScreen";
+import BottomTab from "./components/BottomTab";
+import { Outlet, Route, Routes } from "react-router-dom";
+import PlayScreen from "./screens/PlayScreen";
 
 function App() {
   return (
-    <div className='w-full sm:max-w-sm m-auto h-100v bg-black overflow-hidden relative'>
-      <PlayScreen/>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<SelectRaceScreen />} />
+        <Route path="race/:id" element={<PlayScreen />} />
+      </Route>
+    </Routes>
+  );
+}
+
+function Layout() {
+  return (
+    <div className="relative m-auto h-[100vh] w-full overflow-hidden bg-black sm:max-w-sm">
+      <Outlet />
+      <BottomTab />
     </div>
   );
 }

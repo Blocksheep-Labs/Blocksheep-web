@@ -4,12 +4,12 @@
 
 @font-face {
   font-family: "Berlin";
-  src: url("../public/fonts/BRLNSR.TTF");
+  src: url("../fonts/BRLNSR.TTF");
 }
 
 @font-face {
   font-family: "Berlin-Bold";
-  src: url("../public/fonts/BRLNSB.TTF");
+  src: url("../fonts/BRLNSB.TTF");
 }
 
 .swipe {

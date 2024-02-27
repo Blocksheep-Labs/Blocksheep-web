@@ -40,7 +40,7 @@ const Content = ({ question }: { question: string }) => (
 );
 
 export type SwipeSelectionProps = {
-  onSwipe: () => void;
+  onSwipe?: () => void;
   onFinish: () => void;
 };
 
@@ -96,7 +96,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
     // during latest swipes. Only the last outOfFrame event should be considered valid
 
     if (idx > 0) {
-      onSwipe();
+      onSwipe && onSwipe();
     } else {
       onFinish();
     }

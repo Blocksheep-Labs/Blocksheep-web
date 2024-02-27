@@ -8,6 +8,7 @@
     "@thirdweb-dev/react": "^4.4.9",
     "@thirdweb-dev/sdk": "^4.0.36",
     "ethers": "5",
+    "framer-motion": "^11.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-modal": "^3.16.1",

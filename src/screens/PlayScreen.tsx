@@ -8,19 +8,24 @@ import WinModal from "../components/WinModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
+import ReadyModal from "../components/ReadyModal";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
 }
 
-type ModalType = "loading" | "win" | "race";
+type ModalType = "ready" | "loading" | "win" | "race";
 
 function PlayScreen() {
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0);
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [progress, setProgress] = useState(Array.from({ length: 9 }, () => 0));
+  const [progress, setProgress] = useState(
+    Array.from({ length: 9 }, () => {
+      return { curr: 0, delta: 0 };
+    }),
+  );
   const [flipState, setFlipState] = useState(true);
 
   const time = new Date();
@@ -38,7 +43,14 @@ function PlayScreen() {
   });
 
   const updateProgress = () => {
-    setProgress((old) => old.map((v) => (v + Math.ceil(Math.random() * 2)) % 10));
+    setProgress((old) =>
+      old.map(({ curr, delta }) => {
+        return {
+          curr: (curr + delta) % 10,
+          delta: Math.ceil(Math.random() * 2) % 10,
+        };
+      }),
+    );
   };
   const onClickLike = () => {
     ref.current?.swipeLeft();
@@ -80,9 +92,31 @@ function PlayScreen() {
     setRoundId(roundId + 1);
   }
 
+  function openReadyModal() {
+    setIsOpen(true);
+    setModalType("ready");
+  }
+
+  function closeReadyModal() {
+    setIsOpen(false);
+    setModalType(undefined);
+    console.log("closeReadyModal");
+  }
+
+  function onFinish() {
+    openLoadingModal();
+  }
+
+  useEffect(() => {
+    openReadyModal();
+  }, []);
+
   useEffect(() => {
     if (modalIsOpen && modalType === "loading") {
-      const timer = setTimeout(closeLoadingModal, 2000);
+      const timer = setTimeout(() => {
+        closeLoadingModal();
+        openWinModal();
+      }, 2000);
       return () => {
         clearTimeout(timer);
       };
@@ -97,12 +131,7 @@ function PlayScreen() {
           <UserCount />
         </div>
       </div>
-      <SwipeSelection
-        key={roundId.toString()}
-        ref={ref}
-        onSwipe={openLoadingModal}
-        onFinish={openWinModal}
-      />
+      <SwipeSelection key={roundId.toString()} ref={ref} onFinish={onFinish} />
       <div className="m-auto mb-6 w-[65%]">
         <SelectionBtnBox
           leftLabel="yes"
@@ -116,14 +145,14 @@ function PlayScreen() {
         <img src={BottomTab} alt="" className="w-full" />
       </div>
 
-      {modalIsOpen &&
-        (modalType === "loading" ? (
-          <LoadingModal />
-        ) : modalType === "win" ? (
-          <WinModal handleClose={closeWinModal} />
-        ) : (
-          <RaceModal progress={progress} handleClose={closeRaceModal} />
-        ))}
+      {modalIsOpen && (
+        <>
+          {modalType === "ready" && <ReadyModal handleClose={closeReadyModal} />}
+          {modalType === "loading" && <LoadingModal />}
+          {modalType === "win" && <WinModal handleClose={closeWinModal} />}
+          {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
+        </>
+      )}
     </div>
   );
 }

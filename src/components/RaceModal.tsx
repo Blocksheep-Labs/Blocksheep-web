@@ -2,9 +2,10 @@ import React from "react";
 import RaceBackground from "../assets/common/race-background.png";
 import NextFlag from "../assets/common/flag.png";
 import Sheep from "../assets/gameplay/sheeepy.png";
+import { motion } from "framer-motion";
 
 export type RaceModalProps = {
-  progress: number[];
+  progress: { curr: number; delta: number }[];
   handleClose: () => void;
 };
 
@@ -17,9 +18,9 @@ function RaceModal({ progress, handleClose }: RaceModalProps) {
     <div className="absolute inset-0 bg-[rgb(153,161,149)]">
       <div className="relative my-auto inline-block max-h-full max-w-full align-middle">
         <img src={RaceBackground} alt="loading-bg" />
-        {progress.map((v, i) => {
+        {progress.map(({ curr, delta }, i) => {
           return (
-            <img
+            <motion.img
               src={Sheep}
               key={i.toString()}
               alt="sheep"
@@ -27,8 +28,11 @@ function RaceModal({ progress, handleClose }: RaceModalProps) {
               style={{
                 width: `${percent}%`,
                 left: `${percent * i + 19}%`,
-                bottom: `${1.8 + v * 10}%`,
+                bottom: `${1.8 + (curr + delta) * 10}%`,
               }}
+              initial={{ bottom: `${1.8 + curr * 10}%` }}
+              animate={{ bottom: `${1.8 + (curr + delta) * 10}%` }}
+              transition={{ ease: "easeOut", duration: 2 }}
             />
           );
         })}

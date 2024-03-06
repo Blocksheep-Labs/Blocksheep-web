@@ -6,11 +6,23 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-import { TenTestnet } from "@thirdweb-dev/chains";
-import { ThirdwebProvider } from "@thirdweb-dev/react";
+// import {  } from "@thirdweb-dev/chains";
+import { ThirdwebProvider, metamaskWallet, smartWallet } from "@thirdweb-dev/react";
+
+const factoryAddress = "0xD5B4Fc91C63F453d56CC43656B8E6584fEE84D65";
+
+export const smartWalletConfig = smartWallet(metamaskWallet(), {
+  factoryAddress,
+  gasless: true,
+});
+
 root.render(
   <React.StrictMode>
-    <ThirdwebProvider activeChain={TenTestnet} clientId={import.meta.env.THIRDWEB_CLIENT_ID}>
+    <ThirdwebProvider
+      activeChain={"avalanche-fuji"}
+      clientId={import.meta.env.THIRDWEB_CLIENT_ID}
+      supportedWallets={[smartWalletConfig]}
+    >
       <BrowserRouter>
         <App />
       </BrowserRouter>

@@ -31,7 +31,7 @@ function RaceItem() {
         </div>
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label="1" />
-          <Link to="race/1" className="relative">
+          <Link to="/countdown" className="relative">
             <div className="h-16 overflow-hidden">
               <img src={NextFlag} alt="next-flag" className="h-[120%]" />
             </div>

@@ -8,7 +8,6 @@ import WinModal from "../components/WinModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
-import ReadyModal from "../components/ReadyModal";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -91,25 +90,9 @@ function PlayScreen() {
     setModalType(undefined);
     setRoundId(roundId + 1);
   }
-
-  function openReadyModal() {
-    setIsOpen(true);
-    setModalType("ready");
-  }
-
-  function closeReadyModal() {
-    setIsOpen(false);
-    setModalType(undefined);
-    console.log("closeReadyModal");
-  }
-
   function onFinish() {
     openLoadingModal();
   }
-
-  useEffect(() => {
-    openReadyModal();
-  }, []);
 
   useEffect(() => {
     if (modalIsOpen && modalType === "loading") {
@@ -147,7 +130,6 @@ function PlayScreen() {
 
       {modalIsOpen && (
         <>
-          {modalType === "ready" && <ReadyModal handleClose={closeReadyModal} />}
           {modalType === "loading" && <LoadingModal />}
           {modalType === "win" && <WinModal handleClose={closeWinModal} />}
           {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}

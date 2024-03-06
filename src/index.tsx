@@ -7,11 +7,11 @@ import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 // import {  } from "@thirdweb-dev/chains";
-import { ThirdwebProvider, metamaskWallet, smartWallet } from "@thirdweb-dev/react";
+import { ThirdwebProvider, localWallet, smartWallet } from "@thirdweb-dev/react";
 
 const factoryAddress = "0xD5B4Fc91C63F453d56CC43656B8E6584fEE84D65";
 
-export const smartWalletConfig = smartWallet(metamaskWallet(), {
+export const smartWalletConfig = smartWallet(localWallet(), {
   factoryAddress,
   gasless: true,
 });

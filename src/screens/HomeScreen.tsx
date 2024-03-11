@@ -1,7 +1,6 @@
 import { ConnectWallet, useAddress } from "@thirdweb-dev/react";
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
 function HomeScreen() {
   const address = useAddress();
   const navigate = useNavigate();

@@ -6,6 +6,7 @@ import PlayScreen from "./screens/PlayScreen";
 import CountDownScreen from "./screens/CountDownScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Header from "./components/Header";
 
 function App() {
   return (
@@ -44,8 +45,10 @@ function App() {
 
 function Layout() {
   const { pathname } = useLocation();
+  console.log("pathname: " + pathname);
   return (
     <div className="relative m-auto h-[100vh] w-full overflow-hidden bg-black sm:max-w-sm">
+      {pathname !== "/" && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}
     </div>

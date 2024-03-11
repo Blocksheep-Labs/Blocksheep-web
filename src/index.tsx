@@ -19,7 +19,7 @@ root.render(
   <React.StrictMode>
     <ThirdwebProvider
       activeChain={ArbitrumSepolia}
-      clientId={import.meta.env.THIRDWEB_CLIENT_ID}
+      clientId={import.meta.env.VITE_THIRDWEB_CLIENT_ID}
       supportedWallets={[smartWalletConfig]}
     >
       <BrowserRouter>

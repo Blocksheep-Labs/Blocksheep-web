@@ -7,6 +7,7 @@ import CountDownScreen from "./screens/CountDownScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
+import AccountScreen from "./screens/AccountScreen";
 
 function App() {
   return (
@@ -21,7 +22,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route index element={<SelectRaceScreen />} /> */}
         <Route
           path="countdown"
           element={
@@ -38,6 +38,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="account"
+          element={
+            <ProtectedRoute>
+              <AccountScreen />
+            </ProtectedRoute>
+          }
+        />
       </Route>
     </Routes>
   );
@@ -45,9 +53,8 @@ function App() {
 
 function Layout() {
   const { pathname } = useLocation();
-  console.log("pathname: " + pathname);
   return (
-    <div className="relative m-auto h-[100vh] w-full overflow-hidden bg-black sm:max-w-sm">
+    <div className="relative m-auto h-screen w-full overflow-hidden bg-black sm:max-w-sm">
       {pathname !== "/" && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}

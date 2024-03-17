@@ -1,15 +1,15 @@
 import {
   ConnectWallet,
   Web3Button,
+  useAddress,
   useBalance,
   useContract,
   useContractWrite,
-  useAddress,
-  useContractRead,
 } from "@thirdweb-dev/react";
-import React from "react";
-import { BLOCK_SHEEP_CONTRACT, USDC_ADDR } from "../constants";
 import { parseUnits } from "ethers/lib/utils";
+import { USDC_ADDR } from "../constants";
+import Sheep from "../assets/gameplay/sheeepy.png";
+import { Link } from "react-router-dom";
 
 const btnStyle = "!rounded-xl !bg-black !p-1 !text-white !min-w-8";
 
@@ -19,55 +19,28 @@ function Header() {
   const { contract: mockUSDC } = useContract(USDC_ADDR);
   const { mutateAsync: mintToken } = useContractWrite(mockUSDC, "mint");
 
-  const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
-  const { mutateAsync: deposit } = useContractWrite(blockSheep, "deposit");
-  const { mutateAsync: withdraw } = useContractWrite(blockSheep, "withdraw");
-
-  const { data } = useContractRead(blockSheep, "balances", [address]);
-
-  console.log("balance", data);
-
   return (
-    <div className="absolute left-0 top-0 z-10 flex flex-row justify-between">
-      <ConnectWallet hideTestnetFaucet={false} />
-      <Web3Button
-        className={btnStyle}
-        contractAddress={USDC_ADDR}
-        action={() =>
-          mintToken({
-            args: [address, parseUnits("100", 6)],
-          })
-        }
+    <div className="absolute left-0 top-0 z-10 flex w-full flex-row justify-between">
+      <div className="flex gap-2">
+        <ConnectWallet hideTestnetFaucet={false} />
+        <Web3Button
+          className={btnStyle}
+          contractAddress={USDC_ADDR}
+          action={async () =>
+            await mintToken({
+              args: [address, parseUnits("100", 6)],
+            })
+          }
+        >
+          {balance?.displayValue ?? "0.0"}
+        </Web3Button>
+      </div>
+      <Link
+        className="flex size-16 items-center justify-center rounded-xl bg-black p-1 text-white"
+        to="/account"
       >
-        {balance?.displayValue ?? "0.0"}
-      </Web3Button>
-      <Web3Button
-        className={btnStyle}
-        contractAddress={BLOCK_SHEEP_CONTRACT}
-        action={() =>
-          deposit({
-            args: [parseUnits("10", 6)],
-          })
-        }
-      >
-        +
-      </Web3Button>
-      {data && (
-        <div className="bg-black rounded-xl p-4 flex items-center text-white">
-          <p>{data.toString()}</p>
-        </div>
-      )}
-      <Web3Button
-        className={btnStyle}
-        contractAddress={BLOCK_SHEEP_CONTRACT}
-        action={() =>
-          withdraw({
-            args: [parseUnits("10", 6)],
-          })
-        }
-      >
-        -
-      </Web3Button>
+        <img src={Sheep} className="h-full" />
+      </Link>
     </div>
   );
 }

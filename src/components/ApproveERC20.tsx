@@ -47,25 +47,24 @@ function ApproveERC20({ token, amount, contract, children }: ApproveERC20Props) 
       state = ApprovalState.NOT_APPROVED;
     }
     return state;
-  }, [allowance, amount, isAllowanceLoading]);
+  }, [allowance, amount, isAllowanceLoading, isLoading]);
 
   if (state === ApprovalState.APPROVED) {
     return <>{children}</>;
   }
 
   return (
-    <div className="mt-4 py-2 text-black">
-      <Web3Button
-        contractAddress={token}
-        action={async () => {
-          await mutateAsync({
-            args: [contract, amount ?? ethers.constants.MaxUint256],
-          });
-        }}
-      >
-        Approve
-      </Web3Button>
-    </div>
+    <Web3Button
+      contractAddress={token}
+      className="!min-w-8 flex-1 !rounded-xl !p-1"
+      action={async () => {
+        await mutateAsync({
+          args: [contract, amount ?? ethers.constants.MaxUint256],
+        });
+      }}
+    >
+      Approve
+    </Web3Button>
   );
 }
 

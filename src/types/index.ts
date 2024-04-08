@@ -1,0 +1,11 @@
+import { BigNumber } from "ethers";
+
+export type Race = {
+  id: number;
+  name: string;
+  numOfGames: number;
+  numOfQuestions: number;
+  playersCount: number;
+  registered: boolean;
+  startAt: BigNumber;
+};

@@ -10,6 +10,20 @@ export default [
   },
   {
     type: "function",
+    name: "COST",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "UNDERLYING",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "contract IERC20" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "addGameName",
     inputs: [{ name: "gameName", type: "string", internalType: "string" }],
     outputs: [],
@@ -19,8 +33,32 @@ export default [
     type: "function",
     name: "addQuestion",
     inputs: [
-      { name: "question", type: "string", internalType: "string" },
-      { name: "answers", type: "string[]", internalType: "string[]" },
+      {
+        name: "params",
+        type: "tuple",
+        internalType: "struct BlockSheep.QuestionInfo",
+        components: [
+          { name: "content", type: "string", internalType: "string" },
+          { name: "answers", type: "string[]", internalType: "string[]" },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "addQuestions",
+    inputs: [
+      {
+        name: "_questions",
+        type: "tuple[]",
+        internalType: "struct BlockSheep.QuestionInfo[]",
+        components: [
+          { name: "content", type: "string", internalType: "string" },
+          { name: "answers", type: "string[]", internalType: "string[]" },
+        ],
+      },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -53,13 +91,6 @@ export default [
   },
   {
     type: "function",
-    name: "cost",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "deposit",
     inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
     outputs: [],
@@ -67,10 +98,11 @@ export default [
   },
   {
     type: "function",
-    name: "distributReward",
+    name: "distributeReward",
     inputs: [
       { name: "raceId", type: "uint256", internalType: "uint256" },
       { name: "gameIndex", type: "uint8", internalType: "uint8" },
+      { name: "qIndex", type: "uint8", internalType: "uint8" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -84,9 +116,104 @@ export default [
   },
   {
     type: "function",
+    name: "getGameNames",
+    inputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getQuestions",
+    inputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct BlockSheep.QuestionInfo",
+        components: [
+          { name: "content", type: "string", internalType: "string" },
+          { name: "answers", type: "string[]", internalType: "string[]" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getRaceStatus",
+    inputs: [{ name: "raceId", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint8", internalType: "enum BlockSheep.RaceStatus" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getRaces",
+    inputs: [{ name: "id", type: "uint256", internalType: "uint256" }],
+    outputs: [
+      { name: "name", type: "string", internalType: "string" },
+      { name: "startAt", type: "uint64", internalType: "uint64" },
+      { name: "numOfGames", type: "uint8", internalType: "uint8" },
+      { name: "numOfQuestions", type: "uint8", internalType: "uint8" },
+      { name: "playersCount", type: "uint8", internalType: "uint8" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getRacesWithPagination",
+    inputs: [
+      { name: "user", type: "address", internalType: "address" },
+      { name: "from", type: "uint256", internalType: "uint256" },
+      { name: "to", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple[]",
+        internalType: "struct BlockSheep.RaceInfo[]",
+        components: [
+          { name: "name", type: "string", internalType: "string" },
+          { name: "startAt", type: "uint64", internalType: "uint64" },
+          { name: "numOfGames", type: "uint8", internalType: "uint8" },
+          { name: "numOfQuestions", type: "uint8", internalType: "uint8" },
+          { name: "playersCount", type: "uint8", internalType: "uint8" },
+          { name: "registered", type: "bool", internalType: "bool" },
+          { name: "status", type: "uint8", internalType: "enum BlockSheep.RaceStatus" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getScoreAtGameOfUser",
+    inputs: [
+      { name: "raceId", type: "uint256", internalType: "uint256" },
+      { name: "gameIndex", type: "uint256", internalType: "uint256" },
+      { name: "user", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "nextRaceId",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "owner",
     inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "questions",
+    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "content", type: "string", internalType: "string" }],
     stateMutability: "view",
   },
   {
@@ -105,11 +232,12 @@ export default [
   },
   {
     type: "function",
-    name: "submitAnswers",
+    name: "submitAnswer",
     inputs: [
       { name: "raceId", type: "uint256", internalType: "uint256" },
       { name: "gameIndex", type: "uint8", internalType: "uint8" },
-      { name: "answerIds", type: "uint8[]", internalType: "uint8[]" },
+      { name: "qIndex", type: "uint8", internalType: "uint8" },
+      { name: "aId", type: "uint8", internalType: "uint8" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -120,13 +248,6 @@ export default [
     inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
     outputs: [],
     stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "underlying",
-    inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "contract IERC20" }],
-    stateMutability: "view",
   },
   {
     type: "function",

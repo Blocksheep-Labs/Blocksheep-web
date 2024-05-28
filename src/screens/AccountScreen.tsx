@@ -27,7 +27,6 @@ function AccountScreen() {
           <div className="m-auto flex w-[85%] gap-2">
             <div className="flex items-center rounded-xl bg-black p-4 text-white">
               {/* <p>{formatUnits(data, 6).toString()}</p> */}
-              
               <p>Wallet Balance: 0</p>
             </div>
             <div className="flex w-full flex-col gap-2">

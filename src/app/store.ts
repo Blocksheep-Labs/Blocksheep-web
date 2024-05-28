@@ -2,6 +2,8 @@ import type { Action, ThunkAction } from "@reduxjs/toolkit";
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { counterSlice } from "../features/counter/counterSlice";
+import { walletSlice } from "../features/auth/walletSlice";
+import {gameSlice} from "../features/game/gameSlice";
 import { quotesApiSlice } from "../features/quotes/quotesApiSlice";
 
 // `combineSlices` automatically combines the reducers using

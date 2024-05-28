@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
 import RaceItem from "../components/RaceItem";
-import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
+// import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
 import { BLOCK_SHEEP_CONTRACT } from "../constants";
 import BlockSheep from "../contracts/BlockSheep";
 import { Race } from "../types";
@@ -23,21 +23,25 @@ const modalStyles = {
 };
 
 function SelectRaceScreen() {
-  const address = useAddress();
-  const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT, BlockSheep);
-  const { data: nextRaceId } = useContractRead(blockSheep, "nextRaceId", []);
-  const { data } = useContractRead(blockSheep, "getRacesWithPagination", [address, 0, nextRaceId]);
-  const races = useMemo(() => {
-    if (!data) {
-      return null;
-    }
-    return (data as Race[]).map((e, index) => {
-      return { ...e, id: index };
-    });
-  }, [data]);
+  // const address = useAddress();
+  // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT, BlockSheep);
+  // const { data: nextRaceId } = useContractRead(blockSheep, "nextRaceId", []);
+  // const { data } = useContractRead(blockSheep, "getRacesWithPagination", [address, 0, nextRaceId]);
+
+  // const races = useMemo(() => {
+  //   if (!data) {
+  //     return null;
+  //   }
+  //   return (data as Race[]).map((e, index) => {
+  //     return { ...e, id: index };
+  //   });
+  // }, [data]);
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
+  const [races, setRace] = useState([
+    
+  ])
 
   const selectedRace = useMemo(() => {
     if (!races) {

@@ -31,6 +31,7 @@ function PlayScreen() {
   time.setSeconds(time.getSeconds() + 10);
 
   useEffect(() => {
+    console.log("flipState set time ", flipState)
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
     restart(time);

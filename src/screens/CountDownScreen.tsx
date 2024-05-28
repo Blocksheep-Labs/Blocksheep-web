@@ -6,9 +6,9 @@ function CountDownScreen() {
   const [seconds, setSeconds] = useState(3);
   const navigate = useNavigate();
 
-  const handleClose = () => {
-    navigate("/race/1");
-  };
+  // const handleClose = () => {
+  //   navigate("/race/1");
+  // };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -19,17 +19,17 @@ function CountDownScreen() {
     };
   }, []);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-undef
-    let timer: NodeJS.Timeout;
-    if (seconds === 0) {
-      timer = setTimeout(handleClose, 1000);
-      handleClose();
-    }
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [seconds]);
+  // useEffect(() => {
+  //   // eslint-disable-next-line no-undef
+  //   let timer: NodeJS.Timeout;
+  //   if (seconds === 0) {
+  //     timer = setTimeout(handleClose, 1000);
+  //     handleClose();
+  //   }
+  //   return () => {
+  //     clearTimeout(timer);
+  //   };
+  // }, [seconds]);
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
       <div className="absolute inset-0 bg-[rgb(153,161,149)]">

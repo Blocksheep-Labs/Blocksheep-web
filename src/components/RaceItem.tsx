@@ -53,14 +53,23 @@ function RaceItem({ race, onClickJoin }: RaceItemProps) {
               </p>
             </button>
           ) : (
-            <Web3Button
+            // <Web3Button
+            //   className="!m-1 !h-4 !w-auto !p-1"
+            //   contractAddress={BLOCK_SHEEP_CONTRACT}
+            //   contractAbi={BlockSheepABI}
+            //   action={async () => await register({ args: [race.id] })}
+            // >
+            //   Register
+            // </Web3Button>
+            <button
               className="!m-1 !h-4 !w-auto !p-1"
-              contractAddress={BLOCK_SHEEP_CONTRACT}
-              contractAbi={BlockSheepABI}
-              action={async () => await register({ args: [race.id] })}
+              onClick={() => {
+                console.log("registering");
+                // async () => await register({args: [race.id]})
+              }}
             >
               Register
-            </Web3Button>
+            </button>
           )}
         </div>
       </div>

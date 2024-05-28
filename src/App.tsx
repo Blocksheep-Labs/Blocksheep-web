@@ -22,6 +22,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* not implemented  */}
         <Route
           path="countdown"
           element={
@@ -30,6 +32,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* race id  */}
         <Route
           path="race/:id"
           element={

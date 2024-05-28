@@ -3,7 +3,6 @@ import { createAppSlice } from "../../app/createAppSlice";
 import type { AppThunk } from "../../app/store";
 import { update } from "@react-spring/web";
 import { fetchGameResult, fetchGames } from "./gameAPI";
-import { stat } from "fs";
 
 // export interface CounterSliceState {
 //   value: number;
@@ -67,11 +66,8 @@ export const gameSlice = createAppSlice({
     selectAllScore: (state) => state.allScore,
     selectAllCredit: (state) => state.allCredit,
   },
-  
 });
 
 export const { updateGameResult, updateGames } = gameSlice.actions;
 
 export const { selectAllScore, selectAllCredit } = gameSlice.selectors;
-
-

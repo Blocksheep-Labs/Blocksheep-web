@@ -6,6 +6,9 @@ import { BLOCK_SHEEP_CONTRACT } from "../constants";
 import BlockSheep from "../contracts/BlockSheep";
 import { Race } from "../types";
 import Modal from "react-modal";
+
+
+
 const modalStyles = {
   content: {
     top: "50%",

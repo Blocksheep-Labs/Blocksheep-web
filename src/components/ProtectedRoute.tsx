@@ -6,9 +6,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // const address = useAddress();
   // if (!address) {
   // user is not authenticated
-  return <Navigate to="/" />;
+  // return <Navigate to="/" />;
   // }
-  // return children;
+  return children;
 }
 
 export default ProtectedRoute;

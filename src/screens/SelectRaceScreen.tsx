@@ -40,8 +40,28 @@ function SelectRaceScreen() {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
   const [races, setRace] = useState([
-    
-  ])
+    {
+      id: 1,
+      playersCount: 2,
+      numOfGames: 3,
+      registered: true,
+      startAt: "1716873870",
+    },
+    {
+      id: 2,
+      playersCount: 3,
+      numOfGames: 4,
+      registered: true,
+      startAt: "1716873870",
+    },
+    {
+      id: 3,
+      playersCount: 4,
+      numOfGames: 5,
+      registered: true,
+      startAt: "1716873870",
+    },
+  ]);
 
   const selectedRace = useMemo(() => {
     if (!races) {

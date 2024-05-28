@@ -34,6 +34,8 @@ function Header() {
         >
           {balance?.displayValue ?? "0.0"}
         </Web3Button> */}
+        <button className="m-2 rounded-xl bg-black p-2 text-white">Connect Wallet</button>
+        <button className="m-2 rounded-xl bg-black p-1 text-white">0.0</button>
       </div>
       <Link
         className="flex size-16 items-center justify-center rounded-xl bg-black p-1 text-white"

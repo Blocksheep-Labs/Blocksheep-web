@@ -14,6 +14,7 @@ function HomeScreen() {
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
       {/* <ConnectWallet /> */}
+      <button>Connect Wallet</button>
     </div>
   );
 }

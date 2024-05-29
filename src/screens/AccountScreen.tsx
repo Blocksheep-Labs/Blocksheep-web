@@ -12,7 +12,8 @@
 
 const btnStyle = "!rounded-xl !p-1 !min-w-8 flex-1";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { selectCount, selectStatus } from "../features/counter/counterSlice";
+// import { selectCount, selectStatus } from "../features/counter/counterSlice";
+import { selectWallet, selectWalletStatus } from "../features/auth/walletSlice";
 
 function AccountScreen() {
   // const address = useAddress();
@@ -24,8 +25,8 @@ function AccountScreen() {
 
   //added code
   //  const dispatch = useAppDispatch();
-  const count = useAppSelector(selectCount);
-  const status = useAppSelector(selectStatus);
+  const wallet = useAppSelector(selectWallet);
+  // const { userStatus: any } = useAppSelector(selectStatus)
   //  const status = useAppSelector(selectStatus);
   //  const [incrementAmount, setIncrementAmount] = useState("2");
 
@@ -38,8 +39,6 @@ function AccountScreen() {
             <div className="flex items-center rounded-xl bg-black p-4 text-white">
               {/* <p>{formatUnits(data, 6).toString()}</p> */}
               <p>Wallet Balance: 0</p>
-              <p>Count: {count}</p>
-              <p>Status: {status}</p>
             </div>
             <div className="flex w-full flex-col gap-2">
               {/* <ApproveERC20

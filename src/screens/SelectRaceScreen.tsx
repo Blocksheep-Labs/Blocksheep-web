@@ -2,12 +2,11 @@ import React, { useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
 import RaceItem from "../components/RaceItem";
 // import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
-import { BLOCK_SHEEP_CONTRACT } from "../constants";
-import BlockSheep from "../contracts/BlockSheep";
-import { Race } from "../types";
-import Modal from "react-modal";
-
-
+// import { BLOCK_SHEEP_CONTRACT } from "../constants";
+// import BlockSheep from "../contracts/BlockSheep";
+// import { Race } from "../types";
+// import Modal from "react-modal";
+import { useNavigate } from "react-router-dom";
 
 const modalStyles = {
   content: {
@@ -39,6 +38,8 @@ function SelectRaceScreen() {
   //     return { ...e, id: index };
   //   });
   // }, [data]);
+
+  const navigator = useNavigate();
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
@@ -96,11 +97,18 @@ function SelectRaceScreen() {
       <div className="mx-8 my-4 flex h-3/5 flex-col gap-20 overflow-y-auto pt-4">
         {races &&
           races.map((e, i) => (
-            <RaceItem key={i.toString()} race={e} onClickJoin={() => onClickJoin(e.id)} />
+            // <RaceItem key={i.toString()} race={e} onClickJoin={() => onClickJoin(e.id)} />
+            <RaceItem
+              key={i.toString()}
+              race={e}
+              onClickJoin={() => {
+                navigator("/countdown");
+              }}
+            />
           ))}
       </div>
 
-      <Modal
+      {/* <Modal
         isOpen={modalIsOpen}
         onAfterOpen={afterOpenModal}
         onRequestClose={closeModal}
@@ -109,7 +117,7 @@ function SelectRaceScreen() {
       >
         <button onClick={closeModal}>close</button>
         {selectedRace && <p>Race starts at {selectedRace.startAt.toString()}</p>}
-      </Modal>
+      </Modal> */}
     </div>
   );
 }

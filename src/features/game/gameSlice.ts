@@ -1,9 +1,11 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
+/* eslint-disable prettier/prettier */
+import { current, type PayloadAction } from "@reduxjs/toolkit";
 import { createAppSlice } from "../../app/createAppSlice";
 import type { AppThunk } from "../../app/store";
 import { update } from "@react-spring/web";
 import { fetchGameResult, fetchGames } from "./gameAPI";
 import { Wallet } from "ethers";
+import { stat } from "fs";
 
 // export interface CounterSliceState {
 //   value: number;
@@ -27,7 +29,7 @@ export interface GameScoreState {
     numberOfQuestions: "2",
     questions: [
       {
-        question1: {
+        {
           questionId: "1",
           draw: "1",
           distributed: "1",
@@ -45,7 +47,7 @@ export interface GameScoreState {
         },
       },
       {
-        question2: {
+        {
           questionId: "2",
           draw: "1",
           distributed: "1",
@@ -67,60 +69,93 @@ export interface GameScoreState {
   ]
 }
 */
+
+export interface Question {
+  questionId: string;
+  draw: string;
+  distributed: string;
+  answeredPlayerCount: string;
+  playersByAnswer: {
+    0: string[];
+    1: string[];
+  };
+  answered: {
+    [key: string]: string;
+  };
+}
+
+export interface Game{
+  gameId: string;
+  endAt: string;
+  numberOfQuestions: string;
+  questions: Question[];
+}
+
+export interface Race{
+  gameId: string;
+  endAt: string;
+  numberOfQuestions: string;
+  games: Game[];
+
+}
+
 export interface SystemState {
   allScore: number[];
   allCredit: number[];
   userAddress: string;
   activeRace: number;
+  activeGame: number;
   activeQuestion: number;
   gameStatus: number;
-  games: {
-    gameId: string;
-    endAt: string;
-    numberOfQuestions: string;
-    questions: {
-      question1: {
-        questionId: string;
-        draw: string;
-        distributed: string;
-        answeredPlayerCount: string;
-        playersByAnswer: {
-          0: string[];
-          1: string[];
-        };
-        answered: {
-          [key: string]: string;
-        };
-      };
-    };
-  };
+  races: Race[];
 }
 
 const initialState: SystemState = {
-  allScore,
-  allCredit,
+  allScore: [],
+  allCredit: [],
   userAddress: "",
   activeRace: 0,
+  activeGame: 0,
   activeQuestion: 0,
   gameStatus: 0,
-  games: {
-    gameId: "",
-    endAt: "",
-    numberOfQuestions: "",
-    questions: {
-      question1: {
-        questionId: "",
-        draw: "",
-        distributed: "",
-        answeredPlayerCount: "",
-        playersByAnswer: {
-          0: [],
-          1: [],
+  races: [
+    {
+      gameId: "",
+      endAt: "",
+      numberOfQuestions: "",
+      questions: [
+        {
+          questionId: "",
+          draw: "",
+          distributed: "",
+          answeredPlayerCount: "",
+          playersByAnswer: {
+            0: [],
+            1: [],
+          },
+          answered: {},
         },
-        answered: {},
-      },
+      ]
     },
-  },
+    {
+      gameId: "",
+      endAt: "",
+      numberOfQuestions: "",
+      questions: [
+        {
+          questionId: "",
+          draw: "",
+          distributed: "",
+          answeredPlayerCount: "",
+          playersByAnswer: {
+            0: [],
+            1: [],
+          },
+          answered: {},
+        },
+      ],
+    },
+  ],
 };
 
 export const gameSlice = createAppSlice({
@@ -172,6 +207,37 @@ export const gameSlice = createAppSlice({
     selectCActiveRace: (state) => state.activeRace,
     selectActiveQuestion: (state) => state.activeQuestion,
     selectGameStatus: (state) => state.gameStatus,
+    selectUserGame: (state) => {
+      if (state.userAddress != "") {
+        if(state.activeRace != null){
+          const currentGames = Object.values(state.races[state.activeRace]); // Convert object to array
+          const game = currentGames[state.activeGame];
+          return game;
+        }
+      }
+      return null;
+    },
+    selectUserQuestion: (state)=>{
+      if (state.userAddress != "") {
+        if(state.activeRace != null){
+          const currentRace = state.races[state.activeRace];
+          const currentGame = currentRace.games[state.activeGame];
+          const currentQuestion = currentGame.questions[state.activeQuestion];
+          return currentQuestion;
+        }
+      }
+    },
+    selectIdQuestions: (state, raceId, gameId)=>{
+      const currentGame = state.races[raceId];
+      return currentGame.games[gameId].questions;
+    },
+    selectIdAnswers: (state, raceId, gameId, questionId)=>{
+        const currentGame = state.races[raceId];
+        const currentQuestion = currentGame.games[gameId].questions[questionId];
+        return currentQuestion.playersByAnswer;
+    },
+    
+
   },
 });
 

@@ -10,7 +10,16 @@ function CountDownScreen() {
     navigate("/race/1");
   };
 
+  const [progress, setProgress] = useState<{ curr: number; delta: number }[]>([]);
   useEffect(() => {
+    let newProgress: { curr: number; delta: number }[] = Array.from({ length: 9 }, () => {
+      return { curr: 1, delta: 0 };
+    });
+
+    console.log("new progress", newProgress);
+
+    setProgress(newProgress);
+
     const interval = setInterval(() => {
       setSeconds((old) => (old > 0 ? old - 1 : 0));
     }, 1000);
@@ -33,11 +42,7 @@ function CountDownScreen() {
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
       <div className="absolute inset-0 bg-[rgb(153,161,149)]">
-        <RaceBoard
-          progress={Array.from({ length: 9 }, () => {
-            return { curr: 0, delta: 0 };
-          })}
-        />
+        <RaceBoard progress={progress} />
         <div className="absolute left-0 top-0 flex size-full items-center justify-center">
           <div className="flex size-36 items-center justify-center rounded-3xl bg-yellow-500">
             <p className="font-[Berlin] text-[70px]">{seconds === 0 ? "GO" : seconds}</p>

@@ -7,15 +7,18 @@ export type RaceModalProps = {
   handleClose: () => void;
 };
 
-function RaceModal({ progress, handleClose }: RaceModalProps) {
+function RaceModal({ progress, handleClose, nextClicked }: RaceModalProps) {
   return (
-    <div className="absolute inset-0 bg-[rgb(153,161,149)]">
+    <div className="race-board absolute inset-0 bg-[rgb(153,161,149)]">
       <RaceBoard progress={progress} />
 
-      <div className="absolute bottom-0 right-0 w-[40%]">
+      <div className="absolute bottom-0 right-0 w-2/5">
         <button
           className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F]"
-          onClick={handleClose}
+          onClick={() => {
+            handleClose();
+            nextClicked();
+          }}
         >
           Next
         </button>

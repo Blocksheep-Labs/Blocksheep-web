@@ -8,7 +8,7 @@ export type WinModalProps = {
 
 function WinModal({ handleClose }: WinModalProps) {
   return (
-    <div className="absolute inset-0 bg-[rgb(0,0,0,0.75)]">
+    <div className=" win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%]">
         <img src={WinMain} alt="loading-bg" />
       </div>

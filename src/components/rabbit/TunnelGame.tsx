@@ -14,6 +14,7 @@ import UserCount from "../UserCount";
 
 import { useTimer } from "react-timer-hook";
 import { randomInt } from "crypto";
+import { useNavigate } from "react-router-dom";
 
 function TunnelGame() {
   const [phase, setPhase] = useState("Default");
@@ -25,6 +26,8 @@ function TunnelGame() {
 
   const [modalType, setModalType] = useState(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
+  const navigator = useNavigate();
+
   const [progress, setProgress] = useState(
     Array.from({ length: 9 }, () => {
       return { curr: 0, delta: 0 };
@@ -58,16 +61,32 @@ function TunnelGame() {
   // };
 
   const handleTunnelChange = () => {
-    setPhase("loading"); // Close tunnel: Head moves to swallow everything. Open tunnel: cars get out
-    setTimeout(() => setPhase("OpenTunnel"), 5000);
+    setPhase("CloseTunnel"); // Close tunnel: Head moves to swallow everything. Open tunnel: cars get out
+    setTimeout(() => setPhase("OpenTunnel"), 1000);
     setTimeout(() => setPhase("Reset"), 16000);
     setTimeout(() => setIsOpen(true), 16000);
-    useState(
+    setTimeout(() => {
+      setModalType("loading");
+    }, 16000);
+    setTimeout(() => {
+      setModalType("win");
+    }, 17000);
+    setIsOpen(true);
+
+    setProgress(
       Array.from({ length: 9 }, () => {
         return { curr: 1, delta: 0 };
       }),
     );
+
+    // setModalType("win")
+    // setIsOpen(true)
   };
+
+  function onNextGameClicked() {
+    // set
+    navigator("/select");
+  }
 
   function closeLoadingModal() {
     setIsOpen(false);
@@ -146,7 +165,6 @@ function TunnelGame() {
           id="StartTunnel"
           onClick={() => {
             handleTunnelChange();
-            setModalType("loading");
           }}
         >
           Play
@@ -160,7 +178,13 @@ function TunnelGame() {
           <>
             {modalType === "loading" && <LoadingModal />}
             {modalType === "win" && <WinModal handleClose={closeWinModal} />}
-            {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
+            {modalType === "race" && (
+              <RaceModal
+                progress={progress}
+                handleClose={closeRaceModal}
+                nextClicked={onNextGameClicked}
+              />
+            )}
           </>
         )}
       </div>

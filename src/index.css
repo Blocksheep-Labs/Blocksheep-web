@@ -56,3 +56,166 @@
       inset 0 4px 4px rgba(255, 255, 255, 0.9);
       /*top internal highlight*/
 }
+
+
+body{
+  margin:0;
+  padding:0;
+  background: 
+  url('https://i.ibb.co/jyJVjJ8/grass.png') bottom center;
+ 
+}
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 667px; /* Typical iPhone Pro Max height */
+  margin: 0;
+  padding:0;
+  position: relative;
+  overflow: hidden;
+  background: url('https://i.ibb.co/JsTqpVC/backgroundcarrot-1.png') no-repeat center -100px;
+}
+
+
+.tunnel {
+  position: relative; 
+  z-index: 1; 
+  height: 200px;
+  width: 100%;
+  top:300px;
+   /* background: url('https://i.ibb.co/xDCxqgW/tunnel-V4-1.png') no-repeat center; */
+ background: url('https://i.ibb.co/WH1C3R7/tunnel-light.png') no-repeat center;
+  margin-bottom:80px;
+ 
+}
+
+#StartTunnel{
+  width:200px;
+}
+
+.darkness {
+  position: absolute;
+  top: -5px;
+  left: 100%;
+  height: 150px;
+  width: 110%;
+background: url('https://i.ibb.co/SybbN1D/tunnel-dark.png');  
+  transition: width 1.5s ease-in-out, left 1.5s ease-in-out;
+  z-index: 50;
+}
+
+.rabbit-head, .rabbit-tail {
+  position: absolute;
+  transition: transform 1.5s ease-in-out;
+  z-index: 4;
+  
+}
+
+.rabbit-head {
+  right: -100px;
+  height: 200px;
+  top:-50px;
+}
+
+.rabbit-tail {
+  left: 100%;
+  height: 150px;
+}
+
+
+
+.player-container img {
+  transition: all 0.5s ease-out;
+  height: 50px;
+   position: absolute;
+   z-index: 2;
+  left:-10px;
+}
+
+/* /////////// */
+
+
+.control-panels{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top:250px;
+}
+
+.panel{
+  background: url('https://i.ibb.co/7tZs77N/box-1.png') no-repeat center center;
+  background-size: cover;
+  border:0;
+  width: 100px;
+  height: 100px;
+  margin: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+
+
+.lever-container {
+  background: url('https://i.ibb.co/FYqWdMW/Lever-Base.png') no-repeat center center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  width:100px;
+}
+
+/* Styles for the number display */
+.number-display {
+  
+  color: white; 
+  font-size: 48px; 
+  padding: 20px;
+  user-select: none; 
+ 
+}
+
+.gasoline-gauge {
+  width: 30px;
+  height: var(--gauge-height, 30px); 
+  background-color:orange;
+  /*background: linear-gradient(to top, red, green);
+  background-size: 100% 200%;
+  background-position: bottom;*/
+  transition: height 0.5s ease-out;
+  position:absolute;
+}
+
+#carrot_fuel{
+  position:absolute;
+}
+
+
+.fuel-bar-container {
+  position: absolute;
+  width: calc(100% - 20px); /* Adjust based on your margin needs */
+  padding: 0 10px; /* 10px margin on both sides */
+  height: 50px; /* Adjust as needed */
+
+}
+
+.fuel-line {
+  position: absolute;
+  width: 100%;
+  height: 5px; /* Adjust as needed */
+  background-color: black;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.fuel-circle {
+  position: absolute;
+  width: 20px; 
+  height: 20px; 
+  border-radius: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}

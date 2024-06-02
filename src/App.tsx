@@ -8,6 +8,7 @@ import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import AccountScreen from "./screens/AccountScreen";
+import TunnelGame from "./components/rabbit/TunnelGame";
 
 function App() {
   return (
@@ -19,6 +20,15 @@ function App() {
           element={
             <ProtectedRoute>
               <SelectRaceScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="tunnel"
+          element={
+            <ProtectedRoute>
+              <TunnelGame />
             </ProtectedRoute>
           }
         />

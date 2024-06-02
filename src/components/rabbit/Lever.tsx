@@ -1,19 +1,19 @@
-// import { useGame } from "@/providers/GameProvider";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const Lever = () => {
-  // const { userSpeed, setUserSpeed } = useGame();
   const [currentAngle, setCurrentAngle] = useState(0);
+  const [displayNumber, setDisplayNumber] = useState(1); // Start with a default of 1
   const sensitivity = 2; // Increase sensitivity for more responsiveness
+  const leverRef = useRef(null);
 
   useEffect(() => {
-    const lever = document.getElementById("lever");
+    const lever = leverRef.current;
 
     const getAngleRelativeToCenter = (x, y) => {
       const rect = lever.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.bottom - rect.height / 2;
-      return Math.atan2(y - centerY, x - centerX) * (180 / Math.PI);
+      const center_x = rect.left + rect.width / 2;
+      const center_y = rect.bottom - rect.height / 2;
+      return Math.atan2(y - center_y, x - center_x) * (180 / Math.PI);
     };
 
     const handleTouchMove = (e) => {
@@ -21,46 +21,45 @@ const Lever = () => {
       const touch = e.touches[0];
       const touchAngle = getAngleRelativeToCenter(touch.clientX, touch.clientY);
       let angleDifference = touchAngle * sensitivity;
+
       // Constrain the angle between 0 and 180
       angleDifference = Math.max(0, Math.min(angleDifference, 180));
       setCurrentAngle(angleDifference);
-      // Calculate userSpeed, ensuring it's never less than 1
-      // setUserSpeed(Math.max(1, Math.round((angleDifference / 180) * 9)));
+      // Calculate displayNumber, ensuring it's never less than 1
+      setDisplayNumber(Math.max(1, Math.round((angleDifference / 180) * 9)));
     };
 
-    const touchEnd = () => {
-      setCurrentAngle(currentAngle); // Reset lever angle but keep number displayed
-      // setUserSpeed(userSpeed);
+    const handleTouchEnd = () => {
+      setCurrentAngle(0); // Reset lever angle but keep number displayed
     };
 
     lever.addEventListener("touchmove", handleTouchMove);
-    lever.addEventListener("touchend", touchEnd);
+    lever.addEventListener("touchend", handleTouchEnd);
 
     return () => {
       lever.removeEventListener("touchmove", handleTouchMove);
-      lever.removeEventListener("touchend", touchEnd);
+      lever.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [userSpeed, setUserSpeed, currentAngle]);
+  }, [sensitivity]);
 
   return (
     <>
       <div className="panel">
-        <div className="number-display">{userSpeed}</div>
+        <div className="number-display">{displayNumber}</div>
       </div>
 
       <div className="lever-container">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="https://i.ibb.co/fXQVWpW/Lever-handle.png"
           alt="Rotating Lever"
-          id="lever"
+          ref={leverRef}
           style={{
             transform: `rotate(${currentAngle}deg)`,
             transition: "transform 0.5s ease-out",
             height: "100px",
             position: "relative",
-            top: "-45px",
-            transformOrigin: "50% 88%", // for rotation around the bottom center
+            top: "-50px",
+            transformOrigin: "50% 100%", // for rotation around the bottom center
           }}
         />
       </div>

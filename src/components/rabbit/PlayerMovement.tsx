@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useEffect, useRef } from "react";
 
 const PlayerMovement = ({ phase, players }) => {

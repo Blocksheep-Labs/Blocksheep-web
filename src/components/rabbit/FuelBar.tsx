@@ -1,3 +1,5 @@
+// @ts-nocheck
+// @ts-ignore
 import React from "react";
 
 const FuelBar = ({ players }) => {

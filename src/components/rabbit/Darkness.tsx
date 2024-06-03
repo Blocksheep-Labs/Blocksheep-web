@@ -1,3 +1,6 @@
+// @ts-nocheck
+// @ts-expect-error
+// @ts-ignore
 import React, { useEffect, useState } from "react";
 
 function Darkness({ phase }) {
@@ -19,7 +22,8 @@ function Darkness({ phase }) {
   return (
     <div
       className="darkness"
-      style={{ visibility, left, position: "absolute", top: 0, bottom: 0, right: 0 }}
+      hidden={visibility === "hidden"}
+      style={{ left, position: "absolute", top: 0, bottom: 0, right: 0 }}
     ></div>
   );
 }

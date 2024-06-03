@@ -17,7 +17,7 @@ export interface SwipeSelectionAPI {
 type ModalType = "ready" | "loading" | "win" | "race";
 
 function PlayScreen() {
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0);
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
@@ -33,7 +33,7 @@ function PlayScreen() {
   time.setSeconds(time.getSeconds() + 10);
 
   useEffect(() => {
-    console.log("flipState set time ", flipState)
+    console.log("flipState set time ", flipState);
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
     restart(time);
@@ -92,6 +92,7 @@ function PlayScreen() {
     setIsOpen(false);
     setModalType(undefined);
     setRoundId(roundId + 1);
+    nextClicked();
   }
   function onFinish() {
     openLoadingModal();
@@ -139,7 +140,7 @@ function PlayScreen() {
         <>
           {modalType === "loading" && <LoadingModal />}
           {modalType === "win" && <WinModal handleClose={closeWinModal} />}
-          {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} nextClicked={nextClicked} />}
+          {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
         </>
       )}
     </div>

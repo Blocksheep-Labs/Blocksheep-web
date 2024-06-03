@@ -14,7 +14,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<HomeScreen />} />
+        <Route index element={<SelectRaceScreen />} />
         <Route
           path="select"
           element={

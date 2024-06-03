@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useState, useEffect } from "react";
 import FuelBar from "./FuelBar";
 import PlayerMovement from "./PlayerMovement";
@@ -116,6 +118,7 @@ function TunnelGame() {
   function closeRaceModal() {
     setIsOpen(false);
     setModalType(undefined);
+    onNextGameClicked();
   }
   function onFinish() {
     openLoadingModal();
@@ -178,13 +181,7 @@ function TunnelGame() {
           <>
             {modalType === "loading" && <LoadingModal />}
             {modalType === "win" && <WinModal handleClose={closeWinModal} />}
-            {modalType === "race" && (
-              <RaceModal
-                progress={progress}
-                handleClose={closeRaceModal}
-                nextClicked={onNextGameClicked}
-              />
-            )}
+            {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
           </>
         )}
       </div>

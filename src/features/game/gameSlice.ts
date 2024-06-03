@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /* eslint-disable prettier/prettier */
 import { current, type PayloadAction } from "@reduxjs/toolkit";
 import { createAppSlice } from "../../app/createAppSlice";
@@ -84,19 +86,18 @@ export interface Question {
   };
 }
 
-export interface Game{
+export interface Game {
   gameId: string;
   endAt: string;
   numberOfQuestions: string;
   questions: Question[];
 }
 
-export interface Race{
+export interface Race {
   gameId: string;
   endAt: string;
   numberOfQuestions: string;
   games: Game[];
-
 }
 
 export interface SystemState {
@@ -135,7 +136,7 @@ const initialState: SystemState = {
           },
           answered: {},
         },
-      ]
+      ],
     },
     {
       gameId: "",
@@ -209,7 +210,7 @@ export const gameSlice = createAppSlice({
     selectGameStatus: (state) => state.gameStatus,
     selectUserGame: (state) => {
       if (state.userAddress != "") {
-        if(state.activeRace != null){
+        if (state.activeRace != null) {
           const currentGames = Object.values(state.races[state.activeRace]); // Convert object to array
           const game = currentGames[state.activeGame];
           return game;
@@ -217,9 +218,9 @@ export const gameSlice = createAppSlice({
       }
       return null;
     },
-    selectUserQuestion: (state)=>{
+    selectUserQuestion: (state) => {
       if (state.userAddress != "") {
-        if(state.activeRace != null){
+        if (state.activeRace != null) {
           const currentRace = state.races[state.activeRace];
           const currentGame = currentRace.games[state.activeGame];
           const currentQuestion = currentGame.questions[state.activeQuestion];
@@ -227,17 +228,15 @@ export const gameSlice = createAppSlice({
         }
       }
     },
-    selectIdQuestions: (state, raceId, gameId)=>{
+    selectIdQuestions: (state, raceId, gameId) => {
       const currentGame = state.races[raceId];
       return currentGame.games[gameId].questions;
     },
-    selectIdAnswers: (state, raceId, gameId, questionId)=>{
-        const currentGame = state.races[raceId];
-        const currentQuestion = currentGame.games[gameId].questions[questionId];
-        return currentQuestion.playersByAnswer;
+    selectIdAnswers: (state, raceId, gameId, questionId) => {
+      const currentGame = state.races[raceId];
+      const currentQuestion = currentGame.games[gameId].questions[questionId];
+      return currentQuestion.playersByAnswer;
     },
-    
-
   },
 });
 

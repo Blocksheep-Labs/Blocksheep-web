@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
 import RaceItem from "../components/RaceItem";

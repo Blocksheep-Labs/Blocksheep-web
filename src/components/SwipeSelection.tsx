@@ -118,7 +118,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
 
   return (
     <div className="relative py-2">
-      <div className="cardContainer">
+      <div className="bg-tunnel_bg cardContainer">
         {data.map(({ question, image }, index) => (
           <TinderCard
             ref={childRefs[index]}

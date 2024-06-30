@@ -7,7 +7,7 @@ import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
 import { BLOCK_SHEEP_CONTRACT } from "../constants";
 import BlockSheepABI from "../contracts/BlockSheep";
-import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
+// import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
   icon: string;
   label: string;
@@ -30,8 +30,8 @@ type RaceItemProps = {
 };
 
 function RaceItem({ race, onClickJoin }: RaceItemProps) {
-  const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
-  const { mutateAsync: register } = useContractWrite(blockSheep, "register");
+  // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
+  // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
 
   return (
     <div className="relative rounded-xl bg-race_pattern bg-cover bg-center">
@@ -53,14 +53,23 @@ function RaceItem({ race, onClickJoin }: RaceItemProps) {
               </p>
             </button>
           ) : (
-            <Web3Button
+            // <Web3Button
+            //   className="!m-1 !h-4 !w-auto !p-1"
+            //   contractAddress={BLOCK_SHEEP_CONTRACT}
+            //   contractAbi={BlockSheepABI}
+            //   action={async () => await register({ args: [race.id] })}
+            // >
+            //   Register
+            // </Web3Button>
+            <button
               className="!m-1 !h-4 !w-auto !p-1"
-              contractAddress={BLOCK_SHEEP_CONTRACT}
-              contractAbi={BlockSheepABI}
-              action={async () => await register({ args: [race.id] })}
+              onClick={() => {
+                console.log("registering");
+                // async () => await register({args: [race.id]})
+              }}
             >
               Register
-            </Web3Button>
+            </button>
           )}
         </div>
       </div>

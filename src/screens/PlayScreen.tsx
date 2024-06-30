@@ -8,6 +8,7 @@ import WinModal from "../components/WinModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
+import { useNavigate } from "react-router-dom";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -16,6 +17,7 @@ export interface SwipeSelectionAPI {
 type ModalType = "ready" | "loading" | "win" | "race";
 
 function PlayScreen() {
+  const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0);
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
@@ -31,6 +33,7 @@ function PlayScreen() {
   time.setSeconds(time.getSeconds() + 10);
 
   useEffect(() => {
+    console.log("flipState set time ", flipState);
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
     restart(time);
@@ -89,9 +92,14 @@ function PlayScreen() {
     setIsOpen(false);
     setModalType(undefined);
     setRoundId(roundId + 1);
+    nextClicked();
   }
   function onFinish() {
     openLoadingModal();
+  }
+
+  function nextClicked() {
+    navigate("/tunnel");
   }
 
   useEffect(() => {

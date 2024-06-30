@@ -8,12 +8,13 @@ import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import AccountScreen from "./screens/AccountScreen";
+import TunnelGame from "./components/rabbit/TunnelGame";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<HomeScreen />} />
+        <Route index element={<SelectRaceScreen />} />
         <Route
           path="select"
           element={
@@ -22,6 +23,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="tunnel"
+          element={
+            <ProtectedRoute>
+              <TunnelGame />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* not implemented  */}
         <Route
           path="countdown"
           element={
@@ -30,6 +42,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* race id  */}
         <Route
           path="race/:id"
           element={

@@ -5,33 +5,19 @@ import "./index.css";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-import {
-  ThirdwebProvider,
-  coinbaseWallet,
-  localWallet,
-  metamaskWallet,
-  smartWallet,
-} from "@thirdweb-dev/react";
-import { ArbitrumSepolia } from "@thirdweb-dev/chains";
-const factoryAddress = "0x30f88a75E13672722EF90086143F823A552F20fB";
+import { Provider } from "react-redux";
+import { store } from "./app/store";
 
-export const smartWalletConfig = smartWallet(localWallet(), {
-  factoryAddress,
-  gasless: true,
-});
+
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
 root.render(
   <React.StrictMode>
-    <ThirdwebProvider
-      activeChain={ArbitrumSepolia}
-      clientId={import.meta.env.VITE_THIRDWEB_CLIENT_ID}
-      supportedWallets={[metamaskWallet(), coinbaseWallet(), smartWalletConfig]}
-    >
+    <Provider store={store}>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </ThirdwebProvider>
+    </Provider>
   </React.StrictMode>,
 );
 

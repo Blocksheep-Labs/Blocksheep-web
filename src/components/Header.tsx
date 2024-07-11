@@ -1,26 +1,21 @@
-// import {
-//   ConnectWallet,
-//   Web3Button,
-//   useAddress,
-//   useBalance,
-//   useContract,
-//   useContractWrite,
-// } from "@thirdweb-dev/react";
+
 import { parseUnits } from "ethers/lib/utils";
-import { USDC_ADDR } from "../constants";
 import Sheep from "../assets/gameplay/sheeepy.png";
 import { Link } from "react-router-dom";
 import { usePrivy } from "@privy-io/react-auth";
 import shortenAddress from "../utils/shortenAddress";
+import { useEffect } from "react";
+import { useUserBalance } from "../hooks/useUserBalance";
 
 const btnStyle = "!rounded-xl !bg-black !p-1 !text-white !min-w-8";
 
 function Header() {
   // const address = useAddress();
-  // const { data: balance } = useBalance(USDC_ADDR);
-  // const { contract: mockUSDC } = useContract(USDC_ADDR);
+  //const { data: balance, status, isLoading, isError } = useBalance(USDC_ADDR);
+  //const { contract: mockUSDC } = useContract(USDC_ADDR);
   // const { mutateAsync: mintToken } = useContractWrite(mockUSDC, "mint");
   const {login, logout, user} = usePrivy();
+  const userBalance = useUserBalance(user?.wallet?.address as `0x${string}`);
 
   const handleLoginLogout = () => {
     if (user?.wallet?.address) {
@@ -51,7 +46,7 @@ function Header() {
         >
           { user?.wallet?.address ? shortenAddress(user.wallet.address) : "Connect wallet" }
         </button>
-        <button className="m-2 rounded-xl bg-black p-1 text-white">0.0</button>
+        <button className="m-2 rounded-xl bg-black p-1 text-white">{userBalance ? Number(userBalance) : "0.00"}</button>
       </div>
       <Link
         className="flex size-16 items-center justify-center rounded-xl bg-black p-1 text-white"

@@ -8,7 +8,6 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { ThirdwebProvider } from "@thirdweb-dev/react";
 import { WagmiProvider } from "wagmi";
 import { config } from "./config/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

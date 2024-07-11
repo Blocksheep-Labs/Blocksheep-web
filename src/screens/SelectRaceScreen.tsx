@@ -9,6 +9,8 @@ import RaceItem from "../components/RaceItem";
 // import { Race } from "../types";
 // import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
+import { usePrivy } from "@privy-io/react-auth";
+import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
 
 const modalStyles = {
   content: {
@@ -27,19 +29,10 @@ const modalStyles = {
 };
 
 function SelectRaceScreen() {
-  // const address = useAddress();
-  // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT, BlockSheep);
-  // const { data: nextRaceId } = useContractRead(blockSheep, "nextRaceId", []);
-  // const { data } = useContractRead(blockSheep, "getRacesWithPagination", [address, 0, nextRaceId]);
-
-  // const races = useMemo(() => {
-  //   if (!data) {
-  //     return null;
-  //   }
-  //   return (data as Race[]).map((e, index) => {
-  //     return { ...e, id: index };
-  //   });
-  // }, [data]);
+  const { user } = usePrivy();
+  const nextGameId = useNextGameId();
+  const racesWithPagination = useRacesWithPagination(user?.wallet?.address, 0, nextGameId) || [];
+  console.log("CONTRACT DATA:", nextGameId, racesWithPagination);
 
   const navigator = useNavigate();
 

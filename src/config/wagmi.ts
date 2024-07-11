@@ -6,4 +6,4 @@ export const config = createConfig({
   transports: {
     [bscTestnet.id]: http(),
   },
-})
+});

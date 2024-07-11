@@ -5,7 +5,7 @@ import TimerIcon from "../assets/common/timer.png";
 import ConsoleIcon from "../assets/common/console.png";
 import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
-import { BLOCK_SHEEP_CONTRACT } from "../constants";
+import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
 import BlockSheepABI from "../contracts/BlockSheep";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {

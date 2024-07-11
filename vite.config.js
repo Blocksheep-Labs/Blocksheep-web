@@ -8,6 +8,13 @@ export default defineConfig({
   define: {
     "process.env": {},
   },
+  optimizeDeps: {
+    esbuildOptions: {
+      supported: {
+        bigint: true
+      }
+    }
+  },
   build: {
     outDir: "./build",
   },

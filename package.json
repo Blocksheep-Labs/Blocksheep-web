@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "3d-react-carousal": "^5.0.0",
+    "@privy-io/react-auth": "^1.74.1",
     "@react-spring/web": "9.5.5",
     "@reduxjs/toolkit": "^2.2.5",
     "ethers": "^5",

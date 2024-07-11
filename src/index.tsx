@@ -7,6 +7,7 @@ import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
+import { PrivyProvider } from "@privy-io/react-auth";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
@@ -14,9 +15,19 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <PrivyProvider 
+        appId="clyh534er03w5wdid94l1grap"
+        config={{
+          loginMethods: ['wallet'],
+          appearance: {
+            theme: 'light'
+          }
+        }}
+      >
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PrivyProvider>
     </Provider>
   </React.StrictMode>,
 );

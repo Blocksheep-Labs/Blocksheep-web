@@ -10,12 +10,18 @@ export default defineConfig({
   },
   optimizeDeps: {
     esbuildOptions: {
-      supported: {
-        bigint: true
-      }
+      target: "esnext", 
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis'
+      },
+      supported: { 
+        bigint: true 
+      },
     }
-  },
+  }, 
   build: {
+    target: ['esnext'],
     outDir: "./build",
   },
 });

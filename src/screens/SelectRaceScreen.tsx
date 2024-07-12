@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
 import RaceItem from "../components/RaceItem";
 // import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
@@ -11,6 +11,7 @@ import RaceItem from "../components/RaceItem";
 import { useNavigate } from "react-router-dom";
 import { usePrivy } from "@privy-io/react-auth";
 import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
+import { getRacesWithPagination } from "../utils/contract-functions";
 
 const modalStyles = {
   content: {
@@ -30,37 +31,21 @@ const modalStyles = {
 
 function SelectRaceScreen() {
   const { user } = usePrivy();
-  const nextGameId = useNextGameId();
-  const racesWithPagination = useRacesWithPagination(user?.wallet?.address, 0, nextGameId) || [];
-  console.log("CONTRACT DATA:", nextGameId, racesWithPagination);
-
   const navigator = useNavigate();
 
+  const [races, setRaces] = useState([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
-  const [races, setRace] = useState([
-    {
-      id: 1,
-      playersCount: 2,
-      numOfGames: 3,
-      registered: true,
-      startAt: "1716873870",
-    },
-    {
-      id: 2,
-      playersCount: 3,
-      numOfGames: 4,
-      registered: true,
-      startAt: "1716873870",
-    },
-    {
-      id: 3,
-      playersCount: 4,
-      numOfGames: 5,
-      registered: true,
-      startAt: "1716873870",
-    },
-  ]);
+  
+  useEffect(() => {
+    //console.log(user?.wallet?.address)
+    if (user?.wallet?.address) {
+      getRacesWithPagination(user.wallet.address, 0).then(data => {
+        setRaces(data);
+        console.log("RACES:", data);
+      });
+    }
+  }, [user?.wallet?.address])
 
   const selectedRace = useMemo(() => {
     if (!races) {

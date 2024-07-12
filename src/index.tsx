@@ -17,7 +17,6 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 const queryClient = new QueryClient()
 
 root.render(
-  <React.StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={config}>
@@ -37,7 +36,6 @@ root.render(
         </WagmiProvider>
       </QueryClientProvider>
     </Provider>
-  </React.StrictMode>,
 );
 
 Modal.setAppElement("#root");

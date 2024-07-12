@@ -5,7 +5,7 @@ import TimerIcon from "../assets/common/timer.png";
 import ConsoleIcon from "../assets/common/console.png";
 import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
-import { BLOCK_SHEEP_CONTRACT } from "../constants";
+import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
 import BlockSheepABI from "../contracts/BlockSheep";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
@@ -16,22 +16,24 @@ type RaceStatusItemProps = {
 function RaceStatusItem({ icon, label }: RaceStatusItemProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-y-1">
-      <div className="size-8">
+      <div className="size-8 flex justify-center">
         <img src={icon} alt="sheep" className="h-full" />
       </div>
-      <p className="text-white">{label}</p>
+      <p className="text-white bg-black px-2 rounded-xl shadow-xl">{label}</p>
     </div>
   );
 }
 
 type RaceItemProps = {
   race: Race;
-  onClickJoin: () => void;
+  onClickJoin: (a: number) => void;
+  onClickRegister: (a: number) => void;
 };
 
-function RaceItem({ race, onClickJoin }: RaceItemProps) {
+function RaceItem({ race, onClickJoin, onClickRegister }: RaceItemProps) {
   // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
+  //console.log(race)
 
   return (
     <div className="relative rounded-xl bg-race_pattern bg-cover bg-center">
@@ -44,7 +46,7 @@ function RaceItem({ race, onClickJoin }: RaceItemProps) {
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label={race.numOfGames.toString()} />
           {race.registered ? (
-            <button onClick={onClickJoin} className="relative">
+            <button onClick={() => onClickJoin(race.id)} className="relative">
               <div className="h-16 overflow-hidden">
                 <img src={NextFlag} alt="next-flag" className="h-[120%]" />
               </div>
@@ -53,22 +55,13 @@ function RaceItem({ race, onClickJoin }: RaceItemProps) {
               </p>
             </button>
           ) : (
-            // <Web3Button
-            //   className="!m-1 !h-4 !w-auto !p-1"
-            //   contractAddress={BLOCK_SHEEP_CONTRACT}
-            //   contractAbi={BlockSheepABI}
-            //   action={async () => await register({ args: [race.id] })}
-            // >
-            //   Register
-            // </Web3Button>
-            <button
-              className="!m-1 !h-4 !w-auto !p-1"
-              onClick={() => {
-                console.log("registering");
-                // async () => await register({args: [race.id]})
-              }}
-            >
-              Register
+            <button onClick={() => onClickRegister(race.id)} className="relative">
+              <div className="h-16 overflow-hidden">
+                <img src={NextFlag} alt="next-flag" className="h-[140%]" />
+              </div>
+              <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
+                Enroll
+              </p>
             </button>
           )}
         </div>

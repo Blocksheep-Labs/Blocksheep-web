@@ -7,18 +7,35 @@ import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
+import { PrivyProvider } from "@privy-io/react-auth";
+import { WagmiProvider } from "wagmi";
+import { config } from "./config/wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const queryClient = new QueryClient()
 
 root.render(
-  <React.StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+          <PrivyProvider 
+            appId="clyh534er03w5wdid94l1grap"
+            config={{
+              loginMethods: ['wallet'],
+              appearance: {
+                theme: 'light'
+              }
+            }}
+          >
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </PrivyProvider>
+        </WagmiProvider>
+      </QueryClientProvider>
     </Provider>
-  </React.StrictMode>,
 );
 
 Modal.setAppElement("#root");

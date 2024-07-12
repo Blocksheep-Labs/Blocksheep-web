@@ -1,14 +1,17 @@
 // @ts-nocheck
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
 import RaceItem from "../components/RaceItem";
 // import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
 // import { BLOCK_SHEEP_CONTRACT } from "../constants";
 // import BlockSheep from "../contracts/BlockSheep";
 // import { Race } from "../types";
-// import Modal from "react-modal";
+import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
+import { usePrivy } from "@privy-io/react-auth";
+import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
+import { getRacesWithPagination, registerOnTheRace } from "../utils/contract-functions";
 
 const modalStyles = {
   content: {
@@ -18,56 +21,34 @@ const modalStyles = {
     bottom: "auto",
     marginRight: "-50%",
     transform: "translate(-50%, -50%)",
+    padding: 0,
+    borderRadius: '16px',
+    boxShadow: '10px 10px 100px #a6c548'
   },
   overlay: {
     backdropFilter: "blur(5px)",
-
     backgroundColor: "rgba(253,255,255,0.44)",
   },
 };
 
 function SelectRaceScreen() {
-  // const address = useAddress();
-  // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT, BlockSheep);
-  // const { data: nextRaceId } = useContractRead(blockSheep, "nextRaceId", []);
-  // const { data } = useContractRead(blockSheep, "getRacesWithPagination", [address, 0, nextRaceId]);
-
-  // const races = useMemo(() => {
-  //   if (!data) {
-  //     return null;
-  //   }
-  //   return (data as Race[]).map((e, index) => {
-  //     return { ...e, id: index };
-  //   });
-  // }, [data]);
-
+  const { user } = usePrivy();
   const navigator = useNavigate();
 
+  const [races, setRaces] = useState([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
-  const [races, setRace] = useState([
-    {
-      id: 1,
-      playersCount: 2,
-      numOfGames: 3,
-      registered: true,
-      startAt: "1716873870",
-    },
-    {
-      id: 2,
-      playersCount: 3,
-      numOfGames: 4,
-      registered: true,
-      startAt: "1716873870",
-    },
-    {
-      id: 3,
-      playersCount: 4,
-      numOfGames: 5,
-      registered: true,
-      startAt: "1716873870",
-    },
-  ]);
+  //const [selectedRace, setSelectedRace] = useState<any | null>(null);
+  
+  useEffect(() => {
+    //console.log(user?.wallet?.address)
+    if (user?.wallet?.address) {
+      getRacesWithPagination(user.wallet.address, 0).then(data => {
+        setRaces(data);
+        console.log("RACES:", data);
+      });
+    }
+  }, [user?.wallet?.address])
 
   const selectedRace = useMemo(() => {
     if (!races) {
@@ -79,7 +60,18 @@ function SelectRaceScreen() {
   function onClickJoin(id: number) {
     setRaceId(id);
     setIsOpen(true);
+    navigator("/countdown");
   }
+
+  const onClickRegister = useCallback((id: number) => {
+    registerOnTheRace(id, user?.wallet?.address).then(data => {
+      console.log("REGISTER RESULT:", data);
+    }).catch(err => {
+      console.log("REG ERR:", err);
+    });
+    setRaceId(id);
+    setIsOpen(true);
+  }, [user?.wallet?.address]);
 
   function afterOpenModal() {
     // references are now sync'd and can be accessed.
@@ -98,28 +90,35 @@ function SelectRaceScreen() {
       </div>
       <div className="mx-8 my-4 flex h-3/5 flex-col gap-20 overflow-y-auto pt-4">
         {races &&
-          races.map((e, i) => (
-            // <RaceItem key={i.toString()} race={e} onClickJoin={() => onClickJoin(e.id)} />
+          races.filter(r => r.status === 1 || r.registered).map((r, i) => (
             <RaceItem
               key={i.toString()}
-              race={e}
-              onClickJoin={() => {
-                navigator("/countdown");
-              }}
+              race={r}
+              onClickJoin={onClickJoin}
+              onClickRegister={onClickRegister}
             />
           ))}
       </div>
 
-      {/* <Modal
+      <Modal
         isOpen={modalIsOpen}
         onAfterOpen={afterOpenModal}
         onRequestClose={closeModal}
         style={modalStyles}
         contentLabel="JoinModal"
       >
-        <button onClick={closeModal}>close</button>
-        {selectedRace && <p>Race starts at {selectedRace.startAt.toString()}</p>}
-      </Modal> */}
+        <div className="w-64 h-96 md:w-96">
+          <button onClick={closeModal}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+              <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+            </svg>
+          </button>
+          {selectedRace && <p>Race starts at {(() => {
+            const dt = new Date(Number(selectedRace.startAt) * 1000);
+            return `${dt.getHours()}:${dt.getMinutes()}:${dt.getSeconds()}`
+          })()}</p>}
+        </div>
+      </Modal>
     </div>
   );
 }

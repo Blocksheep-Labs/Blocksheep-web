@@ -28,18 +28,6 @@ function Header() {
   return (
     <div className="absolute left-0 top-0 z-10 flex w-full flex-row justify-between">
       <div className="flex gap-2">
-        {/* <ConnectWallet hideTestnetFaucet={false} />
-        <Web3Button
-          className={btnStyle}
-          contractAddress={USDC_ADDR}
-          action={async () =>
-            await mintToken({
-              args: [address, parseUnits("100", 6)],
-            })
-          }
-        >
-          {balance?.displayValue ?? "0.0"}
-        </Web3Button> */}
         <button 
           className="m-2 rounded-xl bg-black p-2 text-white" 
           onClick={handleLoginLogout}
@@ -49,7 +37,7 @@ function Header() {
         <button className="m-2 rounded-xl bg-black p-1 text-white">{userBalance ? Number(userBalance) : "0.00"}</button>
       </div>
       <Link
-        className="flex size-16 items-center justify-center rounded-xl bg-black p-1 text-white"
+        className="flex m-2 size-12 items-center justify-center rounded-xl bg-black p-1 text-white"
         to="/account"
       >
         <img src={Sheep} className="h-full" />

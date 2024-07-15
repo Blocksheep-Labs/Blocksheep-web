@@ -1490,6 +1490,11 @@
     web3-core "^1.8.0"
     web3-core-helpers "^1.8.0"
 
+"@privy-io/wagmi@^0.2.12":
+  version "0.2.12"
+  resolved "https://registry.yarnpkg.com/@privy-io/wagmi/-/wagmi-0.2.12.tgz#e56e5eca48137f0a08aacca195bfeb43f73383c7"
+  integrity sha512-MJQVnrsA1BVT4SUOLCGiDB58qj0JvEaXBSle7R8yTXtmLuEfsRsXZTA9b0CKMe9wGUQfX4U6BligLBZBhreT0Q==
+
 "@react-spring/animated@~9.5.5":
   version "9.5.5"
   resolved "https://registry.yarnpkg.com/@react-spring/animated/-/animated-9.5.5.tgz#d3bfd0f62ed13a337463a55d2c93bb23c15bbf3e"

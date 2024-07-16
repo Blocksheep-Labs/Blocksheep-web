@@ -1,5 +1,6 @@
 import { BLOCK_SHEEP_CONTRACT, USDC_ADDR } from "../config/constants";
 import BlockSheep from "../contracts/BlockSheep";
+import BlockSheepAbi from "../contracts/BlockSheep.json";
 import MockUsdc from "../contracts/MockUSDC";
 import { readContract, writeContract, readContracts, getAccount } from '@wagmi/core';
 import { config } from "../config/wagmi";
@@ -51,6 +52,9 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
     const COST = await retreiveCOST();
     console.log(BigInt(Number(COST) * 3));
 
+    // TODO: wait for txs to finish
+
+
     const approveUSDC = await writeContract(config, {
         address: USDC_ADDR,
         abi: MockUsdc,
@@ -59,9 +63,10 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
     });
     console.log("APPROVE:", approveUSDC);
 
+
     const depositBlockSheep = await writeContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheep,
+        abi: BlockSheepAbi,
         functionName: 'deposit',
         args: [BigInt(Number(COST) * 3)]
     });
@@ -71,7 +76,7 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
     
     const data = await writeContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheep,
+        abi: BlockSheepAbi,
         functionName: "register",
         args: [BigInt(raceId)],
     });

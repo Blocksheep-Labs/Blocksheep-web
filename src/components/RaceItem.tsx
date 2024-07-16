@@ -5,7 +5,7 @@ import TimerIcon from "../assets/common/timer.png";
 import ConsoleIcon from "../assets/common/console.png";
 import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
-import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
+import { BLOCK_SHEEP_CONTRACT, USDC_MULTIPLIER } from "../config/constants";
 import BlockSheepABI from "../contracts/BlockSheep";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
@@ -28,9 +28,10 @@ type RaceItemProps = {
   race: Race;
   onClickJoin: (a: number) => void;
   onClickRegister: (a: number) => void;
+  cost: BigInt
 };
 
-function RaceItem({ race, onClickJoin, onClickRegister }: RaceItemProps) {
+function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
   // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
   //console.log(race)
@@ -39,8 +40,8 @@ function RaceItem({ race, onClickJoin, onClickRegister }: RaceItemProps) {
     <div className="relative rounded-xl bg-race_pattern bg-cover bg-center">
       <div className="flex flex-col gap-4">
         <div className="mx-[20%] mt-[-16px] flex flex-row justify-between">
-          <RaceStatusItem icon={SheepIcon} label={`${race.playersCount}/9`} />
-          <RaceStatusItem icon={EtherIcon} label="10s" />
+          <RaceStatusItem icon={SheepIcon} label={`${race.playersCount}/3`} />
+          <RaceStatusItem icon={EtherIcon} label={(race.numOfQuestions * Number(cost) / USDC_MULTIPLIER).toString() + "$"} />
           <RaceStatusItem icon={TimerIcon} label="5m 30s" />
         </div>
         <div className="mx-[30%] flex justify-between">

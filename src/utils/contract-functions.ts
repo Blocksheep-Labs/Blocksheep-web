@@ -46,13 +46,8 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
 
 // enter the race
 export const registerOnTheRace = async(raceId: number, walletAddress: `0x${string}`) => {
-    //usdc.approve(address(blockSheep), amount);
-    //blockSheep.deposit(amount);
     const COST = await retreiveCOST();
     console.log(BigInt(Number(COST) * 3));
-
-    // TODO: wait for txs to finish
-
 
     const approveUSDC = await writeContract(config, {
         address: USDC_ADDR,
@@ -97,7 +92,7 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
     return regBlocksheep;
 }
 
-
+// fetches races status by ids
 export const getRacesStatusesByIds = async(ids: number[]) => {
     const data = await readContracts(config, {
         contracts: ids.map(raceId => {
@@ -113,7 +108,7 @@ export const getRacesStatusesByIds = async(ids: number[]) => {
     return data.map(i => i.result);
 } 
 
-
+// COST per 1 question in game
 export const retreiveCOST = async() => {
     const data = await readContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
@@ -122,3 +117,30 @@ export const retreiveCOST = async() => {
     });
     return data;
 }
+
+
+// fetch questions by raceID
+export const getRaceQuestionsByGameId = async(raceId: number, gameId: number) => {
+    const data = await readContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "getQuestions",
+        args: [BigInt(raceId), BigInt(gameId)]
+    });
+    return data;
+}
+
+// fetch gamesNames by ids
+export const getGamesNamesByIds = async(ids: number[]) => {
+    const data = await readContracts(config, {
+        contracts: ids.map(id => {
+            return {
+                address: BLOCK_SHEEP_CONTRACT,
+                abi: BlockSheep,
+                functionName: "getGameNames",
+                args: [BigInt(id)]
+            }
+        })
+    });
+    return data.map(i => i.result);
+} 

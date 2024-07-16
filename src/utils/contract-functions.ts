@@ -2,9 +2,8 @@ import { BLOCK_SHEEP_CONTRACT, USDC_ADDR } from "../config/constants";
 import BlockSheep from "../contracts/BlockSheep";
 import BlockSheepAbi from "../contracts/BlockSheep.json";
 import MockUsdc from "../contracts/MockUSDC";
-import { readContract, writeContract, readContracts, getAccount } from '@wagmi/core';
+import { readContract, writeContract, readContracts, getAccount, waitForTransactionReceipt  } from '@wagmi/core';
 import { config } from "../config/wagmi";
-import { waitForTransactionReceipt } from "viem/actions";
 
 // used for fetching last game "id"
 export const getNextGameId = async() => {
@@ -63,6 +62,10 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
     });
     console.log("APPROVE:", approveUSDC);
 
+    await waitForTransactionReceipt(config, {
+        confirmations: 2,
+        hash: approveUSDC,
+    });
 
     const depositBlockSheep = await writeContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
@@ -72,19 +75,26 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
     });
 
     console.log("DEPOSIT:", depositBlockSheep);
-
+    await waitForTransactionReceipt(config, {
+        confirmations: 2,
+        hash: depositBlockSheep,
+    });
     
-    const data = await writeContract(config, {
+    const regBlocksheep = await writeContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
         abi: BlockSheepAbi,
         functionName: "register",
         args: [BigInt(raceId)],
     });
 
-    console.log("REGISTER:", data)
+    console.log("REGISTER:", regBlocksheep)
+    await waitForTransactionReceipt(config, {
+        confirmations: 2,
+        hash: regBlocksheep,
+    });
 
-    return data;
     
+    return regBlocksheep;
 }
 
 

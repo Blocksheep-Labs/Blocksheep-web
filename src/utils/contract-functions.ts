@@ -9,7 +9,7 @@ import { config } from "../config/wagmi";
 export const getNextGameId = async() => {
     const data = await readContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheep,
+        abi: BlockSheepAbi,
         functionName: "nextRaceId",
     });
     return data;
@@ -25,7 +25,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
 
     let data = await readContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheep,
+        abi: BlockSheepAbi,
         functionName: "getRacesWithPagination",
         args: [userAddr, BigInt(from), nextGameId]
     });
@@ -34,8 +34,8 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
     const ids = Array.from(Array(Number(nextGameId)).keys()).map(i => i + from);
     const racesStatuses = await getRacesStatusesByIds(ids);
 
+    // @ts-ignore 
     data = data.map((i, k) => {
-        // @ts-ignore 
         i.id = ids[k];
         i.status = Number(racesStatuses[k]);
         return i;
@@ -95,10 +95,11 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
 // fetches races status by ids
 export const getRacesStatusesByIds = async(ids: number[]) => {
     const data = await readContracts(config, {
+        // @ts-ignore
         contracts: ids.map(raceId => {
             return {
                 address: BLOCK_SHEEP_CONTRACT,
-                abi: BlockSheep,
+                abi: BlockSheepAbi,
                 functionName: "getRaceStatus",
                 args: [BigInt(raceId)]
             }
@@ -112,7 +113,7 @@ export const getRacesStatusesByIds = async(ids: number[]) => {
 export const retreiveCOST = async() => {
     const data = await readContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheep,
+        abi: BlockSheepAbi,
         functionName: "COST",
     });
     return data;
@@ -133,10 +134,11 @@ export const getRaceQuestionsByGameId = async(raceId: number, gameId: number) =>
 // fetch gamesNames by ids
 export const getGamesNamesByIds = async(ids: number[]) => {
     const data = await readContracts(config, {
+        // @ts-ignore
         contracts: ids.map(id => {
             return {
                 address: BLOCK_SHEEP_CONTRACT,
-                abi: BlockSheep,
+                abi: BlockSheepAbi,
                 functionName: "getGameNames",
                 args: [BigInt(id)]
             }

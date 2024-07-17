@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import SheepIcon from "../assets/common/sheeepy.png";
 import EtherIcon from "../assets/common/ether.png";
 import TimerIcon from "../assets/common/timer.png";
@@ -7,6 +7,7 @@ import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
 import { BLOCK_SHEEP_CONTRACT, USDC_MULTIPLIER } from "../config/constants";
 import BlockSheepABI from "../contracts/BlockSheep";
+import msToTime from "../utils/msToTime";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
   icon: string;
@@ -35,6 +36,21 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
   // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
   //console.log(race)
+  const [timeLeft, setTimeLeft] = useState((Number(race.startAt) * 1000) - new Date().getTime());
+  
+  useEffect(() => {
+    if (timeLeft < 0) {
+      return;
+    }
+
+    const intId = setInterval(() => {
+      setTimeLeft((Number(race.startAt) * 1000) - new Date().getTime());
+    }, 1000);
+
+    return () => {
+      clearInterval(intId);
+    }
+  }, []);
 
   return (
     <div className="relative rounded-xl bg-race_pattern bg-cover bg-center">
@@ -42,7 +58,31 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
         <div className="mx-[20%] mt-[-16px] flex flex-row justify-between">
           <RaceStatusItem icon={SheepIcon} label={`${race.playersCount}/3`} />
           <RaceStatusItem icon={EtherIcon} label={(race.numOfQuestions * Number(cost) / USDC_MULTIPLIER).toString() + "$"} />
-          <RaceStatusItem icon={TimerIcon} label="5m 30s" />
+          <RaceStatusItem icon={TimerIcon} label={
+            timeLeft < 0
+            ?
+            (() => {
+              if (race.status === 1) {
+                return "Created";
+              }
+              
+              if (race.status === 2) {
+                return "Started";
+              } 
+
+              if (race.status === 3) {
+                return "Canceled";
+              }
+
+              if (race.status === 4) {
+                return "Finished";
+              }
+
+              return "Unknown";
+            })()
+            :
+            msToTime((Number(race.startAt) * 1000) - new Date().getTime())
+          } />
         </div>
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label={race.numOfGames.toString()} />

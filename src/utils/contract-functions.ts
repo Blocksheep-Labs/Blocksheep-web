@@ -30,7 +30,6 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         args: [userAddr, BigInt(from), nextGameId]
     });
 
-
     const ids = Array.from(Array(Number(nextGameId)).keys()).map(i => i + from);
     const racesStatuses = await getRacesStatusesByIds(ids);
 
@@ -42,6 +41,35 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
     });
 
     return data;
+}
+
+// get race by id
+export const getRaceById = async(raceId: number) => {
+    const data = await readContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "getRaces",
+        args: [BigInt(raceId)]
+    });
+
+    
+    const questionsData = await readContracts(config, {
+        // @ts-ignore
+        contracts: data[5].map(gameId => {
+            return {
+                address: BLOCK_SHEEP_CONTRACT,
+                abi: BlockSheepAbi,
+                functionName: "getQuestions",
+                args: [BigInt(raceId), BigInt(gameId)]
+            }
+        }) 
+    });
+
+    return {
+        race: data,
+        //@ts-ignore
+        questionsByGames: questionsData.map(i => i.result)
+    };
 }
 
 // enter the race

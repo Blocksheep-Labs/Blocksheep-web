@@ -8,7 +8,7 @@ import WinModal from "../components/WinModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -28,6 +28,11 @@ function PlayScreen() {
     }),
   );
   const [flipState, setFlipState] = useState(true);
+
+  const location = useLocation();
+  const [currentGameIndex, setCurrentGameIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(location.state?.questionsByGames.length || 0);
+  console.log("Questions by games:", location.state?.questionsByGames);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -56,9 +61,13 @@ function PlayScreen() {
   };
   const onClickLike = () => {
     ref.current?.swipeLeft();
+    if (currentQuestionIndex !== 0)
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
   const onClickDislike = () => {
     ref.current?.swipeRight();
+    if (currentQuestionIndex !== 0)
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
 
   function openLoadingModal() {
@@ -122,16 +131,23 @@ function PlayScreen() {
           <UserCount />
         </div>
       </div>
-      <SwipeSelection key={roundId.toString()} ref={ref} onFinish={onFinish} />
-      <div className="m-auto mb-6 w-[65%]">
+      <SwipeSelection 
+        key={roundId.toString()} 
+        ref={ref} 
+        onFinish={onFinish} 
+        questions={location.state?.questionsByGames[currentGameIndex] || []}
+      />
+      
+      <div className="m-auto mb-0 w-[65%]">
         <SelectionBtnBox
-          leftLabel="yes"
-          rightLabel="no"
+          leftLabel={location.state?.questionsByGames[currentGameIndex][currentQuestionIndex].info.answers[0] || ""}
+          rightLabel={location.state?.questionsByGames[currentGameIndex][currentQuestionIndex].info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
           disabled={modalIsOpen}
         />
       </div>
+        
       <div className="self-end">
         <img src={BottomTab} alt="" className="w-full" />
       </div>

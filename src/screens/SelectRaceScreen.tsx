@@ -75,7 +75,7 @@ function SelectRaceScreen() {
   function onClickJoin(id: number) {
     setRaceId(id);
     setIsOpen(true);
-    //navigator("/countdown");
+    navigator(`/countdown/${id}`);
   }
 
   const onClickRegister = useCallback(async(id: number) => {

@@ -86,7 +86,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
         </div>
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label={race.numOfGames.toString()} />
-          {race.registered ? (
+          {race.registered || true ? (
             <button onClick={() => onClickJoin(race.id)} className="relative">
               <div className="h-16 overflow-hidden">
                 <img src={NextFlag} alt="next-flag" className="h-[120%]" />

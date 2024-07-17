@@ -35,7 +35,7 @@ function App() {
 
         {/* not implemented  */}
         <Route
-          path="countdown"
+          path="countdown/:raceId"
           element={
             <ProtectedRoute>
               <CountDownScreen />
@@ -45,7 +45,7 @@ function App() {
 
         {/* race id  */}
         <Route
-          path="race/:id"
+          path="race/:raceId/:gamesCount"
           element={
             <ProtectedRoute>
               <PlayScreen />

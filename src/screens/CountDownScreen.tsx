@@ -1,32 +1,47 @@
 import React, { useEffect, useState } from "react";
 import RaceBoard from "../components/RaceBoard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { getRaceById } from "../utils/contract-functions";
 
 function CountDownScreen() {
-  const [seconds, setSeconds] = useState(3);
+  const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
+  const {raceId} = useParams();
+  const [questionsByGames, setQuestionsByGames] = useState<any[]>([]);
+  const [progress, setProgress] = useState<{ curr: number; delta: number }[]>([]);
 
   const handleClose = () => {
-    navigate("/race/1");
+    navigate(`/race/${raceId}/${questionsByGames.length}`, {
+      state: {questionsByGames}
+    });
   };
 
-  const [progress, setProgress] = useState<{ curr: number; delta: number }[]>([]);
+
   useEffect(() => {
-    let newProgress: { curr: number; delta: number }[] = Array.from({ length: 9 }, () => {
-      return { curr: 1, delta: 0 };
-    });
+    if (raceId?.length) {
+      getRaceById(Number(raceId)).then(data => {
+        if (data) {
+          setQuestionsByGames(data.questionsByGames);
 
-    console.log("new progress", newProgress);
-
-    setProgress(newProgress);
-
-    const interval = setInterval(() => {
-      setSeconds((old) => (old > 0 ? old - 1 : 0));
-    }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+          let newProgress: { curr: number; delta: number }[] = Array.from({ length: 3 }, () => {
+            return { curr: 1, delta: 0 };
+          });
+      
+          console.log("new progress", newProgress);
+      
+          setProgress(newProgress);
+  
+          const interval = setInterval(() => {
+            setSeconds((old) => (old > 0 ? old - 1 : 0));
+          }, 1000);
+      
+          return () => {
+            clearInterval(interval);
+          };
+        }
+      });
+    }
+  }, [raceId]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef

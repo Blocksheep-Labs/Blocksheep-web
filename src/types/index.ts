@@ -9,4 +9,5 @@ export type Race = {
   registered: boolean;
   startAt: BigNumber;
   status: number;
+  games: bigint[];
 };

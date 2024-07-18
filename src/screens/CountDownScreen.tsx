@@ -22,6 +22,7 @@ function CountDownScreen() {
       getRaceById(Number(raceId)).then(data => {
         if (data) {
           setQuestionsByGames(data.questionsByGames);
+          console.log(data.questionsByGames)
 
           let newProgress: { curr: number; delta: number }[] = Array.from({ length: 3 }, () => {
             return { curr: 1, delta: 0 };

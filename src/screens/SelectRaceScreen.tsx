@@ -45,7 +45,6 @@ function SelectRaceScreen() {
     if (user?.wallet?.address) {
       getRacesWithPagination(user.wallet.address, 0).then(data => {
         setRaces(data);
-        console.log("RACES:", data);
       });
       setCost(await retreiveCOST());
     }

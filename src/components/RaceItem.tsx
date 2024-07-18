@@ -6,7 +6,6 @@ import ConsoleIcon from "../assets/common/console.png";
 import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
 import { BLOCK_SHEEP_CONTRACT, USDC_MULTIPLIER } from "../config/constants";
-import BlockSheepABI from "../contracts/BlockSheep";
 import msToTime from "../utils/msToTime";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
@@ -86,7 +85,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
         </div>
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label={race.numOfGames.toString()} />
-          {race.registered || true ? (
+          {race.registered ? (
             <button onClick={() => onClickJoin(race.id)} className="relative">
               <div className="h-16 overflow-hidden">
                 <img src={NextFlag} alt="next-flag" className="h-[120%]" />

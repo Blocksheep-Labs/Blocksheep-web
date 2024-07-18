@@ -1,7 +1,6 @@
 import { BLOCK_SHEEP_CONTRACT, USDC_ADDR } from "../config/constants";
-import BlockSheep from "../contracts/BlockSheep";
 import BlockSheepAbi from "../contracts/BlockSheep.json";
-import MockUsdc from "../contracts/MockUSDC";
+import MockUsdcAbi from "../contracts/MockUSDC.json";
 import { readContract, writeContract, readContracts, getAccount, waitForTransactionReceipt  } from '@wagmi/core';
 import { config } from "../config/wagmi";
 
@@ -79,7 +78,7 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
 
     const approveUSDC = await writeContract(config, {
         address: USDC_ADDR,
-        abi: MockUsdc,
+        abi: MockUsdcAbi,
         functionName: 'approve',
         args: [BLOCK_SHEEP_CONTRACT, BigInt(Number(COST) * 3)]
     });
@@ -174,3 +173,27 @@ export const getGamesNamesByIds = async(ids: number[]) => {
     });
     return data.map(i => i.result);
 } 
+
+
+// save user answer
+export const submitUserAnswer = async(
+    raceId: number,
+    gameIndex: number,
+    questionIndex: number,
+    answerId: number,
+) => {
+    console.log(raceId, gameIndex, questionIndex, answerId)
+    const data = await writeContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "submitAnswer",
+        args: [
+            BigInt(raceId), 
+            BigInt(gameIndex), 
+            BigInt(questionIndex), 
+            BigInt(answerId)
+        ]
+    });
+
+    return data;
+}

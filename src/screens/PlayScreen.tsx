@@ -29,29 +29,32 @@ function PlayScreen() {
     }),
   );
   const [flipState, setFlipState] = useState(true);
+
+  const {raceId} = useParams();
   const location = useLocation();
-  const { raceId } = useParams();
-  const [questions, setQuestions] = useState<any[]>([])
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  
+  const questions = location.state?.questionsByGames[currentGameIndex];
+  //console.log("Questions by games:", location.state?.questionsByGames);
+
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
-  
+
+
+  // set maximum game index
+  useEffect(() => {
+    if (location.state?.questionsByGames.length) {
+      setCurrentQuestionIndex(location.state?.questionsByGames.length + 1)
+    }
+  }, [location.state?.questionsByGames.length]);
+
+
   useEffect(() => {
     console.log("flipState set time ", flipState);
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
     restart(time);
   }, [flipState]);
-  
-  useEffect(() => {
-    if (location.state?.questionsByGames?.[currentGameIndex]) {
-      setQuestions(location.state?.questionsByGames[currentGameIndex])
-      console.log("Questions by games:", location.state?.questionsByGames);
-      setCurrentQuestionIndex(location.state?.questionsByGames[currentGameIndex].length - 1)
-    }
-  }, [location.state?.questionsByGames])
 
   const { totalSeconds, restart } = useTimer({
     expiryTimestamp: time,
@@ -69,23 +72,39 @@ function PlayScreen() {
     );
   };
   const onClickLike = async() => {
+    console.log({
+      raceId,
+      currentGameIndex,
+      currentQuestionIndex,
+      answerId: 0,
+    });
+    /*
     await submitUserAnswer(
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,
       0
     ).catch(console.error);
+    */
     ref.current?.swipeLeft();
     if (currentQuestionIndex !== 0)
       setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
   const onClickDislike = async() => {
-    await submitUserAnswer(
-      Number(raceId),
+    console.log({
+      raceId,
       currentGameIndex,
+      currentQuestionIndex,
+      answerId: 1,
+    });
+    /*
+    await submitUserAnswer(
+      Number(raceId), 
+      currentGameIndex, 
       currentQuestionIndex,
       1
     ).catch(console.error);
+    */
     ref.current?.swipeRight();
     if (currentQuestionIndex !== 0)
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -161,8 +180,8 @@ function PlayScreen() {
       
       <div className="m-auto mb-0 w-[65%]">
         <SelectionBtnBox
-          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
-          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
+          leftLabel={questions?.[currentQuestionIndex].info.answers[0] || ""}
+          rightLabel={questions?.[currentQuestionIndex].info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
           disabled={modalIsOpen}

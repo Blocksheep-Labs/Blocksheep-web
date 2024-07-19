@@ -7,6 +7,7 @@ import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
 import { BLOCK_SHEEP_CONTRACT, USDC_MULTIPLIER } from "../config/constants";
 import msToTime from "../utils/msToTime";
+import { refundBalance } from "../utils/contract-functions";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
   icon: string;
@@ -36,6 +37,12 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
   //console.log(race)
   const [timeLeft, setTimeLeft] = useState((Number(race.startAt) * 1000) - new Date().getTime());
+
+  const withdrawFundsHandler = async() => {
+    await refundBalance(race.numOfQuestions * Number(cost)).then(data => {
+      console.log("Withdraw balance hash:", data)
+    });
+  }
   
   useEffect(() => {
     if (timeLeft < 0) {
@@ -61,18 +68,21 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
             timeLeft < 0
             ?
             (() => {
+              // CREATED (due to the contract)
               if (race.status === 1) {
-                return "Created";
+                return "Expired";
               }
               
+              // STARTED (due to the contract)
               if (race.status === 2) {
-                return "Started";
+                return "Running";
               } 
 
               if (race.status === 3) {
                 return "Canceled";
               }
 
+              // DISTRIBUTED (due to the contract)
               if (race.status === 4) {
                 return "Finished";
               }
@@ -85,25 +95,42 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
         </div>
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label={race.numOfGames.toString()} />
-          {race.registered ? (
-            <button onClick={() => onClickJoin(race.id)} className="relative">
-              <div className="h-16 overflow-hidden">
-                <img src={NextFlag} alt="next-flag" className="h-[120%]" />
-              </div>
-              <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
-                Join
-              </p>
-            </button>
-          ) : (
-            <button onClick={() => onClickRegister(race.id)} className="relative">
+          
+          {
+            // if the race was not completed
+            race.registered && race.status == 1 && race.playersCount < 3
+            ?
+            <button onClick={withdrawFundsHandler} className="relative">
               <div className="h-16 overflow-hidden">
                 <img src={NextFlag} alt="next-flag" className="h-[140%]" />
               </div>
-              <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
-                Enroll
+              <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md text-[#18243F]">
+                Refund
               </p>
             </button>
-          )}
+            :
+            <>
+              {race.registered ? (
+                <button onClick={() => onClickJoin(race.id)} className="relative">
+                  <div className="h-16 overflow-hidden">
+                    <img src={NextFlag} alt="next-flag" className="h-[120%]" />
+                  </div>
+                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
+                    Join
+                  </p>
+                </button>
+              ) : (
+                <button onClick={() => onClickRegister(race.id)} className="relative">
+                  <div className="h-16 overflow-hidden">
+                    <img src={NextFlag} alt="next-flag" className="h-[140%]" />
+                  </div>
+                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
+                    Enroll
+                  </p>
+                </button>
+              )}
+            </>
+          }
         </div>
       </div>
     </div>

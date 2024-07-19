@@ -35,6 +35,7 @@ function PlayScreen() {
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const questions = location.state?.questionsByGames[currentGameIndex];
+  console.log(questions[currentQuestionIndex], currentQuestionIndex)
   //console.log("Questions by games:", location.state?.questionsByGames);
 
   const time = new Date();
@@ -43,8 +44,8 @@ function PlayScreen() {
 
   // set maximum game index
   useEffect(() => {
-    if (location.state?.questionsByGames.length) {
-      setCurrentQuestionIndex(location.state?.questionsByGames.length + 1)
+    if (location.state?.questionsByGames?.[currentGameIndex].length) {
+      setCurrentQuestionIndex(location.state?.questionsByGames?.[currentGameIndex].length - 1)
     }
   }, [location.state?.questionsByGames.length]);
 
@@ -180,8 +181,8 @@ function PlayScreen() {
       
       <div className="m-auto mb-0 w-[65%]">
         <SelectionBtnBox
-          leftLabel={questions?.[currentQuestionIndex].info.answers[0] || ""}
-          rightLabel={questions?.[currentQuestionIndex].info.answers[1] || ""}
+          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
+          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
           disabled={modalIsOpen}
@@ -194,7 +195,10 @@ function PlayScreen() {
 
       {modalIsOpen && (
         <>
-          {modalType === "loading" && <LoadingModal />}
+          {
+            modalType === "loading" && 
+            <LoadingModal raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndex={currentQuestionIndex} />
+          }
           {modalType === "win" && <WinModal handleClose={closeWinModal} />}
           {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
         </>

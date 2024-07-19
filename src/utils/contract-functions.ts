@@ -197,3 +197,37 @@ export const submitUserAnswer = async(
 
     return data;
 }
+
+
+// distribute reward of the 1 game
+export const distributeRewardOfTheGame = async(
+    raceId: number,
+    gameIndex: number,
+    questionIndex: number,
+) => {
+    const data = await writeContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "distributeReward",
+        args: [
+            BigInt(raceId),
+            BigInt(gameIndex),
+            BigInt(questionIndex),
+        ]
+    });
+
+    return data;
+}
+
+
+// withdraw funds
+export const refundBalance = async(amount: number) => {
+    const data = await writeContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "refundBalance",
+        args: [BigInt(amount)]
+    });
+
+    return data;
+}

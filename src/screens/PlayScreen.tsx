@@ -152,6 +152,8 @@ function PlayScreen() {
     navigate("/tunnel");
   }
 
+
+  /*
   useEffect(() => {
     if (modalIsOpen && modalType === "loading") {
       const timer = setTimeout(() => {
@@ -163,6 +165,7 @@ function PlayScreen() {
       };
     }
   }, [modalIsOpen, modalType]);
+  */
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
@@ -197,9 +200,12 @@ function PlayScreen() {
         <>
           {
             modalType === "loading" && 
-            <LoadingModal raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndex={currentQuestionIndex} />
+            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndex={currentQuestionIndex} />
           }
-          {modalType === "win" && <WinModal handleClose={closeWinModal} />}
+          {
+            modalType === "win" && 
+            <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
+          }
           {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
         </>
       )}

@@ -231,3 +231,24 @@ export const refundBalance = async(amount: number) => {
 
     return data;
 }
+
+
+// fetch results
+export const getScoreAtGameOfUser = async(
+    raceId: number,
+    gameIndex: number,
+    userAddress: `0x${string}`
+) => {
+    const data = await readContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "getScoreAtGameOfUser",
+        args: [
+            BigInt(raceId),
+            BigInt(gameIndex),
+            userAddress
+        ]
+    });
+
+    return data;
+}

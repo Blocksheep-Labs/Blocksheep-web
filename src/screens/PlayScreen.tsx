@@ -78,14 +78,14 @@ function PlayScreen() {
       currentQuestionIndex,
       answerId: 0,
     });
-    /*
+    
     await submitUserAnswer(
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,
       0
     ).catch(console.error);
-    */
+    
     ref.current?.swipeLeft();
     if (currentQuestionIndex !== 0)
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -97,14 +97,14 @@ function PlayScreen() {
       currentQuestionIndex,
       answerId: 1,
     });
-    /*
+
     await submitUserAnswer(
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,
       1
     ).catch(console.error);
-    */
+    
     ref.current?.swipeRight();
     if (currentQuestionIndex !== 0)
       setCurrentQuestionIndex(currentQuestionIndex - 1);

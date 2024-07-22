@@ -8,7 +8,10 @@ import WinModal from "../components/WinModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { submitUserAnswer } from "../utils/contract-functions";
+import { waitForTransactionReceipt } from "@wagmi/core";
+import { config } from "../config/wagmi";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -29,17 +32,36 @@ function PlayScreen() {
   );
   const [flipState, setFlipState] = useState(true);
 
+  const {raceId} = useParams();
+  const location = useLocation();
+  const [currentGameIndex, setCurrentGameIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const questions = location.state?.questionsByGames[currentGameIndex];
+  //console.log(questions[currentQuestionIndex], currentQuestionIndex)
+  //console.log("Questions by games:", location.state?.questionsByGames);
+
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
+  // set maximum game index
   useEffect(() => {
-    console.log("flipState set time ", flipState);
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-    restart(time);
-  }, [flipState]);
+    if (location.state?.questionsByGames?.[currentGameIndex].length) {
+      setCurrentQuestionIndex(location.state?.questionsByGames?.[currentGameIndex].length - 1)
+    }
+  }, [location.state?.questionsByGames.length]);
 
-  const { totalSeconds, restart } = useTimer({
+
+  useEffect(() => {
+    if (!modalIsOpen) {
+      console.log("flipState set time ", flipState);
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restart(time);
+    }
+  }, [flipState, modalIsOpen]);
+
+  const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
     onExpire: () => setFlipState(!flipState),
   });
@@ -54,11 +76,85 @@ function PlayScreen() {
       }),
     );
   };
-  const onClickLike = () => {
+
+  
+  const onClickLike = async() => {
+    setSubmittingAnswer(true);
+    pause();
+
+    console.log({
+      raceId,
+      currentGameIndex,
+      currentQuestionIndex,
+      answerId: 0,
+    });
+    
+    await submitUserAnswer(
+      Number(raceId), 
+      currentGameIndex, 
+      currentQuestionIndex,
+      0
+    ).then(async hash => {
+      await waitForTransactionReceipt(config, {
+        hash,
+        confirmations: 2
+      });
+    }).catch(err => {
+      console.log("Answer can not be submitted, probably answered already");
+    });
+
+
+    setSubmittingAnswer(false);
+    resume();
+    
     ref.current?.swipeLeft();
+
+    // reset time
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+    restart(time);
+
+    if (currentQuestionIndex !== 0)
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
-  const onClickDislike = () => {
+
+
+  const onClickDislike = async() => {
+    setSubmittingAnswer(true);
+    pause();
+
+    console.log({
+      raceId,
+      currentGameIndex,
+      currentQuestionIndex,
+      answerId: 1,
+    });
+
+    await submitUserAnswer(
+      Number(raceId), 
+      currentGameIndex, 
+      currentQuestionIndex,
+      1
+    ).then(async hash => {
+      await waitForTransactionReceipt(config, {
+        hash,
+        confirmations: 2
+      });
+    }).catch(err => {
+      console.log("Answer can not be submitted, probably answered already");
+    });
+
+    setSubmittingAnswer(false);
+    resume();
+
+    // reset time
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+    restart(time);
+    
     ref.current?.swipeRight();
+    if (currentQuestionIndex !== 0)
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
 
   function openLoadingModal() {
@@ -69,6 +165,7 @@ function PlayScreen() {
   function closeLoadingModal() {
     setIsOpen(false);
     setModalType(undefined);
+    openWinModal();
   }
 
   function openWinModal() {
@@ -102,6 +199,8 @@ function PlayScreen() {
     navigate("/tunnel");
   }
 
+
+  /*
   useEffect(() => {
     if (modalIsOpen && modalType === "loading") {
       const timer = setTimeout(() => {
@@ -113,6 +212,7 @@ function PlayScreen() {
       };
     }
   }, [modalIsOpen, modalType]);
+  */
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
@@ -122,24 +222,37 @@ function PlayScreen() {
           <UserCount />
         </div>
       </div>
-      <SwipeSelection key={roundId.toString()} ref={ref} onFinish={onFinish} />
-      <div className="m-auto mb-6 w-[65%]">
+      <SwipeSelection 
+        key={roundId.toString()} 
+        ref={ref} 
+        onFinish={onFinish} 
+        questions={questions || []}
+      />
+      
+      <div className="m-auto mb-0 w-[65%]">
         <SelectionBtnBox
-          leftLabel="yes"
-          rightLabel="no"
+          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
+          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
-          disabled={modalIsOpen}
+          disabled={modalIsOpen || submittingAnswer}
         />
       </div>
+        
       <div className="self-end">
         <img src={BottomTab} alt="" className="w-full" />
       </div>
 
       {modalIsOpen && (
         <>
-          {modalType === "loading" && <LoadingModal />}
-          {modalType === "win" && <WinModal handleClose={closeWinModal} />}
+          {
+            modalType === "loading" && 
+            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} />
+          }
+          {
+            modalType === "win" && 
+            <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
+          }
           {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
         </>
       )}

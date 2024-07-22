@@ -19,11 +19,11 @@ function SelectionBtnBox({
       <img src={YesNo} alt="" />
       <div className="absolute inset-x-0 top-0 flex h-[70%] justify-between">
         <div className="grow" />
-        <button className="font-[Berlin] text-2xl" onClick={leftAction} disabled={disabled}>
+        <button className="font-[Berlin] text-2xl text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400" onClick={leftAction} disabled={disabled}>
           {leftLabel}
         </button>
         <div className="grow" />
-        <button className="font-[Berlin] text-2xl" onClick={rightAction} disabled={disabled}>
+        <button className="font-[Berlin] text-2xl text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400" onClick={rightAction} disabled={disabled}>
           {rightLabel}
         </button>
         <div className="grow" />

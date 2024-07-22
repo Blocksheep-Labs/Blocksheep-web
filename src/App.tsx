@@ -35,7 +35,7 @@ function App() {
 
         {/* not implemented  */}
         <Route
-          path="countdown"
+          path="countdown/:raceId"
           element={
             <ProtectedRoute>
               <CountDownScreen />
@@ -45,7 +45,7 @@ function App() {
 
         {/* race id  */}
         <Route
-          path="race/:id"
+          path="race/:raceId/:gamesCount"
           element={
             <ProtectedRoute>
               <PlayScreen />
@@ -69,7 +69,7 @@ function Layout() {
   const { pathname } = useLocation();
   return (
     <div className="relative m-auto h-screen w-full overflow-hidden bg-black sm:max-w-sm">
-      {pathname === "/" && <Header />}
+      {["/", "select"].includes(pathname) && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}
     </div>

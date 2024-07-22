@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const percent = 61 / 9;
 
-const userIndex = 4;
+const userIndex = 1;
 
 function RaceBoard({ progress }: { progress: { curr: number; delta: number }[] }) {
   return (

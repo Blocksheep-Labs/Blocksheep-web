@@ -8,4 +8,7 @@ export type Race = {
   playersCount: number;
   registered: boolean;
   startAt: BigNumber;
+  status: number;
+  games: bigint[];
+  gamesCompletedPerUser: bigint[],
 };

@@ -1,8 +1,9 @@
 import TinderCard from "react-tinder-card";
 import BottomYellowBg from "../assets/gameplay/bottom-yellow-top.svg";
 
-import { RefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { RefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import React from "react";
+import SelectionBtnBox from "./SelectionBtnBox";
 
 type Direction = "left" | "right" | "up" | "down";
 
@@ -12,26 +13,6 @@ export interface API {
   restoreCard(): Promise<void>;
 }
 
-const questions = [
-  {
-    question: "Is it better to have nice or smart kids?",
-    image: "/questions/question1.png",
-    right: "smart",
-    left: "nice",
-  },
-  {
-    question: "Would you rather explore the depths of the ocean or outer space?",
-    image: "/questions/question2.png",
-    right: "ocean",
-    left: "space",
-  },
-  {
-    question: "Would you rather read minds or being able to teleport?",
-    image: "/questions/question3.png",
-    right: "read",
-    left: "teleport",
-  },
-];
 
 const Content = ({ question }: { question: string }) => (
   <div className="flex h-[100%] items-center justify-center bg-[#FFEEB9]">
@@ -42,10 +23,11 @@ const Content = ({ question }: { question: string }) => (
 export type SwipeSelectionProps = {
   onSwipe?: () => void;
   onFinish: () => void;
+  questions: any[];
 };
 
 // eslint-disable-next-line react/display-name
-const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFinish }, ref) => {
+const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFinish, questions }, ref) => {
   // const [data, setData] = useState(questions);
   const data = questions;
   const [currentIndex, setCurrentIndex] = useState(data.length - 1);
@@ -116,34 +98,38 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
   //   await childRefs[newIndex].current?.restoreCard();
   // };
 
+  // console.log("DATA:", data)
+
   return (
-    <div className="relative py-2">
-      <div className="bg-tunnel_bg cardContainer">
-        {data.map(({ question, image }, index) => (
-          <TinderCard
-            ref={childRefs[index]}
-            className="swipe scale-50"
-            key={question}
-            onSwipe={(dir) => swiped(dir, question, index)}
-            onCardLeftScreen={() => outOfFrame(question, index)}
-            swipeRequirementType="position"
-            preventSwipe={["up", "down"]}
-          >
-            <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
-              <div className="relative ">
-                <img src={image} alt="play-card" />
-                <img
-                  src={BottomYellowBg}
-                  alt="bottom-yellow-top"
-                  className="absolute inset-x-0 bottom-0"
-                />
+    <>
+      <div className="relative py-2">
+        <div className="bg-tunnel_bg cardContainer">
+          {data.map(({ id, info }, index) => (
+            <TinderCard
+              ref={childRefs[index]}
+              className="swipe scale-50"
+              key={id}
+              onSwipe={(dir) => swiped(dir, info, index)}
+              onCardLeftScreen={() => outOfFrame(info, index)}
+              swipeRequirementType="position"
+              preventSwipe={["up", "down"]}
+            >
+              <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
+                <div className="relative ">
+                  <img src={"/questions/question1.png"} alt="play-card" />
+                  <img
+                    src={BottomYellowBg}
+                    alt="bottom-yellow-top"
+                    className="absolute inset-x-0 bottom-0"
+                  />
+                </div>
+                <Content question={info.content} />
               </div>
-              <Content question={question} />
-            </div>
-          </TinderCard>
-        ))}
+            </TinderCard>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 });
 

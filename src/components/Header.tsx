@@ -1,19 +1,13 @@
-
-import { parseUnits } from "ethers/lib/utils";
+// import { parseUnits } from "ethers/lib/utils";
 import Sheep from "../assets/gameplay/sheeepy.png";
 import { Link } from "react-router-dom";
 import { usePrivy } from "@privy-io/react-auth";
 import shortenAddress from "../utils/shortenAddress";
-import { useEffect } from "react";
 import { useUserBalance } from "../hooks/useUserBalance";
+import { USDC_MULTIPLIER } from "../config/constants";
 
-const btnStyle = "!rounded-xl !bg-black !p-1 !text-white !min-w-8";
 
 function Header() {
-  // const address = useAddress();
-  //const { data: balance, status, isLoading, isError } = useBalance(USDC_ADDR);
-  //const { contract: mockUSDC } = useContract(USDC_ADDR);
-  // const { mutateAsync: mintToken } = useContractWrite(mockUSDC, "mint");
   const {login, logout, user} = usePrivy();
   const userBalance = useUserBalance(user?.wallet?.address as `0x${string}`);
 
@@ -34,7 +28,13 @@ function Header() {
         >
           { user?.wallet?.address ? shortenAddress(user.wallet.address) : "Connect wallet" }
         </button>
-        <button className="m-2 rounded-xl bg-black p-1 text-white">{userBalance ? Number(userBalance) : "0.00"}</button>
+        <button className="m-2 rounded-xl bg-black p-2 text-white">{userBalance ? `${
+          (() => {
+            let money = (Number(userBalance) / USDC_MULTIPLIER).toString();
+            money = money.slice(0, money.indexOf('.')) + money.slice(money.indexOf('.'), money.length - 3);
+            return money;
+          })()
+        }$` : "0.00$"}</button>
       </div>
       <Link
         className="flex m-2 size-12 items-center justify-center rounded-xl bg-black p-1 text-white"

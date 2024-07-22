@@ -11,7 +11,7 @@ import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import { usePrivy } from "@privy-io/react-auth";
 import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
-import { getRacesWithPagination, registerOnTheRace } from "../utils/contract-functions";
+import { getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../utils/contract-functions";
 
 const modalStyles = {
   content: {
@@ -38,17 +38,31 @@ function SelectRaceScreen() {
   const [races, setRaces] = useState([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
+  const [cost, setCost] = useState(0);
   //const [selectedRace, setSelectedRace] = useState<any | null>(null);
-  
-  useEffect(() => {
-    //console.log(user?.wallet?.address)
+
+  const fetchAndSetRaces = useCallback(async() => {
     if (user?.wallet?.address) {
       getRacesWithPagination(user.wallet.address, 0).then(data => {
         setRaces(data);
-        console.log("RACES:", data);
       });
+      setCost(await retreiveCOST());
     }
-  }, [user?.wallet?.address])
+  }, [user?.wallet?.address]);
+  
+  useEffect(() => {
+    if (user?.wallet?.address) {
+      fetchAndSetRaces();
+      
+      const intId = setInterval(() => {
+        fetchAndSetRaces();
+      }, 10000);
+
+      return () => {
+        clearInterval(intId);
+      }
+    }
+  }, [user?.wallet?.address]);
 
   const selectedRace = useMemo(() => {
     if (!races) {
@@ -60,12 +74,13 @@ function SelectRaceScreen() {
   function onClickJoin(id: number) {
     setRaceId(id);
     setIsOpen(true);
-    navigator("/countdown");
+    navigator(`/countdown/${id}`);
   }
 
-  const onClickRegister = useCallback((id: number) => {
-    registerOnTheRace(id, user?.wallet?.address).then(data => {
-      console.log("REGISTER RESULT:", data);
+  const onClickRegister = useCallback(async(id: number) => {
+    await registerOnTheRace(id, user?.wallet?.address).then(data => {
+      console.log("REGISTERED, fetching list of races...");
+      fetchAndSetRaces();
     }).catch(err => {
       console.log("REG ERR:", err);
     });
@@ -90,9 +105,10 @@ function SelectRaceScreen() {
       </div>
       <div className="mx-8 my-4 flex h-3/5 flex-col gap-20 overflow-y-auto pt-4">
         {races &&
-          races.filter(r => r.status === 1 || r.registered).map((r, i) => (
+          races.map((r, i) => (
             <RaceItem
               key={i.toString()}
+              cost={cost}
               race={r}
               onClickJoin={onClickJoin}
               onClickRegister={onClickRegister}
@@ -107,16 +123,29 @@ function SelectRaceScreen() {
         style={modalStyles}
         contentLabel="JoinModal"
       >
-        <div className="w-64 h-96 md:w-96">
-          <button onClick={closeModal}>
+        <div className="w-64 h-96 md:w-96 p-5 flex flex-col gap-3 justify-center relative">
+          <button onClick={closeModal} className="absolute top-5 right-5">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
               <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
             </svg>
           </button>
-          {selectedRace && <p>Race starts at {(() => {
-            const dt = new Date(Number(selectedRace.startAt) * 1000);
-            return `${dt.getHours()}:${dt.getMinutes()}:${dt.getSeconds()}`
-          })()}</p>}
+          {
+            selectedRace && 
+            <>
+              <p className="font-bold text-xl text-center">Successfuly registered on the race</p>
+              <p className="text-center">Race starts at:{' '}
+                {(() => {
+                  const dt = new Date(Number(selectedRace.startAt) * 1000);
+                  const h = dt.getHours();
+                  const m = dt.getMinutes();
+                  const s = dt.getSeconds();
+
+                  return `${h < 10 ? `0${h}` : h}:${m < 10 ? `0${m}` : m}:${s < 10 ? `0${s}` : s}`
+                })()}
+              </p>
+              <button onClick={closeModal} className="btn bg-green-400 hover:bg-green-500 text-white font-bold p-3 rounded-xl">Confirm!</button>
+            </>
+          }
         </div>
       </Modal>
     </div>

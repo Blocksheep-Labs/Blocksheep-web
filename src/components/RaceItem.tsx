@@ -8,6 +8,8 @@ import { Race } from "../types";
 import { BLOCK_SHEEP_CONTRACT, USDC_MULTIPLIER } from "../config/constants";
 import msToTime from "../utils/msToTime";
 import { refundBalance } from "../utils/contract-functions";
+import { waitForTransactionReceipt } from "@wagmi/core";
+import { config } from "../config/wagmi";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
   icon: string;
@@ -28,7 +30,7 @@ function RaceStatusItem({ icon, label }: RaceStatusItemProps) {
 type RaceItemProps = {
   race: Race;
   onClickJoin: (a: number) => void;
-  onClickRegister: (a: number) => void;
+  onClickRegister: (a: number) => Promise<void>;
   cost: BigInt
 };
 
@@ -37,11 +39,24 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
   //console.log(race)
   const [timeLeft, setTimeLeft] = useState((Number(race.startAt) * 1000) - new Date().getTime());
+  const [loading, setLoading] = useState(false);
 
   const withdrawFundsHandler = async() => {
-    await refundBalance(race.numOfQuestions * Number(cost)).then(data => {
-      console.log("Withdraw balance hash:", data)
+    setLoading(true);
+    const hash = await refundBalance(race.numOfQuestions * Number(cost));
+
+    console.log("Withdraw balance hash:", hash);
+    await waitForTransactionReceipt(config, {
+      hash,
+      confirmations: 2
     });
+    setLoading(false);
+  }
+
+  const handleRegister = async(id: number) => {
+    setLoading(true);
+    await onClickRegister(id);
+    setLoading(false);
   }
   
   useEffect(() => {
@@ -100,31 +115,43 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
             // if the race was not completed
             race.registered && race.status == 1 && race.playersCount < 3
             ?
-            <button onClick={withdrawFundsHandler} className="relative">
+            <button 
+              onClick={withdrawFundsHandler} 
+              className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
+              disabled={loading}
+            >
               <div className="h-16 overflow-hidden">
                 <img src={NextFlag} alt="next-flag" className="h-[140%]" />
               </div>
-              <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md text-[#18243F]">
+              <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md">
                 Refund
               </p>
             </button>
             :
             <>
               {race.registered ? (
-                <button onClick={() => onClickJoin(race.id)} className="relative">
+                <button 
+                  onClick={() => onClickJoin(race.id)} 
+                  className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
+                  disabled={loading}
+                >
                   <div className="h-16 overflow-hidden">
                     <img src={NextFlag} alt="next-flag" className="h-[120%]" />
                   </div>
-                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
+                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
                     Join
                   </p>
                 </button>
               ) : (
-                <button onClick={() => onClickRegister(race.id)} className="relative">
+                <button 
+                  onClick={() => handleRegister(race.id)} 
+                  className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`} 
+                  disabled={loading}
+                >
                   <div className="h-16 overflow-hidden">
                     <img src={NextFlag} alt="next-flag" className="h-[140%]" />
                   </div>
-                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg text-[#18243F]">
+                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
                     Enroll
                   </p>
                 </button>

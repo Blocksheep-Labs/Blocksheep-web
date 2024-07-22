@@ -10,6 +10,8 @@ import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { submitUserAnswer } from "../utils/contract-functions";
+import { waitForTransactionReceipt } from "@wagmi/core";
+import { config } from "../config/wagmi";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -34,13 +36,13 @@ function PlayScreen() {
   const location = useLocation();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const questions = location.state?.questionsByGames[currentGameIndex];
-  console.log(questions[currentQuestionIndex], currentQuestionIndex)
+  //console.log(questions[currentQuestionIndex], currentQuestionIndex)
   //console.log("Questions by games:", location.state?.questionsByGames);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
-
 
   // set maximum game index
   useEffect(() => {
@@ -57,7 +59,7 @@ function PlayScreen() {
     restart(time);
   }, [flipState]);
 
-  const { totalSeconds, restart } = useTimer({
+  const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
     onExpire: () => setFlipState(!flipState),
   });
@@ -72,7 +74,12 @@ function PlayScreen() {
       }),
     );
   };
+
+  
   const onClickLike = async() => {
+    setSubmittingAnswer(true);
+    pause();
+
     console.log({
       raceId,
       currentGameIndex,
@@ -85,13 +92,35 @@ function PlayScreen() {
       currentGameIndex, 
       currentQuestionIndex,
       0
-    ).catch(console.error);
+    ).then(async hash => {
+      await waitForTransactionReceipt(config, {
+        hash,
+        confirmations: 2
+      });
+    }).catch(err => {
+      console.log("Answer can not be submitted, probably answered already");
+    });
+
+
+    setSubmittingAnswer(false);
+    resume();
     
     ref.current?.swipeLeft();
+
+    // reset time
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+    restart(time);
+
     if (currentQuestionIndex !== 0)
       setCurrentQuestionIndex(currentQuestionIndex - 1);
   };
+
+
   const onClickDislike = async() => {
+    setSubmittingAnswer(true);
+    pause();
+
     console.log({
       raceId,
       currentGameIndex,
@@ -104,7 +133,22 @@ function PlayScreen() {
       currentGameIndex, 
       currentQuestionIndex,
       1
-    ).catch(console.error);
+    ).then(async hash => {
+      await waitForTransactionReceipt(config, {
+        hash,
+        confirmations: 2
+      });
+    }).catch(err => {
+      console.log("Answer can not be submitted, probably answered already");
+    });
+
+    setSubmittingAnswer(false);
+    resume();
+
+    // reset time
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+    restart(time);
     
     ref.current?.swipeRight();
     if (currentQuestionIndex !== 0)
@@ -119,6 +163,7 @@ function PlayScreen() {
   function closeLoadingModal() {
     setIsOpen(false);
     setModalType(undefined);
+    openWinModal();
   }
 
   function openWinModal() {
@@ -200,7 +245,7 @@ function PlayScreen() {
         <>
           {
             modalType === "loading" && 
-            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndex={currentQuestionIndex} />
+            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} />
           }
           {
             modalType === "win" && 

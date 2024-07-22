@@ -5,22 +5,21 @@ import { config } from "../config/wagmi";
 import { waitForTransactionReceipt  } from '@wagmi/core';
 
 function LoadingModal({
-  raceId, gameIndex, questionIndex, closeHandler
+  raceId, gameIndex, questionIndexes, closeHandler
 }: {
   raceId: number,
   gameIndex: number,
-  questionIndex: number,
+  questionIndexes: number[],
   closeHandler: () => void;
 }) {
-
   useEffect(() => {
-    if (raceId && gameIndex && questionIndex) {
-      distributeRewardOfTheGame(raceId, gameIndex, questionIndex)
+    if (raceId.toString() && gameIndex.toString() && questionIndexes) {
+      distributeRewardOfTheGame(raceId, gameIndex, questionIndexes)
         .then(data => {
           console.log("Distribute reward:", data);
           // wait for tx to finish before finalizing scores on next modal (win / lose modal)
           const waitForTx = async(hash: `0x${string}`) => {
-            waitForTransactionReceipt(config, {
+            await waitForTransactionReceipt(config, {
               confirmations: 2,
               hash,
             });
@@ -31,7 +30,7 @@ function LoadingModal({
           console.log("Distribute reward error:", err);
         });
     }
-  }, [raceId, gameIndex, questionIndex]);
+  }, []);
 
   return (
     <div className="loading-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">

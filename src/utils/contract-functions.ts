@@ -203,7 +203,7 @@ export const submitUserAnswer = async(
 export const distributeRewardOfTheGame = async(
     raceId: number,
     gameIndex: number,
-    questionIndex: number,
+    questionIndexes: number[],
 ) => {
     const data = await writeContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
@@ -212,7 +212,7 @@ export const distributeRewardOfTheGame = async(
         args: [
             BigInt(raceId),
             BigInt(gameIndex),
-            BigInt(questionIndex),
+            questionIndexes.map(i => BigInt(i)),
         ]
     });
 

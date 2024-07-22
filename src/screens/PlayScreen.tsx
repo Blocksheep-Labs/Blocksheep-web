@@ -53,11 +53,13 @@ function PlayScreen() {
 
 
   useEffect(() => {
-    console.log("flipState set time ", flipState);
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-    restart(time);
-  }, [flipState]);
+    if (!modalIsOpen) {
+      console.log("flipState set time ", flipState);
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restart(time);
+    }
+  }, [flipState, modalIsOpen]);
 
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
@@ -233,7 +235,7 @@ function PlayScreen() {
           rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
-          disabled={modalIsOpen}
+          disabled={modalIsOpen || submittingAnswer}
         />
       </div>
         

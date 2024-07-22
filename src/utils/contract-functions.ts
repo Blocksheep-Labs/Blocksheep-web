@@ -39,16 +39,18 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         return i;
     });
 
+    console.log(data)
+
     return data;
 }
 
 // get race by id
-export const getRaceById = async(raceId: number) => {
+export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     const data = await readContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
         abi: BlockSheepAbi,
         functionName: "getRaces",
-        args: [BigInt(raceId)]
+        args: [BigInt(raceId), userAddr]
     });
 
     

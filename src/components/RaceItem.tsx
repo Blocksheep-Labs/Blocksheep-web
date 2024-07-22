@@ -109,7 +109,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
           } />
         </div>
         <div className="mx-[30%] flex justify-between">
-          <RaceStatusItem icon={ConsoleIcon} label={race.numOfGames.toString()} />
+          <RaceStatusItem icon={ConsoleIcon} label={`${race?.gamesCompletedPerUser?.length}/${race.numOfGames.toString()}`} />
           
           {
             // if the race was not completed
@@ -133,7 +133,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
                 <button 
                   onClick={() => onClickJoin(race.id)} 
                   className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
-                  disabled={loading}
+                  disabled={loading || race.gamesCompletedPerUser?.length == race.numOfGames}
                 >
                   <div className="h-16 overflow-hidden">
                     <img src={NextFlag} alt="next-flag" className="h-[120%]" />

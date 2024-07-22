@@ -10,4 +10,5 @@ export type Race = {
   startAt: BigNumber;
   status: number;
   games: bigint[];
+  gamesCompletedPerUser: bigint[],
 };

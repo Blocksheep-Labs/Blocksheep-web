@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import RaceBoard from "../components/RaceBoard";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../utils/contract-functions";
+import { usePrivy } from "@privy-io/react-auth";
 
 function CountDownScreen() {
+  const { user } = usePrivy();
   const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
   const {raceId} = useParams();
@@ -18,8 +20,8 @@ function CountDownScreen() {
 
 
   useEffect(() => {
-    if (raceId?.length) {
-      getRaceById(Number(raceId)).then(data => {
+    if (raceId?.length && user?.wallet?.address) {
+      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
         if (data) {
           setQuestionsByGames(data.questionsByGames);
           console.log(data.questionsByGames)
@@ -42,7 +44,7 @@ function CountDownScreen() {
         }
       });
     }
-  }, [raceId]);
+  }, [raceId, user?.wallet?.address]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef

@@ -11,4 +11,5 @@ export type Race = {
   status: number;
   games: bigint[];
   gamesCompletedPerUser: bigint[],
+  refunded: boolean,
 };

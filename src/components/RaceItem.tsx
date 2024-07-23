@@ -43,7 +43,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
 
   const withdrawFundsHandler = async() => {
     setLoading(true);
-    const hash = await refundBalance(race.numOfQuestions * Number(cost));
+    const hash = await refundBalance(race.numOfQuestions * Number(cost), race.id);
 
     console.log("Withdraw balance hash:", hash);
     await waitForTransactionReceipt(config, {
@@ -110,53 +110,59 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
         </div>
         <div className="mx-[30%] flex justify-between">
           <RaceStatusItem icon={ConsoleIcon} label={`${race?.gamesCompletedPerUser?.length}/${race.numOfGames.toString()}`} />
-          
           {
-            // if the race was not completed
-            race.registered && race.status == 1 && race.playersCount < 3
-            ?
-            <button 
-              onClick={withdrawFundsHandler} 
-              className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
-              disabled={loading}
-            >
-              <div className="h-16 overflow-hidden">
-                <img src={NextFlag} alt="next-flag" className="h-[140%]" />
-              </div>
-              <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md">
-                Refund
-              </p>
-            </button>
-            :
-            <>
-              {race.registered ? (
-                <button 
-                  onClick={() => onClickJoin(race.id)} 
-                  className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
-                  disabled={loading || race.gamesCompletedPerUser?.length == race.numOfGames}
-                >
-                  <div className="h-16 overflow-hidden">
-                    <img src={NextFlag} alt="next-flag" className="h-[120%]" />
-                  </div>
-                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
-                    Join
-                  </p>
-                </button>
-              ) : (
-                <button 
-                  onClick={() => handleRegister(race.id)} 
-                  className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`} 
-                  disabled={loading}
-                >
-                  <div className="h-16 overflow-hidden">
-                    <img src={NextFlag} alt="next-flag" className="h-[140%]" />
-                  </div>
-                  <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
-                    Enroll
-                  </p>
-                </button>
-              )}
-            </>
+            (() => {
+              if (race.registered && race.status == 1 && race.playersCount < 3 && !race.refunded) {
+                return (
+                  <button 
+                    onClick={withdrawFundsHandler} 
+                    className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
+                    disabled={loading}
+                  >
+                    <div className="h-16 overflow-hidden">
+                      <img src={NextFlag} alt="next-flag" className="h-[140%]" />
+                    </div>
+                    <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md">
+                      Refund
+                    </p>
+                  </button>
+                );
+              } else if (!race.refunded) {
+                return (
+                  <>
+                    {race.registered ? (
+                      <button 
+                        onClick={() => onClickJoin(race.id)} 
+                        className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
+                        disabled={loading || race.gamesCompletedPerUser?.length == race.numOfGames}
+                      >
+                        <div className="h-16 overflow-hidden">
+                          <img src={NextFlag} alt="next-flag" className="h-[120%]" />
+                        </div>
+                        <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
+                          Join
+                        </p>
+                      </button>
+                      ) : (
+                      <button 
+                        onClick={() => handleRegister(race.id)} 
+                        className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`} 
+                        disabled={loading}
+                      >
+                        <div className="h-16 overflow-hidden">
+                          <img src={NextFlag} alt="next-flag" className="h-[140%]" />
+                        </div>
+                        <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
+                          Enroll
+                        </p>
+                      </button>
+                    )}
+                  </>
+                );
+              } else {
+                return <></>
+              }
+            })()
           }
         </div>
       </div>

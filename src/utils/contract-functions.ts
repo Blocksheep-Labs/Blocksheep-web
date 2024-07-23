@@ -223,12 +223,12 @@ export const distributeRewardOfTheGame = async(
 
 
 // withdraw funds
-export const refundBalance = async(amount: number) => {
+export const refundBalance = async(amount: number, raceId: number) => {
     const data = await writeContract(config, {
         address: BLOCK_SHEEP_CONTRACT,
         abi: BlockSheepAbi,
         functionName: "refundBalance",
-        args: [BigInt(amount)]
+        args: [BigInt(amount), BigInt(raceId)]
     });
 
     return data;

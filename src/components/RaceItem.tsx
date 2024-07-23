@@ -30,7 +30,7 @@ function RaceStatusItem({ icon, label }: RaceStatusItemProps) {
 type RaceItemProps = {
   race: Race;
   onClickJoin: (a: number) => void;
-  onClickRegister: (a: number) => Promise<void>;
+  onClickRegister: (id: number , questionsCount: number) => Promise<void>;
   cost: BigInt
 };
 
@@ -55,7 +55,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
 
   const handleRegister = async(id: number) => {
     setLoading(true);
-    await onClickRegister(id);
+    await onClickRegister(id, race.numOfQuestions);
     setLoading(false);
   }
   

@@ -56,7 +56,7 @@ function SelectRaceScreen() {
       
       const intId = setInterval(() => {
         fetchAndSetRaces();
-      }, 10000);
+      }, 5000);
 
       return () => {
         clearInterval(intId);
@@ -77,8 +77,8 @@ function SelectRaceScreen() {
     navigator(`/countdown/${id}`);
   }
 
-  const onClickRegister = useCallback(async(id: number) => {
-    await registerOnTheRace(id, user?.wallet?.address).then(data => {
+  const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
+    await registerOnTheRace(id, questionsCount).then(data => {
       console.log("REGISTERED, fetching list of races...");
       fetchAndSetRaces();
     }).catch(err => {

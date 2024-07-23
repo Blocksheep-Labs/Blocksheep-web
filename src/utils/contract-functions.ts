@@ -74,9 +74,9 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
 }
 
 // enter the race
-export const registerOnTheRace = async(raceId: number, walletAddress: `0x${string}`) => {
+export const registerOnTheRace = async(raceId: number, numberOfQuestions: number) => {
     const COST = await retreiveCOST();
-    console.log(BigInt(Number(COST) * 3));
+    //console.log(BigInt(Number(COST) * 3));
 
     const approveUSDC = await writeContract(config, {
         address: USDC_ADDR,
@@ -95,7 +95,7 @@ export const registerOnTheRace = async(raceId: number, walletAddress: `0x${strin
         address: BLOCK_SHEEP_CONTRACT,
         abi: BlockSheepAbi,
         functionName: 'deposit',
-        args: [BigInt(Number(COST) * 3)]
+        args: [BigInt(Number(COST) * numberOfQuestions)]
     });
 
     console.log("DEPOSIT:", depositBlockSheep);

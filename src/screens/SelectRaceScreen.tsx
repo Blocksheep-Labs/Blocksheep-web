@@ -133,7 +133,7 @@ function SelectRaceScreen() {
             selectedRace && 
             <>
               <p className="font-bold text-xl text-center">Successfuly registered on the race</p>
-              <p className="text-center">Race starts at:{' '}
+              <p className="text-center">Race ends at:{' '}
                 {(() => {
                   const dt = new Date(Number(selectedRace.startAt) * 1000);
                   const h = dt.getHours();

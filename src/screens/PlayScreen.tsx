@@ -61,9 +61,13 @@ function PlayScreen() {
     }
   }, [flipState, modalIsOpen]);
 
+
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
-    onExpire: () => setFlipState(!flipState),
+    onExpire: () => {
+      setFlipState(!flipState);
+      flipState ? onClickLike(false) : onClickDislike(false);
+    },
   });
 
   const updateProgress = () => {
@@ -78,7 +82,7 @@ function PlayScreen() {
   };
 
   
-  const onClickLike = async() => {
+  const onClickLike = async(sendTx=true) => {
     setSubmittingAnswer(true);
     pause();
 
@@ -89,7 +93,7 @@ function PlayScreen() {
       answerId: 0,
     });
     
-    await submitUserAnswer(
+    sendTx && await submitUserAnswer(
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,
@@ -119,7 +123,7 @@ function PlayScreen() {
   };
 
 
-  const onClickDislike = async() => {
+  const onClickDislike = async(sendTx=true) => {
     setSubmittingAnswer(true);
     pause();
 
@@ -130,7 +134,7 @@ function PlayScreen() {
       answerId: 1,
     });
 
-    await submitUserAnswer(
+    sendTx && await submitUserAnswer(
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,

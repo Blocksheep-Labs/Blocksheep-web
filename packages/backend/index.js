@@ -1,14 +1,16 @@
 const app = require("express")();
 const httpServer = require("http").createServer(app);
+require("dotenv").config();
+
+
 const options = {
     cors: {
-        origin: "http://localhost:5173"
+        origin: process.env.CLIENT_BASE
     }
 };
 const io = require("socket.io")(httpServer, options);
-
 // { room: string, id: string }
-const rooms = [];
+let rooms = [];
 
 
 io.on("connection", socket => { 
@@ -21,8 +23,8 @@ io.on("connection", socket => {
         });
     });
 
-    socket.on('connect-live-game', (raceId, gameId) => {
-        const roomName = `race-${raceId} game-${gameId}`;
+    socket.on('connect-live-game', ({ raceId }) => {
+        const roomName = `race-${raceId}`;
         rooms.push({ room: roomName, id: socket.id });
 
         socket.join(roomName);

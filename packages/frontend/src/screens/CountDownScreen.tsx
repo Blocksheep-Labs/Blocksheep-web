@@ -11,26 +11,36 @@ function CountDownScreen() {
   const {raceId} = useParams();
   const [questionsByGames, setQuestionsByGames] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ curr: number; delta: number }[]>([]);
+  const [gameIndex, setGameIndex] = useState(0);
 
-  const handleClose = () => {
-    navigate(`/race/${raceId}/${questionsByGames.length}`, {
+  const handleClose = async() => {
+    navigate(`/race/${raceId}/${questionsByGames.length}/${gameIndex}/questions`, {
       state: {questionsByGames}
     });
   };
-
 
   useEffect(() => {
     if (raceId?.length && user?.wallet?.address) {
       getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
         if (data) {
-          setQuestionsByGames(data.questionsByGames);
-          console.log(data.questionsByGames)
+          // VALIDATE USER FOR BEING REGISTERED
+          if (!data.registeredUsers.includes(user.wallet?.address)) {
+            navigate('/');
+          } 
 
-          let newProgress: { curr: number; delta: number }[] = Array.from({ length: 3 }, () => {
-            return { curr: 1, delta: 0 };
+          // IF USER ANSWERED ALL THE QUESTIONS-GAMES
+          if (data.numberOfGames === data.gamesCompletedPerUser.length) {
+            navigate(`/race/${raceId}/tunnel`)
+          }
+
+          setQuestionsByGames(data.questionsByGames);
+          setGameIndex(data.gamesCompletedPerUser.length);
+
+          // Array.from({ length: 3 }, () => { return { curr: 3, delta: 0 }; })
+
+          let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
+            return { curr: Number(i.progress), delta: 0 };
           });
-      
-          console.log("new progress", newProgress);
       
           setProgress(newProgress);
   

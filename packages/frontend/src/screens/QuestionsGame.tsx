@@ -19,7 +19,7 @@ export interface SwipeSelectionAPI {
 
 type ModalType = "ready" | "loading" | "win" | "race";
 
-function PlayScreen() {
+function QuestionsGame() {
   const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0);
@@ -31,15 +31,12 @@ function PlayScreen() {
     }),
   );
   const [flipState, setFlipState] = useState(true);
-
   const {raceId} = useParams();
   const location = useLocation();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const questions = location.state?.questionsByGames[currentGameIndex];
-  //console.log(questions[currentQuestionIndex], currentQuestionIndex)
-  //console.log("Questions by games:", location.state?.questionsByGames);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -200,7 +197,7 @@ function PlayScreen() {
   }
 
   function nextClicked() {
-    navigate("/tunnel");
+    navigate(`/race/${raceId}/tunnel`);
   }
 
 
@@ -264,4 +261,4 @@ function PlayScreen() {
   );
 }
 
-export default PlayScreen;
+export default QuestionsGame;

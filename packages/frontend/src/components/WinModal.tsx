@@ -30,7 +30,7 @@ function WinModal({ handleClose, raceId, gameIndex }: WinModalProps) {
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%]">
         <img src={WinMain} alt="loading-bg" />
-        <p className="text-6xl font-bold text-white text-center mt-10">{score ? score : "Pls wait..."}</p>
+        <p className="text-6xl font-bold text-white text-center mt-10">{score?.toString().length ? score : "Pls wait..."}</p>
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">
         <button

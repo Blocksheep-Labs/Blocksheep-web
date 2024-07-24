@@ -1,4 +1,4 @@
-export const BLOCK_SHEEP_CONTRACT = "0x389DDef955901F65e2E345A837AD85036504B432";
-export const USDC_ADDR = "0x0D613a048cdB6737dE497F48D5f705559531AE60";
+export const BLOCK_SHEEP_CONTRACT = import.meta.env.VITE_BLOCKSHEEP_ADDR;
+export const USDC_ADDR = import.meta.env.VITE_MOCK_USDC_ADDR;
 export const USDC_MULTIPLIER = 10**6;
-export const SERVER_BASE = "http://localhost:8000"
+export const SERVER_BASE = import.meta.env.VITE_SERVER_BASE;

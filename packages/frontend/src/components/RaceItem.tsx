@@ -134,7 +134,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
                       <button 
                         onClick={() => onClickJoin(race.id)} 
                         className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
-                        disabled={loading || race.gamesCompletedPerUser?.length == race.numOfGames}
+                        disabled={loading} //  || race.gamesCompletedPerUser?.length == race.numOfGames
                       >
                         <div className="h-16 overflow-hidden">
                           <img src={NextFlag} alt="next-flag" className="h-[120%]" />

@@ -2,13 +2,13 @@ import React from "react";
 import SelectRaceScreen from "./screens/SelectRaceScreen";
 import BottomTab from "./components/BottomTab";
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
-import PlayScreen from "./screens/PlayScreen";
+import QuestionsGame from "./screens/QuestionsGame";
 import CountDownScreen from "./screens/CountDownScreen";
 import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import AccountScreen from "./screens/AccountScreen";
-import TunnelGame from "./components/rabbit/TunnelGame";
+import TunnelGame from "./screens/TunnelGame";
 
 function App() {
   return (
@@ -25,7 +25,7 @@ function App() {
         />
 
         <Route
-          path="tunnel"
+          path="race/:raceId/tunnel"
           element={
             <ProtectedRoute>
               <TunnelGame />
@@ -45,10 +45,10 @@ function App() {
 
         {/* race id  */}
         <Route
-          path="race/:raceId/:gamesCount"
+          path="race/:raceId/:gamesCount/:gameId/questions"
           element={
             <ProtectedRoute>
-              <PlayScreen />
+              <QuestionsGame />
             </ProtectedRoute>
           }
         />

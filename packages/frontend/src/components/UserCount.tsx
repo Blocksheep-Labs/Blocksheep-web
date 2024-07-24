@@ -4,7 +4,7 @@ function UserCount() {
   return (
     <div className="flex size-12 flex-col items-center justify-center rounded-full bg-black">
       <img src={Users} alt="users" className="w-[30%]" />
-      <p className="font-[Berlin] text-white">4/10</p>
+      <p className="font-[Berlin] text-white">3/3</p>
     </div>
   );
 }

@@ -53,10 +53,13 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
         args: [BigInt(raceId), userAddr]
     });
 
+    // @ts-ignore
+    const gamesIds = data[5];
+
     
     const questionsData = await readContracts(config, {
         // @ts-ignore
-        contracts: data[5].map(gameId => {
+        contracts: gamesIds.map(gameId => {
             return {
                 address: BLOCK_SHEEP_CONTRACT,
                 abi: BlockSheepAbi,
@@ -66,10 +69,41 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
         }) 
     });
 
+    // @ts-ignore
+    const usersRegistered = data[9];
+    const progressData: {user: string, progress: number}[] = [];
+
+    await Promise.all(gamesIds.map(async (_: any, gameIndex: number) => {
+        const usersProgresses = await readContracts(config, {
+            contracts: usersRegistered.map((userAddress: string) => ({
+                address: BLOCK_SHEEP_CONTRACT,
+                abi: BlockSheepAbi,
+                functionName: "getScoreAtGameOfUser",
+                args: [
+                    BigInt(raceId),
+                    BigInt(gameIndex),
+                    userAddress
+                ]
+            }))
+        });
+
+        usersProgresses.forEach((i: any, index: number) => {
+            progressData.push({ user: usersRegistered[index], progress: i.result });
+        });
+    }));
+
     return {
         race: data,
         //@ts-ignore
-        questionsByGames: questionsData.map(i => i.result)
+        numberOfGames: data[3],
+        //@ts-ignore
+        questionsByGames: questionsData.map(i => i.result),
+        //@ts-ignore
+        gamesCompletedPerUser: data[6],
+        //@ts-ignore
+        registeredUsers: data[9],
+        //@ts-ignore
+        progress: progressData,
     };
 }
 

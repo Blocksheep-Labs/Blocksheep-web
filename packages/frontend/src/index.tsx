@@ -11,6 +11,7 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { config } from "./config/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from '@privy-io/wagmi';
+import { bscTestnet } from "viem/chains";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
@@ -25,6 +26,8 @@ root.render(
             appearance: {
               theme: 'light'
             },
+            defaultChain: bscTestnet,
+            supportedChains: [bscTestnet]
           }}
         >
           <QueryClientProvider client={queryClient}>

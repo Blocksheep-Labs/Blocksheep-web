@@ -219,7 +219,7 @@ function TunnelGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount />
+          <UserCount currentAmount={playersJoined}/>
         </div>
       </div>
       <div className="app-container">

@@ -12,10 +12,11 @@ function CountDownScreen() {
   const [questionsByGames, setQuestionsByGames] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ curr: number; delta: number }[]>([]);
   const [gameIndex, setGameIndex] = useState(0);
+  const [amountOfRegisteredUsers, setAmountOfRegisteredUsers] = useState(0);
 
   const handleClose = async() => {
     navigate(`/race/${raceId}/${questionsByGames.length}/${gameIndex}/questions`, {
-      state: {questionsByGames}
+      state: {questionsByGames, amountOfRegisteredUsers}
     });
   };
 
@@ -34,6 +35,7 @@ function CountDownScreen() {
           }
 
           setQuestionsByGames(data.questionsByGames);
+          setAmountOfRegisteredUsers(data.registeredUsers.length);
           setGameIndex(data.gamesCompletedPerUser.length);
 
           // Array.from({ length: 3 }, () => { return { curr: 3, delta: 0 }; })

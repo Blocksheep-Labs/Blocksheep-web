@@ -37,6 +37,7 @@ function QuestionsGame() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const questions = location.state?.questionsByGames[currentGameIndex];
+  const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -220,7 +221,7 @@ function QuestionsGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount />
+          <UserCount currentAmount={amountOfRegisteredUsers}/>
         </div>
       </div>
       <SwipeSelection 

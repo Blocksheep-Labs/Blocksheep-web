@@ -9,7 +9,7 @@ import RaceItem from "../components/RaceItem";
 // import { Race } from "../types";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
 import { getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../utils/contract-functions";
 
@@ -33,6 +33,7 @@ const modalStyles = {
 
 function SelectRaceScreen() {
   const { user } = usePrivy();
+  const { wallets } = useWallets();
   const navigator = useNavigate();
 
   const [races, setRaces] = useState([]);
@@ -40,6 +41,22 @@ function SelectRaceScreen() {
   const [raceId, setRaceId] = useState<number | null>(null);
   const [cost, setCost] = useState(0);
   //const [selectedRace, setSelectedRace] = useState<any | null>(null);
+
+  // switch chain if required
+  useEffect(() => {
+    if (user?.wallet?.address.length && wallets.length) {
+
+      const processSwitch = async() => {
+        // find connected wallet and switch chain
+        const wallet = wallets.find((wallet) => wallet.address === user.wallet?.address);
+        if (wallet?.chainId !== "eip155:97") {
+          await wallet?.switchChain(97);
+        }
+      }
+
+      processSwitch();
+    }
+  }, [user?.wallet, wallets]);
 
   const fetchAndSetRaces = useCallback(async() => {
     if (user?.wallet?.address) {
@@ -81,11 +98,11 @@ function SelectRaceScreen() {
     await registerOnTheRace(id, questionsCount).then(data => {
       console.log("REGISTERED, fetching list of races...");
       fetchAndSetRaces();
+      setRaceId(id);
+      setIsOpen(true);
     }).catch(err => {
       console.log("REG ERR:", err);
     });
-    setRaceId(id);
-    setIsOpen(true);
   }, [user?.wallet?.address]);
 
   function afterOpenModal() {

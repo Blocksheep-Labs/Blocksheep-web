@@ -20,6 +20,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { usePrivy } from "@privy-io/react-auth";
+import { getRaceById } from "../utils/contract-functions";
 
 function TunnelGame() {
   const { user } = usePrivy();

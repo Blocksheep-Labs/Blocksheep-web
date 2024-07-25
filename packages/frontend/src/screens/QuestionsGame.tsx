@@ -9,9 +9,10 @@ import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import { useTimer } from "react-timer-hook";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { submitUserAnswer } from "../utils/contract-functions";
+import { getRaceById, submitUserAnswer } from "../utils/contract-functions";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../config/wagmi";
+import { usePrivy } from "@privy-io/react-auth";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -20,22 +21,21 @@ export interface SwipeSelectionAPI {
 type ModalType = "ready" | "loading" | "win" | "race";
 
 function QuestionsGame() {
+  const { user } = usePrivy();
   const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0);
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [progress, setProgress] = useState(
-    Array.from({ length: 9 }, () => {
-      return { curr: 0, delta: 0 };
-    }),
-  );
   const [flipState, setFlipState] = useState(true);
   const {raceId} = useParams();
   const location = useLocation();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const [progress, setProgress] = useState(
+    location.state?.progress
+  );
   const questions = location.state?.questionsByGames[currentGameIndex];
   const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
 
@@ -49,7 +49,6 @@ function QuestionsGame() {
     }
   }, [location.state?.questionsByGames.length]);
 
-
   useEffect(() => {
     if (!modalIsOpen) {
       console.log("flipState set time ", flipState);
@@ -58,7 +57,6 @@ function QuestionsGame() {
       restart(time);
     }
   }, [flipState, modalIsOpen]);
-
 
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
@@ -69,8 +67,8 @@ function QuestionsGame() {
   });
 
   const updateProgress = () => {
-    setProgress((old) =>
-      old.map(({ curr, delta }) => {
+    setProgress((old: any) =>
+      old.map(({ curr, delta }: {curr: number, delta: number}) => {
         return {
           curr: (curr + delta) % 10,
           delta: Math.ceil(Math.random() * 2) % 10,
@@ -78,7 +76,6 @@ function QuestionsGame() {
       }),
     );
   };
-
   
   const onClickLike = async(sendTx=true) => {
     setSubmittingAnswer(true);
@@ -142,7 +139,7 @@ function QuestionsGame() {
         hash,
         confirmations: 2
       });
-    }).catch(err => {
+    }).catch(_ => {
       console.log("Answer can not be submitted, probably answered already");
     });
 
@@ -191,8 +188,19 @@ function QuestionsGame() {
     setIsOpen(false);
     setModalType(undefined);
     setRoundId(roundId + 1);
+
+    getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
+      if (data) {
+        let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
+          return { curr: Number(i.progress), delta: 0 };
+        });
+        setProgress(newProgress);
+      }
+    });
+
     nextClicked();
   }
+
   function onFinish() {
     openLoadingModal();
   }
@@ -200,21 +208,6 @@ function QuestionsGame() {
   function nextClicked() {
     navigate(`/race/${raceId}/tunnel`);
   }
-
-
-  /*
-  useEffect(() => {
-    if (modalIsOpen && modalType === "loading") {
-      const timer = setTimeout(() => {
-        closeLoadingModal();
-        openWinModal();
-      }, 2000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [modalIsOpen, modalType]);
-  */
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
@@ -255,7 +248,10 @@ function QuestionsGame() {
             modalType === "win" && 
             <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
           }
-          {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
+          {
+            modalType === "race" && 
+            <RaceModal progress={progress} handleClose={closeRaceModal} />
+          }
         </>
       )}
     </div>

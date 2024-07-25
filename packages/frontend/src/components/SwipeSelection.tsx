@@ -116,7 +116,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
             >
               <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
                 <div className="relative ">
-                  <img src={"/questions/question1.png"} alt="play-card" />
+                  <img src={`/questions/question${index + 1}.png`} alt="play-card" />
                   <img
                     src={BottomYellowBg}
                     alt="bottom-yellow-top"

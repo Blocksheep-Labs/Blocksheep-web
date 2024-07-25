@@ -1,4 +1,3 @@
-import React from "react";
 import RaceBackground from "../assets/common/race-background.png";
 import Sheep from "../assets/gameplay/sheeepy.png";
 import BlackSheep from "../assets/common/blacksheep.png";

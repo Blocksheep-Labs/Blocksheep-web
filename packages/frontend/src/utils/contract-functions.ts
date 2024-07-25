@@ -95,7 +95,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     return {
         race: data,
         //@ts-ignore
-        numberOfGames: data[3],
+        numberOfGames: data[2],
         //@ts-ignore
         questionsByGames: questionsData.map(i => i.result),
         //@ts-ignore

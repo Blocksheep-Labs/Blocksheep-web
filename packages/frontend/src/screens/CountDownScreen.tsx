@@ -16,7 +16,7 @@ function CountDownScreen() {
 
   const handleClose = async() => {
     navigate(`/race/${raceId}/${questionsByGames.length}/${gameIndex}/questions`, {
-      state: {questionsByGames, amountOfRegisteredUsers}
+      state: {questionsByGames, amountOfRegisteredUsers, progress}
     });
   };
 
@@ -30,6 +30,7 @@ function CountDownScreen() {
           } 
 
           // IF USER ANSWERED ALL THE QUESTIONS-GAMES
+          console.log(data, data.numberOfGames, data.gamesCompletedPerUser.length)
           if (data.numberOfGames === data.gamesCompletedPerUser.length) {
             navigate(`/race/${raceId}/tunnel`)
           }
@@ -37,8 +38,6 @@ function CountDownScreen() {
           setQuestionsByGames(data.questionsByGames);
           setAmountOfRegisteredUsers(data.registeredUsers.length);
           setGameIndex(data.gamesCompletedPerUser.length);
-
-          // Array.from({ length: 3 }, () => { return { curr: 3, delta: 0 }; })
 
           let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
             return { curr: Number(i.progress), delta: 0 };

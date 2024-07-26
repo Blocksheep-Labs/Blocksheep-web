@@ -7,7 +7,7 @@
   "scripts": {
     "start-dev": "nodemon ./index.js",
     "start": "node ./index.js",
-    "build": "node ./build.js"
+    "build": "echo 'no build is needed'"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

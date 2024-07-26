@@ -10,7 +10,7 @@ function CountDownScreen() {
   const navigate = useNavigate();
   const {raceId} = useParams();
   const [questionsByGames, setQuestionsByGames] = useState<any[]>([]);
-  const [progress, setProgress] = useState<{ curr: number; delta: number }[]>([]);
+  const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [gameIndex, setGameIndex] = useState(0);
   const [amountOfRegisteredUsers, setAmountOfRegisteredUsers] = useState(0);
 
@@ -39,8 +39,8 @@ function CountDownScreen() {
           setAmountOfRegisteredUsers(data.registeredUsers.length);
           setGameIndex(data.gamesCompletedPerUser.length);
 
-          let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
-            return { curr: Number(i.progress), delta: 0 };
+          let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
+            return { curr: Number(i.progress), delta: 0, address: i.user };
           });
       
           setProgress(newProgress);

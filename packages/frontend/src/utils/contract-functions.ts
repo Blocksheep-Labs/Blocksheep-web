@@ -39,7 +39,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         return i;
     });
 
-    // console.log(data)
+    console.log("Races:", data)
 
     return data;
 }

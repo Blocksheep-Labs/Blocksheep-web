@@ -130,7 +130,7 @@ function SelectRaceScreen() {
       </div>
       <div className="mx-8 my-4 flex h-3/5 flex-col gap-20 overflow-y-auto pt-4">
         {races &&
-          races.filter(r => !r.refunded && r.status !== 3).map((r, i) => (
+          races.filter(r => !r.refunded && (r.status === 1 || r.status === 3)).map((r, i) => (
             <RaceItem
               key={i.toString()}
               cost={cost}

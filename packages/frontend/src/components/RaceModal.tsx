@@ -3,7 +3,7 @@ import NextFlag from "../assets/common/flag.png";
 import RaceBoard from "./RaceBoard";
 
 export type RaceModalProps = {
-  progress: { curr: number; delta: number }[];
+  progress: { curr: number; delta: number; address: string  }[];
   handleClose: () => void;
 };
 

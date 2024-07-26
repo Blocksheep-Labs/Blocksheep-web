@@ -39,6 +39,54 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         return i;
     });
 
+
+    /*
+        // CREATED (due to the contract)
+              if (race.status === 1) {
+                return "Expired";
+              }
+              
+              // STARTED (due to the contract)
+              if (race.status === 2) {
+                return "Running";
+              } 
+
+              if (race.status === 3) {
+                return "Canceled";
+              }
+
+              // DISTRIBUTED (due to the contract)
+              if (race.status === 4) {
+                return "Finished";
+              }
+        */
+
+    // @ts-ignore
+    data = data.filter(r => {
+        // if not refunced
+        if (!r.refunded) {
+            // user was regiistered into the race
+            if (r.registered && ([1,2,3,4].includes(Number(r.status)))) {
+                return true;
+            }
+            return false;
+        }
+        // refunded 
+        else {
+            // expired
+            if (r.status === 1) {
+                return false;
+            }
+            if (r.registered) {
+                return true;
+            }
+            return false;
+        }
+    });
+
+    //@ts-ignore
+    data.reverse();
+
     console.log("Races:", data)
 
     return data;

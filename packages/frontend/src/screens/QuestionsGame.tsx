@@ -13,12 +13,14 @@ import { getRaceById, submitUserAnswer } from "../utils/contract-functions";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../config/wagmi";
 import { usePrivy } from "@privy-io/react-auth";
+import { socket } from "../utils/socketio";
+import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
 }
 
-type ModalType = "ready" | "loading" | "win" | "race";
+type ModalType = "ready" | "loading" | "win" | "race" | "waiting";
 
 function QuestionsGame() {
   const { user } = usePrivy();
@@ -33,6 +35,7 @@ function QuestionsGame() {
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const [playersJoined, setPlayersJoined] = useState(0);
   const [progress, setProgress] = useState(
     location.state?.progress
   );
@@ -173,10 +176,14 @@ function QuestionsGame() {
   }
 
   function closeWinModal() {
-    setIsOpen(false);
-    setModalType(undefined);
-    updateProgress();
-    openRaceModal();
+    if (playersJoined === amountOfRegisteredUsers) {
+      setIsOpen(false);
+      setModalType(undefined);
+      updateProgress();
+      openRaceModal();
+    } else {
+      setModalType("waiting")
+    }
   }
 
   function openRaceModal() {
@@ -204,6 +211,32 @@ function QuestionsGame() {
   function onFinish() {
     openLoadingModal();
   }
+
+  // CONNECT SOCKET
+  useEffect(() => {
+    if (!socket.connected && raceId?.toString().length) {
+      socket.connect();
+      socket.emit('connect-live-game', { raceId });
+    }
+
+    socket.on('joined', () => {
+      setPlayersJoined(playersJoined + 1);
+      if (playersJoined === amountOfRegisteredUsers) {
+        setIsOpen(false);
+        setModalType(undefined);
+        updateProgress();
+        openRaceModal();
+      }
+    });
+
+    socket.on('leaved', () => {
+      setPlayersJoined(playersJoined - 1);
+    });
+
+    return () => {
+      socket.off('joined');
+    }
+  }, [raceId, socket, playersJoined, amountOfRegisteredUsers]);
 
   function nextClicked() {
     navigate(`/race/${raceId}/tunnel`);
@@ -251,6 +284,10 @@ function QuestionsGame() {
           {
             modalType === "race" && 
             <RaceModal progress={progress} handleClose={closeRaceModal} />
+          }
+          {
+            modalType === "waiting" && 
+            <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={playersJoined} numberOfPlayersRequired={3}/> 
           }
         </>
       )}

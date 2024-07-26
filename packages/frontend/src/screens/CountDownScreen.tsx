@@ -9,14 +9,23 @@ function CountDownScreen() {
   const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
   const {raceId} = useParams();
-  const [questionsByGames, setQuestionsByGames] = useState<any[]>([]);
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
-  const [gameIndex, setGameIndex] = useState(0);
-  const [amountOfRegisteredUsers, setAmountOfRegisteredUsers] = useState(0);
+  const [data, setData] = useState<any>(undefined);
 
   const handleClose = async() => {
-    navigate(`/race/${raceId}/${questionsByGames.length}/${gameIndex}/questions`, {
-      state: {questionsByGames, amountOfRegisteredUsers, progress}
+    // IF USER ANSWERED ALL THE QUESTIONS-GAMES
+    console.log(data, data.numberOfGames, data.gamesCompletedPerUser.length)
+    if (data.numberOfGames === data.gamesCompletedPerUser.length) {
+      navigate(`/race/${raceId}/tunnel`);
+      return;
+    }
+                                 // amount of questions           // game index
+    navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+      state: {
+        questionsByGames: data.questionsByGames, 
+        amountOfRegisteredUsers: data.registeredUsers.length, 
+        progress
+      }
     });
   };
 
@@ -29,15 +38,7 @@ function CountDownScreen() {
             navigate('/');
           } 
 
-          // IF USER ANSWERED ALL THE QUESTIONS-GAMES
-          console.log(data, data.numberOfGames, data.gamesCompletedPerUser.length)
-          if (data.numberOfGames === data.gamesCompletedPerUser.length) {
-            navigate(`/race/${raceId}/tunnel`)
-          }
-
-          setQuestionsByGames(data.questionsByGames);
-          setAmountOfRegisteredUsers(data.registeredUsers.length);
-          setGameIndex(data.gamesCompletedPerUser.length);
+          setData(data);
 
           let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
             return { curr: Number(i.progress), delta: 0, address: i.user };

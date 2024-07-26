@@ -8,6 +8,7 @@ const percent = 61 / 9;
 
 function RaceBoard({ progress }: { progress: { curr: number; delta: number; address: string }[] }) {
   const { user } = usePrivy();
+  console.log("progrewss:", progress)
 
   return (
     <div className="relative my-auto inline-block max-h-full max-w-full align-middle">

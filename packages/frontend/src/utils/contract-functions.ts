@@ -39,27 +39,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         return i;
     });
 
-
-    /*
-        // CREATED (due to the contract)
-              if (race.status === 1) {
-                return "Expired";
-              }
-              
-              // STARTED (due to the contract)
-              if (race.status === 2) {
-                return "Running";
-              } 
-
-              if (race.status === 3) {
-                return "Canceled";
-              }
-
-              // DISTRIBUTED (due to the contract)
-              if (race.status === 4) {
-                return "Finished";
-              }
-        */
+    console.log(data)
 
     // @ts-ignore
     data = data.filter(r => {
@@ -69,6 +49,11 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
             if (r.registered && ([1,2,3,4].includes(Number(r.status)))) {
                 return true;
             }
+
+            if (!r.registered && r.status === 3) {
+                return true;
+            }
+
             return false;
         }
         // refunded 

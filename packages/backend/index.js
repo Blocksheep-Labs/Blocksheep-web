@@ -2,10 +2,9 @@ const app = require("express")();
 const httpServer = require("http").createServer(app);
 require("dotenv").config();
 
-
 const options = {
     cors: {
-        origin: "*",
+        origin: process.env.CLIENT_BASE,
     }
 };
 const io = require("socket.io")(httpServer, options);

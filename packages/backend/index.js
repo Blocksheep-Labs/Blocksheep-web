@@ -5,7 +5,7 @@ require("dotenv").config();
 
 const options = {
     cors: {
-        origin: process.env.CLIENT_BASE,
+        origin: "*",
         methods: ["GET", "POST"]
     }
 };

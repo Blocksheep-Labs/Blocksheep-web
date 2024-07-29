@@ -238,6 +238,7 @@ function QuestionsGame() {
     }
   }, [raceId, socket, playersJoined, amountOfRegisteredUsers]);
 
+
   function nextClicked() {
     navigate(`/race/${raceId}/tunnel`);
   }

@@ -14,7 +14,6 @@ import { socket } from "./utils/socketio";
 function App() {
   useEffect(() => {
     socket.connect();
-
   }, [socket])
   return (
     <Routes>

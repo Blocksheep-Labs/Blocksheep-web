@@ -36,6 +36,7 @@ function TunnelGame() {
   const [playersJoined, setPlayersJoined] = useState(0);
   const navigator = useNavigate();
   const {raceId} = useParams();
+  const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
 
   const [progress, setProgress] = useState(
     Array.from({ length: 9 }, () => {
@@ -64,7 +65,7 @@ function TunnelGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if (playersJoined === 3 && start) {
+    if (playersJoined === 1 && start) {
       console.log("start")
       closeWaitingModal();
       start();
@@ -94,6 +95,7 @@ function TunnelGame() {
       socket.off('joined');
     }
   }, [raceId, socket, playersJoined]);
+
 
   // CCHECK USER TO BE REGISTERED
   useEffect(() => {
@@ -239,9 +241,9 @@ function TunnelGame() {
         >
           Play
         </button>
-        <div className="control-panels">
-          <Lever />
-          <GasolineGauge />
+        <div className="control-panels mb-10">
+          <Lever setDisplayNumber={setDisplayNumber} displayNumber={displayNumber}/>
+          <GasolineGauge fuel={displayNumber * 8.8}/>
         </div>
 
       </div>

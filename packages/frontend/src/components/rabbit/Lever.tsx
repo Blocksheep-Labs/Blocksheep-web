@@ -1,10 +1,15 @@
 // @ts-nocheck
 import React, { useEffect, useRef, useState } from "react";
 
-const Lever = () => {
+const Lever = (props: {
+  displayNumber: number;
+  setDisplayNumber: () => void;
+}) => {
+  const {displayNumber, setDisplayNumber} = props;
   const [currentAngle, setCurrentAngle] = useState(0);
-  const [displayNumber, setDisplayNumber] = useState(1); // Start with a default of 1
-  const sensitivity = 2; // Increase sensitivity for more responsiveness
+  
+  const [rotationCount, setRotationCount] = useState(0);
+  const sensitivity = 3; // Increase sensitivity for more responsiveness
   const leverRef = useRef(null);
 
   useEffect(() => {
@@ -17,17 +22,24 @@ const Lever = () => {
       return Math.atan2(y - center_y, x - center_x) * (180 / Math.PI);
     };
 
-    const handleTouchMove = (e) => {
+    const handleTouchStart = (e) => {
       e.preventDefault();
-      const touch = e.touches[0];
-      const touchAngle = getAngleRelativeToCenter(touch.clientX, touch.clientY);
-      let angleDifference = touchAngle * sensitivity;
+      setRotationCount(0);
+      setDisplayNumber(0);
+    }
 
-      // Constrain the angle between 0 and 180
-      angleDifference = Math.max(0, Math.min(angleDifference, 180));
-      setCurrentAngle(angleDifference);
-      // Calculate displayNumber, ensuring it's never less than 1
-      setDisplayNumber(Math.max(1, Math.round((angleDifference / 180) * 9)));
+    const handleTouchMove = (e, angle: number) => {
+      e.preventDefault();      
+      
+      setCurrentAngle(currentAngle + 4);
+
+      // calculate the rotation angle based on total rotations count
+      if (currentAngle > 360 * rotationCount + 10) {
+        if (displayNumber == 9) return;
+
+        setRotationCount(rotationCount + 1);
+        setDisplayNumber(displayNumber + 1);
+      }
     };
 
     const handleTouchEnd = () => {
@@ -36,20 +48,22 @@ const Lever = () => {
 
     lever.addEventListener("touchmove", handleTouchMove);
     lever.addEventListener("touchend", handleTouchEnd);
+    lever.addEventListener("touchstart", handleTouchStart);
 
     return () => {
       lever.removeEventListener("touchmove", handleTouchMove);
       lever.removeEventListener("touchend", handleTouchEnd);
+      lever.removeEventListener("touchstart", handleTouchStart);
     };
-  }, [sensitivity]);
+  }, [sensitivity, currentAngle, rotationCount]);
 
   return (
     <>
       <div className="panel">
-        <div className="number-display">{displayNumber}</div>
+        <div className="number-display font-bold">{displayNumber}</div>
       </div>
 
-      <div className="lever-container">
+      <div className="lever-container z-20">
         <img
           src="https://i.ibb.co/fXQVWpW/Lever-handle.png"
           alt="Rotating Lever"
@@ -59,8 +73,8 @@ const Lever = () => {
             transition: "transform 0.5s ease-out",
             height: "100px",
             position: "relative",
-            top: "-50px",
-            transformOrigin: "50% 100%", // for rotation around the bottom center
+            top: "-45px",
+            transformOrigin: "50% 86.5%", // for rotation around the bottom center
           }}
         />
       </div>

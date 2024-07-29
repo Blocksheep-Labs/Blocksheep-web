@@ -180,14 +180,14 @@ background: url('https://i.ibb.co/SybbN1D/tunnel-dark.png');
 }
 
 .gasoline-gauge {
-  width: 30px;
-  height: var(--gauge-height, 30px); 
+  width: 80%;
   background-color:orange;
-  /*background: linear-gradient(to top, red, green);
-  background-size: 100% 200%;
-  background-position: bottom;*/
+  background-position: bottom;
   transition: height 0.5s ease-out;
+  transform: rotateZ(3.142rad);
   position:absolute;
+  top: 12px;
+  max-height: 75px;
 }
 
 .win-modal{

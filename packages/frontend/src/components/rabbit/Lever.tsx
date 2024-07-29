@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 const Lever = (props: {
   displayNumber: number;
-  setDisplayNumber: () => void;
+  setDisplayNumber: (a: number) => void;
 }) => {
   const {displayNumber, setDisplayNumber} = props;
   const [currentAngle, setCurrentAngle] = useState(0);

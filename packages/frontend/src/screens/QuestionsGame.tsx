@@ -214,12 +214,13 @@ function QuestionsGame() {
 
   // CONNECT SOCKET
   useEffect(() => {
-    if (!socket.connected && raceId?.toString().length) {
+    if (!socket.connected && raceId?.toString().length && user?.wallet?.address) {
       socket.connect();
-      socket.emit('connect-live-game', { raceId });
+      socket.emit('connect-live-game', { raceId, userAddress: user?.wallet?.address });
     }
 
-    socket.on('joined', () => {
+    socket.on('joined', (data) => {
+      console.log("USER JOINED", data);
       setPlayersJoined(playersJoined + 1);
       if (playersJoined === amountOfRegisteredUsers) {
         setIsOpen(false);
@@ -229,14 +230,16 @@ function QuestionsGame() {
       }
     });
 
-    socket.on('leaved', () => {
+    socket.on('leaved', (data) => {
+      console.log("USER LEAVED", data);
       setPlayersJoined(playersJoined - 1);
     });
 
     return () => {
       socket.off('joined');
+      socket.off('leaved');
     }
-  }, [raceId, socket, playersJoined, amountOfRegisteredUsers]);
+  }, [raceId, socket, playersJoined, amountOfRegisteredUsers, user?.wallet?.address]);
 
 
   function nextClicked() {

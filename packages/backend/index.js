@@ -19,16 +19,16 @@ io.on("connection", socket => {
         rooms = rooms.filter(i => i.id === socket.id);
 
         roomsToEmitDisconnectEvent.forEach(roomName => {
-            io.to(roomName).emit('leaved', socket.id);
+            io.to(roomName).emit('leaved', {socketId: socket.id});
         });
     });
 
-    socket.on('connect-live-game', ({ raceId }) => {
+    socket.on('connect-live-game', ({ raceId, userAddress }) => {
         const roomName = `race-${raceId}`;
-        rooms.push({ room: roomName, id: socket.id });
+        rooms.push({ room: roomName, id: socket.id, userAddress });
 
         socket.join(roomName);
-        io.to(roomName).emit('joined', socket.id);
+        io.to(roomName).emit('joined', {socketId: socket.id, userAddress});
     });
 });
 

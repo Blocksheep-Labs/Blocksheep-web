@@ -22,14 +22,18 @@ import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { usePrivy } from "@privy-io/react-auth";
 import { getRaceById } from "../utils/contract-functions";
 
+export type ConnectedUser = {
+    socketId: string;
+    address: string; 
+    src: string; 
+    PlayerPosition: number; 
+    Fuel: number
+}
+
 function TunnelGame() {
   const { user } = usePrivy();
   const [phase, setPhase] = useState("Default");
-  const [players, setPlayers] = useState([
-    { id: "player1", src: "https://i.ibb.co/SN7JyMF/sheeepy.png", PlayerPosition: 2, Fuel: 80 },
-    { id: "player2", src: "https://i.ibb.co/vXGDsDD/blacksheep.png", PlayerPosition: 1, Fuel: 30 },
-    { id: "player3", src: "https://i.ibb.co/SN7JyMF/sheeepy.png", PlayerPosition: 3, Fuel: 20 },
-  ]);
+  const [players, setPlayers] = useState<ConnectedUser[]>([]);
 
   const [modalType, setModalType] = useState(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -51,14 +55,17 @@ function TunnelGame() {
 
   useEffect(() => {
       console.log("flipState set time ", flipState);
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + 10);
-      restart(time);
+      //const time = new Date();
+      //time.setSeconds(time.getSeconds() + 10);
+      //restart(time);
   }, [flipState]);
 
   const { totalSeconds, restart, start, pause } = useTimer({
     expiryTimestamp: time,
-    onExpire: () => setFlipState(!flipState),
+    onExpire: () => {
+      setFlipState(!flipState);
+      handleTunnelChange();
+    },
     autoStart: false,
   });
 
@@ -66,7 +73,7 @@ function TunnelGame() {
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
     if (playersJoined === 1 && start) {
-      console.log("start")
+      //console.log("start")
       closeWaitingModal();
       start();
     } else {
@@ -78,23 +85,36 @@ function TunnelGame() {
 
   // CONNECT SOCKET
   useEffect(() => {
-    if (!socket.connected && raceId?.toString().length) {
+    if (!socket.connected && raceId?.toString().length && user?.wallet?.address) {
       socket.connect();
-      socket.emit('connect-live-game', { raceId });
+      socket.emit('connect-live-game', { raceId, userAddress: user?.wallet?.address });
     }
 
-    socket.on('joined', () => {
+    socket.on('joined', (data) => {
+      console.log("USER JOINED", data)
       setPlayersJoined(playersJoined + 1);
+      const newPlayer: ConnectedUser = {
+        socketId: data.socketId,
+        address: data.userAddress,
+        src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
+        PlayerPosition: 3,
+        Fuel: 30,
+      }
+      setPlayers([...players, newPlayer]);
     });
 
-    socket.on('leaved', () => {
+    socket.on('leaved', (data) => {
+      console.log("USER LEFT", data);
       setPlayersJoined(playersJoined - 1);
+      const newListOfPlayers = players.filter(i => i.socketId !== data.socketId);
+      setPlayers(newListOfPlayers);
     });
 
     return () => {
       socket.off('joined');
+      socket.off('leaved');
     }
-  }, [raceId, socket, playersJoined]);
+  }, [raceId, socket, playersJoined, user?.wallet?.address]);
 
 
   // CCHECK USER TO BE REGISTERED
@@ -119,6 +139,12 @@ function TunnelGame() {
   //     ),
   //   );
   // };
+
+  const handleFuelUpdate = (fuel: number) => {
+    if (phase === "Default") {
+      setDisplayNumber(fuel);
+    }
+  }
 
   const handleTunnelChange = () => {
     setPhase("CloseTunnel"); // Close tunnel: Head moves to swallow everything. Open tunnel: cars get out
@@ -233,16 +259,8 @@ function TunnelGame() {
           <RabbitHead phase={phase} />
           <RabbitTail phase={phase} />
         </div>
-        <button
-          id="StartTunnel"
-          onClick={() => {
-            handleTunnelChange();
-          }}
-        >
-          Play
-        </button>
         <div className="control-panels mb-10">
-          <Lever setDisplayNumber={setDisplayNumber} displayNumber={displayNumber}/>
+          <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber}/>
           <GasolineGauge fuel={displayNumber * 8.8}/>
         </div>
 
@@ -250,7 +268,7 @@ function TunnelGame() {
         {modalIsOpen && (
           <>
             {modalType === "waiting" && <WaitingForPlayersModal raceId={raceId} numberOfPlayers={playersJoined} numberOfPlayersRequired={3}/> }
-            {modalType === "loading" && <LoadingModal />}
+            {modalType === "loading" && <LoadingModal raceId={raceId}/>}
             {modalType === "win" && <WinModal handleClose={closeWinModal} />}
             {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
           </>

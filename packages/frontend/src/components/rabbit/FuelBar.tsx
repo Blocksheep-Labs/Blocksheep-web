@@ -1,8 +1,9 @@
 // @ts-nocheck
 // @ts-ignore
 import React from "react";
+import { ConnectedUser } from "../../screens/TunnelGame";
 
-const FuelBar = ({ players }) => {
+const FuelBar = ({ players }: {players: ConnectedUser}) => {
   // Find the maximum and minimum fuel levels for positioning
   const maxFuel = Math.max(...players.map((player) => player.Fuel));
   const minFuel = Math.min(...players.map((player) => player.Fuel));
@@ -23,7 +24,7 @@ const FuelBar = ({ players }) => {
         }}
       ></div>{" "}
       {/* Horizontal line */}
-      {players.map((player) => {
+      {players.map((player: ConnectedUser) => {
         // Calculate the left position as a percentage, considering the minimum fuel as the left margin
         const relativeFuel = player.Fuel - minFuel;
         const fuelRange = maxFuel - minFuel;
@@ -31,7 +32,7 @@ const FuelBar = ({ players }) => {
 
         return (
           <div
-            key={player.id}
+            key={player.socketId}
             className="fuel-circle"
             style={{
               position: "absolute",

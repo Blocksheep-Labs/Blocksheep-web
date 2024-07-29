@@ -1,20 +1,15 @@
-import React, { useEffect } from "react";
 import SelectRaceScreen from "./screens/SelectRaceScreen";
 import BottomTab from "./components/BottomTab";
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 import QuestionsGame from "./screens/QuestionsGame";
 import CountDownScreen from "./screens/CountDownScreen";
-import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import AccountScreen from "./screens/AccountScreen";
 import TunnelGame from "./screens/TunnelGame";
-import { socket } from "./utils/socketio";
+
 
 function App() {
-  useEffect(() => {
-    socket.connect();
-  }, [socket])
   return (
     <Routes>
       <Route path="/" element={<Layout />}>

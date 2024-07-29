@@ -1,8 +1,9 @@
 // @ts-nocheck
 
 import React, { useEffect, useRef } from "react";
+import { ConnectedUser } from "../../screens/TunnelGame";
 
-const PlayerMovement = ({ phase, players }) => {
+const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUser[]}) => {
   // Sort players by PlayerPosition
   const sortedPlayers = [...players].sort((a, b) => a.PlayerPosition - b.PlayerPosition);
   const playerRefs = useRef(sortedPlayers.map(() => React.createRef()));
@@ -48,11 +49,11 @@ const PlayerMovement = ({ phase, players }) => {
     <div className="player-container">
       {sortedPlayers.map((player, index) => (
         <img
-          key={player.id}
+          key={player.socketId}
           ref={playerRefs.current[index]}
           src={player.src}
-          alt={player.id}
-          className={`player-${player.id}`}
+          alt={player.socketId}
+          className={`player-${player.socketId}`}
         />
       ))}
     </div>

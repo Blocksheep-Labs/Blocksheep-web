@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const options = {
     cors: {
-        origin: [process.env.CLIENT_BASE, process.env.CLIENT_BASE_HTTP],
+        origin: "*",
     }
 };
 const io = require("socket.io")(httpServer, options);
@@ -13,6 +13,7 @@ let rooms = [];
 
 
 io.on("connection", socket => { 
+    console.log("Connected:", socket.id)
     socket.on('disconnect', () => {
         const roomsToEmitDisconnectEvent = rooms.filter(i => i.id === socket.id).map(i => i.room);
         rooms = rooms.filter(i => i.id === socket.id);

@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const options = {
     cors: {
-        origin: "*",
+        origin: [process.env.CLIENT_BASE],
     }
 };
 const io = require("socket.io")(httpServer, options);
@@ -32,4 +32,4 @@ io.on("connection", socket => {
     });
 });
 
-httpServer.listen(8000);
+httpServer.listen(process.env.PORT);

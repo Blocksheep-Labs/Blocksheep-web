@@ -1,4 +1,3 @@
-// @ts-nocheck
 
 import React, { useState, useEffect } from "react";
 import FuelBar from "../components/rabbit/FuelBar";
@@ -23,6 +22,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { getRaceById } from "../utils/contract-functions";
 
 export type ConnectedUser = {
+    id: number;
     socketId: string;
     address: string; 
     src: string; 
@@ -35,16 +35,16 @@ function TunnelGame() {
   const [phase, setPhase] = useState("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
 
-  const [modalType, setModalType] = useState(undefined);
+  const [modalType, setModalType] = useState<string | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [playersJoined, setPlayersJoined] = useState(0);
-  const navigator = useNavigate();
+  const navigate = useNavigate();
   const {raceId} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
 
   const [progress, setProgress] = useState(
     Array.from({ length: 9 }, () => {
-      return { curr: 0, delta: 0 };
+      return { curr: 0, delta: 0, address: "" };
     }),
   );
 
@@ -72,7 +72,7 @@ function TunnelGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if (playersJoined === 1 && start) {
+    if (playersJoined === 3 && start) {
       //console.log("start")
       closeWaitingModal();
       start();
@@ -99,6 +99,7 @@ function TunnelGame() {
         src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
         PlayerPosition: 3,
         Fuel: 30,
+        id: players.length + 1
       }
       setPlayers([...players, newPlayer]);
     });
@@ -161,7 +162,7 @@ function TunnelGame() {
 
     setProgress(
       Array.from({ length: 9 }, () => {
-        return { curr: 1, delta: 0 };
+        return { curr: 1, delta: 0, address: "" };
       }),
     );
 
@@ -171,7 +172,7 @@ function TunnelGame() {
 
   function onNextGameClicked() {
     // set
-    navigator("/select");
+    navigate("/select");
   }
 
   function closeLoadingModal() {
@@ -267,9 +268,11 @@ function TunnelGame() {
       </div>
         {modalIsOpen && (
           <>
-            {modalType === "waiting" && <WaitingForPlayersModal raceId={raceId} numberOfPlayers={playersJoined} numberOfPlayersRequired={3}/> }
-            {modalType === "loading" && <LoadingModal raceId={raceId}/>}
-            {modalType === "win" && <WinModal handleClose={closeWinModal} />}
+            {modalType === "waiting" && <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={playersJoined} numberOfPlayersRequired={3}/> }
+            {
+              //modalType === "loading" && <LoadingModal raceId={Number(raceId)} gameIndex={10}/>
+            }
+            {modalType === "win" && <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={10}/>}
             {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
           </>
         )}

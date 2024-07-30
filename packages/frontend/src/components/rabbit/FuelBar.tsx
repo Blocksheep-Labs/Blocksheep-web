@@ -3,7 +3,7 @@
 import React from "react";
 import { ConnectedUser } from "../../screens/TunnelGame";
 
-const FuelBar = ({ players }: {players: ConnectedUser}) => {
+const FuelBar = ({ players }: {players: ConnectedUser[]}) => {
   // Find the maximum and minimum fuel levels for positioning
   const maxFuel = Math.max(...players.map((player) => player.Fuel));
   const minFuel = Math.min(...players.map((player) => player.Fuel));

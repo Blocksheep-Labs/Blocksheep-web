@@ -20,6 +20,8 @@ export interface SwipeSelectionAPI {
   swipeRight: () => void;
 }
 
+const GAME_NAME = "questions";
+
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting";
 
 function QuestionsGame() {
@@ -30,7 +32,7 @@ function QuestionsGame() {
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [flipState, setFlipState] = useState(true);
-  const {raceId} = useParams();
+  const {raceId, gameId} = useParams();
   const location = useLocation();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -41,6 +43,7 @@ function QuestionsGame() {
   );
   const questions = location.state?.questionsByGames[currentGameIndex];
   const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
+  const [usersRequired, setUsersRequired] = useState(amountOfRegisteredUsers);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -176,7 +179,7 @@ function QuestionsGame() {
   }
 
   function closeWinModal() {
-    if (playersJoined === amountOfRegisteredUsers) {
+    if (playersJoined === usersRequired) {
       setIsOpen(false);
       setModalType(undefined);
       updateProgress();
@@ -187,6 +190,13 @@ function QuestionsGame() {
   }
 
   function openRaceModal() {
+    // notify the race completion
+    socket.emit('complete-game', { 
+      raceId, 
+      gameId, 
+      game: GAME_NAME, 
+      userAddress: user?.wallet?.address 
+    });
     setIsOpen(true);
     setModalType("race");
   }
@@ -199,7 +209,7 @@ function QuestionsGame() {
     getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
       if (data) {
         let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
-          return { curr: Number(i.progress), delta: 0 };
+          return { curr: Number(i.progress), delta: 0, address: i.user };
         });
         setProgress(newProgress);
       }
@@ -214,32 +224,78 @@ function QuestionsGame() {
 
   // CONNECT SOCKET
   useEffect(() => {
-    if (!socket.connected && raceId?.toString().length && user?.wallet?.address) {
-      socket.connect();
-      socket.emit('connect-live-game', { raceId, userAddress: user?.wallet?.address });
-    }
-
     socket.on('joined', (data) => {
-      console.log("USER JOINED", data);
-      setPlayersJoined(playersJoined + 1);
-      if (playersJoined === amountOfRegisteredUsers) {
-        setIsOpen(false);
-        setModalType(undefined);
-        updateProgress();
-        openRaceModal();
+      if (data.game === GAME_NAME) {
+        console.log("USER JOINED", data);
+        setPlayersJoined(playersJoined + 1);
+        if (playersJoined === usersRequired) {
+          setIsOpen(false);
+          setModalType(undefined);
+          updateProgress();
+          openRaceModal();
+        }
       }
     });
 
+    socket.on('changed-game', (data) => {
+      if (data.game === GAME_NAME) {
+        console.log("CHANGED GAME", data);
+        setPlayersJoined(playersJoined + 1);
+        if (playersJoined === usersRequired) {
+          setIsOpen(false);
+          setModalType(undefined);
+          updateProgress();
+          openRaceModal();
+        }
+      }
+
+      if (data.previousGame === GAME_NAME) {
+        console.log("CHANGED GAME (LEFT)", data);
+        setPlayersJoined(playersJoined - 1);
+        if (playersJoined !== usersRequired) {
+          setIsOpen(true);
+          setModalType("waiting");
+        }
+      }
+    });
+
+    socket.on('completed-game', (data) => {
+      if (data.game === GAME_NAME) {
+        console.log("COMPLETED GAME", data);
+        setUsersRequired(usersRequired - 1);
+        if (playersJoined === usersRequired) {
+          setIsOpen(false);
+          setModalType(undefined);
+          updateProgress();
+          openRaceModal();
+        }
+      }
+    });
+
+    socket.on('amount-of-completed', (data) => {
+      setUsersRequired(data.amount);
+    });
+
     socket.on('leaved', (data) => {
-      console.log("USER LEAVED", data);
-      setPlayersJoined(playersJoined - 1);
+      if (data.game === GAME_NAME) {
+        console.log("USER LEAVED", data);
+        setPlayersJoined(playersJoined - 1);
+      }
     });
 
     return () => {
       socket.off('joined');
       socket.off('leaved');
+      socket.off('changed-game');
+      socket.off('completed-game');
+      socket.off('amount-of-completed');
     }
-  }, [raceId, socket, playersJoined, amountOfRegisteredUsers, user?.wallet?.address]);
+  }, [socket, playersJoined, usersRequired]);
+
+  // fetch required amount of users to wait
+  useEffect(() => {
+    socket.emit('get-completed', { raceId, gameId, game: GAME_NAME })
+  }, [socket]); 
 
 
   function nextClicked() {
@@ -251,7 +307,7 @@ function QuestionsGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfRegisteredUsers}/>
+          <UserCount currentAmount={playersJoined}/>
         </div>
       </div>
       <SwipeSelection 
@@ -291,7 +347,7 @@ function QuestionsGame() {
           }
           {
             modalType === "waiting" && 
-            <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={playersJoined} numberOfPlayersRequired={3}/> 
+            <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={playersJoined} numberOfPlayersRequired={usersRequired}/> 
           }
         </>
       )}

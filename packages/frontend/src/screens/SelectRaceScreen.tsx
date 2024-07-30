@@ -15,6 +15,7 @@ import { getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../util
 import RegisteringModal from "../components/RegisteringModal";
 import RegisteredModal from "../components/RegisteredModal";
 
+
 const modalStyles = {
   content: {
     top: "50%",
@@ -91,11 +92,13 @@ function SelectRaceScreen() {
     return races.find(({ id }) => id === raceId);
   }, [races, raceId]);
 
-  function onClickJoin(id: number) {
-    setRaceId(id);
-    setIsOpen(true);
-    navigator(`/countdown/${id}`);
-  }
+  const onClickJoin = useCallback((id: number) => {
+    if (user?.wallet?.address) {
+      setRaceId(id);
+      setIsOpen(true);
+      navigator(`/countdown/${id}`);
+    }
+  }, [raceId, user?.wallet?.address])
 
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);

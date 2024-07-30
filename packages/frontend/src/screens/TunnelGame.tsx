@@ -14,7 +14,6 @@ import Timer from "../components/Timer";
 import UserCount from "../components/UserCount";
 
 import { useTimer } from "react-timer-hook";
-import { randomInt } from "crypto";
 import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
@@ -29,6 +28,8 @@ export type ConnectedUser = {
     PlayerPosition: number; 
     Fuel: number
 }
+
+const GAME_NAME = "tunnel";
 
 function TunnelGame() {
   const { user } = usePrivy();
@@ -69,7 +70,6 @@ function TunnelGame() {
     autoStart: false,
   });
 
-
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
     if (playersJoined === 3 && start) {
@@ -82,7 +82,6 @@ function TunnelGame() {
     }
   }, [playersJoined, start, modalIsOpen]);
 
-
   // CONNECT SOCKET
   useEffect(() => {
     if (!socket.connected && raceId?.toString().length && user?.wallet?.address) {
@@ -91,34 +90,63 @@ function TunnelGame() {
     }
 
     socket.on('joined', (data) => {
-      console.log("USER JOINED", data)
-      setPlayersJoined(playersJoined + 1);
-      const newPlayer: ConnectedUser = {
-        socketId: data.socketId,
-        address: data.userAddress,
-        src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
-        PlayerPosition: 3,
-        Fuel: 30,
-        id: players.length + 1
+      if (data.game === GAME_NAME) {
+        console.log("USER JOINED", data)
+        setPlayersJoined(playersJoined + 1);
+        const newPlayer: ConnectedUser = {
+          socketId: data.socketId,
+          address: data.userAddress,
+          src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
+          PlayerPosition: 3,
+          Fuel: 30,
+          id: players.length + 1
+        }
+        setPlayers([...players, newPlayer]);
       }
-      setPlayers([...players, newPlayer]);
+    });
+
+    socket.on('changed-game', (data) => {
+      if (data.game === GAME_NAME) {
+        console.log("CHANGED GAME:", data);
+        setPlayersJoined(playersJoined + 1);
+        const newPlayer: ConnectedUser = {
+          socketId: data.socketId,
+          address: data.userAddress,
+          src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
+          PlayerPosition: 3,
+          Fuel: 30,
+          id: players.length + 1
+        }
+        setPlayers([...players, newPlayer]);
+      }
+
+      if (data.previousGame === GAME_NAME) {
+        console.log("CHANGED GAME (LEFT)", data);
+        setPlayersJoined(playersJoined - 1);
+        setPlayers(players.filter(i => i.address !== data.userAddress));
+        if (playersJoined !== 3) {
+          openWaitingModal();
+        }
+      }
     });
 
     socket.on('leaved', (data) => {
-      console.log("USER LEFT", data);
-      setPlayersJoined(playersJoined - 1);
-      const newListOfPlayers = players.filter(i => i.socketId !== data.socketId);
-      setPlayers(newListOfPlayers);
+      if (data.game === GAME_NAME) {
+        console.log("USER LEFT", data);
+        setPlayersJoined(playersJoined - 1);
+        setPlayers(players.filter(i => i.address !== data.userAddress));
+      }
     });
 
     return () => {
       socket.off('joined');
       socket.off('leaved');
+      socket.off('changed-game');
     }
   }, [raceId, socket, playersJoined, user?.wallet?.address]);
 
 
-  // CCHECK USER TO BE REGISTERED
+  // CHECK USER TO BE REGISTERED
   useEffect(() => {
     if (raceId?.length && user?.wallet?.address) {
       getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
@@ -131,15 +159,6 @@ function TunnelGame() {
       });
     }
   }, [raceId, user?.wallet?.address]);
-
-  // Function to update player positions, if needed
-  // const updatePlayerPosition = (id, newPosition) => {
-  //   setPlayers((currentPlayers) =>
-  //     currentPlayers.map((player) =>
-  //       player.id === id ? { ...player, PlayerPosition: newPosition } : player,
-  //     ),
-  //   );
-  // };
 
   const handleFuelUpdate = (fuel: number) => {
     if (phase === "Default") {

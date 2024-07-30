@@ -3,6 +3,7 @@ import RaceBoard from "../components/RaceBoard";
 import { useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../utils/contract-functions";
 import { usePrivy } from "@privy-io/react-auth";
+import { socket } from "../utils/socketio";
 
 function CountDownScreen() {
   const { user } = usePrivy();
@@ -17,6 +18,11 @@ function CountDownScreen() {
     console.log(data, data.numberOfGames, data.gamesCompletedPerUser.length)
     if (data.numberOfGames === data.gamesCompletedPerUser.length) {
       navigate(`/race/${raceId}/tunnel`);
+      socket.emit('connect-live-game', {
+        raceId, 
+        userAddress: user?.wallet?.address, 
+        game: "tunnel"
+      });
       return;
     }
                                  // amount of questions           // game index
@@ -26,6 +32,11 @@ function CountDownScreen() {
         amountOfRegisteredUsers: data.registeredUsers.length, 
         progress
       }
+    });
+    socket.emit("connect-live-game", { 
+      raceId, 
+      userAddress: user?.wallet?.address, 
+      game: "questions" 
     });
   };
 

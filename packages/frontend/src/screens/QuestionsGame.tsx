@@ -74,10 +74,11 @@ function QuestionsGame() {
 
   const updateProgress = () => {
     setProgress((old: any) =>
-      old.map(({ curr, delta }: {curr: number, delta: number}) => {
+      old.map(({ curr, delta, address }: {curr: number, delta: number, address: string}) => {
         return {
           curr: (curr + delta) % 10,
           delta: Math.ceil(Math.random() * 2) % 10,
+          address
         };
       }),
     );

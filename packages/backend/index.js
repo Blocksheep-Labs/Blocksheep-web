@@ -51,6 +51,7 @@ io.on("connection", socket => {
         }
 
         socket.join(roomName);
+        console.log({socketId: socket.id, userAddress, game})
         // send the socket event
         io.to(roomName).emit('joined', {socketId: socket.id, userAddress, game});
     });
@@ -71,7 +72,7 @@ io.on("connection", socket => {
             return i;
         });
 
-        console.log("Chenged game:", socket.id, userAddress, `${prevGame} -> ${game}`);
+        console.log("Changed game:", socket.id, userAddress, `${prevGame} -> ${game}`);
 
         rooms = roomsData;
         // send the socket event

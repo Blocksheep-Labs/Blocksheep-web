@@ -224,7 +224,16 @@ function QuestionsGame() {
 
   // CONNECT SOCKET
   useEffect(() => {
+    socket.emit("connect-live-game", { 
+      raceId, 
+      userAddress: user?.wallet?.address, 
+      game: "questions" 
+    });
+  }, []);
+  
+  useEffect(() => {
     socket.on('joined', (data) => {
+      console.log(data.game, GAME_NAME)
       if (data.game === GAME_NAME) {
         console.log("USER JOINED", data);
         setPlayersJoined(playersJoined + 1);
@@ -273,7 +282,9 @@ function QuestionsGame() {
     });
 
     socket.on('amount-of-completed', (data) => {
-      setUsersRequired(data.amount);
+      console.log("AMOUNT OF COMPLETED", data.amount);
+      console.log("ANOUNT OF REQUIRED", amountOfRegisteredUsers - data.amount);
+      setUsersRequired(amountOfRegisteredUsers - data.amount);
     });
 
     socket.on('leaved', (data) => {
@@ -290,7 +301,7 @@ function QuestionsGame() {
       socket.off('completed-game');
       socket.off('amount-of-completed');
     }
-  }, [socket, playersJoined, usersRequired]);
+  }, [socket, playersJoined, usersRequired, user?.wallet?.address]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -307,7 +318,7 @@ function QuestionsGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={playersJoined}/>
+          <UserCount currentAmount={playersJoined} requiredAmount={usersRequired}/>
         </div>
       </div>
       <SwipeSelection 

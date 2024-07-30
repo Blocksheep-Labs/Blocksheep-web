@@ -18,11 +18,6 @@ function CountDownScreen() {
     console.log(data, data.numberOfGames, data.gamesCompletedPerUser.length)
     if (data.numberOfGames === data.gamesCompletedPerUser.length) {
       navigate(`/race/${raceId}/tunnel`);
-      socket.emit('connect-live-game', {
-        raceId, 
-        userAddress: user?.wallet?.address, 
-        game: "tunnel"
-      });
       return;
     }
                                  // amount of questions           // game index
@@ -32,11 +27,6 @@ function CountDownScreen() {
         amountOfRegisteredUsers: data.registeredUsers.length, 
         progress
       }
-    });
-    socket.emit("connect-live-game", { 
-      raceId, 
-      userAddress: user?.wallet?.address, 
-      game: "questions" 
     });
   };
 

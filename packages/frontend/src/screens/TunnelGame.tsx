@@ -84,11 +84,14 @@ function TunnelGame() {
 
   // CONNECT SOCKET
   useEffect(() => {
-    if (!socket.connected && raceId?.toString().length && user?.wallet?.address) {
-      socket.connect();
-      socket.emit('connect-live-game', { raceId, userAddress: user?.wallet?.address });
-    }
+    socket.emit('connect-live-game', {
+      raceId, 
+      userAddress: user?.wallet?.address, 
+      game: "tunnel"
+    });
+  }, []);
 
+  useEffect(() => {
     socket.on('joined', (data) => {
       if (data.game === GAME_NAME) {
         console.log("USER JOINED", data)
@@ -268,7 +271,7 @@ function TunnelGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={playersJoined}/>
+          <UserCount currentAmount={playersJoined} requiredAmount={3}/>
         </div>
       </div>
       <div className="app-container">

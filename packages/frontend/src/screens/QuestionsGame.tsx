@@ -272,12 +272,6 @@ function QuestionsGame() {
       if (data.game === GAME_NAME) {
         console.log("COMPLETED GAME", data);
         setUsersRequired(usersRequired - 1);
-        if (playersJoined === usersRequired) {
-          setIsOpen(false);
-          setModalType(undefined);
-          updateProgress();
-          openRaceModal();
-        }
       }
     });
 

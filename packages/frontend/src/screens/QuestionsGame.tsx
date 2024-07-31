@@ -21,6 +21,7 @@ export interface SwipeSelectionAPI {
 }
 
 const GAME_NAME = "questions";
+const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting";
 
@@ -37,13 +38,13 @@ function QuestionsGame() {
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
-  const [playersJoined, setPlayersJoined] = useState(0);
   const [progress, setProgress] = useState(
     location.state?.progress
   );
   const questions = location.state?.questionsByGames[currentGameIndex];
-  const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
-  const [usersRequired, setUsersRequired] = useState(amountOfRegisteredUsers);
+  const step = location.state?.step;
+  //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
+  const [amountOfConnected, setAmountOfConnected] = useState(0);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -54,6 +55,20 @@ function QuestionsGame() {
       setCurrentQuestionIndex(location.state?.questionsByGames?.[currentGameIndex].length - 1)
     }
   }, [location.state?.questionsByGames.length]);
+
+  // user step in game
+  useEffect(() => {
+    // user finished the game
+    if (step === "board") {
+      closeWinModal();
+      return;
+    }
+
+    // start of the game
+    if (step === "start") {
+      return;
+    }
+  }, []);
 
   useEffect(() => {
     if (!modalIsOpen) {
@@ -180,7 +195,7 @@ function QuestionsGame() {
   }
 
   function closeWinModal() {
-    if (playersJoined === usersRequired) {
+    if (amountOfConnected >= AMOUNT_OF_PLAYERS_PER_RACE) {
       setIsOpen(false);
       setModalType(undefined);
       updateProgress();
@@ -191,12 +206,11 @@ function QuestionsGame() {
   }
 
   function openRaceModal() {
-    // notify the race completion
-    socket.emit('complete-game', { 
+    // race is now completed by user
+    socket.emit('update-progress', { 
       raceId, 
-      gameId, 
-      game: GAME_NAME, 
-      userAddress: user?.wallet?.address 
+      userAddress: user?.wallet?.address,
+      property: "game1",
     });
     setIsOpen(true);
     setModalType("race");
@@ -216,91 +230,76 @@ function QuestionsGame() {
       }
     });
 
+    // user is now watched the progress after the first game
+    socket.emit('update-progress', { 
+      raceId, 
+      userAddress: user?.wallet?.address,
+      property: "board",
+    });
+
     nextClicked();
   }
 
   function onFinish() {
     openLoadingModal();
   }
-
-  // CONNECT SOCKET
-  useEffect(() => {
-    socket.emit("connect-live-game", { 
-      raceId, 
-      userAddress: user?.wallet?.address, 
-      game: "questions" 
-    });
-  }, []);
   
+  // handle socket events
   useEffect(() => {
-    socket.on('joined', (data) => {
-      console.log(data.game, GAME_NAME)
-      if (data.game === GAME_NAME) {
-        console.log("USER JOINED", data);
-        setPlayersJoined(playersJoined + 1);
-        if (playersJoined === usersRequired) {
-          setIsOpen(false);
-          setModalType(undefined);
-          updateProgress();
-          openRaceModal();
+    if (user?.wallet?.address) {
+      socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
+        console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
+        if (raceId == raceIdSocket) {
+          setAmountOfConnected(amount);
+          // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+          if (amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+            setIsOpen(false);
+            setModalType(undefined);
+          }
         }
-      }
-    });
+      });
 
-    socket.on('changed-game', (data) => {
-      if (data.game === GAME_NAME) {
-        console.log("CHANGED GAME", data);
-        setPlayersJoined(playersJoined + 1);
-        if (playersJoined === usersRequired) {
-          setIsOpen(false);
-          setModalType(undefined);
-          updateProgress();
-          openRaceModal();
+      socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+        if (raceId == raceIdSocket) {
+          setAmountOfConnected(amountOfConnected + 1);
+          if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
+            setIsOpen(false);
+            setModalType(undefined);
+            // unpause timer
+            setSubmittingAnswer(false);
+            resume();
+          }
         }
-      }
+      });
 
-      if (data.previousGame === GAME_NAME) {
-        console.log("CHANGED GAME (LEFT)", data);
-        setPlayersJoined(playersJoined - 1);
-        if (playersJoined !== usersRequired) {
+      socket.on('leaved', () => {
+        setAmountOfConnected(amountOfConnected - 1);
+        if (!modalIsOpen) {
           setIsOpen(true);
-          setModalType("waiting");
         }
+        setModalType("waiting");
+        // pause timer
+        setSubmittingAnswer(true);
+        pause();
+      });
+
+      socket.on('race-progress', (progress) => {
+        console.log("RACE PROGRESS PER USER:", progress);
+      });
+  
+      return () => {
+        socket.off('joined');
+        socket.off('amount-of-connected');
+        socket.off('leaved');
+        socket.off('race-progress');
       }
-    });
-
-    socket.on('completed-game', (data) => {
-      if (data.game === GAME_NAME) {
-        console.log("COMPLETED GAME", data);
-        setUsersRequired(usersRequired - 1);
-      }
-    });
-
-    socket.on('amount-of-completed', (data) => {
-      console.log("AMOUNT OF COMPLETED", data.amount);
-      console.log("ANOUNT OF REQUIRED", amountOfRegisteredUsers - data.amount);
-      setUsersRequired(amountOfRegisteredUsers - data.amount);
-    });
-
-    socket.on('leaved', (data) => {
-      if (data.game === GAME_NAME) {
-        console.log("USER LEAVED", data);
-        setPlayersJoined(playersJoined - 1);
-      }
-    });
-
-    return () => {
-      socket.off('joined');
-      socket.off('leaved');
-      socket.off('changed-game');
-      socket.off('completed-game');
-      socket.off('amount-of-completed');
     }
-  }, [socket, playersJoined, usersRequired, user?.wallet?.address]);
+  }, [socket, amountOfConnected, user?.wallet?.address]);
 
   // fetch required amount of users to wait
   useEffect(() => {
-    socket.emit('get-completed', { raceId, gameId, game: GAME_NAME })
+    socket.emit("get-connected", { raceId });
+    socket.emit("get-progress", { raceId });
   }, [socket]); 
 
 
@@ -313,7 +312,7 @@ function QuestionsGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={playersJoined} requiredAmount={usersRequired}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE}/>
         </div>
       </div>
       <SwipeSelection 
@@ -353,7 +352,7 @@ function QuestionsGame() {
           }
           {
             modalType === "waiting" && 
-            <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={playersJoined} numberOfPlayersRequired={usersRequired}/> 
+            <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> 
           }
         </>
       )}

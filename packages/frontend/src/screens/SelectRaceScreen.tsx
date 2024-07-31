@@ -11,9 +11,11 @@ import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
-import { getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../utils/contract-functions";
+import { getRaceById, getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../utils/contract-functions";
 import RegisteringModal from "../components/RegisteringModal";
 import RegisteredModal from "../components/RegisteredModal";
+import { socket } from "../utils/socketio";
+import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
 
 const modalStyles = {
@@ -34,17 +36,19 @@ const modalStyles = {
   },
 };
 
+const AMOUNT_OF_PLAYERS_PER_RACE= 2;
+
 function SelectRaceScreen() {
   const { user } = usePrivy();
   const { wallets } = useWallets();
-  const navigator = useNavigate();
+  const navigate = useNavigate();
 
   const [races, setRaces] = useState([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
   const [cost, setCost] = useState(0);
-  const [modalType, setModalType] = useState<"registering" | "registered" | undefined>(undefined);
-  //const [selectedRace, setSelectedRace] = useState<any | null>(null);
+  const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | undefined>(undefined);
+  const [amountOfConnected, setAmountOfConnected] = useState(0);
 
   // switch chain if required
   useEffect(() => {
@@ -92,13 +96,112 @@ function SelectRaceScreen() {
     return races.find(({ id }) => id === raceId);
   }, [races, raceId]);
 
-  const onClickJoin = useCallback((id: number) => {
+  useEffect(() => {
     if (user?.wallet?.address) {
-      setRaceId(id);
-      setIsOpen(true);
-      navigator(`/countdown/${id}`);
+      socket.on('amount-of-connected', (data) => {
+        if (data.raceId == raceId) {
+          setAmountOfConnected(data.amount);
+          console.log("CONNECTED:", data)
+          // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+          if (data.amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+            setIsOpen(false);
+            setModalType(undefined);
+            navigate(`/countdown/${data.raceId}`);
+          }
+        }
+      });
+
+      socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+        console.log(raceIdSocket, raceId)
+        if (raceIdSocket == raceId) {
+          console.log("JOINED", raceIdSocket, userAddress);
+          setAmountOfConnected(amountOfConnected + 1);
+          if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
+            setIsOpen(false);
+            setModalType(undefined);
+            navigate(`/countdown/${raceIdSocket}`);
+          }
+        }
+      });
+
+      socket.on('leaved', () => {
+        setAmountOfConnected(amountOfConnected - 1);
+        if (!modalIsOpen) {
+          setIsOpen(true);
+        }
+        setModalType("waiting");
+      });
+
+      socket.on('race-progress', (progress) => {
+        console.log("RACE PROGRESS PER USER:", progress);
+        // countdown1 was not passed
+        if (!progress.countdown) {
+          navigate(`/countdown/${raceId}`);
+          return;
+        }
+
+        // game 1 was not passed
+        if (!progress.game1) {
+          getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+            navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+              state: {
+                questionsByGames: data.questionsByGames, 
+                amountOfRegisteredUsers: data.registeredUsers.length, 
+                progress,
+                step: "start",
+              }
+            });
+          });
+          return;
+        }
+
+        // countdown 2 (before the first game) was not passed
+        if (!progress.board1) {
+          getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+            navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+              state: {
+                questionsByGames: data.questionsByGames, 
+                amountOfRegisteredUsers: data.registeredUsers.length, 
+                progress,
+                step: "board",
+              }
+            });
+          });
+          return;
+        }
+
+        // game 2 was not passed
+        if (!progress.game2) {
+          navigate(`/race/${raceId}/tunnel`);
+          return;
+        }
+      });
+  
+      return () => {
+        socket.off('joined');
+        socket.off('amount-of-connected');
+        socket.off('leaved');
+        socket.off('race-progress');
+      }
     }
-  }, [raceId, user?.wallet?.address])
+  }, [socket, raceId, user?.wallet?.address, amountOfConnected])
+
+  const onClickJoin = useCallback((id: number) => {
+    setRaceId(id);
+    setIsOpen(true);
+    setModalType("waiting");
+
+    if (user?.wallet?.address) {
+      socket.emit("connect-live-game", { 
+        raceId: id, 
+        userAddress: user?.wallet?.address, 
+      });
+      socket.emit("get-connected", {raceId: id});
+      socket.emit("get-progress", { raceId: id });
+    }
+  }, [user?.wallet?.address]);
+
+
 
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
@@ -144,6 +247,7 @@ function SelectRaceScreen() {
           ))}
       </div>
 
+      { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal raceId={raceId} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
       { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {
           const dt = new Date(Number(selectedRace.startAt) * 1000);

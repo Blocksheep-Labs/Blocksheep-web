@@ -8,10 +8,10 @@ const options = {
     }
 };
 const io = require("socket.io")(httpServer, options);
-// { room: string, id: string, userAddress: string, game: string, }
-let rooms = [];
-// { userAddress: string, gameId: string, raceId: string, game: string, }
-let completedGames = [];
+// { room: string, id: string, userAddress: string }
+let connectedUsers = [];
+// { room: string, userAddress: string, progress: ("countdown": number, "game-1": number, "board-1": number, "game-2": number) }
+let racesProgresses = [];
 
 
 io.on("connection", socket => { 
@@ -19,83 +19,114 @@ io.on("connection", socket => {
 
     // when user disconnects
     socket.on('disconnect', () => {
-        const roomsToEmitDisconnectEvent = rooms.filter(i => i.id === socket.id).map(i => i.room);
+        const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
         // rm user
-        rooms = rooms.filter(i => i.id === socket.id);
+        connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
 
         // send the socket events
         roomsToEmitDisconnectEvent.forEach(roomName => {
+            socket.leave(roomName);
             io.to(roomName).emit('leaved', {socketId: socket.id});
         });
 
         console.log("Disconnected:", socket.id);
     });
 
-    // connect the live game
-    socket.on('connect-live-game', ({ raceId, userAddress, game }) => {
+    // connect the live
+    socket.on('connect-live-game', ({ raceId, userAddress }) => {
         const roomName = `race-${raceId}`;
         // find user 
-        const data = rooms.find(i => i.raceId === raceId && i.userAddress === userAddress);
+        const data = connectedUsers.find(i => i.raceId === raceId && i.userAddress === userAddress);
 
         if (!data) {
             // add user
-            rooms.push({ room: roomName, id: socket.id, userAddress, game });
+            connectedUsers.push({ room: roomName, id: socket.id, userAddress });
         } else {
-            rooms = rooms.map(i => {
+            connectedUsers = connectedUsers.map(i => {
                 if (i => i.raceId === raceId && i.userAddress === userAddress) {
                     i.id = socket.id;
-                    i.game = game;
                 }
                 return i;
             });
         }
 
         socket.join(roomName);
-        console.log({socketId: socket.id, userAddress, game})
+        // console.log({socketId: socket.id, userAddress})
         // send the socket event
-        io.to(roomName).emit('joined', {socketId: socket.id, userAddress, game});
+        io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId});
     });
 
-    // used to dispatch user game currently playing
-    socket.on('change-game', ({ raceId, userAddress, game }) => {
-        const roomName = `race-${raceId}`;
+    // minimize race (game)
+    socket.on('minimize-live-game', () => {
+        const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+        // rm user
+        connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
 
-        // update user's current game
-        let prevGame; 
-        const roomsData = rooms.map(i => {
-            if (i.name === roomName && i.userAddress === userAddress && i.socketId === socket.id) {
-                // save prev game name
-                prevGame = i.game;
-                i.game = game;
-                i.id = socket.id;
-            }
-            return i;
+        // send the socket events
+        roomsToEmitDisconnectEvent.forEach(roomName => {
+            socket.leave(roomName);
+            io.to(roomName).emit('leaved', {socketId: socket.id});
         });
-
-        console.log("Changed game:", socket.id, userAddress, `${prevGame} -> ${game}`);
-
-        rooms = roomsData;
-        // send the socket event
-        io.to(roomName).emit('changed-game', {socketId: socket.id, userAddress, game, previousGame: prevGame});
     });
 
     // user completes the game
-    socket.on('complete-game', ({ raceId, gameId, userAddress, game }) => {
+    socket.on('update-progress', ({ raceId, userAddress, property }) => {
         const roomName = `race-${raceId}`;
-        const data = {raceId, gameId, userAddress, game};
-        completedGames.push(data);
-        io.to(roomName).emit('completed-game', data);
+        console.log("UPDATE PROGRESS:", {
+            raceId,
+            userAddress,
+            property
+        });
+
+        racesProgresses.push({
+            room: roomName, 
+            userAddress,
+            [property]: true
+        });
+
+        console.log("NEW PROGRESSES:", racesProgresses);
+
+        io.to(roomName).emit('progress-updated', {raceId, property});
     });
 
     // get amount completed by raceId game gameId
-    socket.on('get-completed', ({ raceId, gameId, game }) => {
-        let amount = 0;
-        completedGames.forEach(i => {
-            if (i.raceId === raceId && i.game === game && i.gameId === gameId) {
-                amount++;
+    socket.on('get-progress', ({ raceId, userAddress }) => {
+        const roomName = `race-${raceId}`;
+
+        let progress = {
+            countdown: false,
+            game1: false,
+            board1: false,
+            game2: false,
+        }
+
+        racesProgresses.forEach(i => {
+            if (i.room === roomName && i.userAddress === userAddress) {
+                if (i?.countdown) {
+                    progress.countdown = true;
+                }
+
+                if (i?.game1) {
+                    progress.game1 = true;
+                }
+
+                if (i?.board1) {
+                    progress.board1 = true;
+                }
+
+                if (i?.game2) {
+                    progress.game2 = true;
+                }
             }
         });
-        io.to(socket.id).emit('amount-of-completed', { amount });
+        io.to(socket.id).emit('race-progress', { progress });
+    });
+
+    // get users amount connected to the game 
+    socket.on('get-connected', async({ raceId }) => {
+        const roomName = `race-${raceId}`;
+        const sockets = await io.in(roomName).fetchSockets();
+        io.to(socket.id).emit('amount-of-connected', { amount: sockets.length, raceId });
     });
 });
 

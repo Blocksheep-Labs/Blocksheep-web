@@ -21,7 +21,7 @@ export interface SwipeSelectionAPI {
 }
 
 const GAME_NAME = "questions";
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
+const AMOUNT_OF_PLAYERS_PER_RACE = 3;
 
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting";
 

@@ -6,7 +6,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
+const AMOUNT_OF_PLAYERS_PER_RACE = 3;
 
 function CountDownScreen() {
   const { user } = usePrivy();

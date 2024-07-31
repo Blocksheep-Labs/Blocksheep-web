@@ -36,7 +36,7 @@ const modalStyles = {
   },
 };
 
-const AMOUNT_OF_PLAYERS_PER_RACE= 2;
+const AMOUNT_OF_PLAYERS_PER_RACE = 3;
 
 function SelectRaceScreen() {
   const { user } = usePrivy();

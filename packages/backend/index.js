@@ -15,8 +15,6 @@ let racesProgresses = [];
 
 
 io.on("connection", socket => { 
-    console.log("Connected:", socket.id)
-
     // when user disconnects
     socket.on('disconnect', () => {
         const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
@@ -28,8 +26,6 @@ io.on("connection", socket => {
             socket.leave(roomName);
             io.to(roomName).emit('leaved', {socketId: socket.id});
         });
-
-        console.log("Disconnected:", socket.id);
     });
 
     // connect the live
@@ -51,7 +47,6 @@ io.on("connection", socket => {
         }
 
         socket.join(roomName);
-        // console.log({socketId: socket.id, userAddress})
         // send the socket event
         io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId});
     });
@@ -70,55 +65,81 @@ io.on("connection", socket => {
     });
 
     // user completes the game
-    socket.on('update-progress', ({ raceId, userAddress, property }) => {
+    socket.on('update-progress', ({ raceId, userAddress, property, value }) => {
         const roomName = `race-${raceId}`;
-        console.log("UPDATE PROGRESS:", {
-            raceId,
-            userAddress,
-            property
-        });
+        let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
 
-        racesProgresses.push({
-            room: roomName, 
-            userAddress,
-            [property]: true
-        });
+        console.log(roomName, userAddress, rProgress);
+        if (!rProgress) {
+            console.log("No progress was found, setting new")
+            rProgress = {
+                room: roomName, 
+                userAddress,
+                progress: {
+                    countdown: false,
+                    game1: {
+                        isDistributed: false,
+                        completed: 0,
+                        of: 0,
+                    },
+                    board1: false,
+                    game2: {
+                        isCompleted: false,
+                        stage: 0,
+                        fuel: 0,
+                    },
+                }
+            }
 
-        console.log("NEW PROGRESSES:", racesProgresses);
+            racesProgresses.push(rProgress);
+        }
+
+
+        switch (property) {
+            case "countdown":
+                rProgress.progress.countdown = true;
+                break;
+            case "board1":
+                rProgress.progress.board1 = true;
+                break;
+            case "game1++":
+                rProgress.progress.game1 = {
+                    ...rProgress.progress.game1,
+                    completed: rProgress.progress.game1.completed + 1,
+                    of: value.of,
+                }
+                break;
+            case "game1-distribute":
+                rProgress.progress.game1 = {
+                    ...rProgress.progress.game1,
+                    isDistributed: true,
+                }
+                break;
+            case "game2++":
+                break;
+            default:
+                break;
+        }     
+          
+        /*
+        racesProgresses = racesProgresses.map(i => {
+            if (i => i.room === roomName && i.userAddress === userAddress) {
+                i = rProgress;
+            }
+            return i;
+        });
+        */
+
+        console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress.game1));
 
         io.to(roomName).emit('progress-updated', {raceId, property});
+        
     });
 
     // get amount completed by raceId game gameId
     socket.on('get-progress', ({ raceId, userAddress }) => {
         const roomName = `race-${raceId}`;
-
-        let progress = {
-            countdown: false,
-            game1: false,
-            board1: false,
-            game2: false,
-        }
-
-        racesProgresses.forEach(i => {
-            if (i.room === roomName && i.userAddress === userAddress) {
-                if (i?.countdown) {
-                    progress.countdown = true;
-                }
-
-                if (i?.game1) {
-                    progress.game1 = true;
-                }
-
-                if (i?.board1) {
-                    progress.board1 = true;
-                }
-
-                if (i?.game2) {
-                    progress.game2 = true;
-                }
-            }
-        });
+        const progress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
         io.to(socket.id).emit('race-progress', { progress });
     });
 

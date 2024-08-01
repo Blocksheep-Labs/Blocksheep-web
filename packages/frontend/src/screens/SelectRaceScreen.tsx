@@ -36,7 +36,7 @@ const modalStyles = {
   },
 };
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 3;
+const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function SelectRaceScreen() {
   const { user } = usePrivy();
@@ -49,6 +49,63 @@ function SelectRaceScreen() {
   const [cost, setCost] = useState(0);
   const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
+  const [progress, setProgress] = useState<any>(null);
+
+  const handleNavigate = useCallback(() => {
+    console.log("PROGRESS", progress);
+
+    if (!progress?.countdown) {
+      console.log("COUNTDOWN")
+      navigate(`/countdown/${raceId}`);
+      return;
+    }
+
+    // game 1 was not passed
+    if (!progress?.game1?.isDistributed) {
+      console.log("GAME-1")
+      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+          state: {
+            questionsByGames: data.questionsByGames, 
+            amountOfRegisteredUsers: data.registeredUsers.length, 
+            progress,
+            completed: progress.game1.completed,
+            of: progress.game1.of,
+            isDistributed: progress.game1.isDistributed,
+            step: "questions"
+          }
+        });
+      });
+      return;
+    }
+
+    // countdown 2 (before the first game) was not passed
+    if (!progress?.board1) {
+      console.log("BOARD-1")
+      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+          state: {
+            questionsByGames: data.questionsByGames, 
+            amountOfRegisteredUsers: data.registeredUsers.length, 
+            progress,
+            step: "board",
+          }
+        });
+      });
+      return;
+    }
+
+    // game 2 was not passed
+    if (!progress?.game2?.isCompleted) {
+      navigate(`/race/${raceId}/tunnel`, {
+        state: {
+          stage: game2.stage,
+          fuel: game2.fuel
+        }
+      });
+      return;
+    }
+  }, [progress, raceId]);
 
   // switch chain if required
   useEffect(() => {
@@ -106,11 +163,11 @@ function SelectRaceScreen() {
           if (data.amount === AMOUNT_OF_PLAYERS_PER_RACE) {
             setIsOpen(false);
             setModalType(undefined);
-            navigate(`/countdown/${data.raceId}`);
+            handleNavigate();
           }
         }
       });
-
+      
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
         console.log(raceIdSocket, raceId)
         if (raceIdSocket == raceId) {
@@ -119,7 +176,7 @@ function SelectRaceScreen() {
           if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
             setIsOpen(false);
             setModalType(undefined);
-            navigate(`/countdown/${raceIdSocket}`);
+            handleNavigate();
           }
         }
       });
@@ -132,49 +189,10 @@ function SelectRaceScreen() {
         setModalType("waiting");
       });
 
-      socket.on('race-progress', (progress) => {
-        console.log("RACE PROGRESS PER USER:", progress);
+      socket.on('race-progress', ({progress}) => {
+        progress?.progress && setProgress(progress.progress);
         // countdown1 was not passed
-        if (!progress.countdown) {
-          navigate(`/countdown/${raceId}`);
-          return;
-        }
-
-        // game 1 was not passed
-        if (!progress.game1) {
-          getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
-            navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
-              state: {
-                questionsByGames: data.questionsByGames, 
-                amountOfRegisteredUsers: data.registeredUsers.length, 
-                progress,
-                step: "start",
-              }
-            });
-          });
-          return;
-        }
-
-        // countdown 2 (before the first game) was not passed
-        if (!progress.board1) {
-          getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
-            navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
-              state: {
-                questionsByGames: data.questionsByGames, 
-                amountOfRegisteredUsers: data.registeredUsers.length, 
-                progress,
-                step: "board",
-              }
-            });
-          });
-          return;
-        }
-
-        // game 2 was not passed
-        if (!progress.game2) {
-          navigate(`/race/${raceId}/tunnel`);
-          return;
-        }
+        console.log("PROGRESS", progress)
       });
   
       return () => {
@@ -184,7 +202,7 @@ function SelectRaceScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, user?.wallet?.address, amountOfConnected])
+  }, [socket, raceId, user?.wallet?.address, amountOfConnected, handleNavigate])
 
   const onClickJoin = useCallback((id: number) => {
     setRaceId(id);
@@ -192,14 +210,14 @@ function SelectRaceScreen() {
     setModalType("waiting");
 
     if (user?.wallet?.address) {
+      socket.emit("get-progress", { raceId: id, userAddress: user?.wallet?.address });
       socket.emit("connect-live-game", { 
         raceId: id, 
         userAddress: user?.wallet?.address, 
       });
       socket.emit("get-connected", {raceId: id});
-      socket.emit("get-progress", { raceId: id });
-    }
-  }, [user?.wallet?.address]);
+    } 
+  }, [user?.wallet?.address, socket]);
 
 
 

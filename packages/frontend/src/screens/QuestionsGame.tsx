@@ -21,7 +21,7 @@ export interface SwipeSelectionAPI {
 }
 
 const GAME_NAME = "questions";
-const AMOUNT_OF_PLAYERS_PER_RACE = 3;
+const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting";
 
@@ -38,37 +38,17 @@ function QuestionsGame() {
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const [boardPermanentlyOpened, setBoardPermanentlyOpened] = useState(false);
   const [progress, setProgress] = useState(
     location.state?.progress
   );
   const questions = location.state?.questionsByGames[currentGameIndex];
-  const step = location.state?.step;
+  const { step, completed, of, isDistributed, questionsByGames } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
-
-  // set maximum game index
-  useEffect(() => {
-    if (location.state?.questionsByGames?.[currentGameIndex].length) {
-      setCurrentQuestionIndex(location.state?.questionsByGames?.[currentGameIndex].length - 1)
-    }
-  }, [location.state?.questionsByGames.length]);
-
-  // user step in game
-  useEffect(() => {
-    // user finished the game
-    if (step === "board") {
-      closeWinModal();
-      return;
-    }
-
-    // start of the game
-    if (step === "start") {
-      return;
-    }
-  }, []);
 
   useEffect(() => {
     if (!modalIsOpen) {
@@ -103,11 +83,22 @@ function QuestionsGame() {
     setSubmittingAnswer(true);
     pause();
 
-    console.log({
+    console.log("UPDATE PROGRESS", {
       raceId,
-      currentGameIndex,
-      currentQuestionIndex,
-      answerId: 0,
+      userAddress: user?.wallet?.address,
+      property: "game1++",
+      value: {
+        of: Number(questions.length),
+      }
+    });
+
+    socket.emit('update-progress', {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game1++",
+      value: {
+        of: Number(questions.length),
+      }
     });
     
     sendTx && await submitUserAnswer(
@@ -135,8 +126,8 @@ function QuestionsGame() {
     time.setSeconds(time.getSeconds() + 10);
     restart(time);
 
-    if (currentQuestionIndex !== 0)
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    if (currentQuestionIndex !== questions.length)
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
 
@@ -144,11 +135,23 @@ function QuestionsGame() {
     setSubmittingAnswer(true);
     pause();
 
-    console.log({
+    console.log("UPDATE PROGRESS", {
       raceId,
-      currentGameIndex,
-      currentQuestionIndex,
-      answerId: 1,
+      userAddress: user?.wallet?.address,
+      property: "game1++",
+      value: {
+        of: Number(questions.length),
+      }
+    });
+
+    socket.emit('update-progress', {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game1",
+      value: {
+        completed: currentQuestionIndex + 1,
+        of: Number(questions.length),
+      }
     });
 
     sendTx && await submitUserAnswer(
@@ -174,8 +177,8 @@ function QuestionsGame() {
     restart(time);
     
     ref.current?.swipeRight();
-    if (currentQuestionIndex !== 0)
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    if (currentQuestionIndex !== questions.length)
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
   function openLoadingModal() {
@@ -187,6 +190,16 @@ function QuestionsGame() {
     setIsOpen(false);
     setModalType(undefined);
     openWinModal();
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game1-distribute",
+      value: {
+        completed: Number(questions.length),
+        of: Number(questions.length),
+        isDistributed: true,
+      }
+    })
   }
 
   function openWinModal() {
@@ -206,12 +219,6 @@ function QuestionsGame() {
   }
 
   function openRaceModal() {
-    // race is now completed by user
-    socket.emit('update-progress', { 
-      raceId, 
-      userAddress: user?.wallet?.address,
-      property: "game1",
-    });
     setIsOpen(true);
     setModalType("race");
   }
@@ -234,7 +241,8 @@ function QuestionsGame() {
     socket.emit('update-progress', { 
       raceId, 
       userAddress: user?.wallet?.address,
-      property: "board",
+      property: "board1",
+      value: true,
     });
 
     nextClicked();
@@ -242,6 +250,8 @@ function QuestionsGame() {
 
   function onFinish() {
     openLoadingModal();
+    setSubmittingAnswer(true);
+    pause();
   }
   
   // handle socket events
@@ -298,14 +308,53 @@ function QuestionsGame() {
 
   // fetch required amount of users to wait
   useEffect(() => {
-    socket.emit("get-connected", { raceId });
-    socket.emit("get-progress", { raceId });
-  }, [socket]); 
+    if (user?.wallet?.address) {
+      socket.emit("get-connected", { raceId });
+      socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
+    }
+  }, [socket, user?.wallet?.address]); 
 
 
   function nextClicked() {
     navigate(`/race/${raceId}/tunnel`);
   }
+
+  // set maximum game index
+  useEffect(() => {
+    if (user?.wallet?.address) {
+      // user finished the game
+      if (step === "board") {
+        console.log("BOARD");
+        pause();
+        getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
+          if (data) {
+            let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
+              return { curr: Number(i.progress), delta: 0, address: i.user };
+            });
+            setProgress(newProgress);
+            setBoardPermanentlyOpened(true);
+          }
+        });
+        return;
+      }
+  
+      // continue answering questions
+      if (completed != of && step == "questions") {
+        console.log("CONTINUE FROM", completed);
+        setCurrentQuestionIndex(completed);
+        return;
+      }
+  
+      // user answered all questions but score was not calculated
+      if (completed == of && completed > 0 && of > 0 && !isDistributed && step == "questions") {
+        pause();
+        onFinish();
+        return;
+      }
+    }
+  }, [step, completed, of, isDistributed, questionsByGames, user?.wallet?.address]);
+
+  console.log("CURRENT Q INDEX:", currentQuestionIndex);
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
@@ -315,12 +364,17 @@ function QuestionsGame() {
           <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE}/>
         </div>
       </div>
-      <SwipeSelection 
-        key={roundId.toString()} 
-        ref={ref} 
-        onFinish={onFinish} 
-        questions={questions || []}
-      />
+      {
+        currentQuestionIndex !== questions.length 
+        &&
+        <SwipeSelection 
+          key={roundId.toString()} 
+          ref={ref} 
+          onFinish={onFinish} 
+          questions={questions || []}
+          currentQuestionIndex={currentQuestionIndex}
+        />
+      }
       
       <div className="m-auto mb-0 w-[65%]">
         <SelectionBtnBox
@@ -356,6 +410,10 @@ function QuestionsGame() {
           }
         </>
       )}
+
+      {
+        boardPermanentlyOpened && <RaceModal progress={progress} handleClose={closeRaceModal} />
+      }
     </div>
   );
 }

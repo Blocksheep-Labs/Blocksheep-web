@@ -6,7 +6,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 3;
+const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function CountDownScreen() {
   const { user } = usePrivy();
@@ -20,11 +20,18 @@ function CountDownScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
 
   const handleClose = async() => {
+    console.log("UPDATE PRGOGRESS:", {
+      raceId, 
+      userAddress: user?.wallet?.address,
+      property: "countdown",
+      value: true,
+    })
     // user have seen the raceboard progress, we must update update the state
     socket.emit('update-progress', {
       raceId, 
       userAddress: user?.wallet?.address,
       property: "countdown",
+      value: true,
     });
     
                                  // amount of questions           // game index
@@ -136,7 +143,7 @@ function CountDownScreen() {
     setModalType("waiting");
     if (user?.wallet?.address) {
       socket.emit("get-connected", { raceId });
-      socket.emit("get-progress", { raceId });
+      socket.emit("get-progress", { raceId, userAddress: user?.wallet?.address });
     }
   }, [socket, raceId, user?.wallet?.address]);
 

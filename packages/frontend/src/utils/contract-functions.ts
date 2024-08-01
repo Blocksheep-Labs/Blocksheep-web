@@ -70,7 +70,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
     });
 
     //@ts-ignore
-    data.reverse();
+    //data.reverse();
 
     //console.log("Races:", data)
 

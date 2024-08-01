@@ -91,6 +91,7 @@ function TunnelGame() {
     });
   }, []);
 
+  
   useEffect(() => {
     socket.on('joined', (data) => {
       if (data.game === GAME_NAME) {
@@ -147,6 +148,7 @@ function TunnelGame() {
       socket.off('changed-game');
     }
   }, [raceId, socket, playersJoined, user?.wallet?.address]);
+  
 
 
   // CHECK USER TO BE REGISTERED

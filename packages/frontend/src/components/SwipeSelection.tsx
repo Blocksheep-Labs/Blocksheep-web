@@ -3,7 +3,7 @@ import BottomYellowBg from "../assets/gameplay/bottom-yellow-top.svg";
 
 import { RefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import React from "react";
-import SelectionBtnBox from "./SelectionBtnBox";
+
 
 type Direction = "left" | "right" | "up" | "down";
 
@@ -24,10 +24,11 @@ export type SwipeSelectionProps = {
   onSwipe?: () => void;
   onFinish: () => void;
   questions: any[];
+  currentQuestionIndex: number;
 };
 
 // eslint-disable-next-line react/display-name
-const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFinish, questions }, ref) => {
+const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFinish, questions, currentQuestionIndex }, ref) => {
   // const [data, setData] = useState(questions);
   const data = questions;
   const [currentIndex, setCurrentIndex] = useState(data.length - 1);
@@ -98,8 +99,6 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
   //   await childRefs[newIndex].current?.restoreCard();
   // };
 
-  // console.log("DATA:", data)
-
   return (
     <>
       <div className="relative py-2">
@@ -116,14 +115,14 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
             >
               <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
                 <div className="relative ">
-                  <img src={`/questions/question${index + 1}.png`} alt="play-card" />
+                  <img src={`/questions/question${currentQuestionIndex + 1}.png`} alt="play-card" />
                   <img
                     src={BottomYellowBg}
                     alt="bottom-yellow-top"
                     className="absolute inset-x-0 bottom-0"
                   />
                 </div>
-                <Content question={info.content} />
+                <Content question={data[currentQuestionIndex].info.content} />
               </div>
             </TinderCard>
           ))}

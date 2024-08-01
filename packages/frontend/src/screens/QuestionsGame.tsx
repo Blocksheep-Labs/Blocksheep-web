@@ -39,6 +39,7 @@ function QuestionsGame() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const [boardPermanentlyOpened, setBoardPermanentlyOpened] = useState(false);
+  const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
   const [progress, setProgress] = useState(
     location.state?.progress
   );
@@ -187,6 +188,7 @@ function QuestionsGame() {
   }
 
   function closeLoadingModal() {
+    setDistributePermanentlyOpened(false);
     setIsOpen(false);
     setModalType(undefined);
     openWinModal();
@@ -224,6 +226,7 @@ function QuestionsGame() {
   }
 
   function closeRaceModal() {
+    setBoardPermanentlyOpened(false);
     setIsOpen(false);
     setModalType(undefined);
     setRoundId(roundId + 1);
@@ -250,8 +253,6 @@ function QuestionsGame() {
 
   function onFinish() {
     openLoadingModal();
-    setSubmittingAnswer(true);
-    pause();
   }
   
   // handle socket events
@@ -339,16 +340,16 @@ function QuestionsGame() {
       }
   
       // continue answering questions
-      if (completed != of && step == "questions") {
+      if (completed != of && completed < of && step == "questions") {
         console.log("CONTINUE FROM", completed);
         setCurrentQuestionIndex(completed);
         return;
       }
   
       // user answered all questions but score was not calculated
-      if (completed == of && completed > 0 && of > 0 && !isDistributed && step == "questions") {
+      if (completed >= of && completed > 0 && of > 0 && !isDistributed && step == "questions") {
         pause();
-        onFinish();
+        setDistributePermanentlyOpened(true);
         return;
       }
     }
@@ -412,7 +413,12 @@ function QuestionsGame() {
       )}
 
       {
-        boardPermanentlyOpened && <RaceModal progress={progress} handleClose={closeRaceModal} />
+        boardPermanentlyOpened && 
+        <RaceModal progress={progress} handleClose={closeRaceModal} />
+      }
+      {
+        distributePermanentlyOpened && 
+        <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} />
       }
     </div>
   );

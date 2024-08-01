@@ -68,6 +68,7 @@ io.on("connection", socket => {
     socket.on('update-progress', ({ raceId, userAddress, property, value }) => {
         const roomName = `race-${raceId}`;
         let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+        console.log("UPDATE:", roomName, userAddress, property, value)
 
         console.log(roomName, userAddress, rProgress);
         if (!rProgress) {
@@ -91,36 +92,61 @@ io.on("connection", socket => {
                 }
             }
 
+            switch (property) {
+                case "countdown":
+                    rProgress.progress.countdown = true;
+                    break;
+                case "board1":
+                    rProgress.progress.board1 = true;
+                    break;
+                case "game1++":
+                    rProgress.progress.game1 = {
+                        ...rProgress.progress.game1,
+                        completed: rProgress.progress.game1.completed + 1,
+                        of: value.of,
+                    }
+                    break;
+                case "game1-distribute":
+                    rProgress.progress.game1 = {
+                        ...rProgress.progress.game1,
+                        isDistributed: true,
+                    }
+                    break;
+                case "game2++":
+                    break;
+                default:
+                    break;
+            }     
+
             racesProgresses.push(rProgress);
+        } else {
+            switch (property) {
+                case "countdown":
+                    rProgress.progress.countdown = true;
+                    break;
+                case "board1":
+                    rProgress.progress.board1 = true;
+                    break;
+                case "game1++":
+                    rProgress.progress.game1 = {
+                        ...rProgress.progress.game1,
+                        completed: rProgress.progress.game1.completed + 1,
+                        of: value.of,
+                    }
+                    break;
+                case "game1-distribute":
+                    rProgress.progress.game1 = {
+                        ...rProgress.progress.game1,
+                        isDistributed: true,
+                    }
+                    break;
+                case "game2++":
+                    break;
+                default:
+                    break;
+            }     
         }
 
-
-        switch (property) {
-            case "countdown":
-                rProgress.progress.countdown = true;
-                break;
-            case "board1":
-                rProgress.progress.board1 = true;
-                break;
-            case "game1++":
-                rProgress.progress.game1 = {
-                    ...rProgress.progress.game1,
-                    completed: rProgress.progress.game1.completed + 1,
-                    of: value.of,
-                }
-                break;
-            case "game1-distribute":
-                rProgress.progress.game1 = {
-                    ...rProgress.progress.game1,
-                    isDistributed: true,
-                }
-                break;
-            case "game2++":
-                break;
-            default:
-                break;
-        }     
-          
         /*
         racesProgresses = racesProgresses.map(i => {
             if (i => i.room === roomName && i.userAddress === userAddress) {

@@ -86,8 +86,8 @@ io.on("connection", socket => {
                     board1: false,
                     game2: {
                         isCompleted: false,
-                        stage: 0,
                         fuel: 0,
+                        isWon: false,
                     },
                 }
             }
@@ -112,11 +112,22 @@ io.on("connection", socket => {
                         isDistributed: true,
                     }
                     break;
-                case "game2++":
+                case "game2-set-fuel":
+                    rProgress.progress.game2 = {
+                        ...rProgress.progress.game2,
+                        fuel: value.fuel,
+                    }
+                    break;
+                case "game2-complete": 
+                    rProgress.progress.game2 = {
+                        ...rProgress.progress.game2,
+                        isCompleted: true,
+                        isWon: value.isWon,
+                    }
                     break;
                 default:
                     break;
-            }     
+            }       
 
             racesProgresses.push(rProgress);
         } else {
@@ -140,26 +151,27 @@ io.on("connection", socket => {
                         isDistributed: true,
                     }
                     break;
-                case "game2++":
+                case "game2-set-fuel":
+                    rProgress.progress.game2 = {
+                        ...rProgress.progress.game2,
+                        fuel: value.fuel,
+                    }
+                    break;
+                case "game2-complete": 
+                    rProgress.progress.game2 = {
+                        ...rProgress.progress.game2,
+                        isCompleted: true,
+                        isWon: value.isWon,
+                    }
                     break;
                 default:
                     break;
             }     
         }
 
-        /*
-        racesProgresses = racesProgresses.map(i => {
-            if (i => i.room === roomName && i.userAddress === userAddress) {
-                i = rProgress;
-            }
-            return i;
-        });
-        */
-
-        console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress.game1));
+        console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
 
         io.to(roomName).emit('progress-updated', {raceId, property});
-        
     });
 
     // get amount completed by raceId game gameId
@@ -167,6 +179,28 @@ io.on("connection", socket => {
         const roomName = `race-${raceId}`;
         const progress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
         io.to(socket.id).emit('race-progress', { progress });
+    });
+
+    // get all progresses for tunnel game
+    socket.on('get-all-fuel-tunnel', ({ raceId }) => {
+        const roomName = `race-${raceId}`;
+        const progresses = racesProgresses.filter(i => i.room === roomName);
+
+        console.log("GET ALL FUEL DATA:", progresses.map(i => {
+            return {
+                userAddress: i?.userAddress,
+                fuel: i?.progress?.game2?.fuel,
+            }
+        }))
+
+        io.to(socket.id).emit(`race-fuel-all-tunnel`, {
+            progresses: progresses.map(i => {
+                return {
+                    userAddress: i?.userAddress,
+                    fuel: i?.progress?.game2?.fuel,
+                }
+            }),
+        });
     });
 
     // get users amount connected to the game 

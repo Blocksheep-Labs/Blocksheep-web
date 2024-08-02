@@ -53,6 +53,15 @@ function SelectRaceScreen() {
 
   const handleNavigate = useCallback(() => {
     console.log("PROGRESS", progress);
+    /*
+    navigate(`/race/${raceId}/tunnel`, {
+      state: {
+        stage: progress?.game2?.stage || 0,
+        fuel: progress?.game2?.fuel || 0
+      }
+    });
+    return;
+    */
 
     if (!progress?.countdown) {
       console.log("COUNTDOWN")

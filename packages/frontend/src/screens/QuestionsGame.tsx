@@ -252,6 +252,7 @@ function QuestionsGame() {
   }
 
   function onFinish() {
+    console.log("ON FINISH, open loading modal...")
     openLoadingModal();
   }
   
@@ -288,7 +289,7 @@ function QuestionsGame() {
         if (!modalIsOpen) {
           setIsOpen(true);
         }
-        setModalType("waiting");
+        !modalIsOpen && setModalType("waiting");
         // pause timer
         setSubmittingAnswer(true);
         pause();

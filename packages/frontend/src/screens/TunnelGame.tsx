@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import FuelBar from "../components/rabbit/FuelBar";
 import PlayerMovement from "../components/rabbit/PlayerMovement";
 import Darkness from "../components/rabbit/Darkness";
@@ -19,10 +18,10 @@ import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { usePrivy } from "@privy-io/react-auth";
 import { getRaceById } from "../utils/contract-functions";
+import LoseModal from "../components/LoseModal";
 
 export type ConnectedUser = {
     id: number;
-    socketId: string;
     address: string; 
     src: string; 
     PlayerPosition: number; 
@@ -30,41 +29,29 @@ export type ConnectedUser = {
 }
 
 const GAME_NAME = "tunnel";
+const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function TunnelGame() {
   const { user } = usePrivy();
-  const [phase, setPhase] = useState("Default");
+  const [phase, setPhase] = useState<"Default" | "CloseTunnel" | "OpenTunnel" | "Reset">("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
 
   const [modalType, setModalType] = useState<string | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [playersJoined, setPlayersJoined] = useState(0);
   const navigate = useNavigate();
   const {raceId} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
-
-  const [progress, setProgress] = useState(
-    Array.from({ length: 9 }, () => {
-      return { curr: 0, delta: 0, address: "" };
-    }),
-  );
-
+  const [amountOfConnected, setAmountOfConnected] = useState(0);
+  const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [flipState, setFlipState] = useState(true);
+  const [isRolling, setIsRolling] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
-  useEffect(() => {
-      console.log("flipState set time ", flipState);
-      //const time = new Date();
-      //time.setSeconds(time.getSeconds() + 10);
-      //restart(time);
-  }, [flipState]);
-
-  const { totalSeconds, restart, start, pause } = useTimer({
+  const { totalSeconds, restart, start, pause, resume } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
-      setFlipState(!flipState);
       handleTunnelChange();
     },
     autoStart: false,
@@ -72,82 +59,93 @@ function TunnelGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if (playersJoined === 3 && start) {
-      //console.log("start")
+    if ((amountOfConnected === AMOUNT_OF_PLAYERS_PER_RACE) && start) {
+      socket.emit("get-all-fuel-tunnel", { raceId });
+      console.log("starting the game...");
       closeWaitingModal();
-      start();
+      !isRolling && start();
     } else {
       pause();
       !modalIsOpen && openWaitingModal();
     }
-  }, [playersJoined, start, modalIsOpen]);
+  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId]);
 
-  // CONNECT SOCKET
+  // handle socket events
   useEffect(() => {
-    socket.emit('connect-live-game', {
-      raceId, 
-      userAddress: user?.wallet?.address, 
-      game: "tunnel"
-    });
-  }, []);
+    if (user?.wallet?.address) {
+      socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
+        console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
+        if (raceId == raceIdSocket) {
+          setAmountOfConnected(amount);
+          // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+          if (amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+            setIsOpen(false);
+            setModalType(undefined);
+          }
+        }
+      });
 
+      socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+        if (raceId == raceIdSocket) {
+          setAmountOfConnected(amountOfConnected + 1);
+          if (amountOfConnected == AMOUNT_OF_PLAYERS_PER_RACE) {
+            setIsOpen(false);
+            setModalType(undefined);
+            // reset timer
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
+            resume();
+          }
+        }
+      });
+
+      socket.on('leaved', () => {
+        setAmountOfConnected(amountOfConnected - 1);
+        if (!modalIsOpen) {
+          setIsOpen(true);
+        }
+        setModalType("waiting");
+        // pause timer
+        pause();
+      });
+
+      socket.on('race-progress', (progress) => {
+        setDisplayNumber(progress?.game2?.fuel || 0);
+      });
+
+      socket.on("race-fuel-all-tunnel", (progress) => {
+        const usersData = progress.progresses;
+        console.log("FUEL TUNNEL DATA", usersData);
+        // set players list
+        setPlayers(usersData.map((i: any, index: number) => {
+          return {
+            id: index,
+            address: i.userAddress,
+            src: i.userAddress === user.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
+            PlayerPosition: i.fuel / 9,
+            Fuel: i.fuel,
+          }
+        }));
+      });
   
-  useEffect(() => {
-    socket.on('joined', (data) => {
-      if (data.game === GAME_NAME) {
-        console.log("USER JOINED", data)
-        setPlayersJoined(playersJoined + 1);
-        const newPlayer: ConnectedUser = {
-          socketId: data.socketId,
-          address: data.userAddress,
-          src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
-          PlayerPosition: 3,
-          Fuel: 30,
-          id: players.length + 1
-        }
-        setPlayers([...players, newPlayer]);
+      return () => {
+        socket.off('joined');
+        socket.off('amount-of-connected');
+        socket.off('leaved');
+        socket.off('race-progress');
+        socket.off('race-fuel-all-tunnel');
       }
-    });
-
-    socket.on('changed-game', (data) => {
-      if (data.game === GAME_NAME) {
-        console.log("CHANGED GAME:", data);
-        setPlayersJoined(playersJoined + 1);
-        const newPlayer: ConnectedUser = {
-          socketId: data.socketId,
-          address: data.userAddress,
-          src: data.userAddress === user?.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
-          PlayerPosition: 3,
-          Fuel: 30,
-          id: players.length + 1
-        }
-        setPlayers([...players, newPlayer]);
-      }
-
-      if (data.previousGame === GAME_NAME) {
-        console.log("CHANGED GAME (LEFT)", data);
-        setPlayersJoined(playersJoined - 1);
-        setPlayers(players.filter(i => i.address !== data.userAddress));
-        if (playersJoined !== 3) {
-          openWaitingModal();
-        }
-      }
-    });
-
-    socket.on('leaved', (data) => {
-      if (data.game === GAME_NAME) {
-        console.log("USER LEFT", data);
-        setPlayersJoined(playersJoined - 1);
-        setPlayers(players.filter(i => i.address !== data.userAddress));
-      }
-    });
-
-    return () => {
-      socket.off('joined');
-      socket.off('leaved');
-      socket.off('changed-game');
     }
-  }, [raceId, socket, playersJoined, user?.wallet?.address]);
+  }, [socket, amountOfConnected, user?.wallet?.address]);
+
+  // fetch required amount of users to wait
+  useEffect(() => {
+    if (user?.wallet?.address) {
+      socket.emit("get-connected", { raceId });
+      socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
+      socket.emit("get-all-fuel-tunnel", { raceId });
+    }
+  }, [socket, user?.wallet?.address]); 
   
 
 
@@ -165,34 +163,82 @@ function TunnelGame() {
     }
   }, [raceId, user?.wallet?.address]);
 
+
   const handleFuelUpdate = (fuel: number) => {
     if (phase === "Default") {
       setDisplayNumber(fuel);
+      socket.emit("update-progress", {
+        raceId,
+        userAddress: user?.wallet?.address,
+        property: "game2-set-fuel",
+        value: {
+          fuel,
+        }
+      });
     }
   }
 
   const handleTunnelChange = () => {
-    setPhase("CloseTunnel"); // Close tunnel: Head moves to swallow everything. Open tunnel: cars get out
+    setIsRolling(true);
+
+    // Close tunnel: Head moves to swallow everything.
+    setPhase("CloseTunnel"); 
+
+    // Open tunnel: cars get out
     setTimeout(() => setPhase("OpenTunnel"), 1000);
-    setTimeout(() => setPhase("Reset"), 16000);
-    setTimeout(() => setIsOpen(true), 16000);
+
+    // reset and make calculations
     setTimeout(() => {
-      setModalType("loading");
+      setPhase("Reset");
+      calculateSubmittedFuelPerPlayers();
+      setIsRolling(false);
     }, 16000);
-    setTimeout(() => {
-      setModalType("win");
-    }, 17000);
-    setIsOpen(true);
 
-    setProgress(
-      Array.from({ length: 9 }, () => {
-        return { curr: 1, delta: 0, address: "" };
-      }),
-    );
-
-    // setModalType("win")
-    // setIsOpen(true)
+    /*
+      setTimeout(() => setIsOpen(true), 16000);
+      setTimeout(() => {
+        setModalType("loading");
+      }, 16000);
+      setTimeout(() => {
+        setModalType("win");
+      }, 17000);
+      setIsOpen(true);
+    */
   };
+
+
+  // function that will end the game for the user with the lowest fuel amount
+  const calculateSubmittedFuelPerPlayers = () => {
+    console.log("CALCULATING THE FUEL...")
+    const newListOfPlayers = players.toSorted((a, b) => a.Fuel - b.Fuel).slice(1, players.length);
+
+    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, user?.wallet?.address)
+    
+    // if user lost the game
+    if (!newListOfPlayers.find(i => i.address === user?.wallet?.address)) {
+      console.log("YOU LOSE :(")
+      pause();
+      openLoseModal();
+      return;
+    }
+
+    // if the user is one in players array -> he won
+    if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === user?.wallet?.address) {
+      console.log("YOU WIN!")
+      pause();
+      openWinModal();
+      return;
+    }
+
+    setPlayers(newListOfPlayers);
+
+    // update timer
+    time.setSeconds(time.getSeconds() + 10);
+    restart(time);
+
+    // refetch users data
+    socket.emit("get-all-fuel-tunnel", { raceId });
+  }
 
   function onNextGameClicked() {
     // set
@@ -205,8 +251,29 @@ function TunnelGame() {
   }
 
   function openWinModal() {
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game2-complete",
+      value: {
+        isWon: true,
+      }
+    });
     setIsOpen(true);
     setModalType("win");
+  }
+
+  function openLoseModal() {
+    setIsOpen(true);
+    setModalType("lose");
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game2-complete",
+      value: {
+        isWon: false,
+      }
+    });
   }
 
   function openWaitingModal() {
@@ -219,7 +286,7 @@ function TunnelGame() {
     setModalType("loading");
   }
 
-  function closeWinModal() {
+  function closeWinLoseModal() {
     setIsOpen(false);
     setModalType(undefined);
     openRaceModal();
@@ -231,6 +298,7 @@ function TunnelGame() {
   }
 
   function openRaceModal() {
+    fetchRaceData();
     setIsOpen(true);
     setModalType("race");
   }
@@ -240,40 +308,28 @@ function TunnelGame() {
     setModalType(undefined);
     onNextGameClicked();
   }
+
   function onFinish() {
     openLoadingModal();
   }
 
-  useEffect(() => {
-    if (modalIsOpen && modalType === "loading") {
-      const timer = setTimeout(() => {
-        closeLoadingModal();
-        openWinModal();
-      }, 2000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [modalIsOpen, modalType]);
-
-  useEffect(() => {
-    if (modalIsOpen && modalType === "loading") {
-      const timer = setTimeout(() => {
-        closeLoadingModal();
-        openWinModal();
-      }, 2000);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [modalIsOpen, modalType]);
+  const fetchRaceData = () => {
+    getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
+      if (data) {
+        let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
+          return { curr: Number(i.progress), delta: 0, address: i.user };
+        });
+        setProgress(newProgress);
+      }
+    });
+  }
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-tunnel_bg bg-cover bg-bottom">
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={playersJoined} requiredAmount={3}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE}/>
         </div>
       </div>
       <div className="app-container">
@@ -292,11 +348,12 @@ function TunnelGame() {
       </div>
         {modalIsOpen && (
           <>
-            {modalType === "waiting" && <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={playersJoined} numberOfPlayersRequired={3}/> }
+            {modalType === "waiting" && <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> }
             {
               //modalType === "loading" && <LoadingModal raceId={Number(raceId)} gameIndex={10}/>
             }
-            {modalType === "win" && <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={10}/>}
+            {modalType === "lose" && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10} />}
+            {modalType === "win" && <WinModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/>}
             {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
           </>
         )}

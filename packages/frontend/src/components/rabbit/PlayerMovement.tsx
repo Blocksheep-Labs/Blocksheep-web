@@ -1,7 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { ConnectedUser } from "../../screens/TunnelGame";
 
+
 const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUser[]}) => {
+  // Sort players by PlayerPosition
+  const sortedPlayers = [...players].sort((a, b) => a.PlayerPosition - b.PlayerPosition);
+
   const playerRefs = useRef([]);
 
   useEffect(() => {
@@ -10,63 +14,51 @@ const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUs
   }, [players]);
 
   useEffect(() => {
-    // Animation logic
-    if (playerRefs.current.length) {
-      const sortedPlayers = [...players].sort((a, b) => a.PlayerPosition - b.PlayerPosition);
+    sortedPlayers.forEach((player, index) => {
+      // @ts-ignore
+      const playerElement = playerRefs.current[index].current;
+      if (!playerElement) return;
 
-      sortedPlayers.forEach((player, index) => {
-        // @ts-ignore
-        const playerElement = playerRefs.current[index].current;
-        if (!playerElement) return;
+      const positionStyle = `${20 * player.PlayerPosition}px`;
 
-        const positionStyle = `${20 * player.PlayerPosition}px`;
+      if (phase === 'Default' || phase === 'Reset') {
+        setTimeout(() => {
+          playerElement.style.transition = 'all 1.5s ease-out';
+          playerElement.style.left = '50%';
+          playerElement.style.visibility = 'visible';
+          playerElement.style.top = positionStyle;
+        }, index * 300);
+      } else if (phase === 'CloseTunnel') {
+        playerElement.style.left = '80%';
+        setTimeout(() => {
+          playerElement.style.transition = 'all 0.5s ease-out';
+          playerElement.style.left = '-100%';
+        }, 3000);
+      } else if (phase === 'OpenTunnel') {
+        const delay = index * 1000;
+        setTimeout(() => {
+          playerElement.style.top = positionStyle;
+          playerElement.style.left = '150vw';
+          playerElement.style.transition = 'all 12s ease-out';
+        }, 1000 + delay);
 
-        switch (phase) {
-          case "Default":
-          case "Reset":
-            setTimeout(() => {
-              playerElement.style.transition = "all 1.5s ease-out";
-              playerElement.style.left = "50%";
-              playerElement.style.visibility = "visible";
-              playerElement.style.top = positionStyle;
-            }, index * 300);
-            break;
-          case "CloseTunnel":
-            playerElement.style.left = "80%";
-            setTimeout(() => {
-              playerElement.style.transition = "all 0.5s ease-out";
-              playerElement.style.left = "-100%";
-            }, 3000);
-            break;
-          case "OpenTunnel":
-            const delay = index * 1000;
-            setTimeout(() => {
-              playerElement.style.top = positionStyle;
-              playerElement.style.left = "150vw";
-              playerElement.style.transition = "all 12s ease-out";
-            }, 1000 + delay);
-
-            setTimeout(() => {
-              playerElement.style.visibility = "hidden";
-              playerElement.style.left = "-10vw";
-              playerElement.style.transition = "none";
-            }, 9000 + delay);
-            break;
-          default:
-            break;
-        }
-      });
-    }
-  }, [phase, players]);
+        setTimeout(() => {
+          playerElement.style.visibility = 'hidden';
+          playerElement.style.left = '-10vw';
+          playerElement.style.transition = 'none';
+        }, 9000 + delay);
+      }
+    });
+  }, [phase]);
 
   return (
     <div className="player-container">
-      {players.map((player, index) => (
+      {sortedPlayers.map((player, index) => (
         <img
           key={player.id}
           ref={playerRefs.current[index]}
           src={player.src}
-          alt={String(player.id)}
+          alt={player.id.toString()}
           className={`player-${player.id}`}
         />
       ))}

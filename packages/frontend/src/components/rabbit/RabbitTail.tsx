@@ -1,55 +1,30 @@
 // @ts-nocheck
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 function RabbitTail({ phase }) {
-  const [style, setStyle] = useState({
-    visibility: "hidden",
-    transform: "translateX(0) rotate(0) translateY(0)",
-  });
-
-  useEffect(() => {
-    let timeout1, timeout2;
-    if (phase === "OpenTunnel") {
-      setStyle({
-        visibility: "visible",
-        transform: "translateX(-100vw)",
-      });
-
-      timeout1 = setTimeout(() => {
-        setStyle((prevStyle) => ({
-          ...prevStyle,
-          transform: "translateX(-100vw) rotate(-25deg) translateY(-20px)",
-        }));
+  React.useEffect(() => {
+    const tail = document.querySelector('.rabbit-tail');
+    if (phase === 'OpenTunnel') {
+      tail.style.visibility = 'visible'; 
+      tail.style.transform = 'translateX(-100vw)'; 
+      setTimeout(() => {
+        tail.style.transform = 'translateX(-100vw) rotate(-25deg) translateY(-20px)';
       }, 1500);
-
-      timeout2 = setTimeout(() => {
-        setStyle((prevStyle) => ({
-          ...prevStyle,
-          transform: "translateX(-150vw)",
-        }));
+      
+      setTimeout(() => {
+        tail.style.transform = 'translateX(-150vw)';
       }, 5000);
-    } else if (phase === "Reset") {
-      setStyle({
-        visibility: "hidden",
-        transform: "translateX(0) rotate(0) translateY(0)",
-      });
-    }
 
-    return () => {
-      clearTimeout(timeout1);
-      clearTimeout(timeout2);
-    };
+
+    } else if (phase === 'Reset') {
+      tail.style.visibility = 'hidden';
+      tail.style.transform = 'translateX(0) rotate(0) translateY(0)'; 
+   
+    }
   }, [phase]);
 
-  return (
-    <img
-      className="rabbit-tail"
-      src="https://i.ibb.co/3FG2ch1/flufflytail.png"
-      alt="Rabbit Tail"
-      style={style}
-    />
-  );
+  return <img className="rabbit-tail" src="https://i.ibb.co/3FG2ch1/flufflytail.png" alt="Rabbit Tail" />;
 }
 
 export default RabbitTail;

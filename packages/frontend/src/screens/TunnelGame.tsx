@@ -44,7 +44,9 @@ function TunnelGame() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [flipState, setFlipState] = useState(true);
-  const [isRolling, setIsRolling] = useState(false);
+  const [isRolling, setIsRolling] = useState(true);
+  const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
+  const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -219,14 +221,16 @@ function TunnelGame() {
       console.log("YOU LOSE :(")
       pause();
       openLoseModal();
+      setLoseModalPermanentlyOpened(true);
       return;
     }
 
     // if the user is one in players array -> he won
     if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === user?.wallet?.address) {
-      console.log("YOU WIN!")
+      console.log("YOU WIN!");
       pause();
       openWinModal();
+      setWinModalPermanentlyOpened(true);
       return;
     }
 
@@ -353,10 +357,13 @@ function TunnelGame() {
               //modalType === "loading" && <LoadingModal raceId={Number(raceId)} gameIndex={10}/>
             }
             {modalType === "lose" && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10} />}
-            {modalType === "win" && <WinModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/>}
-            {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} />}
+            {modalType === "win"  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/>}
+            {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>}
           </>
         )}
+
+        { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/> }
+        { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/> }
     </div>
   );
 }

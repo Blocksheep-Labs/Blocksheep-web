@@ -32,7 +32,7 @@ const FuelBar = ({ players }: {players: ConnectedUser[]}) => {
 
         return (
           <div
-            key={player.socketId}
+            key={player.address}
             className="fuel-circle"
             style={{
               position: "absolute",

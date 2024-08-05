@@ -1,31 +1,23 @@
 // @ts-nocheck
 // @ts-expect-error
 // @ts-ignore
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 function Darkness({ phase }) {
-  const [left, setLeft] = useState("100%");
-  const [visibility, setVisibility] = useState("hidden");
-
-  useEffect(() => {
-    if (phase === "CloseTunnel") {
-      setVisibility("visible");
-      setLeft("-10%"); // Cover the screen
-    } else if (phase === "OpenTunnel") {
-      setLeft("-110%"); // Move off-screen to the left
-    } else if (phase === "Reset") {
-      setVisibility("hidden");
-      setLeft("100%");
+  React.useEffect(() => {
+    const darkness = document.querySelector('.darkness');
+    if (phase === 'CloseTunnel') {
+      darkness.style.visibility = 'visible';
+      darkness.style.left = '-10%'; // Cover the screen
+    } else if (phase === 'OpenTunnel') {
+      darkness.style.left = '-110%'; // Move off-screen to the left
+    } else if (phase === 'Reset') {
+      darkness.style.visibility = 'hidden';
+      darkness.style.left = '100%';
     }
   }, [phase]);
 
-  return (
-    <div
-      className="darkness"
-      hidden={visibility === "hidden"}
-      style={{ left, position: "absolute", top: 0, bottom: 0, right: 0 }}
-    ></div>
-  );
+  return <div className="darkness"></div>;
 }
 
 export default Darkness;

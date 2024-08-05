@@ -51,9 +51,9 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-  const handleNavigate = useCallback(() => {
-    console.log("PROGRESS", progress);
-    if (!progress) return;
+  const handleNavigate = useCallback((progress: any) => {
+    console.log("PROGRESS-----------", progress);
+
     /*
     navigate(`/race/${raceId}/tunnel`, {
       state: {
@@ -63,7 +63,9 @@ function SelectRaceScreen() {
     });
     return;
     */
+    
 
+    
     if (!progress?.countdown) {
       console.log("COUNTDOWN")
       navigate(`/countdown/${raceId}`);
@@ -115,7 +117,8 @@ function SelectRaceScreen() {
       });
       return;
     }
-  }, [progress, raceId]);
+      
+  }, [raceId]);
 
   // switch chain if required
   useEffect(() => {
@@ -165,6 +168,12 @@ function SelectRaceScreen() {
 
   useEffect(() => {
     if (user?.wallet?.address) {
+      socket.once('race-progress', ({progress}) => {
+        console.log("PROGRESS SET", progress?.progress)
+        progress?.progress && setProgress(progress.progress);
+      });
+
+
       socket.on('amount-of-connected', (data) => {
         if (data.raceId == raceId) {
           setAmountOfConnected(data.amount);
@@ -173,7 +182,8 @@ function SelectRaceScreen() {
           if (data.amount === AMOUNT_OF_PLAYERS_PER_RACE) {
             setIsOpen(false);
             setModalType(undefined);
-            handleNavigate();
+            console.log("PPPPPPPPPPPPPPPPP-1", progress)
+            handleNavigate(progress);
           }
         }
       });
@@ -186,7 +196,8 @@ function SelectRaceScreen() {
           if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
             setIsOpen(false);
             setModalType(undefined);
-            handleNavigate();
+            console.log("PPPPPPPPPPPPPPPPP-2", progress)
+            handleNavigate(progress);
           }
         }
       });
@@ -198,12 +209,6 @@ function SelectRaceScreen() {
         }
         setModalType("waiting");
       });
-
-      socket.on('race-progress', ({progress}) => {
-        progress?.progress && setProgress(progress.progress);
-        // countdown1 was not passed
-        console.log("PROGRESS SET", progress)
-      });
   
       return () => {
         socket.off('joined');
@@ -212,21 +217,20 @@ function SelectRaceScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, user?.wallet?.address, amountOfConnected, handleNavigate])
+  }, [socket, raceId, user?.wallet?.address, amountOfConnected, progress])
 
   const onClickJoin = useCallback((id: number) => {
+    if (user?.wallet?.address) {
+      socket.emit("get-progress", { raceId: id, userAddress: user?.wallet?.address });
+      setTimeout(() => {
+        socket.emit("connect-live-game", { raceId: id, userAddress: user?.wallet?.address });
+        socket.emit("get-connected", { raceId: id });
+      }, 500);
+    } 
     setRaceId(id);
     setIsOpen(true);
     setModalType("waiting");
 
-    if (user?.wallet?.address) {
-      socket.emit("get-progress", { raceId: id, userAddress: user?.wallet?.address });
-      socket.emit("connect-live-game", { 
-        raceId: id, 
-        userAddress: user?.wallet?.address, 
-      });
-      socket.emit("get-connected", {raceId: id});
-    } 
   }, [user?.wallet?.address, socket]);
 
 

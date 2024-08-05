@@ -15,6 +15,7 @@ import { config } from "../config/wagmi";
 import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
+import { finished } from "stream";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -47,18 +48,22 @@ function QuestionsGame() {
   const { step, completed, of, isDistributed, questionsByGames } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
+  const [finished, setFinished] = useState(questions.length === completed);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
   useEffect(() => {
-    if (!modalIsOpen) {
+    if (!modalIsOpen && !boardPermanentlyOpened && !distributePermanentlyOpened) {
       console.log("flipState set time ", flipState);
       const time = new Date();
       time.setSeconds(time.getSeconds() + 10);
       restart(time);
+      resume();
+    } else {
+      pause();
     }
-  }, [flipState, modalIsOpen]);
+  }, [flipState, modalIsOpen, boardPermanentlyOpened, distributePermanentlyOpened]);
 
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
@@ -69,6 +74,15 @@ function QuestionsGame() {
   });
 
   const updateProgress = () => {
+    getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
+      if (data) {
+        let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
+          return { curr: Number(i.progress), delta: 0, address: i.user };
+        });
+        setProgress(newProgress);
+      }
+    });
+    /*
     setProgress((old: any) =>
       old.map(({ curr, delta, address }: {curr: number, delta: number, address: string}) => {
         return {
@@ -78,6 +92,7 @@ function QuestionsGame() {
         };
       }),
     );
+    */
   };
   
   const onClickLike = async(sendTx=true) => {
@@ -205,12 +220,13 @@ function QuestionsGame() {
   }
 
   function openWinModal() {
+    setFinished(true);
     setIsOpen(true);
     setModalType("win");
   }
 
   function closeWinModal() {
-    if (amountOfConnected >= AMOUNT_OF_PLAYERS_PER_RACE) {
+    if (amountOfConnected === AMOUNT_OF_PLAYERS_PER_RACE) {
       setIsOpen(false);
       setModalType(undefined);
       updateProgress();
@@ -230,15 +246,6 @@ function QuestionsGame() {
     setIsOpen(false);
     setModalType(undefined);
     setRoundId(roundId + 1);
-
-    getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
-      if (data) {
-        let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
-          return { curr: Number(i.progress), delta: 0, address: i.user };
-        });
-        setProgress(newProgress);
-      }
-    });
 
     // user is now watched the progress after the first game
     socket.emit('update-progress', { 
@@ -275,21 +282,26 @@ function QuestionsGame() {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
-            setIsOpen(false);
-            setModalType(undefined);
+            if (modalType === "waiting" && !finished) {
+              updateProgress();
+              setIsOpen(false);
+              setModalType(undefined);
+            }
             // unpause timer
-            setSubmittingAnswer(false);
-            resume();
+            if (!finished) {
+              setSubmittingAnswer(false);
+              resume();
+            }
           }
         }
       });
 
       socket.on('leaved', () => {
         setAmountOfConnected(amountOfConnected - 1);
-        if (!modalIsOpen) {
+        if (!modalIsOpen && !finished) {
           setIsOpen(true);
+          setModalType("waiting");
         }
-        !modalIsOpen && setModalType("waiting");
         // pause timer
         setSubmittingAnswer(true);
         pause();
@@ -306,7 +318,7 @@ function QuestionsGame() {
         socket.off('race-progress');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address]);
+  }, [socket, amountOfConnected, user?.wallet?.address, finished]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -404,7 +416,7 @@ function QuestionsGame() {
           }
           {
             modalType === "race" && 
-            <RaceModal progress={progress} handleClose={closeRaceModal} />
+            <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
           }
           {
             modalType === "waiting" && 
@@ -415,7 +427,7 @@ function QuestionsGame() {
 
       {
         boardPermanentlyOpened && 
-        <RaceModal progress={progress} handleClose={closeRaceModal} />
+        <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
       }
       {
         distributePermanentlyOpened && 

@@ -78,7 +78,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
     // it happens multiple outOfFrame events are queued and the card disappear
     // during latest swipes. Only the last outOfFrame event should be considered valid
 
-    if (idx > 0) {
+    if (idx > 0 && currentQuestionIndex + 1 !== questions.length) {
       onSwipe && onSwipe();
     } else {
       onFinish();
@@ -98,6 +98,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
   //   updateCurrentIndex(newIndex);
   //   await childRefs[newIndex].current?.restoreCard();
   // };
+
 
   return (
     <>

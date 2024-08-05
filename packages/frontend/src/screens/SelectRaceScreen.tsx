@@ -53,6 +53,7 @@ function SelectRaceScreen() {
 
   const handleNavigate = useCallback(() => {
     console.log("PROGRESS", progress);
+    if (!progress) return;
     /*
     navigate(`/race/${raceId}/tunnel`, {
       state: {
@@ -108,8 +109,8 @@ function SelectRaceScreen() {
     if (!progress?.game2?.isCompleted) {
       navigate(`/race/${raceId}/tunnel`, {
         state: {
-          stage: game2.stage,
-          fuel: game2.fuel
+          stage: progress.game2.stage,
+          fuel: progress.game2.fuel
         }
       });
       return;
@@ -201,7 +202,7 @@ function SelectRaceScreen() {
       socket.on('race-progress', ({progress}) => {
         progress?.progress && setProgress(progress.progress);
         // countdown1 was not passed
-        console.log("PROGRESS", progress)
+        console.log("PROGRESS SET", progress)
       });
   
       return () => {

@@ -87,6 +87,7 @@ io.on("connection", socket => {
                     game2: {
                         isCompleted: false,
                         fuel: 0,
+                        maxAvailableFuel: 10,
                         isWon: false,
                     },
                 }
@@ -116,6 +117,7 @@ io.on("connection", socket => {
                     rProgress.progress.game2 = {
                         ...rProgress.progress.game2,
                         fuel: value.fuel,
+                        maxAvailableFuel: value.maxAvailableFuel,
                     }
                     break;
                 case "game2-complete": 
@@ -155,6 +157,7 @@ io.on("connection", socket => {
                     rProgress.progress.game2 = {
                         ...rProgress.progress.game2,
                         fuel: value.fuel,
+                        maxAvailableFuel: value.maxAvailableFuel
                     }
                     break;
                 case "game2-complete": 
@@ -190,6 +193,7 @@ io.on("connection", socket => {
             return {
                 userAddress: i?.userAddress,
                 fuel: i?.progress?.game2?.fuel,
+                maxAvailableFuel: i?.progress?.game2?.maxAvailableFuel,
             }
         }))
 
@@ -198,6 +202,7 @@ io.on("connection", socket => {
                 return {
                     userAddress: i?.userAddress,
                     fuel: i?.progress?.game2?.fuel,
+                    maxAvailableFuel: i?.progress?.game2?.maxAvailableFuel,
                 }
             }),
         });

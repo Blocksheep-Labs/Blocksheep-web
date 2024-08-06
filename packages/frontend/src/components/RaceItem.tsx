@@ -114,18 +114,33 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
             (() => {
               if (race.registered && race.status == 1 && race.playersCount < 3 && !race.refunded) {
                 return (
-                  <button 
-                    onClick={withdrawFundsHandler} 
-                    className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
-                    disabled={loading}
-                  >
-                    <div className="h-16 overflow-hidden">
-                      <img src={NextFlag} alt="next-flag" className="h-[140%]" />
-                    </div>
-                    <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md">
-                      Refund
-                    </p>
-                  </button>
+                  <>
+                    <button 
+                      onClick={withdrawFundsHandler} 
+                      className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
+                      disabled={loading}
+                    >
+                      <div className="h-16 overflow-hidden">
+                        <img src={NextFlag} alt="next-flag" className="h-[140%]" />
+                      </div>
+                      <p className="absolute left-3 top-[8px] -rotate-12 text-center font-[Berlin-Bold] text-md">
+                        Refund
+                      </p>
+                    </button>
+
+                    <button 
+                      onClick={() => onClickJoin(race.id)} 
+                      className={`relative ${loading && 'mix-blend-overlay'} text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`}
+                      disabled={loading} //  || race.gamesCompletedPerUser?.length == race.numOfGames
+                    >
+                      <div className="h-16 overflow-hidden">
+                        <img src={NextFlag} alt="next-flag" className="h-[120%]" />
+                      </div>
+                      <p className="absolute left-3 top-1 -rotate-12 text-center font-[Berlin-Bold] text-lg">
+                        Join
+                      </p>
+                    </button>
+                  </>
                 );
               } else if (!race.refunded) {
                 return (

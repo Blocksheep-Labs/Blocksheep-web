@@ -41,10 +41,11 @@ function TunnelGame() {
   const navigate = useNavigate();
   const {raceId} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
+  const [maxFuel, setMaxFuel] = useState(10);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [flipState, setFlipState] = useState(true);
-  const [isRolling, setIsRolling] = useState(true);
+  const [isRolling, setIsRolling] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
 
@@ -72,7 +73,7 @@ function TunnelGame() {
     }
   }, [amountOfConnected, start, modalIsOpen, isRolling, raceId]);
 
-  // handle socket events
+  // handle socket eventsd
   useEffect(() => {
     if (user?.wallet?.address) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
@@ -113,11 +114,20 @@ function TunnelGame() {
 
       socket.on('race-progress', (progress) => {
         setDisplayNumber(progress?.game2?.fuel || 0);
+        setMaxFuel(progress?.game2?.maxAvailableFuel || 10);
       });
 
       socket.on("race-fuel-all-tunnel", (progress) => {
         const usersData = progress.progresses;
         console.log("FUEL TUNNEL DATA", usersData);
+
+        usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number}) => {
+          if (i.userAddress === user.wallet?.address) {
+            setDisplayNumber(i.fuel);
+            setMaxFuel(i.maxAvailableFuel);
+          }
+        });
+
         // set players list
         setPlayers(usersData.map((i: any, index: number) => {
           return {
@@ -175,12 +185,23 @@ function TunnelGame() {
         property: "game2-set-fuel",
         value: {
           fuel,
+          maxAvailableFuel: maxFuel,
         }
       });
     }
   }
 
   const handleTunnelChange = () => {
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game2-set-fuel",
+      value: {
+        fuel: displayNumber,
+        maxAvailableFuel: maxFuel - displayNumber,
+      }
+    });
+    setMaxFuel(maxFuel - displayNumber);
     setIsRolling(true);
 
     // Close tunnel: Head moves to swallow everything.
@@ -345,7 +366,7 @@ function TunnelGame() {
           <RabbitTail phase={phase} />
         </div>
         <div className="control-panels mb-10">
-          <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber}/>
+          <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={isRolling}/>
           <GasolineGauge fuel={displayNumber * 8.8}/>
         </div>
 

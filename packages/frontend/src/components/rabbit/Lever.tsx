@@ -2,10 +2,12 @@
 import React, { useEffect, useRef, useState } from "react";
 
 const Lever = (props: {
+  isRolling: boolean;
   displayNumber: number;
+  maxAvailable: number;
   setDisplayNumber: (a: number) => void;
 }) => {
-  const {displayNumber, setDisplayNumber} = props;
+  const {displayNumber, setDisplayNumber, isRolling} = props;
   const [currentAngle, setCurrentAngle] = useState(0);
   
   const [rotationCount, setRotationCount] = useState(0);
@@ -24,18 +26,21 @@ const Lever = (props: {
 
     const handleTouchStart = (e) => {
       e.preventDefault();
-      setRotationCount(0);
-      setDisplayNumber(0);
+      //setRotationCount(0);
+      //setDisplayNumber(0);
     }
 
     const handleTouchMove = (e, angle: number) => {
       e.preventDefault();      
+      if (isRolling) {
+        return;
+      }
       
       setCurrentAngle(currentAngle + 4);
 
       // calculate the rotation angle based on total rotations count
       if (currentAngle > 360 * rotationCount + 10) {
-        if (displayNumber == 9) return;
+        if (displayNumber == 10) return;
 
         setRotationCount(rotationCount + 1);
         setDisplayNumber(displayNumber + 1);
@@ -43,7 +48,7 @@ const Lever = (props: {
     };
 
     const handleTouchEnd = () => {
-      setCurrentAngle(0); // Reset lever angle but keep number displayed
+      //setCurrentAngle(0); // Reset lever angle but keep number displayed
     };
 
     lever.addEventListener("touchmove", handleTouchMove);
@@ -55,12 +60,12 @@ const Lever = (props: {
       lever.removeEventListener("touchend", handleTouchEnd);
       lever.removeEventListener("touchstart", handleTouchStart);
     };
-  }, [sensitivity, currentAngle, rotationCount]);
+  }, [sensitivity, currentAngle, rotationCount, isRolling]);
 
   return (
     <>
       <div className="panel">
-        <div className="number-display font-bold">{displayNumber}</div>
+        <div className="number-display font-bold">{10 - displayNumber}</div>
       </div>
 
       <div className="lever-container z-20">
@@ -69,6 +74,7 @@ const Lever = (props: {
           alt="Rotating Lever"
           ref={leverRef}
           style={{
+            opacity: `${isRolling ? "0.5" : "1"}`,
             transform: `rotate(${currentAngle}deg)`,
             transition: "transform 0.5s ease-out",
             height: "100px",

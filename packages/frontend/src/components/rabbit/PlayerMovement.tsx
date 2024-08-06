@@ -13,6 +13,8 @@ const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUs
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
   }, [players]);
 
+  console.log("PLAYERS:", players, phase)
+
   useEffect(() => {
     sortedPlayers.forEach((player, index) => {
       // @ts-ignore
@@ -49,7 +51,7 @@ const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUs
         }, 9000 + delay);
       }
     });
-  }, [phase]);
+  }, [phase, sortedPlayers]);
 
   return (
     <div className="player-container">
@@ -59,7 +61,7 @@ const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUs
           ref={playerRefs.current[index]}
           src={player.src}
           alt={player.id.toString()}
-          className={`player-${player.id}`}
+          className={`player-${index + 1}`}
         />
       ))}
     </div>

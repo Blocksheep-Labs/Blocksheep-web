@@ -11,6 +11,9 @@ function Darkness({ phase }) {
       darkness.style.left = '-10%'; // Cover the screen
     } else if (phase === 'OpenTunnel') {
       darkness.style.left = '-110%'; // Move off-screen to the left
+      setTimeout(() => {
+        darkness.style.left = '-140%'
+      }, 4000);
     } else if (phase === 'Reset') {
       darkness.style.visibility = 'hidden';
       darkness.style.left = '100%';

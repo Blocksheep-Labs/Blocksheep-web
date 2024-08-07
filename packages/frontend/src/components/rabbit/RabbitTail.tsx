@@ -15,12 +15,9 @@ function RabbitTail({ phase }) {
       setTimeout(() => {
         tail.style.transform = 'translateX(-150vw)';
       }, 5000);
-
-
     } else if (phase === 'Reset') {
       tail.style.visibility = 'hidden';
       tail.style.transform = 'translateX(0) rotate(0) translateY(0)'; 
-   
     }
   }, [phase]);
 

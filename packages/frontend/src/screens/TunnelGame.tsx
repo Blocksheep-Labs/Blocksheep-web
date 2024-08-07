@@ -48,6 +48,7 @@ function TunnelGame() {
   const [isRolling, setIsRolling] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
+  const [amountOfReached, setAmountOfReached] = useState(0);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -95,9 +96,9 @@ function TunnelGame() {
             setIsOpen(false);
             setModalType(undefined);
             // reset timer
+            console.log("UPDATE TIMER")
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
-            resume();
           }
         }
       });
@@ -121,12 +122,17 @@ function TunnelGame() {
         const usersData = progress.progresses;
         console.log("FUEL TUNNEL DATA", usersData);
 
-        usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number}) => {
+        let amountOfReachedPerGame2 = 0;
+
+        usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean}) => {
           if (i.userAddress === user.wallet?.address) {
             setDisplayNumber(i.fuel);
             setMaxFuel(i.maxAvailableFuel);
+            i.gameReached && amountOfReachedPerGame2++;
           }
         });
+
+        setAmountOfReached(amountOfReachedPerGame2);
 
         // set players list
         setPlayers(usersData.map((i: any, index: number) => {
@@ -154,11 +160,20 @@ function TunnelGame() {
   useEffect(() => {
     if (user?.wallet?.address) {
       socket.emit("get-connected", { raceId });
+      socket.emit("game2-reach", { raceId, userAddress: user.wallet.address })
       socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
       socket.emit("get-all-fuel-tunnel", { raceId });
     }
   }, [socket, user?.wallet?.address]); 
   
+
+  useEffect(() => {
+    if (amountOfReached !== AMOUNT_OF_PLAYERS_PER_RACE) {
+      closeWaitingModal();
+    } else {
+      openWaitingModal();
+    }
+  }, [amountOfReached])
 
 
   // CHECK USER TO BE REGISTERED
@@ -186,6 +201,7 @@ function TunnelGame() {
         value: {
           fuel,
           maxAvailableFuel: maxFuel,
+          isPending: false,
         }
       });
     }
@@ -199,8 +215,23 @@ function TunnelGame() {
       value: {
         fuel: displayNumber,
         maxAvailableFuel: maxFuel - displayNumber,
+        isPending: true,
       }
     });
+
+    setTimeout(() => {
+      socket.emit("update-progress", {
+        raceId,
+        userAddress: user?.wallet?.address,
+        property: "game2-set-fuel",
+        value: {
+          fuel: displayNumber,
+          maxAvailableFuel: maxFuel - displayNumber,
+          isPending: false,
+        }
+      });
+    }, 5000);
+
     setMaxFuel(maxFuel - displayNumber);
     setIsRolling(true);
 
@@ -208,7 +239,7 @@ function TunnelGame() {
     setPhase("CloseTunnel"); 
 
     // Open tunnel: cars get out
-    setTimeout(() => setPhase("OpenTunnel"), 1000);
+    setTimeout(() => setPhase("OpenTunnel"), 10000);
 
     // reset and make calculations
     setTimeout(() => {
@@ -236,6 +267,17 @@ function TunnelGame() {
     const newListOfPlayers = players.toSorted((a, b) => a.Fuel - b.Fuel).slice(1, players.length);
 
     console.log("NEW LIST OF PLAYERS:", newListOfPlayers, user?.wallet?.address)
+
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game2-set-fuel",
+      value: {
+        fuel: 0,
+        maxAvailableFuel: maxFuel,
+        isPending: true,
+      }
+    });
     
     // if user lost the game
     if (!newListOfPlayers.find(i => i.address === user?.wallet?.address)) {
@@ -256,6 +298,7 @@ function TunnelGame() {
     }
 
     setPlayers(newListOfPlayers);
+    setDisplayNumber(0);
 
     // update timer
     time.setSeconds(time.getSeconds() + 10);
@@ -361,8 +404,8 @@ function TunnelGame() {
         <FuelBar players={players} />
         <div className="tunnel">
           <PlayerMovement phase={phase} players={players} />
-          <Darkness phase={phase} />
           <RabbitHead phase={phase} />
+          <Darkness   phase={phase} />
           <RabbitTail phase={phase} />
         </div>
         <div className="control-panels mb-10">

@@ -41,9 +41,8 @@ function QuestionsGame() {
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const [boardPermanentlyOpened, setBoardPermanentlyOpened] = useState(false);
   const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
-  const [progress, setProgress] = useState(
-    location.state?.progress
-  );
+  const [raceboardProgress, setRaceboardProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
+  const progress  = location.state?.progress;
   const questions = location.state?.questionsByGames[currentGameIndex];
   const { step, completed, of, isDistributed, questionsByGames } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
@@ -76,12 +75,14 @@ function QuestionsGame() {
   const updateProgress = () => {
     getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
       if (data) {
-        let newProgress: { curr: number; delta: number }[] = data.progress.map(i => {
+        let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
           return { curr: Number(i.progress), delta: 0, address: i.user };
         });
-        setProgress(newProgress);
+        console.log("NEW PROGRESS:", newProgress)
+        setRaceboardProgress(newProgress);
       }
     });
+    
     /*
     setProgress((old: any) =>
       old.map(({ curr, delta, address }: {curr: number, delta: number, address: string}) => {
@@ -340,15 +341,14 @@ function QuestionsGame() {
       if (step === "board") {
         console.log("BOARD");
         pause();
-        getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
-          if (data) {
-            let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
-              return { curr: Number(i.progress), delta: 0, address: i.user };
-            });
-            setProgress(newProgress);
-            setBoardPermanentlyOpened(true);
-          }
-        });
+        updateProgress();
+        setBoardPermanentlyOpened(true);
+        return;
+      }
+
+      if (isDistributed) {
+        pause();
+        setBoardPermanentlyOpened(true);
         return;
       }
   
@@ -416,7 +416,7 @@ function QuestionsGame() {
           }
           {
             modalType === "race" && 
-            <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
+            <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
           }
           {
             modalType === "waiting" && 
@@ -427,7 +427,7 @@ function QuestionsGame() {
 
       {
         boardPermanentlyOpened && 
-        <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
+        <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
       }
       {
         distributePermanentlyOpened && 

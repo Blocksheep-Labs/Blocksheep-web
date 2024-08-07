@@ -13,7 +13,7 @@ function RaceBoard({ progress }: { progress: { curr: number; delta: number; addr
   return (
     <div className="relative my-auto inline-block max-h-full max-w-full align-middle">
       <img src={RaceBackground} alt="loading-bg" />
-      {progress.map(({ curr, delta, address }, i) => {
+      {progress && progress.map(({ curr, delta, address }, i) => {
         return (
           <motion.img
             src={address === user?.wallet?.address ? BlackSheep : Sheep}

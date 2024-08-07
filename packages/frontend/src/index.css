@@ -99,11 +99,11 @@ body{
   position: absolute;
   top: -5px;
   left: 100%;
-  height: 150px;
-  width: 110%;
+  height: 140px;
+  width: 125%;
 background: url('https://i.ibb.co/SybbN1D/tunnel-dark.png');  
   transition: width 1.5s ease-in-out, left 1.5s ease-in-out;
-  z-index: 50;
+  z-index: 10;
 }
 
 .rabbit-head, .rabbit-tail {
@@ -117,11 +117,13 @@ background: url('https://i.ibb.co/SybbN1D/tunnel-dark.png');
   right: -180px;
   height: 300px;
   top:-120px;
+  z-index: 30;
 }
 
 .rabbit-tail {
   left: 100%;
   height: 150px;
+  z-index: 20;
 }
 
 

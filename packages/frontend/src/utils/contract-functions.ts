@@ -321,3 +321,34 @@ export const getScoreAtGameOfUser = async(
 
     return data;
 }
+
+
+export const submitFuel = async(
+    raceId: number,
+    fuelSubmision: number,
+    fuelLeft: number,
+) => {
+    const data = await writeContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "submitFuel",
+        args: [raceId, fuelSubmision, fuelLeft]
+    });
+
+    return data;
+}
+
+
+export const finishTunnelGame = async(
+    raceId: number,
+    isWon: boolean,
+) => {
+    const data = await writeContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "finishTunnelGame",
+        args: [raceId, isWon]
+    });
+
+    return data;
+}

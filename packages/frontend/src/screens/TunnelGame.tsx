@@ -11,14 +11,15 @@ import LoadingModal from "../components/LoadingModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import UserCount from "../components/UserCount";
-
+import { waitForTransactionReceipt  } from '@wagmi/core';
 import { useTimer } from "react-timer-hook";
 import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { usePrivy } from "@privy-io/react-auth";
-import { getRaceById } from "../utils/contract-functions";
+import { finishTunnelGame, getRaceById, submitFuel } from "../utils/contract-functions";
 import LoseModal from "../components/LoseModal";
+import { config } from "../config/wagmi";
 
 export type ConnectedUser = {
     id: number;
@@ -207,7 +208,7 @@ function TunnelGame() {
     }
   }
 
-  const handleTunnelChange = () => {
+  const handleTunnelChange = async() => {
     socket.emit("update-progress", {
       raceId,
       userAddress: user?.wallet?.address,
@@ -219,18 +220,24 @@ function TunnelGame() {
       }
     });
 
-    setTimeout(() => {
-      socket.emit("update-progress", {
-        raceId,
-        userAddress: user?.wallet?.address,
-        property: "game2-set-fuel",
-        value: {
-          fuel: displayNumber,
-          maxAvailableFuel: maxFuel - displayNumber,
-          isPending: false,
-        }
+    await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber)
+      .then(async data => {
+        await waitForTransactionReceipt(config, {
+          hash: data,
+          confirmations: 2,
+        });
+
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: user?.wallet?.address,
+          property: "game2-set-fuel",
+          value: {
+            fuel: displayNumber,
+            maxAvailableFuel: maxFuel - displayNumber,
+            isPending: false,
+          }
+        });
       });
-    }, 5000);
 
     setMaxFuel(maxFuel - displayNumber);
     setIsRolling(true);
@@ -262,7 +269,7 @@ function TunnelGame() {
 
 
   // function that will end the game for the user with the lowest fuel amount
-  const calculateSubmittedFuelPerPlayers = () => {
+  const calculateSubmittedFuelPerPlayers = async() => {
     console.log("CALCULATING THE FUEL...")
     const newListOfPlayers = players.toSorted((a, b) => a.Fuel - b.Fuel).slice(1, players.length);
 
@@ -283,8 +290,14 @@ function TunnelGame() {
     if (!newListOfPlayers.find(i => i.address === user?.wallet?.address)) {
       console.log("YOU LOSE :(")
       pause();
-      openLoseModal();
-      setLoseModalPermanentlyOpened(true);
+      await finishTunnelGame(Number(raceId), false).then(async data => {
+        await waitForTransactionReceipt(config, {
+          hash: data,
+          confirmations: 2
+        });
+        openLoseModal();
+        setLoseModalPermanentlyOpened(true);
+      });
       return;
     }
 
@@ -292,8 +305,14 @@ function TunnelGame() {
     if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === user?.wallet?.address) {
       console.log("YOU WIN!");
       pause();
-      openWinModal();
-      setWinModalPermanentlyOpened(true);
+      await finishTunnelGame(Number(raceId), true).then(async data => {
+        await waitForTransactionReceipt(config, {
+          hash: data,
+          confirmations: 2,
+        });
+        openWinModal();
+        setWinModalPermanentlyOpened(true);
+      });
       return;
     }
 

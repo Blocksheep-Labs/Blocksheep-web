@@ -5,19 +5,25 @@ import { config } from "../config/wagmi";
 import { waitForTransactionReceipt  } from '@wagmi/core';
 
 function WaitingForPlayersModal({
-    raceId,
     numberOfPlayersRequired,
     numberOfPlayers,
+    replacedText
 }: {
     numberOfPlayersRequired: number;
     numberOfPlayers: number;
-    raceId: number,
+    replacedText?: string,
 }) {
   return (
     <div className="loading-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%]">
         <img src={WaitingBackground} alt="waiting-for-players-bg" />
-        <p className="text-6xl font-bold text-white text-center mt-10">{numberOfPlayers}/{numberOfPlayersRequired}</p>
+        {
+          replacedText 
+          ?
+          <p className="text-6xl font-bold text-white text-center mt-10">{replacedText}</p>
+          :
+          <p className="text-6xl font-bold text-white text-center mt-10">{numberOfPlayers}/{numberOfPlayersRequired}</p>
+        }
       </div>
     </div>
   );

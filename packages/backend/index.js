@@ -1,5 +1,6 @@
 const app = require("express")();
 const httpServer = require("http").createServer(app);
+const updateProgress = require("./utils/update-progress");
 require("dotenv").config();
 
 const options = {
@@ -95,104 +96,15 @@ io.on("connection", socket => {
                 }
             }
 
-            switch (property) {
-                case "countdown":
-                    rProgress.progress.countdown = true;
-                    break;
-                case "board1":
-                    rProgress.progress.board1 = true;
-                    break;
-                case "game1++":
-                    rProgress.progress.game1 = {
-                        ...rProgress.progress.game1,
-                        completed: rProgress.progress.game1.completed + 1,
-                        of: value.of,
-                    }
-                    break;
-                case "game1-distribute":
-                    rProgress.progress.game1 = {
-                        ...rProgress.progress.game1,
-                        isDistributed: true,
-                    }
-                    break;
-                case "game2-reach": {
-                    rProgress.progress.game2 = {
-                        ...rProgress.progress.game2,
-                        gameReached: true,
-                    }
-                    break;
-                }
-                case "game2-set-fuel":
-                    rProgress.progress.game2 = {
-                        ...rProgress.progress.game2,
-                        fuel: value.fuel,
-                        maxAvailableFuel: value.maxAvailableFuel,
-                        isPending: value.isPending,
-                    }
-                    break;
-                case "game2-complete": 
-                    rProgress.progress.game2 = {
-                        ...rProgress.progress.game2,
-                        isCompleted: true,
-                        isWon: value.isWon,
-                    }
-                    break;
-                default:
-                    break;
-            }       
-
+            rProgress = updateProgress(property, value, rProgress);       
             racesProgresses.push(rProgress);
         } else {
-            switch (property) {
-                case "countdown":
-                    rProgress.progress.countdown = true;
-                    break;
-                case "board1":
-                    rProgress.progress.board1 = true;
-                    break;
-                case "game1++":
-                    rProgress.progress.game1 = {
-                        ...rProgress.progress.game1,
-                        completed: rProgress.progress.game1.completed + 1,
-                        of: value.of,
-                    }
-                    break;
-                case "game1-distribute":
-                    rProgress.progress.game1 = {
-                        ...rProgress.progress.game1,
-                        isDistributed: true,
-                    }
-                    break;
-                case "game2-reach": {
-                    rProgress.progress.game2 = {
-                        ...rProgress.progress.game2,
-                        gameReached: true,
-                    }
-                    break;
-                }
-                case "game2-set-fuel":
-                    rProgress.progress.game2 = {
-                        ...rProgress.progress.game2,
-                        fuel: value.fuel,
-                        maxAvailableFuel: value.maxAvailableFuel,
-                        isPending: value.isPending,
-                    }
-                    break;
-                case "game2-complete": 
-                    rProgress.progress.game2 = {
-                        ...rProgress.progress.game2,
-                        isCompleted: true,
-                        isWon: value.isWon,
-                    }
-                    break;
-                default:
-                    break;
-            }     
+            rProgress = updateProgress(property, value, rProgress);
         }
 
         console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
 
-        io.to(roomName).emit('progress-updated', {raceId, property});
+        io.to(roomName).emit('progress-updated', {raceId, property, value});
     });
 
     // get amount completed by raceId game gameId

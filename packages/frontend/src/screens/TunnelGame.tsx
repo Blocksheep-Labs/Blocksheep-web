@@ -50,6 +50,9 @@ function TunnelGame() {
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [amountOfReached, setAmountOfReached] = useState(0);
+  const [amountOfPending, setAmountOfPending] = useState(0);
+  const [amountOfComplteted, setAmountOfComplteted] = useState(0);
+
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -64,7 +67,7 @@ function TunnelGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if ((amountOfConnected === AMOUNT_OF_PLAYERS_PER_RACE) && start) {
+    if ((amountOfConnected >= AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted) && start) {
       socket.emit("get-all-fuel-tunnel", { raceId });
       console.log("starting the game...");
       closeWaitingModal();
@@ -83,7 +86,7 @@ function TunnelGame() {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amount >= AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted) {
             setIsOpen(false);
             setModalType(undefined);
           }
@@ -93,7 +96,7 @@ function TunnelGame() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected == AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amountOfConnected == AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted) {
             setIsOpen(false);
             setModalType(undefined);
             // reset timer
@@ -104,14 +107,15 @@ function TunnelGame() {
         }
       });
 
+      
       socket.on('leaved', () => {
         setAmountOfConnected(amountOfConnected - 1);
-        if (!modalIsOpen) {
-          setIsOpen(true);
-        }
-        setModalType("waiting");
+        // if (!modalIsOpen) {
+        //   setIsOpen(true);
+        // }
+        // setModalType("waiting");
         // pause timer
-        pause();
+        // pause();
       });
 
       socket.on('race-progress', (progress) => {
@@ -124,19 +128,24 @@ function TunnelGame() {
         console.log("FUEL TUNNEL DATA", usersData);
 
         let amountOfReachedPerGame2 = 0;
+        let amountPendingPerGame2 = 0;
+        let amountOfCompleted = 0;
 
-        usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean}) => {
+        usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean, isPending: boolean, isCompleted: boolean}) => {
           if (i.userAddress === user.wallet?.address) {
             setDisplayNumber(i.fuel);
             setMaxFuel(i.maxAvailableFuel);
-            i.gameReached && amountOfReachedPerGame2++;
           }
+          i.gameReached && amountOfReachedPerGame2++;
+          i.isPending && amountPendingPerGame2++;
+          i.isCompleted && amountOfCompleted++;
         });
 
         setAmountOfReached(amountOfReachedPerGame2);
+        setAmountOfComplteted(amountOfCompleted);
 
         // set players list
-        setPlayers(usersData.map((i: any, index: number) => {
+        setPlayers(usersData.filter((i: any) => !i.isCompleted).map((i: any, index: number) => {
           return {
             id: index,
             address: i.userAddress,
@@ -146,6 +155,37 @@ function TunnelGame() {
           }
         }));
       });
+
+      socket.on("progress-updated", async(progress) => {
+        if (progress.property === "game2-set-fuel") {
+          // if the user is sending the TX or finished sending TX
+          if (progress.value?.isPending !== undefined) {
+            // sending...
+            if (progress.value.isPending) {
+              AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted <= amountOfPending + 1 && setAmountOfPending(amountOfPending + 1);
+            }
+            // sent 
+            else {
+              0 <= amountOfPending - 1 && setAmountOfPending(amountOfPending - 1);
+            }
+          }
+        }
+
+        if (progress.property === "game2-complete") {
+          if (AMOUNT_OF_PLAYERS_PER_RACE - (amountOfComplteted + 1) === -1) {
+            await finishTunnelGame(Number(raceId), true).then(async data => {
+              await waitForTransactionReceipt(config, {
+                hash: data,
+                confirmations: 2,
+              });
+              openWinModal();
+              setWinModalPermanentlyOpened(true);
+            });
+          } else {
+            setAmountOfComplteted(amountOfComplteted + 1);
+          }
+        }
+      });
   
       return () => {
         socket.off('joined');
@@ -153,9 +193,10 @@ function TunnelGame() {
         socket.off('leaved');
         socket.off('race-progress');
         socket.off('race-fuel-all-tunnel');
+        socket.off('progress-updated');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address]);
+  }, [socket, amountOfConnected, user?.wallet?.address, amountOfComplteted]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -174,7 +215,26 @@ function TunnelGame() {
     } else {
       openWaitingModal();
     }
-  }, [amountOfReached])
+  }, [amountOfReached, amountOfPending]);
+
+  useEffect(() => {
+    if (amountOfPending !== 0 && isRolling) {
+      openLoadingModal();
+    } else {
+      closeLoadingModal();
+    }
+  }, [amountOfPending, isRolling]);
+
+  // kick player if page chnages (closes)
+  useEffect(() => {
+    const handleTabClosing = () => {
+      openLoseModal();
+    }
+    window.addEventListener('unload', handleTabClosing);
+    return () => {
+      window.removeEventListener('unload', handleTabClosing);
+    }
+  }, [openLoseModal]);
 
 
   // CHECK USER TO BE REGISTERED
@@ -202,13 +262,14 @@ function TunnelGame() {
         value: {
           fuel,
           maxAvailableFuel: maxFuel,
-          isPending: false,
         }
       });
     }
   }
 
   const handleTunnelChange = async() => {
+    setIsRolling(true);
+
     socket.emit("update-progress", {
       raceId,
       userAddress: user?.wallet?.address,
@@ -240,7 +301,6 @@ function TunnelGame() {
       });
 
     setMaxFuel(maxFuel - displayNumber);
-    setIsRolling(true);
 
     // Close tunnel: Head moves to swallow everything.
     setPhase("CloseTunnel"); 
@@ -254,17 +314,6 @@ function TunnelGame() {
       calculateSubmittedFuelPerPlayers();
       setIsRolling(false);
     }, 16000);
-
-    /*
-      setTimeout(() => setIsOpen(true), 16000);
-      setTimeout(() => {
-        setModalType("loading");
-      }, 16000);
-      setTimeout(() => {
-        setModalType("win");
-      }, 17000);
-      setIsOpen(true);
-    */
   };
 
 
@@ -295,6 +344,12 @@ function TunnelGame() {
           hash: data,
           confirmations: 2
         });
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: user?.wallet?.address,
+          property: "game2-set-fuel",
+          value: { fuel: 0, maxAvailableFuel: 0, isPending: false }
+        });
         openLoseModal();
         setLoseModalPermanentlyOpened(true);
       });
@@ -309,6 +364,12 @@ function TunnelGame() {
         await waitForTransactionReceipt(config, {
           hash: data,
           confirmations: 2,
+        });
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: user?.wallet?.address,
+          property: "game2-set-fuel",
+          value: { fuel: 0, maxAvailableFuel: 0, isPending: false }
         });
         openWinModal();
         setWinModalPermanentlyOpened(true);
@@ -416,7 +477,7 @@ function TunnelGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/>
         </div>
       </div>
       <div className="app-container">
@@ -435,16 +496,13 @@ function TunnelGame() {
       </div>
         {modalIsOpen && (
           <>
-            {modalType === "waiting" && <WaitingForPlayersModal raceId={Number(raceId)} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> }
-            {
-              //modalType === "loading" && <LoadingModal raceId={Number(raceId)} gameIndex={10}/>
-            }
-            {modalType === "lose" && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10} />}
-            {modalType === "win"  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/>}
-            {modalType === "race" && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>}
+            {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/> }
+            {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/> }
+            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10} />}
+            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/>}
+            {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/>}
           </>
         )}
-
         { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/> }
         { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/> }
     </div>

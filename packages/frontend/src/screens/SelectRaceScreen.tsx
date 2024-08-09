@@ -54,7 +54,7 @@ function SelectRaceScreen() {
   const handleNavigate = useCallback((progress: any) => {
     console.log("PROGRESS-----------", progress);
 
-    
+    /*
     navigate(`/race/${raceId}/tunnel`, {
       state: {
         stage: progress?.game2?.stage || 0,
@@ -62,6 +62,7 @@ function SelectRaceScreen() {
       }
     });
     return;
+    */
     
 
     

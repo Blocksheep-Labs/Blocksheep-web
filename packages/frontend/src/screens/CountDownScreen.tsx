@@ -163,7 +163,6 @@ function CountDownScreen() {
       {
         modalIsOpen && modalType === "waiting" && 
           <WaitingForPlayersModal 
-            raceId={Number(raceId)} 
             numberOfPlayers={amountOfConnected} 
             numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}
           />

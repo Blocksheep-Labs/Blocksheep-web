@@ -24,7 +24,7 @@ export interface SwipeSelectionAPI {
 const GAME_NAME = "questions";
 const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
-type ModalType = "ready" | "loading" | "win" | "race" | "waiting";
+type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish";
 
 function QuestionsGame() {
   const { user } = usePrivy();
@@ -48,6 +48,7 @@ function QuestionsGame() {
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [finished, setFinished] = useState(questions.length === completed);
+  const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -207,7 +208,6 @@ function QuestionsGame() {
     setDistributePermanentlyOpened(false);
     setIsOpen(false);
     setModalType(undefined);
-    openWinModal();
     socket.emit("update-progress", {
       raceId,
       userAddress: user?.wallet?.address,
@@ -217,7 +217,8 @@ function QuestionsGame() {
         of: Number(questions.length),
         isDistributed: true,
       }
-    })
+    });
+    openWinModal();
   }
 
   function openWinModal() {
@@ -227,13 +228,13 @@ function QuestionsGame() {
   }
 
   function closeWinModal() {
-    if (amountOfConnected === AMOUNT_OF_PLAYERS_PER_RACE) {
+    if (amountOfPlayersCompleted >= AMOUNT_OF_PLAYERS_PER_RACE) {
       setIsOpen(false);
       setModalType(undefined);
       updateProgress();
       openRaceModal();
     } else {
-      setModalType("waiting")
+      setModalType("waiting-after-finish");
     }
   }
 
@@ -260,7 +261,7 @@ function QuestionsGame() {
   }
 
   function onFinish() {
-    console.log("ON FINISH, open loading modal...")
+    console.log("FINISH, open loading modal...")
     openLoadingModal();
   }
   
@@ -308,8 +309,32 @@ function QuestionsGame() {
         pause();
       });
 
-      socket.on('race-progress', (progress) => {
-        console.log("RACE PROGRESS PER USER:", progress);
+      socket.on("progress-updated", async(progress) => {
+        if (progress.property === "game1-distribute") {
+          // if the user is sending the TX or finished sending TX
+          setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
+          console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
+          if ((AMOUNT_OF_PLAYERS_PER_RACE == amountOfPlayersCompleted + 1) && finished) {
+            console.log("CLOSING MODAL...")
+            setIsOpen(false);
+            setModalType(undefined);
+            updateProgress();
+            openRaceModal();
+          }
+        }
+      });
+
+      socket.on('race-progress-questions', ({progress}) => {
+        console.log("RACE PROGRESS QUESTIONS:", progress);
+        let isDistributedAmount = 0;
+        progress.forEach((i: any) => {
+          if (i.progress.game1.isDistributed) {
+            isDistributedAmount++;
+          }
+        });
+
+        console.log(isDistributedAmount)
+        setAmountOfPlayersCompleted(isDistributedAmount);
       });
   
       return () => {
@@ -317,15 +342,17 @@ function QuestionsGame() {
         socket.off('amount-of-connected');
         socket.off('leaved');
         socket.off('race-progress');
+        socket.off('progress-updated');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, finished]);
+  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted]);
 
   // fetch required amount of users to wait
   useEffect(() => {
     if (user?.wallet?.address) {
       socket.emit("get-connected", { raceId });
       socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
+      socket.emit("get-progress-questions", { raceId });
     }
   }, [socket, user?.wallet?.address]); 
 
@@ -421,6 +448,10 @@ function QuestionsGame() {
           {
             modalType === "waiting" && 
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> 
+          }
+          {
+            modalType === "waiting-after-finish" && 
+            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE} replacedText="..."/> 
           }
         </>
       )}

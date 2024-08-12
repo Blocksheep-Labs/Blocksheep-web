@@ -114,6 +114,13 @@ io.on("connection", socket => {
         io.to(socket.id).emit('race-progress', { progress });
     });
 
+    // get amount completed by raceId game gameId
+    socket.on('get-progress-questions', ({ raceId }) => {
+        const roomName = `race-${raceId}`;
+        const progress = racesProgresses.filter(i => i?.room === roomName);
+        io.to(socket.id).emit('race-progress-questions', { progress });
+    });
+
     // get all progresses for tunnel game
     socket.on('get-all-fuel-tunnel', ({ raceId }) => {
         const roomName = `race-${raceId}`;

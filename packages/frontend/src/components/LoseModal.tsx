@@ -2,27 +2,28 @@
 import { useEffect, useState } from "react";
 import LoseMain from "../assets/lose/lose-main.png";
 import NextFlag from "../assets/common/flag.png";
-import { getScoreAtGameOfUser } from "../utils/contract-functions";
+import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../utils/contract-functions";
 import { usePrivy } from "@privy-io/react-auth";
 
 export type WinModalProps = {
   handleClose: () => void;
-  raceId: number;
-  gameIndex: number;
+  raceId?: number;
+  gameIndex?: number;
+  preloadedScore?: number;
 };
 
-function LoseModal({ handleClose, raceId, gameIndex }: WinModalProps) {
+function LoseModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalProps) {
   const { user } = usePrivy();
   const [score, setScore] = useState<null | number>(null);
 
   useEffect(() => {
-    if (raceId.toString() && gameIndex.toString() && user?.wallet?.address) {
-      getScoreAtGameOfUser(raceId, gameIndex, user.wallet.address as `0x${string}`)
+    if (raceId?.toString() && gameIndex?.toString() && user?.wallet?.address && !preloadedScore) {
+      getScoreAtRaceOfUser(raceId, user.wallet.address as `0x${string}`)
         .then(data => {
           console.log("Get score:", data);
           // wait for tx to finish
           setScore(Number(data));
-        })
+        });
     }
   }, [raceId, gameIndex, user?.wallet?.address])
 
@@ -30,7 +31,13 @@ function LoseModal({ handleClose, raceId, gameIndex }: WinModalProps) {
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%]">
         <img src={LoseMain} alt="loading-bg" />
-        <p className="text-6xl font-bold text-white text-center mt-10">{score?.toString().length ? score : "Pls wait..."}</p>
+        { 
+          !preloadedScore
+          ?
+          <p className="text-6xl font-bold text-white text-center mt-10">{score?.toString().length ? score : "Pls wait..."}</p>
+          :
+          <p className="text-6xl font-bold text-white text-center mt-10">{preloadedScore}</p>
+        }
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">
         <button

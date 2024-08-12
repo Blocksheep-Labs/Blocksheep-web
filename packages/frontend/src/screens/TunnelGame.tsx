@@ -45,7 +45,6 @@ function TunnelGame() {
   const [maxFuel, setMaxFuel] = useState(10);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
-  const [flipState, setFlipState] = useState(true);
   const [isRolling, setIsRolling] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
@@ -498,13 +497,13 @@ function TunnelGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/> }
-            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10} />}
-            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/>}
+            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} />}
+            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} />}
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/>}
           </>
         )}
-        { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/> }
-        { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} gameIndex={10}/> }
+        { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} /> }
+        { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} /> }
     </div>
   );
 }

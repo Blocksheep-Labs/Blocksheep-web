@@ -111,10 +111,9 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
             contracts: usersRegistered.map((userAddress: string) => ({
                 address: BLOCK_SHEEP_CONTRACT,
                 abi: BlockSheepAbi,
-                functionName: "getScoreAtGameOfUser",
+                functionName: "getScoreAtRaceOfUser",
                 args: [
                     BigInt(raceId),
-                    BigInt(gameIndex),
                     userAddress
                 ]
             }))
@@ -348,6 +347,21 @@ export const finishTunnelGame = async(
         abi: BlockSheepAbi,
         functionName: "finishTunnelGame",
         args: [raceId, isWon]
+    });
+
+    return data;
+}
+
+
+export const getScoreAtRaceOfUser = async(
+    raceId: number,
+    user: string,
+) => {
+    const data = await readContract(config, {
+        address: BLOCK_SHEEP_CONTRACT,
+        abi: BlockSheepAbi,
+        functionName: "getScoreAtRaceOfUser",
+        args: [raceId, user]
     });
 
     return data;

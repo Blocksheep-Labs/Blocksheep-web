@@ -4,11 +4,15 @@ import MockUsdcAbi from "../contracts/MockUSDC.json";
 import { readContract, writeContract, readContracts, getAccount, waitForTransactionReceipt  } from '@wagmi/core';
 import { config } from "../config/wagmi";
 
+const BLOCK_SHEEP_BASE_CONFIG = {
+    address: BLOCK_SHEEP_CONTRACT,
+    abi: BlockSheepAbi,
+};
+
 // used for fetching last game "id"
 export const getNextGameId = async() => {
     const data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "nextRaceId",
     });
     return data;
@@ -23,8 +27,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
     }
 
     let data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getRacesWithPagination",
         args: [userAddr, BigInt(from), nextGameId]
     });
@@ -80,8 +83,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
 // get race by id
 export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     const data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getRaces",
         args: [BigInt(raceId), userAddr]
     });
@@ -94,8 +96,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
         // @ts-ignore
         contracts: gamesIds.map(gameId => {
             return {
-                address: BLOCK_SHEEP_CONTRACT,
-                abi: BlockSheepAbi,
+                ...BLOCK_SHEEP_BASE_CONFIG,
                 functionName: "getQuestions",
                 args: [BigInt(raceId), BigInt(gameId)]
             }
@@ -109,8 +110,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     await Promise.all(gamesIds.map(async (_: any, gameIndex: number) => {
         const usersProgresses = await readContracts(config, {
             contracts: usersRegistered.map((userAddress: string) => ({
-                address: BLOCK_SHEEP_CONTRACT,
-                abi: BlockSheepAbi,
+                ...BLOCK_SHEEP_BASE_CONFIG,
                 functionName: "getScoreAtRaceOfUser",
                 args: [
                     BigInt(raceId),
@@ -158,8 +158,7 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
     });
 
     const depositBlockSheep = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: 'deposit',
         args: [BigInt(Number(COST) * numberOfQuestions)]
     });
@@ -171,8 +170,7 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
     });
     
     const regBlocksheep = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "register",
         args: [BigInt(raceId)],
     });
@@ -193,8 +191,7 @@ export const getRacesStatusesByIds = async(ids: number[]) => {
         // @ts-ignore
         contracts: ids.map(raceId => {
             return {
-                address: BLOCK_SHEEP_CONTRACT,
-                abi: BlockSheepAbi,
+                ...BLOCK_SHEEP_BASE_CONFIG,
                 functionName: "getRaceStatus",
                 args: [BigInt(raceId)]
             }
@@ -207,8 +204,7 @@ export const getRacesStatusesByIds = async(ids: number[]) => {
 // COST per 1 question in game
 export const retreiveCOST = async() => {
     const data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "COST",
     });
     return data;
@@ -218,8 +214,7 @@ export const retreiveCOST = async() => {
 // fetch questions by raceID
 export const getRaceQuestionsByGameId = async(raceId: number, gameId: number) => {
     const data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getQuestions",
         args: [BigInt(raceId), BigInt(gameId)]
     });
@@ -232,8 +227,7 @@ export const getGamesNamesByIds = async(ids: number[]) => {
         // @ts-ignore
         contracts: ids.map(id => {
             return {
-                address: BLOCK_SHEEP_CONTRACT,
-                abi: BlockSheepAbi,
+                ...BLOCK_SHEEP_BASE_CONFIG,
                 functionName: "getGameNames",
                 args: [BigInt(id)]
             }
@@ -252,8 +246,7 @@ export const submitUserAnswer = async(
 ) => {
     console.log(raceId, gameIndex, questionIndex, answerId)
     const data = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "submitAnswer",
         args: [
             BigInt(raceId), 
@@ -274,8 +267,7 @@ export const distributeRewardOfTheGame = async(
     questionIndexes: number[],
 ) => {
     const data = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "distributeReward",
         args: [
             BigInt(raceId),
@@ -291,8 +283,7 @@ export const distributeRewardOfTheGame = async(
 // withdraw funds
 export const refundBalance = async(amount: number, raceId: number) => {
     const data = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "refundBalance",
         args: [BigInt(amount), BigInt(raceId)]
     });
@@ -308,8 +299,7 @@ export const getScoreAtGameOfUser = async(
     userAddress: `0x${string}`
 ) => {
     const data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getScoreAtGameOfUser",
         args: [
             BigInt(raceId),
@@ -328,8 +318,7 @@ export const submitFuel = async(
     fuelLeft: number,
 ) => {
     const data = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "submitFuel",
         args: [raceId, fuelSubmision, fuelLeft]
     });
@@ -343,8 +332,7 @@ export const finishTunnelGame = async(
     isWon: boolean,
 ) => {
     const data = await writeContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "finishTunnelGame",
         args: [raceId, isWon]
     });
@@ -358,8 +346,7 @@ export const getScoreAtRaceOfUser = async(
     user: string,
 ) => {
     const data = await readContract(config, {
-        address: BLOCK_SHEEP_CONTRACT,
-        abi: BlockSheepAbi,
+        ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getScoreAtRaceOfUser",
         args: [raceId, user]
     });

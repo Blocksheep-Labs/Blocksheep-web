@@ -5,11 +5,12 @@ export type Race = {
   name: string;
   numOfGames: number;
   numOfQuestions: number;
-  playersCount: number;
   registered: boolean;
   startAt: BigNumber;
   status: number;
   games: bigint[];
   gamesCompletedPerUser: bigint[],
   refunded: boolean,
+  registeredUsers: string[],
+  numOfPlayersRequired: number;
 };

@@ -182,7 +182,7 @@ function SelectRaceScreen() {
           if (data.amount === AMOUNT_OF_PLAYERS_PER_RACE) {
             setIsOpen(false);
             setModalType(undefined);
-            console.log("PPPPPPPPPPPPPPPPP-1", progress)
+            // console.log("PPPPPPPPPPPPPPPPP-1", progress)
             handleNavigate(progress);
           }
         }
@@ -196,7 +196,7 @@ function SelectRaceScreen() {
           if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
             setIsOpen(false);
             setModalType(undefined);
-            console.log("PPPPPPPPPPPPPPPPP-2", progress)
+            // console.log("PPPPPPPPPPPPPPPPP-2", progress)
             handleNavigate(progress);
           }
         }

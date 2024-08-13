@@ -49,6 +49,7 @@ function QuestionsGame() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [finished, setFinished] = useState(questions.length === completed);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
+  const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -234,8 +235,13 @@ function QuestionsGame() {
       updateProgress();
       openRaceModal();
     } else {
-      setModalType("waiting-after-finish");
+      openWaitingAfterFinishModal();
     }
+  }
+
+  function openWaitingAfterFinishModal() {
+    setIsOpen(true);
+    setModalType("waiting-after-finish");
   }
 
   function openRaceModal() {
@@ -244,11 +250,16 @@ function QuestionsGame() {
   }
 
   function closeRaceModal() {
-    setBoardPermanentlyOpened(false);
-    setIsOpen(false);
-    setModalType(undefined);
-    setRoundId(roundId + 1);
-
+    if (AMOUNT_OF_PLAYERS_PER_RACE <= amountOfPlayersRaceboardNextClicked + 1) {
+      setBoardPermanentlyOpened(false);
+      setIsOpen(false);
+      setModalType(undefined);
+      setRoundId(roundId + 1);
+      nextClicked();
+    } else {
+      openWaitingAfterFinishModal();
+    }
+    
     // user is now watched the progress after the first game
     socket.emit('update-progress', { 
       raceId, 
@@ -256,8 +267,6 @@ function QuestionsGame() {
       property: "board1",
       value: true,
     });
-
-    nextClicked();
   }
 
   function onFinish() {
@@ -322,19 +331,36 @@ function QuestionsGame() {
             openRaceModal();
           }
         }
+
+        if (progress.property === "board1") {
+          setAmountOfPlayersRaceboardNextClicked(amountOfPlayersRaceboardNextClicked + 1);
+          console.log("GAME1 BOARD++", amountOfPlayersRaceboardNextClicked + 1);
+          if ((AMOUNT_OF_PLAYERS_PER_RACE == amountOfPlayersRaceboardNextClicked + 1) && finished) {
+            console.log("MOVING TO NEXT GAME...");
+            setIsOpen(false);
+            setModalType(undefined);
+            nextClicked();
+          }
+        }
       });
 
       socket.on('race-progress-questions', ({progress}) => {
         console.log("RACE PROGRESS QUESTIONS:", progress);
         let isDistributedAmount = 0;
+        let boardNextClickedAmount = 0;
         progress.forEach((i: any) => {
           if (i.progress.game1.isDistributed) {
             isDistributedAmount++;
           }
+
+          if (i.progress.board1) {
+            boardNextClickedAmount++;
+          }
         });
 
-        console.log(isDistributedAmount)
+        console.log({isDistributedAmount, boardNextClickedAmount});
         setAmountOfPlayersCompleted(isDistributedAmount);
+        setAmountOfPlayersRaceboardNextClicked(boardNextClickedAmount);
       });
   
       return () => {
@@ -343,9 +369,10 @@ function QuestionsGame() {
         socket.off('leaved');
         socket.off('race-progress');
         socket.off('progress-updated');
+        socket.off('race-progress-questions');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted]);
+  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked]);
 
   // fetch required amount of users to wait
   useEffect(() => {

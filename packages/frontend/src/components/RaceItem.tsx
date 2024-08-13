@@ -77,7 +77,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
     <div className="relative rounded-xl bg-race_pattern bg-cover bg-center">
       <div className="flex flex-col gap-4">
         <div className="mx-[20%] mt-[-16px] flex flex-row justify-between">
-          <RaceStatusItem icon={SheepIcon} label={`${race.playersCount}/3`} />
+          <RaceStatusItem icon={SheepIcon} label={`${race.registeredUsers.length}/${race.numOfPlayersRequired}`} />
           <RaceStatusItem icon={EtherIcon} label={(race.numOfQuestions * Number(cost) / USDC_MULTIPLIER).toString() + "$"} />
           <RaceStatusItem icon={TimerIcon} label={
             timeLeft < 0
@@ -112,7 +112,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
           <RaceStatusItem icon={ConsoleIcon} label={`${race?.gamesCompletedPerUser?.length}/${race.numOfGames.toString()}`} />
           {
             (() => {
-              if (race.registered && race.status == 1 && race.playersCount < 3 && !race.refunded) {
+              if (race.registered && race.status == 1 && race.registeredUsers.length < race.numOfPlayersRequired && !race.refunded) {
                 return (
                   <>
                     <button 

@@ -1,21 +1,20 @@
-// @ts-nocheck
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
 import RaceItem from "../components/RaceItem";
 // import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
 // import { BLOCK_SHEEP_CONTRACT } from "../constants";
 // import BlockSheep from "../contracts/BlockSheep";
 // import { Race } from "../types";
-import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useNextGameId, useRacesWithPagination } from "../hooks/useRaces";
 import { getRaceById, getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../utils/contract-functions";
 import RegisteringModal from "../components/RegisteringModal";
 import RegisteredModal from "../components/RegisteredModal";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 
 const modalStyles = {
@@ -39,11 +38,11 @@ const modalStyles = {
 const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function SelectRaceScreen() {
-  const { user } = usePrivy();
+  const { smartAccountClient, smartAccountAddress } = useSmartAccount();
   const { wallets } = useWallets();
   const navigate = useNavigate();
 
-  const [races, setRaces] = useState([]);
+  const [races, setRaces] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
   const [cost, setCost] = useState(0);
@@ -75,7 +74,7 @@ function SelectRaceScreen() {
     // game 1 was not passed
     if (!progress?.game1?.isDistributed) {
       console.log("GAME-1")
-      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
           state: {
             questionsByGames: data.questionsByGames, 
@@ -94,7 +93,7 @@ function SelectRaceScreen() {
     // countdown 2 (before the first game) was not passed
     if (!progress?.board1) {
       console.log("BOARD-1")
-      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
           state: {
             questionsByGames: data.questionsByGames, 
@@ -120,33 +119,17 @@ function SelectRaceScreen() {
       
   }, [raceId]);
 
-  // switch chain if required
-  useEffect(() => {
-    if (user?.wallet?.address.length && wallets.length) {
-
-      const processSwitch = async() => {
-        // find connected wallet and switch chain
-        const wallet = wallets.find((wallet) => wallet.address === user.wallet?.address);
-        if (wallet?.chainId !== "eip155:97") {
-          await wallet?.switchChain(97);
-        }
-      }
-
-      processSwitch();
-    }
-  }, [user?.wallet, wallets]);
-
   const fetchAndSetRaces = useCallback(async() => {
-    if (user?.wallet?.address) {
-      getRacesWithPagination(user.wallet.address, 0).then(data => {
-        setRaces(data);
+    if (smartAccountAddress) {
+      getRacesWithPagination(smartAccountAddress as `0x${string}`, 0).then(data => {
+        setRaces(data as any[]);
       });
-      setCost(await retreiveCOST());
+      setCost(Number(await retreiveCOST()));
     }
-  }, [user?.wallet?.address]);
+  }, [smartAccountAddress]);
   
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (smartAccountAddress) {
       fetchAndSetRaces();
       
       const intId = setInterval(() => {
@@ -157,7 +140,7 @@ function SelectRaceScreen() {
         clearInterval(intId);
       }
     }
-  }, [user?.wallet?.address]);
+  }, [smartAccountAddress]);
 
   const selectedRace = useMemo(() => {
     if (!races) {
@@ -167,7 +150,7 @@ function SelectRaceScreen() {
   }, [races, raceId]);
 
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (smartAccountAddress) {
       socket.once('race-progress', ({progress}) => {
         console.log("PROGRESS SET", progress?.progress)
         progress?.progress && setProgress(progress.progress);
@@ -217,13 +200,13 @@ function SelectRaceScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, user?.wallet?.address, amountOfConnected, progress])
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
 
   const onClickJoin = useCallback((id: number) => {
-    if (user?.wallet?.address) {
-      socket.emit("get-progress", { raceId: id, userAddress: user?.wallet?.address });
+    if (smartAccountAddress) {
+      socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
       setTimeout(() => {
-        socket.emit("connect-live-game", { raceId: id, userAddress: user?.wallet?.address });
+        socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
         socket.emit("get-connected", { raceId: id });
       }, 500);
     } 
@@ -231,14 +214,14 @@ function SelectRaceScreen() {
     setIsOpen(true);
     setModalType("waiting");
 
-  }, [user?.wallet?.address, socket]);
+  }, [smartAccountAddress, socket]);
 
 
 
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
     setModalType("registering");
-    await registerOnTheRace(id, questionsCount).then(data => {
+    await registerOnTheRace(id, questionsCount, smartAccountClient).then(_ => {
       console.log("REGISTERED, fetching list of races...");
       fetchAndSetRaces();
       setRaceId(id);
@@ -249,7 +232,7 @@ function SelectRaceScreen() {
       setIsOpen(false);
       console.log("REG ERR:", err);
     });
-  }, [user?.wallet?.address]);
+  }, [smartAccountAddress]);
 
   function afterOpenModal() {
     // references are now sync'd and can be accessed.
@@ -279,10 +262,10 @@ function SelectRaceScreen() {
           ))}
       </div>
 
-      { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal raceId={raceId} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> }
+      { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
       { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {
-          const dt = new Date(Number(selectedRace.startAt) * 1000);
+          const dt = new Date(Number(selectedRace?.startAt) * 1000);
           const h = dt.getHours();
           const m = dt.getMinutes();
           const s = dt.getSeconds();

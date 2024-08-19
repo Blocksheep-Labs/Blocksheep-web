@@ -11,7 +11,8 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { config } from "./config/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from '@privy-io/wagmi';
-import { bscTestnet } from "viem/chains";
+import { SmartAccountProvider } from "./hooks/smartAccountProvider";
+import { PRIVY_APP_ID, SELECTED_NETWORK } from "./config/constants";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
@@ -20,23 +21,29 @@ const queryClient = new QueryClient()
 root.render(
     <Provider store={store}>
         <PrivyProvider 
-          appId="clyh534er03w5wdid94l1grap"
+          appId={PRIVY_APP_ID || ""}
           config={{
-            loginMethods: ['wallet'],
+            loginMethods: ["email", "google"],
             appearance: {
               theme: 'light'
             },
-            defaultChain: bscTestnet,
-            supportedChains: [bscTestnet]
+            embeddedWallets: {
+              createOnLogin: "users-without-wallets",
+              noPromptOnSignature: true,
+            },
+            defaultChain: SELECTED_NETWORK,
+            supportedChains: [SELECTED_NETWORK]
           }}
         >
-          <QueryClientProvider client={queryClient}>
-            <WagmiProvider config={config}>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </WagmiProvider>
-          </QueryClientProvider>
+          <SmartAccountProvider>
+            <QueryClientProvider client={queryClient}>
+              <WagmiProvider config={config}>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </WagmiProvider>
+            </QueryClientProvider>
+          </SmartAccountProvider>
         </PrivyProvider>
     </Provider>
 );

@@ -20,6 +20,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { finishTunnelGame, getRaceById, submitFuel } from "../utils/contract-functions";
 import LoseModal from "../components/LoseModal";
 import { config } from "../config/wagmi";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 export type ConnectedUser = {
     id: number;
@@ -51,7 +52,7 @@ function TunnelGame() {
   const [amountOfReached, setAmountOfReached] = useState(0);
   const [amountOfPending, setAmountOfPending] = useState(0);
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
-
+  const {smartAccountClient} = useSmartAccount();
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -170,7 +171,7 @@ function TunnelGame() {
 
         if (progress.property === "game2-complete") {
           if (AMOUNT_OF_PLAYERS_PER_RACE - (amountOfComplteted + 1) === -1) {
-            await finishTunnelGame(Number(raceId), true).then(async data => {
+            await finishTunnelGame(Number(raceId), true, smartAccountClient).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
                 confirmations: 2,
@@ -278,7 +279,7 @@ function TunnelGame() {
       }
     });
 
-    await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber)
+    await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient)
       .then(async data => {
         await waitForTransactionReceipt(config, {
           hash: data,
@@ -316,7 +317,7 @@ function TunnelGame() {
 
   const handleFinishTunnelGame = async(raceId: string, isWon: boolean) => {
     pause();
-    await finishTunnelGame(Number(raceId), isWon).then(async data => {
+    await finishTunnelGame(Number(raceId), isWon, smartAccountClient).then(async data => {
       await waitForTransactionReceipt(config, {
         hash: data,
         confirmations: 2,

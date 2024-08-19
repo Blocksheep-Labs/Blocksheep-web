@@ -3,6 +3,7 @@ import LoadingBackground from "../assets/loading/loading-bg.png";
 import { distributeRewardOfTheGame } from "../utils/contract-functions";
 import { config } from "../config/wagmi";
 import { waitForTransactionReceipt  } from '@wagmi/core';
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 function LoadingModal({
   raceId, gameIndex, questionIndexes, closeHandler
@@ -12,9 +13,11 @@ function LoadingModal({
   questionIndexes: number[],
   closeHandler: () => void;
 }) {
+  const { smartAccountClient } = useSmartAccount();
+
   useEffect(() => {
     if (raceId.toString() && gameIndex.toString() && questionIndexes) {
-      distributeRewardOfTheGame(raceId, gameIndex, questionIndexes)
+      distributeRewardOfTheGame(raceId, gameIndex, questionIndexes, smartAccountClient)
         .then(data => {
           console.log("Distribute reward:", data);
           // wait for tx to finish before finalizing scores on next modal (win / lose modal)

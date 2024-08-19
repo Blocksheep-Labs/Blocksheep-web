@@ -1,8 +1,11 @@
-import { BLOCK_SHEEP_CONTRACT, USDC_ADDR } from "../config/constants";
+import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "../config/constants";
 import BlockSheepAbi from "../contracts/BlockSheep.json";
 import MockUsdcAbi from "../contracts/MockUSDC.json";
-import { readContract, writeContract, readContracts, getAccount, waitForTransactionReceipt  } from '@wagmi/core';
+import { readContract, readContracts } from '@wagmi/core';
 import { config } from "../config/wagmi";
+import { encodeFunctionData } from "viem";
+
+const SELECTED_CHAIN = SELECTED_NETWORK;
 
 const BLOCK_SHEEP_BASE_CONFIG = {
     address: BLOCK_SHEEP_CONTRACT,
@@ -75,8 +78,6 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
     //@ts-ignore
     //data.reverse();
 
-    //console.log("Races:", data)
-
     return data;
 }
 
@@ -140,49 +141,50 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
 }
 
 // enter the race
-export const registerOnTheRace = async(raceId: number, numberOfQuestions: number) => {
+export const registerOnTheRace = async(raceId: number, numberOfQuestions: number, smartAccountClient: any) => {
     const COST = await retreiveCOST();
     //console.log(BigInt(Number(COST) * 3));
 
-    const approveUSDC = await writeContract(config, {
-        address: USDC_ADDR,
-        abi: MockUsdcAbi,
-        functionName: 'approve',
-        args: [BLOCK_SHEEP_CONTRACT, BigInt(Number(COST) * 3)]
-    });
-    console.log("APPROVE:", approveUSDC);
-
-    await waitForTransactionReceipt(config, {
-        confirmations: 2,
-        hash: approveUSDC,
+    const approveHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: USDC_ADDR,
+        data: encodeFunctionData({
+            abi: MockUsdcAbi,
+            functionName: "approve",
+            args: [BLOCK_SHEEP_CONTRACT, BigInt(Number(COST) * 3)],
+        }),
     });
 
-    const depositBlockSheep = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: 'deposit',
-        args: [BigInt(Number(COST) * numberOfQuestions)]
+    console.log("APPROVE:", approveHash);
+
+    const depositHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "deposit",
+            args: [BigInt(Number(COST) * numberOfQuestions)]
+        }),
     });
 
-    console.log("DEPOSIT:", depositBlockSheep);
-    await waitForTransactionReceipt(config, {
-        confirmations: 2,
-        hash: depositBlockSheep,
-    });
-    
-    const regBlocksheep = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "register",
-        args: [BigInt(raceId)],
+    console.log("DEPOSIT:", depositHash);
+
+    const registerHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "register",
+            args: [BigInt(raceId)]
+        }),
     });
 
-    console.log("REGISTER:", regBlocksheep)
-    await waitForTransactionReceipt(config, {
-        confirmations: 2,
-        hash: regBlocksheep,
-    });
+    console.log("REGISTER:", registerHash)
 
-    
-    return regBlocksheep;
+    return registerHash;
 }
 
 // fetches races status by ids
@@ -243,20 +245,27 @@ export const submitUserAnswer = async(
     gameIndex: number,
     questionIndex: number,
     answerId: number,
+    smartAccountClient: any
 ) => {
     console.log(raceId, gameIndex, questionIndex, answerId)
-    const data = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "submitAnswer",
-        args: [
-            BigInt(raceId), 
-            BigInt(gameIndex), 
-            BigInt(questionIndex), 
-            BigInt(answerId)
-        ]
+
+    const submitAnswerHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "submitAnswer",
+            args: [
+                BigInt(raceId), 
+                BigInt(gameIndex), 
+                BigInt(questionIndex), 
+                BigInt(answerId)
+            ]
+        }),
     });
 
-    return data;
+    return submitAnswerHash;
 }
 
 
@@ -265,30 +274,41 @@ export const distributeRewardOfTheGame = async(
     raceId: number,
     gameIndex: number,
     questionIndexes: number[],
+    smartAccountClient: any,
 ) => {
-    const data = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "distributeReward",
-        args: [
-            BigInt(raceId),
-            BigInt(gameIndex),
-            questionIndexes.map(i => BigInt(i)),
-        ]
+    const distributeRewardHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "distributeReward",
+            args: [
+                BigInt(raceId),
+                BigInt(gameIndex),
+                questionIndexes.map(i => BigInt(i)),
+            ]
+        }),
     });
 
-    return data;
+    return distributeRewardHash;
 }
 
 
 // withdraw funds
-export const refundBalance = async(amount: number, raceId: number) => {
-    const data = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "refundBalance",
-        args: [BigInt(amount), BigInt(raceId)]
+export const refundBalance = async(amount: number, raceId: number, smartAccountClient: any) => {
+    const refundBalanceHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "refundBalance",
+            args: [BigInt(amount), BigInt(raceId)]
+        }),
     });
 
-    return data;
+    return refundBalanceHash;
 }
 
 
@@ -316,28 +336,40 @@ export const submitFuel = async(
     raceId: number,
     fuelSubmision: number,
     fuelLeft: number,
+    smartAccountClient: any,
 ) => {
-    const data = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "submitFuel",
-        args: [raceId, fuelSubmision, fuelLeft]
+    const submitFuelHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "submitFuel",
+            args: [raceId, fuelSubmision, fuelLeft]
+        }),
     });
 
-    return data;
+    return submitFuelHash;
 }
 
 
 export const finishTunnelGame = async(
     raceId: number,
     isWon: boolean,
+    smartAccountClient: any,
 ) => {
-    const data = await writeContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "finishTunnelGame",
-        args: [raceId, isWon]
+    const finishTunnelGameHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "finishTunnelGame",
+            args: [raceId, isWon]
+        }),
     });
 
-    return data;
+    return finishTunnelGameHash;
 }
 
 

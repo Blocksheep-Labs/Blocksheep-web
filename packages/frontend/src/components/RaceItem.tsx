@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SheepIcon from "../assets/common/sheeepy.png";
 import EtherIcon from "../assets/common/ether.png";
 import TimerIcon from "../assets/common/timer.png";
 import ConsoleIcon from "../assets/common/console.png";
 import NextFlag from "../assets/common/flag.png";
 import { Race } from "../types";
-import { BLOCK_SHEEP_CONTRACT, USDC_MULTIPLIER } from "../config/constants";
+import { USDC_MULTIPLIER } from "../config/constants";
 import msToTime from "../utils/msToTime";
 import { refundBalance } from "../utils/contract-functions";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../config/wagmi";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
   icon: string;
@@ -31,10 +32,11 @@ type RaceItemProps = {
   race: Race;
   onClickJoin: (a: number) => void;
   onClickRegister: (id: number , questionsCount: number) => Promise<void>;
-  cost: BigInt
+  cost: number
 };
 
 function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
+  const { smartAccountClient } = useSmartAccount();
   // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
   //console.log(race)
@@ -43,7 +45,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
 
   const withdrawFundsHandler = async() => {
     setLoading(true);
-    const hash = await refundBalance(race.numOfQuestions * Number(cost), race.id);
+    const hash = await refundBalance(race.numOfQuestions * cost, race.id, smartAccountClient);
 
     console.log("Withdraw balance hash:", hash);
     await waitForTransactionReceipt(config, {
@@ -78,7 +80,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
       <div className="flex flex-col gap-4">
         <div className="mx-[20%] mt-[-16px] flex flex-row justify-between">
           <RaceStatusItem icon={SheepIcon} label={`${race.registeredUsers.length}/${race.numOfPlayersRequired}`} />
-          <RaceStatusItem icon={EtherIcon} label={(race.numOfQuestions * Number(cost) / USDC_MULTIPLIER).toString() + "$"} />
+          <RaceStatusItem icon={EtherIcon} label={(race.numOfQuestions * cost / USDC_MULTIPLIER).toString() + "$"} />
           <RaceStatusItem icon={TimerIcon} label={
             timeLeft < 0
             ?

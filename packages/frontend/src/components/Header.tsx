@@ -1,19 +1,54 @@
 // import { parseUnits } from "ethers/lib/utils";
 import Sheep from "../assets/gameplay/sheeepy.png";
 import { Link } from "react-router-dom";
-import { usePrivy } from "@privy-io/react-auth";
+import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
 import shortenAddress from "../utils/shortenAddress";
 import { useUserBalance } from "../hooks/useUserBalance";
-import { USDC_MULTIPLIER } from "../config/constants";
+import { SELECTED_NETWORK, USDC_MULTIPLIER } from "../config/constants";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
+import { useEffect } from "react";
 
 
 function Header() {
-  const {login, logout, user} = usePrivy();
-  const userBalance = useUserBalance(user?.wallet?.address as `0x${string}`);
+  const { smartAccountAddress, smartAccountClient } = useSmartAccount();
+  const { generateSiweMessage, linkWithSiwe } = useLinkWithSiwe();
+  const { logout } = usePrivy();
+  const { login } = useLogin({
+    onComplete: async(user) => {
+      console.log("LOGGED IN AS:", user);
+    }
+  });
+
+  useEffect(() => {
+    const linkAccount = async() => {
+      if (!smartAccountClient || !smartAccountAddress) return;
+    
+      const chainId = `eip155:${SELECTED_NETWORK.id}`;
+      const message = await generateSiweMessage({
+        address: smartAccountAddress,
+        chainId
+      });
+      const signature = await smartAccountClient.signMessage({message});
+
+      await linkWithSiwe({
+        signature,
+        message,
+        chainId,
+        walletClientType: 'privy_smart_account',
+        connectorType: 'safe'
+      });
+    }
+
+    linkAccount()
+  }, [smartAccountClient, smartAccountAddress])
+  
+  const userBalance = useUserBalance(smartAccountAddress as `0x${string}`);
 
   const handleLoginLogout = () => {
-    if (user?.wallet?.address) {
-      logout();
+    if (smartAccountAddress) {
+      logout().then(_ => {
+        window.location.reload();
+      });
     } else {
       login();
     }
@@ -26,8 +61,9 @@ function Header() {
           className="m-2 rounded-xl bg-black p-2 text-white" 
           onClick={handleLoginLogout}
         >
-          { user?.wallet?.address ? shortenAddress(user.wallet.address) : "Connect wallet" }
+          { smartAccountAddress ? shortenAddress(smartAccountAddress) : "Connect with privy" }
         </button>
+
         <button className="m-2 rounded-xl bg-black p-2 text-white">{userBalance ? `${
           (() => {
             let money = (Number(userBalance) / USDC_MULTIPLIER).toString();
@@ -40,7 +76,7 @@ function Header() {
         className="flex m-2 size-12 items-center justify-center rounded-xl bg-black p-1 text-white"
         to="/account"
       >
-        <img src={Sheep} className="h-full" />
+        <img src={Sheep} className="h-full"/>
       </Link>
     </div>
   );

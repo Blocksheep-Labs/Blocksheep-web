@@ -15,7 +15,7 @@ import { config } from "../config/wagmi";
 import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
-import { finished } from "stream";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -42,7 +42,6 @@ function QuestionsGame() {
   const [boardPermanentlyOpened, setBoardPermanentlyOpened] = useState(false);
   const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
   const [raceboardProgress, setRaceboardProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
-  const progress  = location.state?.progress;
   const questions = location.state?.questionsByGames[currentGameIndex];
   const { step, completed, of, isDistributed, questionsByGames } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
@@ -50,6 +49,7 @@ function QuestionsGame() {
   const [finished, setFinished] = useState(questions.length === completed);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
+  const { smartAccountClient } = useSmartAccount();
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -124,7 +124,8 @@ function QuestionsGame() {
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,
-      0
+      0,
+      smartAccountClient
     ).then(async hash => {
       await waitForTransactionReceipt(config, {
         hash,
@@ -177,7 +178,8 @@ function QuestionsGame() {
       Number(raceId), 
       currentGameIndex, 
       currentQuestionIndex,
-      1
+      1,
+      smartAccountClient
     ).then(async hash => {
       await waitForTransactionReceipt(config, {
         hash,

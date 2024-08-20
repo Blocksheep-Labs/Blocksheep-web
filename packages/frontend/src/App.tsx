@@ -9,6 +9,7 @@ import AccountScreen from "./screens/AccountScreen";
 import TunnelGame from "./screens/TunnelGame";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
+import HomeScreen from "./screens/HomeScreen";
 
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route index element={<SelectRaceScreen />} />
+        <Route index element={<HomeScreen />} />
         <Route
           path="select"
           element={
@@ -74,7 +75,7 @@ function Layout() {
   const { pathname } = useLocation();
   return (
     <div className="relative m-auto h-screen w-full overflow-hidden bg-black sm:max-w-sm">
-      {["/", "select"].includes(pathname) && <Header />}
+      {["/select"].includes(pathname) && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}
     </div>

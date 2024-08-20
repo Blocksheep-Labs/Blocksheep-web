@@ -1,56 +1,25 @@
 // import { parseUnits } from "ethers/lib/utils";
 import Sheep from "../assets/gameplay/sheeepy.png";
-import { Link } from "react-router-dom";
-import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
+import { Link, useNavigate } from "react-router-dom";
+import { usePrivy } from "@privy-io/react-auth";
 import shortenAddress from "../utils/shortenAddress";
 import { useUserBalance } from "../hooks/useUserBalance";
-import { SELECTED_NETWORK, USDC_MULTIPLIER } from "../config/constants";
+import { USDC_MULTIPLIER } from "../config/constants";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
-import { useEffect } from "react";
 
 
 function Header() {
-  const { smartAccountAddress, smartAccountClient } = useSmartAccount();
-  const { generateSiweMessage, linkWithSiwe } = useLinkWithSiwe();
+  const { smartAccountAddress } = useSmartAccount();
   const { logout } = usePrivy();
-  const { login } = useLogin({
-    onComplete: async(user) => {
-      console.log("LOGGED IN AS:", user);
-    }
-  });
-
-  useEffect(() => {
-    const linkAccount = async() => {
-      if (!smartAccountClient || !smartAccountAddress) return;
-    
-      const chainId = `eip155:${SELECTED_NETWORK.id}`;
-      const message = await generateSiweMessage({
-        address: smartAccountAddress,
-        chainId
-      });
-      const signature = await smartAccountClient.signMessage({message});
-
-      await linkWithSiwe({
-        signature,
-        message,
-        chainId,
-        walletClientType: 'privy_smart_account',
-        connectorType: 'safe'
-      });
-    }
-
-    linkAccount()
-  }, [smartAccountClient, smartAccountAddress])
+  const navigate = useNavigate();
   
   const userBalance = useUserBalance(smartAccountAddress as `0x${string}`);
 
-  const handleLoginLogout = () => {
+  const handleLogout = () => {
     if (smartAccountAddress) {
       logout().then(_ => {
-        window.location.reload();
+        navigate('/');
       });
-    } else {
-      login();
     }
   }
 
@@ -59,7 +28,7 @@ function Header() {
       <div className="flex gap-2">
         <button 
           className="m-2 rounded-xl bg-black p-2 text-white" 
-          onClick={handleLoginLogout}
+          onClick={handleLogout}
         >
           { smartAccountAddress ? shortenAddress(smartAccountAddress) : "Connect with privy" }
         </button>

@@ -221,7 +221,7 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
     setModalType("registering");
-    await registerOnTheRace(id, questionsCount, smartAccountClient).then(_ => {
+    await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(_ => {
       console.log("REGISTERED, fetching list of races...");
       fetchAndSetRaces();
       setRaceId(id);

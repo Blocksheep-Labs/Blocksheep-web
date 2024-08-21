@@ -21,6 +21,26 @@ export const getNextGameId = async() => {
     return data;
 }
 
+export const getTokenPrice = async() => {
+    const data = await readContract(config, {
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: "tokenPrice",
+    });
+
+    return data;
+}
+
+export const getUserBalance = async(userAddr: string) => {
+    const data = await readContract(config, {
+        address: USDC_ADDR,
+        abi: MockUsdcAbi,
+        functionName: 'balanceOf',
+        args: [userAddr]
+    });
+
+    return data;
+}
+
 // fetching the list itself
 export const getRacesWithPagination = async(userAddr: `0x${string}`, from: number) => {
     const nextGameId = await getNextGameId();
@@ -141,10 +161,11 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
 }
 
 // enter the race
-export const registerOnTheRace = async(raceId: number, numberOfQuestions: number, smartAccountClient: any) => {
+export const registerOnTheRace = async(raceId: number, numberOfQuestions: number, smartAccountClient: any, smartAccountAddress: any) => {
     const COST = await retreiveCOST();
+    const tokenPrice = await getTokenPrice();
     //console.log(BigInt(Number(COST) * 3));
-
+    /*
     const approveHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
         chain: SELECTED_CHAIN,
@@ -157,19 +178,23 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
     });
 
     console.log("APPROVE:", approveHash);
-
-    const depositHash = await smartAccountClient.sendTransaction({
-        account: smartAccountClient.account!,
-        chain: SELECTED_CHAIN,
-        to: BLOCK_SHEEP_CONTRACT,
-        data: encodeFunctionData({
-            abi: BlockSheepAbi,
-            functionName: "deposit",
-            args: [BigInt(Number(COST) * numberOfQuestions)]
-        }),
-    });
-
-    console.log("DEPOSIT:", depositHash);
+    */
+    const userBalance = await getUserBalance(smartAccountAddress);
+    const needToDeposit = Number(COST) * numberOfQuestions * Number(tokenPrice);
+    if (Number(userBalance) < needToDeposit) {
+        const depositHash = await smartAccountClient.sendTransaction({
+            account: smartAccountClient.account!,
+            chain: SELECTED_CHAIN,
+            to: BLOCK_SHEEP_CONTRACT,
+            data: encodeFunctionData({
+                abi: BlockSheepAbi,
+                functionName: "deposit",
+            }),
+            value: BigInt(Number(COST) * numberOfQuestions * Number(tokenPrice)),
+        });
+    
+        console.log("DEPOSIT:", depositHash);
+    }
 
     const registerHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,

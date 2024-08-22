@@ -32,7 +32,7 @@ root.render(
               noPromptOnSignature: true,
             },
             defaultChain: SELECTED_NETWORK,
-            supportedChains: [SELECTED_NETWORK]
+            //supportedChains: [SELECTED_NETWORK]
           }}
         >
           <SmartAccountProvider>

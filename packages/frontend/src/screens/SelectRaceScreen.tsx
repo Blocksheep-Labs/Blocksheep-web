@@ -17,29 +17,10 @@ import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 
-const modalStyles = {
-  content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)",
-    padding: 0,
-    borderRadius: '16px',
-    boxShadow: '10px 10px 100px #a6c548'
-  },
-  overlay: {
-    backdropFilter: "blur(5px)",
-    backgroundColor: "rgba(253,255,255,0.44)",
-  },
-};
-
 const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
-  const { wallets } = useWallets();
   const navigate = useNavigate();
 
   const [races, setRaces] = useState<any[]>([]);
@@ -62,8 +43,6 @@ function SelectRaceScreen() {
     });
     return;
     */
-    
-
     
     if (!progress?.countdown) {
       console.log("COUNTDOWN")

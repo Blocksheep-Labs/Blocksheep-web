@@ -12,7 +12,7 @@ import {
 import { EntryPoint } from "permissionless/types";
 import { createPimlicoBundlerClient, createPimlicoPaymasterClient } from "permissionless/clients/pimlico";
 import { PIMLICO_BUNDLER_URL, PIMLICO_PAYMASTER_URL, SELECTED_NETWORK } from "../config/constants";
-
+console.log("SELECTED NETWORK:", SELECTED_NETWORK);
 /** Interface returned by custom `useSmartAccount` hook */
 interface SmartAccountInterface {
   /** Privy embedded wallet, used as a signer for the smart account */

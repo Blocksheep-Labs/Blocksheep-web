@@ -230,6 +230,7 @@ export const getRacesStatusesByIds = async(ids: number[]) => {
 
 // COST per 1 question in game
 export const retreiveCOST = async() => {
+    console.log("CFG", config)
     const data = await readContract(config, {
         ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "COST",
@@ -410,3 +411,39 @@ export const getScoreAtRaceOfUser = async(
 
     return data;
 }
+
+
+export const buyTokens = async(amount: number, smartAccountClient: any) => {
+    const tokenPrice = await getTokenPrice();
+    const needToDeposit = amount * Number(tokenPrice);
+    
+    const depositHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "deposit",
+        }),
+        value: BigInt(needToDeposit),
+    });
+
+    console.log("DEPOSIT:", depositHash);
+    return depositHash;
+} 
+
+export const withdrawTokens = async(amount: number, smartAccountClient: any) => {
+    const withdrawHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "withdraw",
+            args: [amount]
+        }),
+    });
+
+    console.log("WITHDRAW:", withdrawHash);
+    return withdrawHash;
+} 

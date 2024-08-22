@@ -20,11 +20,15 @@ import { useUserBalance } from "../hooks/useUserBalance";
 import shortenAddress from "../utils/shortenAddress";
 import NextFlag from "../assets/common/flag.png";
 import { useNavigate } from "react-router-dom";
+import { buyTokens, withdrawTokens } from "../utils/contract-functions";
+import { useState } from "react";
+import SelectAmountModal from "../components/SelectAmountModal";
+import { usePrivy } from "@privy-io/react-auth";
 
 
 const ProfileButton = ({text, onClick, bgColors, icon}: {text: string; onClick?: () => void; bgColors: string, icon: React.ReactNode}) => {
   return (
-    <div className="m-auto flex w-[85%] gap-2 shadow-xl">
+    <div className="m-auto flex w-[85%] gap-2 shadow-xl" onClick={onClick}>
       <div className={`flex items-center rounded-xl w-full border-b-4 border-r-2 hover:border-0 p-4 ${bgColors}`}>
         <p className="text-center flex flex-row gap-2 font-[Berlin-Bold] text-[16px]">
           {icon}
@@ -37,17 +41,45 @@ const ProfileButton = ({text, onClick, bgColors, icon}: {text: string; onClick?:
 
 
 function AccountScreen() {
-  const { smartAccountAddress } = useSmartAccount();
+  const { smartAccountAddress, smartAccountClient } = useSmartAccount();
   const userBalance = useUserBalance(smartAccountAddress as `0x${string}`);
   const navigate = useNavigate();
-  const wallet = useAppSelector(selectWallet);
+  const [ modalType, setModalType ] = useState<"deposit" | "withdraw">("deposit");
+  const [ modalIsOpen, setModalsOpen ] = useState(false);
+  const { logout } = usePrivy();
+
+  const openDepositModal = () => {
+    setModalType("deposit");
+    setModalsOpen(true);
+  }
+
+  const openWithdrawModal = () => {
+    setModalType("withdraw");
+    setModalsOpen(true);
+  }
+
+  const handleDeposit = (amount: number) => {
+    buyTokens(amount, smartAccountClient).then(console.log).catch(console.error)
+  }
+
+  const handleWithdraw = (amount: number) => {
+    withdrawTokens(amount, smartAccountClient);
+  }
+
+  const handleLogout = () => {
+    logout().then(_ => {
+      navigate('/');
+    });
+  }
+
+  console.log(smartAccountAddress)
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
-
+      <button onClick={() => handleDeposit(30)}>Test deposit for 1 game</button>
       <div className="mt-10 flex flex-col gap-5 cursor-pointer">
         <ProfileButton 
-          text={`Address: ${shortenAddress(smartAccountAddress as string)}`} 
+          text={`Address: ${shortenAddress(smartAccountAddress || "")}`} 
           bgColors="bg-gradient-to-r from-[#efb828] to-[#fbe572] text-[#18243F] hover:text-white border-[#793325]" 
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
@@ -67,6 +99,7 @@ function AccountScreen() {
         />
         
         <ProfileButton 
+          onClick={openDepositModal}
           text={`Deposit $`} 
           bgColors="bg-gradient-to-r from-[#55b439] to-[#b5c94b] text-[#18243F] hover:text-white border-[#257948] text-white" 
           icon={
@@ -77,6 +110,7 @@ function AccountScreen() {
         />
         
         <ProfileButton 
+          onClick={openWithdrawModal}
           text={`Refund $`} 
           bgColors="bg-gradient-to-r from-[#55b439] to-[#b5c94b] text-[#18243F] hover:text-white border-[#257948] text-white"
           icon={
@@ -87,6 +121,7 @@ function AccountScreen() {
         />
         
         <ProfileButton 
+          onClick={handleLogout}
           text={`Logout`} 
           bgColors="bg-gradient-to-r from-red-800 to-red-500 text-[#18243F] hover:text-white border-red-900 text-white" 
           icon={
@@ -108,6 +143,17 @@ function AccountScreen() {
         </button>
         <img src={NextFlag} alt="next-flag" />
       </div>
+
+      { 
+        modalIsOpen 
+        && 
+        <SelectAmountModal 
+          handleDeposit={handleDeposit} 
+          handleWithdraw={handleWithdraw}
+          handleClose={() => setModalsOpen(false)}
+          type={modalType}
+        /> 
+      }
     </div>
   );
 }

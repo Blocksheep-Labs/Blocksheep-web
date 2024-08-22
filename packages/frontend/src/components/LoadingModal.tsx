@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import LoadingBackground from "../assets/loading/loading-bg.png";
 import { distributeRewardOfTheGame } from "../utils/contract-functions";
 import { config } from "../config/wagmi";

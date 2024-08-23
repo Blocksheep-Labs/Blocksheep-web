@@ -22,6 +22,7 @@ function HomeScreen() {
       console.log("LOGGED IN AS:", user);
     }
   });
+  const { logout } = usePrivy();
 
   useEffect(() => {
     const linkAccount = async() => {
@@ -79,6 +80,7 @@ function HomeScreen() {
           </button>
         </div>
       </div>
+      <button onClick={logout}>TEST LOGOUT</button>
     </div>
   );
 }

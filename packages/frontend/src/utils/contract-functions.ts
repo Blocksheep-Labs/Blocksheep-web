@@ -179,8 +179,11 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
 
     console.log("APPROVE:", approveHash);
     */
+   
+    /*
     const userBalance = await getUserBalance(smartAccountAddress);
-    const needToDeposit = Number(COST) * numberOfQuestions * Number(tokenPrice);
+    const needToDeposit = numberOfQuestions * Number(tokenPrice);
+    console.log(userBalance, needToDeposit, userBalance == needToDeposit)
     if (Number(userBalance) < needToDeposit) {
         const depositHash = await smartAccountClient.sendTransaction({
             account: smartAccountClient.account!,
@@ -195,6 +198,8 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
     
         console.log("DEPOSIT:", depositHash);
     }
+    */
+        
 
     const registerHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
@@ -416,6 +421,8 @@ export const getScoreAtRaceOfUser = async(
 export const buyTokens = async(amount: number, smartAccountClient: any) => {
     const tokenPrice = await getTokenPrice();
     const needToDeposit = amount * Number(tokenPrice);
+
+    console.log({tokenPrice, needToDeposit, account: smartAccountClient.account})
     
     const depositHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,

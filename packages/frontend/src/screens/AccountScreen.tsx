@@ -46,7 +46,7 @@ function AccountScreen() {
   const navigate = useNavigate();
   const [ modalType, setModalType ] = useState<"deposit" | "withdraw">("deposit");
   const [ modalIsOpen, setModalsOpen ] = useState(false);
-  const { logout } = usePrivy();
+  const { logout, user } = usePrivy();
 
   const openDepositModal = () => {
     setModalType("deposit");
@@ -59,6 +59,7 @@ function AccountScreen() {
   }
 
   const handleDeposit = (amount: number) => {
+    console.log(smartAccountAddress, user)
     buyTokens(amount, smartAccountClient).then(console.log).catch(console.error)
   }
 

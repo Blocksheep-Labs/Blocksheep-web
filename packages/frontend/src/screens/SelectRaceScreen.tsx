@@ -16,7 +16,7 @@ import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 1;
+const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();

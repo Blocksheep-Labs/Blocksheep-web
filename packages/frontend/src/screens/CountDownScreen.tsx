@@ -6,7 +6,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
+const AMOUNT_OF_PLAYERS_PER_RACE = 1;
 
 function CountDownScreen() {
   const { user } = usePrivy();
@@ -33,6 +33,10 @@ function CountDownScreen() {
       property: "countdown",
       value: true,
     });
+
+    //console.log("BEFORE NAVIGATE", data);
+    //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
+    //return;
     
                                  // amount of questions           // game index
     navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
@@ -49,6 +53,7 @@ function CountDownScreen() {
     if (raceId?.length && user?.wallet?.address) {
       getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
         if (data) {
+          console.log(data)
           // VALIDATE USER FOR BEING REGISTERED
           if (!data.registeredUsers.includes(user.wallet?.address)) {
             navigate('/');

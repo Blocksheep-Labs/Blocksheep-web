@@ -90,7 +90,16 @@ function AccountScreen() {
         />
         
         <ProfileButton 
-          text={`Balance: ${(Number(userBalance) / USDC_MULTIPLIER).toString()}$`} 
+          text={
+            `Balance: 
+            ${userBalance ? `${
+              (() => {
+                let money = (Number(userBalance) / USDC_MULTIPLIER).toString();
+                money = money.slice(0, money.indexOf('.')) + money.slice(money.indexOf('.'), money.length - 3);
+                return money;
+              })()
+            }$` : "0.00$"}`
+          } 
           bgColors="bg-gradient-to-r from-[#efb828] to-[#fbe572] text-[#18243F] hover:text-white border-[#793325]" 
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">

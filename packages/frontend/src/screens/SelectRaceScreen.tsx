@@ -8,7 +8,6 @@ import RaceItem from "../components/RaceItem";
 // import BlockSheep from "../contracts/BlockSheep";
 // import { Race } from "../types";
 import { useNavigate } from "react-router-dom";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { getRaceById, getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../utils/contract-functions";
 import RegisteringModal from "../components/RegisteringModal";
 import RegisteredModal from "../components/RegisteredModal";
@@ -17,7 +16,7 @@ import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
+const AMOUNT_OF_PLAYERS_PER_RACE = 1;
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();

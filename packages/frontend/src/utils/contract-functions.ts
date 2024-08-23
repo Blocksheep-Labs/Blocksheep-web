@@ -110,7 +110,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     });
 
     // @ts-ignore
-    const gamesIds = data[5];
+    const gamesIds = data[4];
 
     
     const questionsData = await readContracts(config, {
@@ -125,7 +125,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     });
 
     // @ts-ignore
-    const usersRegistered = data[9];
+    const usersRegistered = data[8];
     const progressData: {user: string, progress: number}[] = [];
 
     await Promise.all(gamesIds.map(async (_: any, gameIndex: number) => {
@@ -145,6 +145,8 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
         });
     }));
 
+    console.log("RACE DATA", data)
+
     return {
         race: data,
         //@ts-ignore
@@ -152,9 +154,9 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
         //@ts-ignore
         questionsByGames: questionsData.map(i => i.result),
         //@ts-ignore
-        gamesCompletedPerUser: data[6],
+        gamesCompletedPerUser: data[5],
         //@ts-ignore
-        registeredUsers: data[9],
+        registeredUsers: data[8],
         //@ts-ignore
         progress: progressData,
     };

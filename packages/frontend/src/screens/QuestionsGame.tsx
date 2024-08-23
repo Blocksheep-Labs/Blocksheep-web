@@ -132,6 +132,7 @@ function QuestionsGame() {
         confirmations: 2
       });
     }).catch(err => {
+      console.log(err);
       console.log("Answer can not be submitted, probably answered already");
     });
 
@@ -185,7 +186,8 @@ function QuestionsGame() {
         hash,
         confirmations: 2
       });
-    }).catch(_ => {
+    }).catch(err => {
+      console.log(err);
       console.log("Answer can not be submitted, probably answered already");
     });
 

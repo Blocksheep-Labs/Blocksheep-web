@@ -21,8 +21,6 @@ export interface SwipeSelectionAPI {
   swipeRight: () => void;
 }
 
-const GAME_NAME = "questions";
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish";
 
@@ -50,6 +48,7 @@ function QuestionsGame() {
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
   const { smartAccountClient } = useSmartAccount();
+  const [raceData, setRaceData] = useState<any>(undefined);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -77,6 +76,7 @@ function QuestionsGame() {
   const updateProgress = () => {
     getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
       if (data) {
+        setRaceData(data);
         let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
           return { curr: Number(i.progress), delta: 0, address: i.user };
         });
@@ -233,7 +233,7 @@ function QuestionsGame() {
   }
 
   function closeWinModal() {
-    if (amountOfPlayersCompleted >= AMOUNT_OF_PLAYERS_PER_RACE) {
+    if (amountOfPlayersCompleted >= raceData?.numberOfPlayersRequired) {
       setIsOpen(false);
       setModalType(undefined);
       updateProgress();
@@ -254,7 +254,7 @@ function QuestionsGame() {
   }
 
   function closeRaceModal() {
-    if (AMOUNT_OF_PLAYERS_PER_RACE <= amountOfPlayersRaceboardNextClicked + 1) {
+    if (raceData?.numberOfPlayersRequired <= amountOfPlayersRaceboardNextClicked + 1) {
       setBoardPermanentlyOpened(false);
       setIsOpen(false);
       setModalType(undefined);
@@ -280,13 +280,13 @@ function QuestionsGame() {
   
   // handle socket events
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (user?.wallet?.address && raceData) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amount === raceData.numberOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
           }
@@ -296,7 +296,7 @@ function QuestionsGame() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amountOfConnected + 1 >= raceData.numberOfPlayersRequired) {
             if (modalType === "waiting" && !finished) {
               updateProgress();
               setIsOpen(false);
@@ -327,7 +327,7 @@ function QuestionsGame() {
           // if the user is sending the TX or finished sending TX
           setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
-          if ((AMOUNT_OF_PLAYERS_PER_RACE == amountOfPlayersCompleted + 1) && finished) {
+          if ((raceData.numberOfPlayersRequired == amountOfPlayersCompleted + 1) && finished) {
             console.log("CLOSING MODAL...")
             setIsOpen(false);
             setModalType(undefined);
@@ -339,7 +339,7 @@ function QuestionsGame() {
         if (progress.property === "board1") {
           setAmountOfPlayersRaceboardNextClicked(amountOfPlayersRaceboardNextClicked + 1);
           console.log("GAME1 BOARD++", amountOfPlayersRaceboardNextClicked + 1);
-          if ((AMOUNT_OF_PLAYERS_PER_RACE == amountOfPlayersRaceboardNextClicked + 1) && finished) {
+          if ((raceData.numberOfPlayersRequired == amountOfPlayersRaceboardNextClicked + 1) && finished) {
             console.log("MOVING TO NEXT GAME...");
             setIsOpen(false);
             setModalType(undefined);
@@ -376,7 +376,7 @@ function QuestionsGame() {
         socket.off('race-progress-questions');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked]);
+  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -433,7 +433,7 @@ function QuestionsGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numberOfPlayersRequired || 9}/>
         </div>
       </div>
       {
@@ -474,22 +474,22 @@ function QuestionsGame() {
           }
           {
             modalType === "race" && 
-            <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
+            <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
           }
           {
             modalType === "waiting" && 
-            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> 
+            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
           }
           {
             modalType === "waiting-after-finish" && 
-            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE} replacedText="..."/> 
+            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
           }
         </>
       )}
 
       {
         boardPermanentlyOpened && 
-        <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE}/>
+        <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
       }
       {
         distributePermanentlyOpened && 

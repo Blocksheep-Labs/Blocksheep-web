@@ -30,8 +30,6 @@ export type ConnectedUser = {
     Fuel: number
 }
 
-const GAME_NAME = "tunnel";
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function TunnelGame() {
   const { user } = usePrivy();
@@ -53,6 +51,7 @@ function TunnelGame() {
   const [amountOfPending, setAmountOfPending] = useState(0);
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
   const {smartAccountClient} = useSmartAccount();
+  const [raceData, setRaceData] = useState<any>(undefined);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -67,7 +66,7 @@ function TunnelGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if ((amountOfConnected >= AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted) && start) {
+    if (raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted) && start) {
       socket.emit("get-all-fuel-tunnel", { raceId });
       console.log("starting the game...");
       closeWaitingModal();
@@ -76,17 +75,17 @@ function TunnelGame() {
       pause();
       !modalIsOpen && openWaitingModal();
     }
-  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId]);
+  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, raceData]);
 
   // handle socket eventsd
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (user?.wallet?.address && raceData) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount >= AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted) {
+          if (amount >= raceData.numberOfPlayersRequired - amountOfComplteted) {
             setIsOpen(false);
             setModalType(undefined);
           }
@@ -96,7 +95,7 @@ function TunnelGame() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected == AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted) {
+          if (amountOfConnected == raceData.numberOfPlayersRequired - amountOfComplteted) {
             setIsOpen(false);
             setModalType(undefined);
             // reset timer
@@ -160,7 +159,7 @@ function TunnelGame() {
           if (progress.value?.isPending !== undefined) {
             // sending...
             if (progress.value.isPending) {
-              AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted <= amountOfPending + 1 && setAmountOfPending(amountOfPending + 1);
+              raceData.numberOfPlayersRequired - amountOfComplteted <= amountOfPending + 1 && setAmountOfPending(amountOfPending + 1);
             }
             // sent 
             else {
@@ -170,7 +169,7 @@ function TunnelGame() {
         }
 
         if (progress.property === "game2-complete") {
-          if (AMOUNT_OF_PLAYERS_PER_RACE - (amountOfComplteted + 1) === -1) {
+          if (raceData.numberOfPlayersRequired - (amountOfComplteted + 1) === -1) {
             await finishTunnelGame(Number(raceId), true, smartAccountClient).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
@@ -194,7 +193,7 @@ function TunnelGame() {
         socket.off('progress-updated');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, amountOfComplteted]);
+  }, [socket, amountOfConnected, user?.wallet?.address, amountOfComplteted, raceData]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -208,7 +207,7 @@ function TunnelGame() {
   
 
   useEffect(() => {
-    if (amountOfReached !== AMOUNT_OF_PLAYERS_PER_RACE) {
+    if (amountOfReached !== raceData.numberOfPlayersRequired) {
       closeWaitingModal();
     } else {
       openWaitingModal();
@@ -468,7 +467,7 @@ function TunnelGame() {
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/>
         </div>
       </div>
       <div className="app-container">
@@ -487,11 +486,11 @@ function TunnelGame() {
       </div>
         {modalIsOpen && (
           <>
-            {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/> }
-            {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/> }
+            {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
+            {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} />}
             {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} />}
-            {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== AMOUNT_OF_PLAYERS_PER_RACE - amountOfComplteted}/>}
+            {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/>}
           </>
         )}
         { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} /> }

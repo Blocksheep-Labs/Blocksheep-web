@@ -6,7 +6,6 @@ import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
 
 function CountDownScreen() {
   const { user } = usePrivy();
@@ -71,7 +70,7 @@ function CountDownScreen() {
   }, [raceId, user?.wallet?.address]);
 
   useEffect(() => {
-    if (amountOfConnected === AMOUNT_OF_PLAYERS_PER_RACE) {
+    if (data && amountOfConnected === data.numberOfPlayersRequired) {
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
       }, 1000);
@@ -81,28 +80,28 @@ function CountDownScreen() {
         clearInterval(interval);
       };
     }
-  }, [amountOfConnected]);
+  }, [amountOfConnected, data]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
     let timer: NodeJS.Timeout;
-    if (seconds === 0 && amountOfConnected === AMOUNT_OF_PLAYERS_PER_RACE) {
+    if (seconds === 0 && data && amountOfConnected === data.numberOfPlayersRequired) {
       timer = setTimeout(handleClose, 1000);
       handleClose();
     }
     return () => {
       clearTimeout(timer);
     };
-  }, [seconds, amountOfConnected]);
+  }, [seconds, amountOfConnected, data]);
 
   // handle socket events
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (user?.wallet?.address && data) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         if (raceId === raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amount === data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
           }
@@ -114,7 +113,7 @@ function CountDownScreen() {
 
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
           }
@@ -141,7 +140,7 @@ function CountDownScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, user?.wallet?.address, amountOfConnected]);
+  }, [socket, raceId, user?.wallet?.address, amountOfConnected, data]);
 
   useEffect(() => {
     setModalIsOpen(true);
@@ -169,7 +168,7 @@ function CountDownScreen() {
         modalIsOpen && modalType === "waiting" && 
           <WaitingForPlayersModal 
             numberOfPlayers={amountOfConnected} 
-            numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}
+            numberOfPlayersRequired={data?.numberOfPlayersRequired || 9}
           />
       }
     </>

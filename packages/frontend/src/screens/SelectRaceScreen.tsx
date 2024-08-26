@@ -16,8 +16,6 @@ import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 
-const AMOUNT_OF_PLAYERS_PER_RACE = 2;
-
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
   const navigate = useNavigate();
@@ -137,10 +135,11 @@ function SelectRaceScreen() {
 
       socket.on('amount-of-connected', (data) => {
         if (data.raceId == raceId) {
+          const race = races.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
           console.log("CONNECTED:", data)
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (data.amount === AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (data.amount === race.numberOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
             // console.log("PPPPPPPPPPPPPPPPP-1", progress)
@@ -151,10 +150,11 @@ function SelectRaceScreen() {
       
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
         console.log(raceIdSocket, raceId)
+        const race = races.find((r: any) => r.id === raceId);
         if (raceIdSocket == raceId) {
           console.log("JOINED", raceIdSocket, userAddress);
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= AMOUNT_OF_PLAYERS_PER_RACE) {
+          if (amountOfConnected + 1 >= race.numberOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
             // console.log("PPPPPPPPPPPPPPPPP-2", progress)
@@ -212,15 +212,12 @@ function SelectRaceScreen() {
     });
   }, [smartAccountAddress]);
 
-  function afterOpenModal() {
-    // references are now sync'd and can be accessed.
-    // subtitle.style.color = "#f00";
-  }
-
   function closeModal() {
     setIsOpen(false);
     setRaceId(null);
   }
+
+  console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
@@ -240,7 +237,7 @@ function SelectRaceScreen() {
           ))}
       </div>
 
-      { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={AMOUNT_OF_PLAYERS_PER_RACE}/> }
+      { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
       { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {
           const dt = new Date(Number(selectedRace?.startAt) * 1000);

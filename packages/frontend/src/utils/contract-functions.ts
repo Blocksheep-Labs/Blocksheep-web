@@ -159,6 +159,8 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
         registeredUsers: data[8],
         //@ts-ignore
         progress: progressData,
+        //@ts-ignore
+        numberOfPlayersRequired: data[10],
     };
 }
 

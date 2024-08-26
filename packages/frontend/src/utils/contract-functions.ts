@@ -21,10 +21,11 @@ export const getNextGameId = async() => {
     return data;
 }
 
-export const getTokenPrice = async() => {
+export const getTokenDecimals = async() => {
     const data = await readContract(config, {
-        ...BLOCK_SHEEP_BASE_CONFIG,
-        functionName: "tokenPrice",
+        address: USDC_ADDR,
+        abi: MockUsdcAbi,
+        functionName: "decimals",
     });
 
     return data;
@@ -32,9 +33,8 @@ export const getTokenPrice = async() => {
 
 export const getUserBalance = async(userAddr: string) => {
     const data = await readContract(config, {
-        address: USDC_ADDR,
-        abi: MockUsdcAbi,
-        functionName: 'balanceOf',
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: 'balances',
         args: [userAddr]
     });
 
@@ -165,28 +165,30 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
 // enter the race
 export const registerOnTheRace = async(raceId: number, numberOfQuestions: number, smartAccountClient: any, smartAccountAddress: any) => {
     const COST = await retreiveCOST();
-    const tokenPrice = await getTokenPrice();
-    //console.log(BigInt(Number(COST) * 3));
-    /*
-    const approveHash = await smartAccountClient.sendTransaction({
-        account: smartAccountClient.account!,
-        chain: SELECTED_CHAIN,
-        to: USDC_ADDR,
-        data: encodeFunctionData({
-            abi: MockUsdcAbi,
-            functionName: "approve",
-            args: [BLOCK_SHEEP_CONTRACT, BigInt(Number(COST) * 3)],
-        }),
-    });
-
-    console.log("APPROVE:", approveHash);
-    */
+    const decimals = await getTokenDecimals();
    
-    /*
+    
     const userBalance = await getUserBalance(smartAccountAddress);
-    const needToDeposit = numberOfQuestions * Number(tokenPrice);
-    console.log(userBalance, needToDeposit, userBalance == needToDeposit)
+
+    const needToDeposit = numberOfQuestions * Number(COST);
+
+    console.log({userBalance, needToDeposit, isEnough: Number(userBalance) >= needToDeposit});
+
+    
     if (Number(userBalance) < needToDeposit) {
+        const amountToDepositAccordingToUserBalance = needToDeposit - Number(userBalance);
+        const approveHash = await smartAccountClient.sendTransaction({
+            account: smartAccountClient.account!,
+            chain: SELECTED_CHAIN,
+            to: USDC_ADDR,
+            data: encodeFunctionData({
+                abi: MockUsdcAbi,
+                functionName: "approve",
+                args: [BLOCK_SHEEP_CONTRACT, amountToDepositAccordingToUserBalance]
+            }),
+        });
+        console.log("APPROVE:", approveHash)
+        
         const depositHash = await smartAccountClient.sendTransaction({
             account: smartAccountClient.account!,
             chain: SELECTED_CHAIN,
@@ -194,15 +196,15 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
             data: encodeFunctionData({
                 abi: BlockSheepAbi,
                 functionName: "deposit",
+                args: [amountToDepositAccordingToUserBalance]
             }),
-            value: BigInt(Number(COST) * numberOfQuestions * Number(tokenPrice)),
         });
     
         console.log("DEPOSIT:", depositHash);
     }
-    */
+    
         
-
+    
     const registerHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
         chain: SELECTED_CHAIN,
@@ -237,7 +239,6 @@ export const getRacesStatusesByIds = async(ids: number[]) => {
 
 // COST per 1 question in game
 export const retreiveCOST = async() => {
-    console.log("CFG", config)
     const data = await readContract(config, {
         ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "COST",
@@ -421,10 +422,22 @@ export const getScoreAtRaceOfUser = async(
 
 
 export const buyTokens = async(amount: number, smartAccountClient: any) => {
-    const tokenPrice = await getTokenPrice();
-    const needToDeposit = amount * Number(tokenPrice);
+    const decimals = await getTokenDecimals();
+    const needToDeposit = amount * 10**Number(decimals);
 
-    console.log({tokenPrice, needToDeposit, account: smartAccountClient.account})
+    console.log({decimals, needToDeposit, account: smartAccountClient.account})
+
+    const approveHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: USDC_ADDR,
+        data: encodeFunctionData({
+            abi: MockUsdcAbi,
+            functionName: "approve",
+            args: [BLOCK_SHEEP_CONTRACT, needToDeposit]
+        }),
+    });
+    console.log("APPROVE:", approveHash)
     
     const depositHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
@@ -433,8 +446,8 @@ export const buyTokens = async(amount: number, smartAccountClient: any) => {
         data: encodeFunctionData({
             abi: BlockSheepAbi,
             functionName: "deposit",
+            args: [needToDeposit]
         }),
-        value: BigInt(needToDeposit),
     });
 
     console.log("DEPOSIT:", depositHash);

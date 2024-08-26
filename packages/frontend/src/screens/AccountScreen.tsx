@@ -48,6 +48,8 @@ function AccountScreen() {
   const [ modalIsOpen, setModalsOpen ] = useState(false);
   const { logout, user } = usePrivy();
 
+  console.log({userBalance})
+
   const openDepositModal = () => {
     setModalType("deposit");
     setModalsOpen(true);

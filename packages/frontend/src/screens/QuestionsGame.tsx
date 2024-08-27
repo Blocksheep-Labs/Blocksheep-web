@@ -22,7 +22,7 @@ export interface SwipeSelectionAPI {
 }
 
 
-type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish";
+type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish" | "waiting-before-finish";
 
 function QuestionsGame() {
   const { user } = usePrivy();
@@ -39,16 +39,21 @@ function QuestionsGame() {
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const [boardPermanentlyOpened, setBoardPermanentlyOpened] = useState(false);
   const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
+  const [waitingToFinishModalPermanentlyOpened, setWaitingToFinishModalPermanentlyOpened] = useState(false);
   const [raceboardProgress, setRaceboardProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const questions = location.state?.questionsByGames[currentGameIndex];
-  const { step, completed, of, isDistributed, questionsByGames } = location.state;
+  const { step, completed, of, isDistributed, questionsByGames, waitingToFinish } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [finished, setFinished] = useState(questions.length === completed);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
+  const [amountOfPlayersWaitingToFinish, setAmountOfPlayersWaitingToFinish] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
   const { smartAccountClient } = useSmartAccount();
   const [raceData, setRaceData] = useState<any>(undefined);
+  // this would be an array of arrays of answers [[0,1], [1,0], [1,1]]
+  const [usersAnswers, setUserAnswers] = useState<any[]>([]);
+
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -84,18 +89,6 @@ function QuestionsGame() {
         setRaceboardProgress(newProgress);
       }
     });
-    
-    /*
-    setProgress((old: any) =>
-      old.map(({ curr, delta, address }: {curr: number, delta: number, address: string}) => {
-        return {
-          curr: (curr + delta) % 10,
-          delta: Math.ceil(Math.random() * 2) % 10,
-          address
-        };
-      }),
-    );
-    */
   };
   
   const onClickLike = async(sendTx=true) => {
@@ -107,7 +100,9 @@ function QuestionsGame() {
       userAddress: user?.wallet?.address,
       property: "game1++",
       value: {
+        completed: currentQuestionIndex + 1,
         of: Number(questions.length),
+        answer: 1,
       }
     });
 
@@ -116,7 +111,9 @@ function QuestionsGame() {
       userAddress: user?.wallet?.address,
       property: "game1++",
       value: {
+        completed: currentQuestionIndex + 1,
         of: Number(questions.length),
+        answer: 1,
       }
     });
     
@@ -161,7 +158,9 @@ function QuestionsGame() {
       userAddress: user?.wallet?.address,
       property: "game1++",
       value: {
+        completed: currentQuestionIndex + 1,
         of: Number(questions.length),
+        answer: 0,
       }
     });
 
@@ -172,6 +171,7 @@ function QuestionsGame() {
       value: {
         completed: currentQuestionIndex + 1,
         of: Number(questions.length),
+        answer: 0,
       }
     });
 
@@ -243,9 +243,26 @@ function QuestionsGame() {
     }
   }
 
+  function closeBoardModal() {
+    setIsOpen(false);
+    setModalType(undefined);
+    setBoardPermanentlyOpened(false);
+  }
+
   function openWaitingAfterFinishModal() {
     setIsOpen(true);
     setModalType("waiting-after-finish");
+  }
+
+  function closeWaitingBeforeFinishModal() {
+    setIsOpen(false);
+    setModalType(undefined);
+    setWaitingToFinishModalPermanentlyOpened(false);
+  }
+
+  function openWaitingBeforeFinishModal() {
+    setIsOpen(true);
+    setModalType("waiting-before-finish");
   }
 
   function openRaceModal() {
@@ -273,9 +290,15 @@ function QuestionsGame() {
     });
   }
 
+
   function onFinish() {
-    console.log("FINISH, open loading modal...")
-    openLoadingModal();
+    console.log("FINISH, waiting for players...");
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: user?.wallet?.address,
+      property: "game1-wait-to-finish",
+    });
+    openWaitingBeforeFinishModal();
   }
   
   // handle socket events
@@ -341,9 +364,20 @@ function QuestionsGame() {
           console.log("GAME1 BOARD++", amountOfPlayersRaceboardNextClicked + 1);
           if ((raceData.numberOfPlayersRequired == amountOfPlayersRaceboardNextClicked + 1) && finished) {
             console.log("MOVING TO NEXT GAME...");
-            setIsOpen(false);
-            setModalType(undefined);
+            closeBoardModal();
             nextClicked();
+          }
+        }
+
+        if (progress.property === "game1-wait-to-finish") {
+          setAmountOfPlayersWaitingToFinish(amountOfPlayersWaitingToFinish + 1);
+          console.log("WAITING TO FINISH++", amountOfPlayersWaitingToFinish + 1);
+          if (raceData.numberOfPlayersRequired <= amountOfPlayersWaitingToFinish + 1) {
+            console.log("DISTRIBUTING REWARD...");
+            // track users answers (to reduce amount of txs in loadingModal on distribute reward step)
+            setUserAnswers([...usersAnswers, progress.rProgress.game1.answers]);
+            closeWaitingBeforeFinishModal();
+            openLoadingModal();
           }
         }
       });
@@ -352,6 +386,8 @@ function QuestionsGame() {
         console.log("RACE PROGRESS QUESTIONS:", progress);
         let isDistributedAmount = 0;
         let boardNextClickedAmount = 0;
+        let waitingToFinishAmount = 0;
+        let answers: any[] = [];
         progress.forEach((i: any) => {
           if (i.progress.game1.isDistributed) {
             isDistributedAmount++;
@@ -360,11 +396,18 @@ function QuestionsGame() {
           if (i.progress.board1) {
             boardNextClickedAmount++;
           }
+
+          if (i.progress.game1.waitingToFinish) {
+            waitingToFinishAmount++;
+            answers.push(i.progress.game1.answers);
+          }
         });
 
-        console.log({isDistributedAmount, boardNextClickedAmount});
+        console.log({isDistributedAmount, boardNextClickedAmount, waitingToFinishAmount});
         setAmountOfPlayersCompleted(isDistributedAmount);
         setAmountOfPlayersRaceboardNextClicked(boardNextClickedAmount);
+        setAmountOfPlayersWaitingToFinish(waitingToFinishAmount);
+        setUserAnswers(answers);
       });
   
       return () => {
@@ -376,9 +419,9 @@ function QuestionsGame() {
         socket.off('race-progress-questions');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData]);
+  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, amountOfPlayersWaitingToFinish]);
 
-  // fetch required amount of users to wait
+  // fetch server-side data
   useEffect(() => {
     if (user?.wallet?.address) {
       socket.emit("get-connected", { raceId });
@@ -392,7 +435,7 @@ function QuestionsGame() {
     navigate(`/race/${raceId}/tunnel`);
   }
 
-  // set maximum game index
+  // INITIAL USE EFFECT
   useEffect(() => {
     if (user?.wallet?.address) {
       // user finished the game
@@ -409,24 +452,31 @@ function QuestionsGame() {
         setBoardPermanentlyOpened(true);
         return;
       }
-  
+      
       // continue answering questions
       if (completed != of && completed < of && step == "questions") {
         console.log("CONTINUE FROM", completed);
         setCurrentQuestionIndex(completed);
         return;
       }
-  
+
+      // start waiting other players to finish answering
+      if (waitingToFinish) {
+        pause();
+        setWaitingToFinishModalPermanentlyOpened(true);
+        return;
+      }
+      
       // user answered all questions but score was not calculated
-      if (completed >= of && completed > 0 && of > 0 && !isDistributed && step == "questions") {
+      if (!waitingToFinish && completed >= of && completed > 0 && of > 0 && !isDistributed && step == "questions") {
         pause();
         setDistributePermanentlyOpened(true);
         return;
       }
     }
-  }, [step, completed, of, isDistributed, questionsByGames, user?.wallet?.address]);
+  }, [step, completed, of, isDistributed, questionsByGames, user?.wallet?.address, waitingToFinish]);
 
-  console.log("CURRENT Q INDEX:", currentQuestionIndex);
+  //console.log("CURRENT Q INDEX:", currentQuestionIndex);
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
@@ -466,7 +516,7 @@ function QuestionsGame() {
         <>
           {
             modalType === "loading" && 
-            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} />
+            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={usersAnswers}/>
           }
           {
             modalType === "win" && 
@@ -481,7 +531,7 @@ function QuestionsGame() {
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
           }
           {
-            modalType === "waiting-after-finish" && 
+            modalType && ["waiting-after-finish", "waiting-before-finish"].includes(modalType) && 
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
           }
         </>
@@ -493,7 +543,11 @@ function QuestionsGame() {
       }
       {
         distributePermanentlyOpened && 
-        <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} />
+        <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={usersAnswers}/>
+      }
+      {
+        waitingToFinishModalPermanentlyOpened &&
+        <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
       }
     </div>
   );

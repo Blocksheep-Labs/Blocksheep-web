@@ -1,20 +1,4 @@
-// import {
-//   Web3Button,
-//   useAddress,
-//   useContract,
-//   useContractRead,
-//   useContractWrite,
-// } from "@thirdweb-dev/react";
-// import { formatUnits, parseUnits } from "ethers/lib/utils";
-// import { BLOCK_SHEEP_CONTRACT, USDC_ADDR } from "../constants";
-// import ApproveERC20 from "../components/ApproveERC20";
-// import BlockSheepABI from "../contracts/BlockSheep";
-
-const btnStyle = "!rounded-xl !p-1 !min-w-8 flex-1";
-import { useAppSelector } from "../app/hooks";
 import { USDC_MULTIPLIER } from "../config/constants";
-// import { selectCount, selectStatus } from "../features/counter/counterSlice";
-import { selectWallet, selectWalletStatus } from "../features/auth/walletSlice";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 import { useUserBalance } from "../hooks/useUserBalance";
 import shortenAddress from "../utils/shortenAddress";

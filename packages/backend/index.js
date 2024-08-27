@@ -80,9 +80,11 @@ io.on("connection", socket => {
                 progress: {
                     countdown: false,
                     game1: {
+                        waitingToFinish: false,
                         isDistributed: false,
                         completed: 0,
                         of: 0,
+                        answers: [],
                     },
                     board1: false,
                     game2: {
@@ -104,7 +106,7 @@ io.on("connection", socket => {
 
         console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
 
-        io.to(roomName).emit('progress-updated', {raceId, property, value});
+        io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
     });
 
     // get amount completed by raceId game gameId

@@ -11,8 +11,12 @@ module.exports = (property, value, rProgress) => {
                 ...rProgress.progress.game1,
                 completed: rProgress.progress.game1.completed + 1,
                 of: value.of,
+                answers: [...rProgress.progress.game1.answers, value.answer]
             }
             break;
+        case "game1-wait-to-finish": {
+            rProgress.progress.game1.waitingToFinish = true;
+        }
         case "game1-distribute":
             rProgress.progress.game1 = {
                 ...rProgress.progress.game1,

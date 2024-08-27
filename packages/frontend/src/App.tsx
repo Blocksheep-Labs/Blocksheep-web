@@ -10,6 +10,7 @@ import TunnelGame from "./screens/TunnelGame";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
 import HomeScreen from "./screens/HomeScreen";
+import AdminScreen from "./screens/AdminScreen";
 
 
 function App() {
@@ -64,6 +65,14 @@ function App() {
             <ProtectedRoute>
               <AccountScreen />
             </ProtectedRoute>
+          }
+        />
+
+        {/* admin panel */}
+        <Route 
+          path="admin"
+          element={
+            <AdminScreen/>
           }
         />
       </Route>

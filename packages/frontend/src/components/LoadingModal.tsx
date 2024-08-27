@@ -6,17 +6,24 @@ import { waitForTransactionReceipt  } from '@wagmi/core';
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 function LoadingModal({
-  raceId, gameIndex, questionIndexes, closeHandler
+  raceId, gameIndex, questionIndexes, closeHandler, answers
 }: {
   raceId: number,
   gameIndex: number,
   questionIndexes: number[],
   closeHandler: () => void;
+  answers: any[];
 }) {
   const { smartAccountClient } = useSmartAccount();
 
   useEffect(() => {
-    if (raceId.toString() && gameIndex.toString() && questionIndexes) {
+    if (raceId.toString() && gameIndex.toString() && questionIndexes && answers.length) {
+      // ALL ANSWERS ARE SIMILAR, do not add any points
+      if (new Set(answers.map(i => String(i))).size === 1) {
+        
+        return;
+      }
+
       distributeRewardOfTheGame(raceId, gameIndex, questionIndexes, smartAccountClient)
         .then(data => {
           console.log("Distribute reward:", data);

@@ -4,6 +4,7 @@ import MockUsdcAbi from "../contracts/MockUSDC.json";
 import { readContract, readContracts } from '@wagmi/core';
 import { config } from "../config/wagmi";
 import { encodeFunctionData } from "viem";
+import { title } from "process";
 
 const SELECTED_CHAIN = SELECTED_NETWORK;
 
@@ -471,3 +472,24 @@ export const withdrawTokens = async(amount: number, smartAccountClient: any) => 
     console.log("WITHDRAW:", withdrawHash);
     return withdrawHash;
 } 
+
+export const adminCreateRace = async(
+    title: string,
+    hoursBeforeFinish: number,
+    playersRequired: number,
+    smartAccountClient: any
+) => {
+    const withdrawHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "addRace",
+            args: [title, hoursBeforeFinish, playersRequired, [{gameId: 0, questionIds: [0, 1, 2]}]]
+        }),
+    });
+
+    console.log("WITHDRAW:", withdrawHash);
+    return withdrawHash;
+}

@@ -59,7 +59,8 @@ function SelectRaceScreen() {
             completed: progress.game1.completed,
             of: progress.game1.of,
             isDistributed: progress.game1.isDistributed,
-            step: "questions"
+            step: "questions",
+            waitingToFinish: progress.game1.waitingToFinish,
           }
         });
       });
@@ -217,7 +218,7 @@ function SelectRaceScreen() {
     setRaceId(null);
   }
 
-  console.log(races, races.find((r: any) => r.id === raceId))
+  //console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">

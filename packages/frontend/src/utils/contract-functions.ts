@@ -426,7 +426,7 @@ export const getScoreAtRaceOfUser = async(
 
 export const buyTokens = async(amount: number, smartAccountClient: any) => {
     const decimals = await getTokenDecimals();
-    const needToDeposit = amount * 10**Number(decimals);
+    const needToDeposit = amount * 10 * 10**Number(decimals);
 
     console.log({decimals, needToDeposit, account: smartAccountClient.account})
 
@@ -479,7 +479,7 @@ export const adminCreateRace = async(
     playersRequired: number,
     smartAccountClient: any
 ) => {
-    const withdrawHash = await smartAccountClient.sendTransaction({
+    const creationHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
         chain: SELECTED_CHAIN,
         to: BLOCK_SHEEP_CONTRACT,
@@ -490,6 +490,16 @@ export const adminCreateRace = async(
         }),
     });
 
-    console.log("WITHDRAW:", withdrawHash);
-    return withdrawHash;
+    console.log("CREATED:", creationHash);
+    return creationHash;
+}
+
+export const userHasAdminAccess = async(smartAccountClient: any) => {
+    const userIsAdmin = await readContract(config, {
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: "userHasAdminAccess",
+        args: [smartAccountClient.account.address]
+    });
+
+    return userIsAdmin;
 }

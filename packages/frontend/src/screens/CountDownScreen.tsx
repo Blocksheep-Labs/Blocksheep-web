@@ -97,7 +97,9 @@ function CountDownScreen() {
   // handle socket events
   useEffect(() => {
     if (user?.wallet?.address && data) {
+      console.log("AAAAAAAAAAAAAAAAAAAAAAA")
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
+        console.log({amount})
         if (raceId === raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
@@ -112,6 +114,7 @@ function CountDownScreen() {
         console.log("JOINED", raceIdSocket, raceId);
 
         if (raceId == raceIdSocket) {
+          console.log("JOINED++")
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
             setModalIsOpen(false);
@@ -121,6 +124,7 @@ function CountDownScreen() {
       });
 
       socket.on('leaved', () => {
+        console.log("LEAVED")
         setAmountOfConnected(amountOfConnected - 1);
         if (!modalIsOpen) {
           setModalIsOpen(true);
@@ -145,11 +149,11 @@ function CountDownScreen() {
   useEffect(() => {
     setModalIsOpen(true);
     setModalType("waiting");
-    if (user?.wallet?.address) {
+    if (user?.wallet?.address && data) {
       socket.emit("get-connected", { raceId });
       socket.emit("get-progress", { raceId, userAddress: user?.wallet?.address });
     }
-  }, [socket, raceId, user?.wallet?.address]);
+  }, [socket, raceId, user?.wallet?.address, data]);
 
 
   return (

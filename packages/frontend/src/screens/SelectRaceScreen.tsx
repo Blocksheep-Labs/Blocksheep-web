@@ -140,10 +140,10 @@ function SelectRaceScreen() {
           setAmountOfConnected(data.amount);
           console.log("CONNECTED:", data)
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (data.amount === race.numberOfPlayersRequired) {
+          if (data.amount === race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
-            // console.log("PPPPPPPPPPPPPPPPP-1", progress)
+            //console.log("PPPPPPPPPPPPPPPPP-1", progress)
             handleNavigate(progress);
           }
         }
@@ -152,13 +152,14 @@ function SelectRaceScreen() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
         console.log(raceIdSocket, raceId)
         const race = races.find((r: any) => r.id === raceId);
+        console.log(race);
         if (raceIdSocket == raceId) {
           console.log("JOINED", raceIdSocket, userAddress);
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= race.numberOfPlayersRequired) {
+          if (amountOfConnected + 1 >= race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
-            // console.log("PPPPPPPPPPPPPPPPP-2", progress)
+            //console.log("PPPPPPPPPPPPPPPPP-2", progress)
             handleNavigate(progress);
           }
         }

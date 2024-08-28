@@ -75,6 +75,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
     }
   }, []);
 
+
   return (
     <div className="relative rounded-xl bg-race_pattern bg-cover bg-center">
       <div className="flex flex-col gap-4">
@@ -114,7 +115,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
           <RaceStatusItem icon={ConsoleIcon} label={`${race?.gamesCompletedPerUser?.length}/${race.numOfGames.toString()}`} />
           {
             (() => {
-              if (race.registered && race.status == 1 && race.registeredUsers.length < race.numOfPlayersRequired && !race.refunded) {
+              if (race.registered && race.status == 1 && race.registeredUsers.length <= race.numOfPlayersRequired && !race.refunded) {
                 return (
                   <>
                     <button 

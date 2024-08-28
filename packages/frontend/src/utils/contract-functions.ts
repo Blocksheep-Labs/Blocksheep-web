@@ -312,6 +312,7 @@ export const distributeRewardOfTheGame = async(
     gameIndex: number,
     questionIndexes: number[],
     smartAccountClient: any,
+    isDraw: boolean
 ) => {
     const distributeRewardHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
@@ -324,6 +325,7 @@ export const distributeRewardOfTheGame = async(
                 BigInt(raceId),
                 BigInt(gameIndex),
                 questionIndexes.map(i => BigInt(i)),
+                isDraw
             ]
         }),
     });

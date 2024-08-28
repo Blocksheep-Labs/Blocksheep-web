@@ -105,7 +105,7 @@ io.on("connection", socket => {
         }
 
         console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
-
+        console.log("EMIT:", {raceId, property, value, userAddress})
         io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
     });
 

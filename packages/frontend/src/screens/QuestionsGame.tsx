@@ -205,11 +205,13 @@ function QuestionsGame() {
   };
 
   function openLoadingModal() {
+    console.log("loading modal opened")
     setIsOpen(true);
     setModalType("loading");
   }
 
   function closeLoadingModal() {
+    console.log("loading modal closed")
     setDistributePermanentlyOpened(false);
     setIsOpen(false);
     setModalType(undefined);
@@ -223,27 +225,25 @@ function QuestionsGame() {
         isDistributed: true,
       }
     });
-    openWinModal();
   }
 
   function openWinModal() {
+    console.log("win modal opened")
     setFinished(true);
     setIsOpen(true);
     setModalType("win");
   }
 
   function closeWinModal() {
-    if (amountOfPlayersCompleted >= raceData?.numberOfPlayersRequired) {
-      setIsOpen(false);
-      setModalType(undefined);
-      updateProgress();
-      openRaceModal();
-    } else {
-      openWaitingAfterFinishModal();
-    }
+    console.log("win modal closed")
+    setIsOpen(false);
+    setModalType(undefined);
+    updateProgress();
+    openRaceModal();
   }
 
   function closeBoardModal() {
+    console.log("close board modal")
     setIsOpen(false);
     setModalType(undefined);
     setBoardPermanentlyOpened(false);
@@ -266,6 +266,7 @@ function QuestionsGame() {
   }
 
   function openRaceModal() {
+    console.log("open board modal")
     setIsOpen(true);
     setModalType("race");
   }
@@ -308,8 +309,8 @@ function QuestionsGame() {
         console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
-          // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === raceData.numberOfPlayersRequired) {
+          // handle amount of connected
+          if (amount === raceData.numberOfPlayersRequired && modalType !== "race") {
             setIsOpen(false);
             setModalType(undefined);
           }
@@ -346,16 +347,14 @@ function QuestionsGame() {
       });
 
       socket.on("progress-updated", async(progress) => {
+        console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
         if (progress.property === "game1-distribute") {
           // if the user is sending the TX or finished sending TX
           setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
-          if ((raceData.numberOfPlayersRequired == amountOfPlayersCompleted + 1) && finished) {
-            console.log("CLOSING MODAL...")
-            setIsOpen(false);
-            setModalType(undefined);
-            updateProgress();
-            openRaceModal();
+          if ((raceData.numberOfPlayersRequired == amountOfPlayersCompleted + 1)) {
+            console.log("CLOSING MODAL..., openning win modal")
+            openWinModal();
           }
         }
 
@@ -375,7 +374,7 @@ function QuestionsGame() {
           if (raceData.numberOfPlayersRequired <= amountOfPlayersWaitingToFinish + 1) {
             console.log("DISTRIBUTING REWARD...");
             // track users answers (to reduce amount of txs in loadingModal on distribute reward step)
-            setUserAnswers([...usersAnswers, progress.rProgress.game1.answers]);
+            setUserAnswers([...usersAnswers, progress.rProgress.progress.game1.answers]);
             closeWaitingBeforeFinishModal();
             openLoadingModal();
           }
@@ -423,12 +422,13 @@ function QuestionsGame() {
 
   // fetch server-side data
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (user?.wallet?.address && raceData) {
+      console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<")
       socket.emit("get-connected", { raceId });
       socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
       socket.emit("get-progress-questions", { raceId });
     }
-  }, [socket, user?.wallet?.address]); 
+  }, [socket, user?.wallet?.address, raceData]); 
 
 
   function nextClicked() {
@@ -438,11 +438,12 @@ function QuestionsGame() {
   // INITIAL USE EFFECT
   useEffect(() => {
     if (user?.wallet?.address) {
+      updateProgress();
+
       // user finished the game
       if (step === "board") {
         console.log("BOARD");
         pause();
-        updateProgress();
         setBoardPermanentlyOpened(true);
         return;
       }
@@ -477,7 +478,7 @@ function QuestionsGame() {
   }, [step, completed, of, isDistributed, questionsByGames, user?.wallet?.address, waitingToFinish]);
 
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
-
+  console.log(amountOfConnected, raceData?.numberOfPlayersRequired);
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
       <div className="relative my-4">

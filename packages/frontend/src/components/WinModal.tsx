@@ -25,7 +25,7 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalPr
           setScore(Number(data));
         });
     }
-  }, [raceId, gameIndex, user?.wallet?.address])
+  }, [raceId, gameIndex, user?.wallet?.address, preloadedScore])
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
@@ -36,7 +36,7 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalPr
           ?
           <p className="text-6xl font-bold text-white text-center mt-10">{score?.toString().length ? score : "Pls wait..."}</p>
           :
-          <p className="text-6xl font-bold text-white text-center mt-10">{preloadedScore}</p>
+          <p className="text-6xl font-bold text-white text-center mt-10">+{preloadedScore}</p>
         }
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">

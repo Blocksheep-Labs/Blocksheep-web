@@ -52,6 +52,7 @@ function TunnelGame() {
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
   const {smartAccountClient} = useSmartAccount();
   const [raceData, setRaceData] = useState<any>(undefined);
+  const [gameStarted, setGameStarted] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -66,14 +67,18 @@ function TunnelGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if (raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted) && start) {
-      socket.emit("get-all-fuel-tunnel", { raceId });
-      console.log("starting the game...");
-      closeWaitingModal();
-      !isRolling && start();
-    } else {
-      pause();
-      !modalIsOpen && openWaitingModal();
+    //console.log({amountOfConnected, start, modalIsOpen, isRolling, raceId, raceData})
+    if (!gameStarted && raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted)) {
+      setGameStarted(true);
+      console.log("STARTING THE GAME...")
+      if (raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted) && start) {
+        socket.emit("get-all-fuel-tunnel", { raceId });
+        //closeWaitingModal();
+        !isRolling && start();
+      } else {
+        pause();
+        !modalIsOpen && openWaitingModal();
+      }
     }
   }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, raceData]);
 
@@ -122,7 +127,7 @@ function TunnelGame() {
 
       socket.on("race-fuel-all-tunnel", (progress) => {
         const usersData = progress.progresses;
-        console.log("FUEL TUNNEL DATA", usersData);
+        //console.log("FUEL TUNNEL DATA", usersData);
 
         let amountOfReachedPerGame2 = 0;
         let amountPendingPerGame2 = 0;
@@ -197,23 +202,26 @@ function TunnelGame() {
 
   // fetch required amount of users to wait
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (user?.wallet?.address && raceData) {
       socket.emit("get-connected", { raceId });
       socket.emit("game2-reach", { raceId, userAddress: user.wallet.address })
       socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
       socket.emit("get-all-fuel-tunnel", { raceId });
     }
-  }, [socket, user?.wallet?.address]); 
+  }, [socket, user?.wallet?.address, raceData]); 
   
 
   useEffect(() => {
-    if (amountOfReached !== raceData.numberOfPlayersRequired) {
-      closeWaitingModal();
-    } else {
-      openWaitingModal();
+    if (raceData && !isRolling) {
+      console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<<")
+      if (amountOfReached !== raceData.numberOfPlayersRequired) {
+        console.log("Amount of players is enough, closing waiting modal...");
+        closeWaitingModal();
+      }
     }
-  }, [amountOfReached, amountOfPending]);
+  }, [amountOfReached, amountOfPending, raceData, isRolling]);
 
+  /*
   useEffect(() => {
     if (amountOfPending !== 0 && isRolling) {
       openLoadingModal();
@@ -221,6 +229,7 @@ function TunnelGame() {
       closeLoadingModal();
     }
   }, [amountOfPending, isRolling]);
+  */
 
   // kick player if page chnages (closes)
   useEffect(() => {
@@ -243,6 +252,7 @@ function TunnelGame() {
           if (!data.registeredUsers.includes(user.wallet?.address)) {
             navigate('/');
           } 
+          setRaceData(data);
         }
       });
     }
@@ -356,9 +366,16 @@ function TunnelGame() {
         isPending: true,
       }
     });
+
+    // if user was playing with him itself
+    if (newListOfPlayers.length === 0) {
+      console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
+      handleFinishTunnelGame(raceId as string, true);
+      return;
+    }
     
     // if user lost the game
-    if (!newListOfPlayers.find(i => i.address === user?.wallet?.address)) {
+    if (!newListOfPlayers.find(i => i.address === user?.wallet?.address) && newListOfPlayers.length > 0) {
       console.log("YOU LOSE :(")
       handleFinishTunnelGame(raceId as string, false);
       return;
@@ -431,6 +448,8 @@ function TunnelGame() {
   function closeWinLoseModal() {
     setIsOpen(false);
     setModalType(undefined);
+    setLoseModalPermanentlyOpened(false);
+    setWinModalPermanentlyOpened(false);
     openRaceModal();
   }
 
@@ -440,6 +459,7 @@ function TunnelGame() {
   }
 
   function openRaceModal() {
+    console.log("open race modal");
     fetchRaceData();
     setIsOpen(true);
     setModalType("race");
@@ -488,13 +508,13 @@ function TunnelGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
-            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} />}
-            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} />}
+            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
+            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1}/>}
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/>}
           </>
         )}
-        { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} /> }
-        { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} /> }
+        { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1} /> }
+        { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0} /> }
     </div>
   );
 }

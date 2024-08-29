@@ -11,6 +11,10 @@ import { useEffect } from "react";
 import { socket } from "./utils/socketio";
 import HomeScreen from "./screens/HomeScreen";
 import AdminScreen from "./screens/AdminScreen";
+import UnderdogCover from "./screens/UnderdogCover";
+import UnderdogRules from "./screens/UnderdogRules";
+import RabbitHoleRules from "./screens/RabbitHoleRules";
+import RabbitHoleCover from "./screens/RabbitHoleCover";
 
 
 function App() {
@@ -32,16 +36,6 @@ function App() {
         />
 
         <Route
-          path="race/:raceId/tunnel"
-          element={
-            <ProtectedRoute>
-              <TunnelGame />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* not implemented  */}
-        <Route
           path="countdown/:raceId"
           element={
             <ProtectedRoute>
@@ -50,15 +44,66 @@ function App() {
           }
         />
 
-        {/* race id  */}
+        {/* UNDERDOG COVER */}
         <Route
-          path="race/:raceId/:gamesCount/:gameId/questions"
+          path="race/:raceId/underdog/cover"
+          element={
+            <ProtectedRoute>
+              <UnderdogCover />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* UNDERDOG RULES */}
+        <Route
+          path="race/:raceId/underdog/rules"
+          element={
+            <ProtectedRoute>
+              <UnderdogRules />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* UNDERDOG GAME */}
+        <Route
+          path="race/:raceId/underdog"
           element={
             <ProtectedRoute>
               <QuestionsGame />
             </ProtectedRoute>
           }
         />
+
+        {/* RABBIT HOLE COVER */}
+        <Route
+          path="race/:raceId/tunnel/cover"
+          element={
+            <ProtectedRoute>
+              <RabbitHoleCover />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RABBIT HOLE RULES */}
+        <Route
+          path="race/:raceId/tunnel/rules"
+          element={
+            <ProtectedRoute>
+              <RabbitHoleRules />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* RABBIT HOLE GAME */}
+        <Route
+          path="race/:raceId/tunnel"
+          element={
+            <ProtectedRoute>
+              <TunnelGame />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="account"
           element={

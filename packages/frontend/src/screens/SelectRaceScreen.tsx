@@ -51,7 +51,7 @@ function SelectRaceScreen() {
     if (!progress?.game1?.isDistributed) {
       console.log("GAME-1")
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-        navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+        navigate(`/race/${raceId}/underdog`, {
           state: {
             questionsByGames: data.questionsByGames, 
             amountOfRegisteredUsers: data.registeredUsers.length, 
@@ -71,7 +71,7 @@ function SelectRaceScreen() {
     if (!progress?.board1) {
       console.log("BOARD-1")
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-        navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+        navigate(`/race/${raceId}/underdog`, {
           state: {
             questionsByGames: data.questionsByGames, 
             amountOfRegisteredUsers: data.registeredUsers.length, 
@@ -224,7 +224,7 @@ function SelectRaceScreen() {
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
       <div className="mt-16 flex w-full justify-center">
-        <RibbonLabel />
+        <RibbonLabel text="Races"/>
       </div>
       <div className="mx-8 my-4 flex h-3/5 flex-col gap-20 overflow-y-auto pt-4">
         {races &&

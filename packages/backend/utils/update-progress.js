@@ -6,12 +6,27 @@ module.exports = (property, value, rProgress) => {
         case "board1":
             rProgress.progress.board1 = true;
             break;
+        case "game1-preview-complete":
+            rProgress.progress.game1_preview = true;
+            break;
+        case "game1-rules-complete":
+            rProgress.progress.game1_rules = true;
+            break;
         case "game1++":
-            rProgress.progress.game1 = {
-                ...rProgress.progress.game1,
-                completed: rProgress.progress.game1.completed + 1,
-                of: value.of,
-                answers: [...rProgress.progress.game1.answers, value.answer]
+            if (value.answer) {
+                console.log("+ANSW", value.answer, rProgress.progress.game1.answers + value.answer)
+                rProgress.progress.game1 = {
+                    ...rProgress.progress.game1,
+                    completed: rProgress.progress.game1.completed + 1,
+                    of: value.of,
+                    answers: rProgress.progress.game1.answers + value.answer
+                }
+            } else {
+                rProgress.progress.game1 = {
+                    ...rProgress.progress.game1,
+                    completed: rProgress.progress.game1.completed + 1,
+                    of: value.of
+                }
             }
             break;
         case "game1-wait-to-finish": {
@@ -22,6 +37,12 @@ module.exports = (property, value, rProgress) => {
                 ...rProgress.progress.game1,
                 isDistributed: true,
             }
+            break;
+        case "game2-preview-complete":
+            rProgress.progress.game2_preview = true;
+            break;
+        case "game2-rules-complete":
+            rProgress.progress.game2_rules = true;
             break;
         case "game2-reach": {
             rProgress.progress.game2 = {

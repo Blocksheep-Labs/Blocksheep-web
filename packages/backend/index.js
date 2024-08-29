@@ -69,24 +69,28 @@ io.on("connection", socket => {
     socket.on('update-progress', ({ raceId, userAddress, property, value }) => {
         const roomName = `race-${raceId}`;
         let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
-        console.log("UPDATE:", roomName, userAddress, property, value)
+        //console.log("UPDATE:", roomName, userAddress, property, value)
 
-        console.log(roomName, userAddress, rProgress);
+        //console.log(roomName, userAddress, rProgress);
         if (!rProgress) {
-            console.log("No progress was found, setting new")
+            //console.log("No progress was found, setting new")
             rProgress = {
                 room: roomName, 
                 userAddress,
                 progress: {
                     countdown: false,
+                    game1_preview: false,
+                    game1_rules: false,
                     game1: {
                         waitingToFinish: false,
                         isDistributed: false,
                         completed: 0,
                         of: 0,
-                        answers: [],
+                        answers: "",
                     },
                     board1: false,
+                    game2_preview: false,
+                    game2_rules: false,
                     game2: {
                         isCompleted: false,
                         fuel: 0,

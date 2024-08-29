@@ -32,7 +32,7 @@ function QuestionsGame() {
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [flipState, setFlipState] = useState(true);
-  const {raceId, gameId} = useParams();
+  const {raceId} = useParams();
   const location = useLocation();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

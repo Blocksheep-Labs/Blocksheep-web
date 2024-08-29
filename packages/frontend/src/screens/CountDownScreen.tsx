@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import RaceBoard from "../components/RaceBoard";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../utils/contract-functions";
 import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
@@ -8,6 +8,7 @@ import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
 
 function CountDownScreen() {
+  const location = useLocation();
   const { user } = usePrivy();
   const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
@@ -38,12 +39,7 @@ function CountDownScreen() {
     //return;
     
     navigate(`/race/${raceId}/underdog`, {
-      state: {
-        questionsByGames: data.questionsByGames, 
-        amountOfRegisteredUsers: data.registeredUsers.length, 
-        progress,
-        step: "start"
-      }
+      state: location.state
     });
   };
 

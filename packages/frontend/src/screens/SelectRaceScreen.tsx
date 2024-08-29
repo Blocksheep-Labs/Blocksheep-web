@@ -53,7 +53,11 @@ function SelectRaceScreen() {
     
     if (!progress?.countdown) {
       console.log("COUNTDOWN")
-      navigate(`/countdown/${raceId}`);
+      getRaceById(Number(raceId),  smartAccountAddress as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/countdown`, {
+          state: generateStateObjectForGame1(data, progress, "start")
+        });
+      });
       return;
     }
 

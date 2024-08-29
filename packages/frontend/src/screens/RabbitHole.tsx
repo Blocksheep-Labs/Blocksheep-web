@@ -31,7 +31,7 @@ export type ConnectedUser = {
 }
 
 
-function TunnelGame() {
+function RabbitHoleGame() {
   const { user } = usePrivy();
   const [phase, setPhase] = useState<"Default" | "CloseTunnel" | "OpenTunnel" | "Reset">("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
@@ -519,4 +519,4 @@ function TunnelGame() {
   );
 }
 
-export default TunnelGame;
+export default RabbitHoleGame;

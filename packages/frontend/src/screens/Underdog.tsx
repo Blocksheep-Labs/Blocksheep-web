@@ -24,7 +24,7 @@ export interface SwipeSelectionAPI {
 
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish" | "waiting-before-finish";
 
-function QuestionsGame() {
+function UnderdogGame() {
   const { user } = usePrivy();
   const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
@@ -554,4 +554,4 @@ function QuestionsGame() {
   );
 }
 
-export default QuestionsGame;
+export default UnderdogGame;

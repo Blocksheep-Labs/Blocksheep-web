@@ -28,22 +28,54 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
+  const generateStateObjectForGame1 = (data: any, progress: any, step: "questions" | "board" | "start") => {
+    return {
+      questionsByGames: data.questionsByGames, 
+      amountOfRegisteredUsers: data.registeredUsers.length, 
+      progress,
+      completed: progress.game1.completed,
+      of: progress.game1.of,
+      isDistributed: progress.game1.isDistributed,
+      step,
+      waitingToFinish: progress.game1.waitingToFinish,
+    }
+  }
+
+  const generatStateObjectForGame2 = (progress: any) => {
+    return {
+      stage: progress.game2.stage,
+      fuel: progress.game2.fuel
+    }
+  }
+
   const handleNavigate = useCallback((progress: any) => {
     console.log("PROGRESS-----------", progress);
-
-    /*
-    navigate(`/race/${raceId}/tunnel`, {
-      state: {
-        stage: progress?.game2?.stage || 0,
-        fuel: progress?.game2?.fuel || 0
-      }
-    });
-    return;
-    */
     
     if (!progress?.countdown) {
       console.log("COUNTDOWN")
       navigate(`/countdown/${raceId}`);
+      return;
+    }
+
+    // preview underdog game, passing the game state
+    if (!progress?.game1_preview) {
+      console.log("GAME-1 PREVIEW");
+      getRaceById(Number(raceId),  smartAccountAddress as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/underdog/preview`, {
+          state: generateStateObjectForGame1(data, progress, "questions")
+        });
+      });
+      return;
+    }
+
+    // rules underdog game, passing the game state
+    if (!progress?.game1_rules) {
+      console.log("GAME-1 RULES");
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/underdog/rules`, {
+          state: generateStateObjectForGame1(data, progress, "questions")
+        });
+      });
       return;
     }
 
@@ -52,16 +84,7 @@ function SelectRaceScreen() {
       console.log("GAME-1")
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/underdog`, {
-          state: {
-            questionsByGames: data.questionsByGames, 
-            amountOfRegisteredUsers: data.registeredUsers.length, 
-            progress,
-            completed: progress.game1.completed,
-            of: progress.game1.of,
-            isDistributed: progress.game1.isDistributed,
-            step: "questions",
-            waitingToFinish: progress.game1.waitingToFinish,
-          }
+          state: generateStateObjectForGame1(data, progress, "questions")
         });
       });
       return;
@@ -72,24 +95,34 @@ function SelectRaceScreen() {
       console.log("BOARD-1")
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/underdog`, {
-          state: {
-            questionsByGames: data.questionsByGames, 
-            amountOfRegisteredUsers: data.registeredUsers.length, 
-            progress,
-            step: "board",
-          }
+          state: generateStateObjectForGame1(data, progress, "board")
         });
       });
+      return;
+    }
+    
+    // preview rabbit hole game, passing the game state
+    if (!progress?.game2_preview) {
+      console.log("GAME-2 PREVIEW");
+      navigate(`/race/${raceId}/rabbit-hole/preview`, {
+        state: generatStateObjectForGame2(progress)
+      })
+      return;
+    }
+
+    // rules rabbit hole game, passing the game state
+    if (!progress?.game2_rules) {
+      console.log("GAME-2 RULES");
+      navigate(`/race/${raceId}/rabbit-hole/rules`, {
+        state: generatStateObjectForGame2(progress)
+      })
       return;
     }
 
     // game 2 was not passed
     if (!progress?.game2?.isCompleted) {
-      navigate(`/race/${raceId}/tunnel`, {
-        state: {
-          stage: progress.game2.stage,
-          fuel: progress.game2.fuel
-        }
+      navigate(`/race/${raceId}/rabbit-hole`, {
+        state: generatStateObjectForGame2(progress)
       });
       return;
     }
@@ -143,7 +176,6 @@ function SelectRaceScreen() {
           if (data.amount === race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
-            //console.log("PPPPPPPPPPPPPPPPP-1", progress)
             handleNavigate(progress);
           }
         }
@@ -159,7 +191,6 @@ function SelectRaceScreen() {
           if (amountOfConnected + 1 >= race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
-            //console.log("PPPPPPPPPPPPPPPPP-2", progress)
             handleNavigate(progress);
           }
         }

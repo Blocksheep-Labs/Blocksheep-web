@@ -1,12 +1,12 @@
 import SelectRaceScreen from "./screens/SelectRaceScreen";
 import BottomTab from "./components/BottomTab";
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
-import QuestionsGame from "./screens/QuestionsGame";
+import UnderdogGame from "./screens/Underdog";
 import CountDownScreen from "./screens/CountDownScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
 import AccountScreen from "./screens/AccountScreen";
-import TunnelGame from "./screens/TunnelGame";
+import RabbitHoleGame from "./screens/RabbitHole";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
 import HomeScreen from "./screens/HomeScreen";
@@ -69,14 +69,14 @@ function App() {
           path="race/:raceId/underdog"
           element={
             <ProtectedRoute>
-              <QuestionsGame />
+              <UnderdogGame />
             </ProtectedRoute>
           }
         />
 
         {/* RABBIT HOLE COVER */}
         <Route
-          path="race/:raceId/tunnel/cover"
+          path="race/:raceId/rabbit-hole/cover"
           element={
             <ProtectedRoute>
               <RabbitHoleCover />
@@ -86,7 +86,7 @@ function App() {
 
         {/* RABBIT HOLE RULES */}
         <Route
-          path="race/:raceId/tunnel/rules"
+          path="race/:raceId/rabbit-hole/rules"
           element={
             <ProtectedRoute>
               <RabbitHoleRules />
@@ -96,10 +96,10 @@ function App() {
         
         {/* RABBIT HOLE GAME */}
         <Route
-          path="race/:raceId/tunnel"
+          path="race/:raceId/rabbit-hole"
           element={
             <ProtectedRoute>
-              <TunnelGame />
+              <RabbitHoleGame />
             </ProtectedRoute>
           }
         />

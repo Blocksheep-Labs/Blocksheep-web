@@ -1,5 +1,5 @@
 import { usePrivy } from "@privy-io/react-auth";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 import { socket } from "../utils/socketio";
 
@@ -7,6 +7,7 @@ export default function RabbitHoleCover() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {user} = usePrivy();
+    const location = useLocation();
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -24,6 +25,10 @@ export default function RabbitHoleCover() {
                 raceId,
                 userAddress: user?.wallet?.address,
                 property: "game2-preview-complete",
+            });
+
+            navigate(`/race/${raceId}/rabbit-hole/rules`, {
+                state: location.state
             });
         },
         autoStart: true

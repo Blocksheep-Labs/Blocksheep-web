@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { ConnectedUser } from "../../screens/TunnelGame";
+import { ConnectedUser } from "../../screens/RabbitHole";
 
 
 const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUser[]}) => {

@@ -37,8 +37,7 @@ function CountDownScreen() {
     //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
     //return;
     
-                                 // amount of questions           // game index
-    navigate(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`, {
+    navigate(`/race/${raceId}/underdog`, {
       state: {
         questionsByGames: data.questionsByGames, 
         amountOfRegisteredUsers: data.registeredUsers.length, 

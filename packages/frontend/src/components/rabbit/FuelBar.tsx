@@ -1,7 +1,7 @@
 // @ts-nocheck
 // @ts-ignore
 import React from "react";
-import { ConnectedUser } from "../../screens/TunnelGame";
+import { ConnectedUser } from "../../screens/RabbitHole";
 
 const FuelBar = ({ players }: {players: ConnectedUser[]}) => {
   // Find the maximum and minimum fuel levels for positioning

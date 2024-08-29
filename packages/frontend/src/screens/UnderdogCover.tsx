@@ -1,5 +1,5 @@
 import { usePrivy } from "@privy-io/react-auth";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 import { socket } from "../utils/socketio";
 
@@ -7,6 +7,7 @@ export default function UnderdogCover() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {user} = usePrivy();
+    const location = useLocation();
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -23,6 +24,9 @@ export default function UnderdogCover() {
                 raceId,
                 userAddress: user?.wallet?.address,
                 property: "game1-preview-complete",
+            });
+            navigate(`/race/${raceId}/underdog/rules`, {
+                state: location.state
             });
         },
         autoStart: true

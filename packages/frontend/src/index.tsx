@@ -6,7 +6,6 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import { store } from "./app/store";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { config } from "./config/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,7 +18,7 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 const queryClient = new QueryClient()
 
 root.render(
-    <Provider store={store}>
+    
         <PrivyProvider 
           appId={PRIVY_APP_ID || ""}
           config={{
@@ -45,7 +44,6 @@ root.render(
             </QueryClientProvider>
           </SmartAccountProvider>
         </PrivyProvider>
-    </Provider>
 );
 
 Modal.setAppElement("#root");

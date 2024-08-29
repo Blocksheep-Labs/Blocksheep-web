@@ -15,6 +15,8 @@ import UnderdogCover from "./screens/UnderdogCover";
 import UnderdogRules from "./screens/UnderdogRules";
 import RabbitHoleRules from "./screens/RabbitHoleRules";
 import RabbitHoleCover from "./screens/RabbitHoleCover";
+import StatsScreen from "./screens/StatsScreen";
+import RateScreen from "./screens/RateScreen";
 
 
 function App() {
@@ -100,6 +102,26 @@ function App() {
           element={
             <ProtectedRoute>
               <RabbitHoleGame />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RACE RATE */}
+        <Route
+          path="race/:raceId/rate"
+          element={
+            <ProtectedRoute>
+              <RateScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RACE STATS */}
+        <Route
+          path="race/:raceId/stats"
+          element={
+            <ProtectedRoute>
+              <StatsScreen />
             </ProtectedRoute>
           }
         />

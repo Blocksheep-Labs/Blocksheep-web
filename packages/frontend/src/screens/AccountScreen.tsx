@@ -66,7 +66,7 @@ function AccountScreen() {
       <button onClick={() => handleDeposit(30)}>Test deposit for 1 game</button>
       <div className="mt-10 flex flex-col gap-5 cursor-pointer">
         <ProfileButton 
-          text={`Address: ${shortenAddress(smartAccountAddress || "")}`} 
+          text={`Address: ${smartAccountAddress}`}
           bgColors="bg-gradient-to-r from-[#efb828] to-[#fbe572] text-[#18243F] hover:text-white border-[#793325]" 
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">

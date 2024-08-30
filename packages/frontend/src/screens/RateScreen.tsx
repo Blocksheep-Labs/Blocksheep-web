@@ -1,4 +1,6 @@
+import { useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
+import { useNavigate, useParams } from "react-router-dom";
 
 const Rating = () => {
     return (
@@ -23,12 +25,41 @@ const Rating = () => {
 }
 
 export default function RateScreen() {
+    const [underdogRate, setUnderdogRate] = useState(0);
+    const [rabbitHoleRate, setRabbitHoleRate] = useState(0);
+    const navigate = useNavigate();
+    const {raceId} = useParams();
+
+
+    const handleNavigate = () => {
+        // TODO: probably save rates somewhere...
+        navigate(`/race/${raceId}/stats`);
+    }
+
     return (
-        <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+        <div className="relative mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom items-center">
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="RATE THE FUN" smallerText/>
             </div>
 
+            <div className="flex flex-col gap-3 mt-5">
+                <div className="w-full flex flex-col justify-center items-center">
+                    <p className="text-2xl">UNDERDOG</p>
+                    <Rating/>
+                </div>
+
+                <div className="w-full flex flex-col justify-center items-center">
+                    <p className="text-2xl">RABBIT HOLE</p>
+                    <Rating/>
+                </div>
+            </div>
+
+            <button 
+                onClick={handleNavigate}
+                className="absolute bottom-20 px-7 py-4 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
+            >
+                    NEXT
+            </button>
         </div>
     );
 }

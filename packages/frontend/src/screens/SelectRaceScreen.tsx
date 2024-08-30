@@ -53,7 +53,7 @@ function SelectRaceScreen() {
     
     if (!progress?.countdown) {
       console.log("COUNTDOWN")
-      getRaceById(Number(raceId),  smartAccountAddress as `0x${string}`).then(data => {
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/countdown`, {
           state: generateStateObjectForGame1(data, progress, "start")
         });
@@ -108,17 +108,22 @@ function SelectRaceScreen() {
     // preview rabbit hole game, passing the game state
     if (!progress?.game2_preview) {
       console.log("GAME-2 PREVIEW");
-      navigate(`/race/${raceId}/rabbit-hole/preview`, {
-        state: generatStateObjectForGame2(progress)
-      })
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/rabbit-hole/preview`, {
+          state: generateStateObjectForGame1(data, progress, "board")
+        });
+      });
+      
       return;
     }
 
     // rules rabbit hole game, passing the game state
     if (!progress?.game2_rules) {
       console.log("GAME-2 RULES");
-      navigate(`/race/${raceId}/rabbit-hole/rules`, {
-        state: generatStateObjectForGame2(progress)
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/rabbit-hole/rules`, {
+          state: generateStateObjectForGame1(data, progress, "board")
+        })
       })
       return;
     }

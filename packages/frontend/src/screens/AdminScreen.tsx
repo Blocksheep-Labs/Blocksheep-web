@@ -27,8 +27,6 @@ export default function AdminScreen() {
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-
-        
         // Create a new FormData object from the form element
         const formData = new FormData(e.currentTarget);
         

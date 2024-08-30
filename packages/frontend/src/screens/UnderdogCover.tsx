@@ -4,11 +4,12 @@ import { useTimer } from "react-timer-hook";
 import { socket } from "../utils/socketio";
 import { useEffect, useState } from "react";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 export default function UnderdogCover() {
     const navigate = useNavigate();
     const {raceId} = useParams();
-    const {user} = usePrivy();
+    const {smartAccountAddress} = useSmartAccount();
     const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -22,12 +23,12 @@ export default function UnderdogCover() {
         onExpire: () => {
             console.log("UPDATE PROGRESS", {
                 raceId,
-                userAddress: user?.wallet?.address,
+                userAddress: smartAccountAddress,
                 property: "game1-preview-complete",
             });
             socket.emit('update-progress', {
                 raceId,
-                userAddress: user?.wallet?.address,
+                userAddress: smartAccountAddress,
                 property: "game1-preview-complete",
             });
             navigate(`/race/${raceId}/underdog/rules`, {
@@ -52,7 +53,7 @@ export default function UnderdogCover() {
 
     // handle socket events
     useEffect(() => {
-        if (user?.wallet?.address && location.state) {
+        if (smartAccountAddress && location.state) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
@@ -99,16 +100,16 @@ export default function UnderdogCover() {
                 socket.off('race-progress');
             }
         }
-    }, [socket, raceId, user?.wallet?.address, amountOfConnected, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
 
     useEffect(() => {
         setModalIsOpen(true);
         setModalType("waiting");
-        if (user?.wallet?.address && location.state) {
+        if (smartAccountAddress && location.state) {
         socket.emit("get-connected", { raceId });
-        socket.emit("get-progress", { raceId, userAddress: user?.wallet?.address });
+        socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
-    }, [socket, raceId, user?.wallet?.address, location.state]);
+    }, [socket, raceId, smartAccountAddress, location.state]);
 
 
     return (

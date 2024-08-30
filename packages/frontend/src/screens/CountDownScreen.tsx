@@ -5,11 +5,12 @@ import { getRaceById } from "../utils/contract-functions";
 import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 
 function CountDownScreen() {
   const location = useLocation();
-  const { user } = usePrivy();
+  const { smartAccountAddress } = useSmartAccount();
   const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
   const {raceId} = useParams();
@@ -22,14 +23,14 @@ function CountDownScreen() {
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
       raceId, 
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "countdown",
       value: true,
     })
     // user have seen the raceboard progress, we must update update the state
     socket.emit('update-progress', {
       raceId, 
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "countdown",
       value: true,
     });
@@ -44,12 +45,13 @@ function CountDownScreen() {
   };
 
   useEffect(() => {
-    if (raceId?.length && user?.wallet?.address) {
-      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+    if (raceId?.length && smartAccountAddress) {
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         if (data) {
           console.log(data)
           // VALIDATE USER FOR BEING REGISTERED
-          if (!data.registeredUsers.includes(user.wallet?.address)) {
+          if (!data.registeredUsers.includes(smartAccountAddress)) {
+            //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
             navigate('/');
           } 
 
@@ -62,7 +64,7 @@ function CountDownScreen() {
         }
       });
     }
-  }, [raceId, user?.wallet?.address]);
+  }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
     if (data && amountOfConnected === data.numberOfPlayersRequired) {
@@ -91,7 +93,7 @@ function CountDownScreen() {
 
   // handle socket events
   useEffect(() => {
-    if (user?.wallet?.address && data) {
+    if (smartAccountAddress && data) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {
@@ -138,16 +140,16 @@ function CountDownScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, user?.wallet?.address, amountOfConnected, data]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, data]);
 
   useEffect(() => {
     setModalIsOpen(true);
     setModalType("waiting");
-    if (user?.wallet?.address && data) {
+    if (smartAccountAddress && data) {
       socket.emit("get-connected", { raceId });
-      socket.emit("get-progress", { raceId, userAddress: user?.wallet?.address });
+      socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
     }
-  }, [socket, raceId, user?.wallet?.address, data]);
+  }, [socket, raceId, smartAccountAddress, data]);
 
 
   return (

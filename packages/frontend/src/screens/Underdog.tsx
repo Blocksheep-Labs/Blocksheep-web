@@ -25,7 +25,7 @@ export interface SwipeSelectionAPI {
 type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish" | "waiting-before-finish";
 
 function UnderdogGame() {
-  const { user } = usePrivy();
+  const {smartAccountAddress} = useSmartAccount();
   const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [roundId, setRoundId] = useState(0);
@@ -79,7 +79,7 @@ function UnderdogGame() {
   });
 
   const updateProgress = () => {
-    getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
+    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       if (data) {
         setRaceData(data);
         let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
@@ -97,7 +97,7 @@ function UnderdogGame() {
 
     console.log("UPDATE PROGRESS", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game1++",
       value: {
         completed: currentQuestionIndex + 1,
@@ -108,7 +108,7 @@ function UnderdogGame() {
 
     socket.emit('update-progress', {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game1++",
       value: {
         completed: currentQuestionIndex + 1,
@@ -155,7 +155,7 @@ function UnderdogGame() {
 
     console.log("UPDATE PROGRESS", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game1++",
       value: {
         completed: currentQuestionIndex + 1,
@@ -166,7 +166,7 @@ function UnderdogGame() {
 
     socket.emit('update-progress', {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game1",
       value: {
         completed: currentQuestionIndex + 1,
@@ -217,7 +217,7 @@ function UnderdogGame() {
     setModalType(undefined);
     socket.emit("update-progress", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game1-distribute",
       value: {
         completed: Number(questions.length),
@@ -285,7 +285,7 @@ function UnderdogGame() {
     // user is now watched the progress after the first game
     socket.emit('update-progress', { 
       raceId, 
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "board1",
       value: true,
     });
@@ -296,7 +296,7 @@ function UnderdogGame() {
     console.log("FINISH, waiting for players...");
     socket.emit("update-progress", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game1-wait-to-finish",
     });
     openWaitingBeforeFinishModal();
@@ -304,7 +304,7 @@ function UnderdogGame() {
   
   // handle socket events
   useEffect(() => {
-    if (user?.wallet?.address && raceData) {
+    if (smartAccountAddress && raceData) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
@@ -418,26 +418,28 @@ function UnderdogGame() {
         socket.off('race-progress-questions');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, amountOfPlayersWaitingToFinish]);
+  }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, amountOfPlayersWaitingToFinish]);
 
   // fetch server-side data
   useEffect(() => {
-    if (user?.wallet?.address && raceData) {
+    if (smartAccountAddress && raceData) {
       console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<")
       socket.emit("get-connected", { raceId });
-      socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
+      socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-progress-questions", { raceId });
     }
-  }, [socket, user?.wallet?.address, raceData]); 
+  }, [socket, smartAccountAddress, raceData]); 
 
 
   function nextClicked() {
-    navigate(`/race/${raceId}/rabbit-hole/preview`);
+    navigate(`/race/${raceId}/rabbit-hole/preview`, {
+      state: location.state
+    });
   }
 
   // INITIAL USE EFFECT
   useEffect(() => {
-    if (user?.wallet?.address) {
+    if (smartAccountAddress) {
       updateProgress();
 
       // user finished the game
@@ -475,7 +477,7 @@ function UnderdogGame() {
         return;
       }
     }
-  }, [step, completed, of, isDistributed, questionsByGames, user?.wallet?.address, waitingToFinish]);
+  }, [step, completed, of, isDistributed, questionsByGames, smartAccountAddress, waitingToFinish]);
 
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
   console.log(amountOfConnected, raceData?.numberOfPlayersRequired);

@@ -3,11 +3,12 @@ import Sheep from "../assets/gameplay/sheeepy.png";
 import BlackSheep from "../assets/common/blacksheep.png";
 import { motion } from "framer-motion";
 import { usePrivy } from "@privy-io/react-auth";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 const percent = 61 / 9;
 
 function RaceBoard({ progress }: { progress: { curr: number; delta: number; address: string }[] }) {
-  const { user } = usePrivy();
+  const {smartAccountAddress} = useSmartAccount();
   console.log("progrewss:", progress)
 
   return (
@@ -16,7 +17,7 @@ function RaceBoard({ progress }: { progress: { curr: number; delta: number; addr
       {progress && progress.map(({ curr, delta, address }, i) => {
         return (
           <motion.img
-            src={address === user?.wallet?.address ? BlackSheep : Sheep}
+            src={address === smartAccountAddress ? BlackSheep : Sheep}
             key={i.toString()}
             alt="sheep"
             className={`absolute`}

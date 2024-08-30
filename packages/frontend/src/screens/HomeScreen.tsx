@@ -26,6 +26,7 @@ function HomeScreen() {
 
   useEffect(() => {
     const linkAccount = async() => {
+      console.log(smartAccountAddress, smartAccountClient)
       if (!smartAccountClient || !smartAccountAddress) return;
     
       const chainId = `eip155:${SELECTED_NETWORK.id}`;
@@ -40,7 +41,7 @@ function HomeScreen() {
           signature,
           message,
           chainId,
-          walletClientType: 'privy_smart_account',
+          //walletClientType: 'privy_smart_account',
           connectorType: 'safe'
         });
       } catch (error) {
@@ -80,7 +81,7 @@ function HomeScreen() {
           </button>
         </div>
       </div>
-      <button onClick={logout}>TEST LOGOUT</button>
+      <button className="absolute bottom-3 right-3 font-bold text-3xl text-white" onClick={logout}>X</button>
     </div>
   );
 }

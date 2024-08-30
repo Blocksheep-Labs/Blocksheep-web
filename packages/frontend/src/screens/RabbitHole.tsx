@@ -21,6 +21,8 @@ import { finishTunnelGame, getRaceById, submitFuel } from "../utils/contract-fun
 import LoseModal from "../components/LoseModal";
 import { config } from "../config/wagmi";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
+import BlackSheep from "../assets/rabbit-hole/blacksheep.png";
+import WhiteSheep from "../assets/rabbit-hole/sheeepy.png";
 
 export type ConnectedUser = {
     id: number;
@@ -32,7 +34,7 @@ export type ConnectedUser = {
 
 
 function RabbitHoleGame() {
-  const { user } = usePrivy();
+  const {smartAccountAddress} = useSmartAccount();
   const [phase, setPhase] = useState<"Default" | "CloseTunnel" | "OpenTunnel" | "Reset">("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
 
@@ -84,7 +86,7 @@ function RabbitHoleGame() {
 
   // handle socket eventsd
   useEffect(() => {
-    if (user?.wallet?.address && raceData) {
+    if (smartAccountAddress && raceData) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
@@ -134,7 +136,7 @@ function RabbitHoleGame() {
         let amountOfCompleted = 0;
 
         usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean, isPending: boolean, isCompleted: boolean}) => {
-          if (i.userAddress === user.wallet?.address) {
+          if (i.userAddress === smartAccountAddress) {
             setDisplayNumber(i.fuel);
             setMaxFuel(i.maxAvailableFuel);
           }
@@ -151,7 +153,7 @@ function RabbitHoleGame() {
           return {
             id: index,
             address: i.userAddress,
-            src: i.userAddress === user.wallet?.address ? "https://i.ibb.co/vXGDsDD/blacksheep.png" : "https://i.ibb.co/SN7JyMF/sheeepy.png",
+            src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
             PlayerPosition: i.fuel / 9,
             Fuel: i.fuel,
           }
@@ -198,17 +200,17 @@ function RabbitHoleGame() {
         socket.off('progress-updated');
       }
     }
-  }, [socket, amountOfConnected, user?.wallet?.address, amountOfComplteted, raceData]);
+  }, [socket, amountOfConnected, smartAccountAddress, amountOfComplteted, raceData]);
 
   // fetch required amount of users to wait
   useEffect(() => {
-    if (user?.wallet?.address && raceData) {
+    if (smartAccountAddress && raceData) {
       socket.emit("get-connected", { raceId });
-      socket.emit("game2-reach", { raceId, userAddress: user.wallet.address })
-      socket.emit("get-progress", { raceId, userAddress: user.wallet.address });
+      socket.emit("game2-reach", { raceId, userAddress: smartAccountAddress })
+      socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-all-fuel-tunnel", { raceId });
     }
-  }, [socket, user?.wallet?.address, raceData]); 
+  }, [socket, smartAccountAddress, raceData]); 
   
 
   useEffect(() => {
@@ -245,18 +247,18 @@ function RabbitHoleGame() {
 
   // CHECK USER TO BE REGISTERED
   useEffect(() => {
-    if (raceId?.length && user?.wallet?.address) {
-      getRaceById(Number(raceId), user.wallet.address as `0x${string}`).then(data => {
+    if (raceId?.length && smartAccountAddress) {
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         if (data) {
           // VALIDATE USER FOR BEING REGISTERED
-          if (!data.registeredUsers.includes(user.wallet?.address)) {
+          if (!data.registeredUsers.includes(smartAccountAddress)) {
             navigate('/');
           } 
           setRaceData(data);
         }
       });
     }
-  }, [raceId, user?.wallet?.address]);
+  }, [raceId, smartAccountAddress]);
 
 
   const handleFuelUpdate = (fuel: number) => {
@@ -264,7 +266,7 @@ function RabbitHoleGame() {
       setDisplayNumber(fuel);
       socket.emit("update-progress", {
         raceId,
-        userAddress: user?.wallet?.address,
+        userAddress: smartAccountAddress,
         property: "game2-set-fuel",
         value: {
           fuel,
@@ -279,7 +281,7 @@ function RabbitHoleGame() {
 
     socket.emit("update-progress", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game2-set-fuel",
       value: {
         fuel: displayNumber,
@@ -297,7 +299,7 @@ function RabbitHoleGame() {
 
         socket.emit("update-progress", {
           raceId,
-          userAddress: user?.wallet?.address,
+          userAddress: smartAccountAddress,
           property: "game2-set-fuel",
           value: {
             fuel: displayNumber,
@@ -333,7 +335,7 @@ function RabbitHoleGame() {
       });
       socket.emit("update-progress", {
         raceId,
-        userAddress: user?.wallet?.address,
+        userAddress: smartAccountAddress,
         property: "game2-set-fuel",
         value: { fuel: 10, maxAvailableFuel: 0, isPending: false }
       });
@@ -354,11 +356,11 @@ function RabbitHoleGame() {
     console.log("CALCULATING THE FUEL...")
     const newListOfPlayers = players.toSorted((a, b) => a.Fuel - b.Fuel).slice(1, players.length);
 
-    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, user?.wallet?.address)
+    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, smartAccountAddress)
 
     socket.emit("update-progress", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game2-set-fuel",
       value: {
         fuel: 0,
@@ -375,14 +377,14 @@ function RabbitHoleGame() {
     }
     
     // if user lost the game
-    if (!newListOfPlayers.find(i => i.address === user?.wallet?.address) && newListOfPlayers.length > 0) {
+    if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && newListOfPlayers.length > 0) {
       console.log("YOU LOSE :(")
       handleFinishTunnelGame(raceId as string, false);
       return;
     }
 
     // if the user is one in players array -> he won
-    if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === user?.wallet?.address) {
+    if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === smartAccountAddress) {
       console.log("YOU WIN!");
       handleFinishTunnelGame(raceId as string, true);
       return;
@@ -412,7 +414,7 @@ function RabbitHoleGame() {
   function openWinModal() {
     socket.emit("update-progress", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game2-complete",
       value: {
         isWon: true,
@@ -427,7 +429,7 @@ function RabbitHoleGame() {
     setModalType("lose");
     socket.emit("update-progress", {
       raceId,
-      userAddress: user?.wallet?.address,
+      userAddress: smartAccountAddress,
       property: "game2-complete",
       value: {
         isWon: false,
@@ -472,7 +474,7 @@ function RabbitHoleGame() {
   }
 
   const fetchRaceData = () => {
-    getRaceById(Number(raceId), user?.wallet?.address as `0x${string}`).then(data => {
+    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       if (data) {
         let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
           return { curr: Number(i.progress), delta: 0, address: i.user };

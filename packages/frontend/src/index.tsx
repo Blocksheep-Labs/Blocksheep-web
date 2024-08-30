@@ -22,16 +22,16 @@ root.render(
         <PrivyProvider 
           appId={PRIVY_APP_ID || ""}
           config={{
-            loginMethods: ["email", "google"],
+            loginMethods: ["email", "google", "wallet"],
             appearance: {
               theme: 'light'
             },
             embeddedWallets: {
-              createOnLogin: "users-without-wallets",
+              createOnLogin: "all-users",
               noPromptOnSignature: true,
             },
             defaultChain: SELECTED_NETWORK,
-            //supportedChains: [SELECTED_NETWORK]
+            supportedChains: [SELECTED_NETWORK]
           }}
         >
           <SmartAccountProvider>

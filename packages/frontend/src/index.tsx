@@ -22,7 +22,7 @@ root.render(
         <PrivyProvider 
           appId={PRIVY_APP_ID || ""}
           config={{
-            loginMethods: ["email", "google", "wallet"],
+            loginMethods: ["email", "wallet"],
             appearance: {
               theme: 'light'
             },

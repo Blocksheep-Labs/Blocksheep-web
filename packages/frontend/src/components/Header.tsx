@@ -28,6 +28,12 @@ function Header() {
       <div className="flex gap-2">
         <button 
           className="m-2 rounded-xl bg-black p-2 text-white" 
+          onClick={() => navigate('/admin')}
+        >
+          ADM
+        </button>
+        <button 
+          className="m-2 rounded-xl bg-black p-2 text-white" 
           onClick={handleLogout}
         >
           { smartAccountAddress ? shortenAddress(smartAccountAddress) : "Connect with privy" }

@@ -38,7 +38,7 @@ function App() {
         />
 
         <Route
-          path="countdown/:raceId"
+          path="race/:raceId/countdown"
           element={
             <ProtectedRoute>
               <CountDownScreen />
@@ -48,7 +48,7 @@ function App() {
 
         {/* UNDERDOG COVER */}
         <Route
-          path="race/:raceId/underdog/cover"
+          path="race/:raceId/underdog/preview"
           element={
             <ProtectedRoute>
               <UnderdogCover />
@@ -78,7 +78,7 @@ function App() {
 
         {/* RABBIT HOLE COVER */}
         <Route
-          path="race/:raceId/rabbit-hole/cover"
+          path="race/:raceId/rabbit-hole/preview"
           element={
             <ProtectedRoute>
               <RabbitHoleCover />

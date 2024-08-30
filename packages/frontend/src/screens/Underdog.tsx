@@ -432,7 +432,7 @@ function UnderdogGame() {
 
 
   function nextClicked() {
-    navigate(`/race/${raceId}/tunnel`);
+    navigate(`/race/${raceId}/rabbit-hole/preview`);
   }
 
   // INITIAL USE EFFECT

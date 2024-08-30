@@ -38,7 +38,7 @@ function CountDownScreen() {
     //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
     //return;
     
-    navigate(`/race/${raceId}/underdog`, {
+    navigate(`/race/${raceId}/underdog/preview`, {
       state: location.state
     });
   };
@@ -92,7 +92,6 @@ function CountDownScreen() {
   // handle socket events
   useEffect(() => {
     if (user?.wallet?.address && data) {
-      console.log("AAAAAAAAAAAAAAAAAAAAAAA")
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {

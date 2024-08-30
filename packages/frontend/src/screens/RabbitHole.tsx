@@ -401,7 +401,7 @@ function RabbitHoleGame() {
 
   function onNextGameClicked() {
     // set
-    navigate("/select");
+    navigate(`/race/${raceId}/rate`);
   }
 
   function closeLoadingModal() {
@@ -510,7 +510,7 @@ function RabbitHoleGame() {
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
             {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1}/>}
-            {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/>}
+            {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}
         { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1} /> }

@@ -33,11 +33,11 @@ function SelectRaceScreen() {
       questionsByGames: data.questionsByGames, 
       amountOfRegisteredUsers: data.registeredUsers.length, 
       progress,
-      completed: progress.game1.completed,
-      of: progress.game1.of,
-      isDistributed: progress.game1.isDistributed,
+      completed: progress?.game1.completed || false,
+      of: progress?.game1.of || 0,
+      isDistributed: progress?.game1.isDistributed || false,
       step,
-      waitingToFinish: progress.game1.waitingToFinish,
+      waitingToFinish: progress?.game1.waitingToFinish || false,
     }
   }
 

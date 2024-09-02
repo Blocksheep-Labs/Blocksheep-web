@@ -7,7 +7,7 @@ const Lever = (props: {
   maxAvailable: number;
   setDisplayNumber: (a: number) => void;
 }) => {
-  const {displayNumber, setDisplayNumber, isRolling} = props;
+  const {displayNumber, setDisplayNumber, isRolling, maxAvailable} = props;
   const [currentAngle, setCurrentAngle] = useState(0);
   
   const [rotationCount, setRotationCount] = useState(0);
@@ -65,7 +65,7 @@ const Lever = (props: {
   return (
     <>
       <div className="panel">
-        <div className="number-display font-bold">{10 - displayNumber}</div>
+        <div className="number-display font-bold">{displayNumber}/{maxAvailable}</div>
       </div>
 
       <div className="lever-container z-20">

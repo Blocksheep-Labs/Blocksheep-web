@@ -13,7 +13,7 @@ const PlayerMovement = ({ phase, players }: {phase: string; players: ConnectedUs
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
   }, [players]);
 
-  //console.log("PLAYERS:", players, phase)
+  //console.log("PLAYERS:", {players, phase})
 
   useEffect(() => {
     sortedPlayers.forEach((player, index) => {

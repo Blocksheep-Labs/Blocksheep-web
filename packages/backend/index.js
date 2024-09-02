@@ -131,15 +131,12 @@ io.on("connection", socket => {
     socket.on('get-all-fuel-tunnel', ({ raceId }) => {
         const roomName = `race-${raceId}`;
         const progresses = racesProgresses.filter(i => i.room === roomName);
-
+        
         io.to(socket.id).emit(`race-fuel-all-tunnel`, {
             progresses: progresses.map(i => {
                 return {
-                    userAddress: i?.userAddress,
-                    fuel: i?.progress?.game2?.fuel,
-                    maxAvailableFuel: i?.progress?.game2?.maxAvailableFuel,
-                    isPending: i?.progress?.game2?.isPending,
-                    gameReached: i?.progress?.game2?.gameReached,
+                    userAddress: i.userAddress,
+                    ...i.progress.game2
                 }
             }),
         });

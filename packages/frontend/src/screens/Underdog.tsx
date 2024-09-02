@@ -79,7 +79,7 @@ function UnderdogGame() {
   });
 
   const updateProgress = () => {
-    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then((data) => {
       if (data) {
         setRaceData(data);
         let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
@@ -167,7 +167,7 @@ function UnderdogGame() {
     socket.emit('update-progress', {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1",
+      property: "game1++",
       value: {
         completed: currentQuestionIndex + 1,
         of: Number(questions.length),
@@ -205,7 +205,7 @@ function UnderdogGame() {
   };
 
   function openLoadingModal() {
-    console.log("loading modal opened")
+    console.log("loading modal opened");
     setIsOpen(true);
     setModalType("loading");
   }
@@ -370,11 +370,13 @@ function UnderdogGame() {
 
         if (progress.property === "game1-wait-to-finish") {
           setAmountOfPlayersWaitingToFinish(amountOfPlayersWaitingToFinish + 1);
+          // track users answers (to reduce amount of txs in loadingModal on distribute reward step)
+          console.log("SET USER ANSWERS:", [...usersAnswers, progress.rProgress.progress.game1.answers]);
+
+          setUserAnswers([...usersAnswers, progress.rProgress.progress.game1.answers]);
           console.log("WAITING TO FINISH++", amountOfPlayersWaitingToFinish + 1);
           if (raceData.numberOfPlayersRequired <= amountOfPlayersWaitingToFinish + 1) {
             console.log("DISTRIBUTING REWARD...");
-            // track users answers (to reduce amount of txs in loadingModal on distribute reward step)
-            setUserAnswers([...usersAnswers, progress.rProgress.progress.game1.answers]);
             closeWaitingBeforeFinishModal();
             openLoadingModal();
           }

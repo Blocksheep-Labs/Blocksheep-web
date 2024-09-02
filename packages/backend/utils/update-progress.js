@@ -13,7 +13,7 @@ module.exports = (property, value, rProgress) => {
             rProgress.progress.game1_rules = true;
             break;
         case "game1++":
-            if (value.answer) {
+            if (value.answer.toString().length) {
                 console.log("+ANSW", value.answer, rProgress.progress.game1.answers + value.answer)
                 rProgress.progress.game1 = {
                     ...rProgress.progress.game1,

@@ -33,6 +33,7 @@ const Rating = ({
 export default function RateScreen() {
     const [underdogRate, setUnderdogRate] = useState(3);
     const [rabbitHoleRate, setRabbitHoleRate] = useState(3);
+    const [bullRunRate, setBullruneRate] = useState(3);
     const navigate = useNavigate();
     const {raceId} = useParams();
 
@@ -57,6 +58,11 @@ export default function RateScreen() {
                 <div className="w-full flex flex-col justify-center items-center">
                     <p className="text-2xl">RABBIT HOLE</p>
                     <Rating handleChange={(value: number) => setRabbitHoleRate(value)} amount={rabbitHoleRate}/>
+                </div>
+
+                <div className="w-full flex flex-col justify-center items-center">
+                    <p className="text-2xl">BULL RUN</p>
+                    <Rating handleChange={(value: number) => setBullruneRate(value)} amount={bullRunRate}/>
                 </div>
             </div>
 

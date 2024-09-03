@@ -66,6 +66,18 @@ module.exports = (property, value, rProgress) => {
                 isWon: value.isWon,
             }
             break;
+        case "game2-wait-to-finish": {
+            rProgress.progress.game2.waitingToFinish = true;
+        }
+        case "game3-preview-complete":
+            rProgress.progress.game3_preview = true;
+            break;
+        case "game3-rules-complete":
+            rProgress.progress.game3_rules = true;
+            break;
+        case "game3-complete": 
+            rProgress.progress.game3.isCompleted = true;
+            break;
         default:
             break;
     }

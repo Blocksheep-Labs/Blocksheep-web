@@ -17,6 +17,9 @@ import RabbitHoleRules from "./screens/RabbitHoleRules";
 import RabbitHoleCover from "./screens/RabbitHoleCover";
 import StatsScreen from "./screens/StatsScreen";
 import RateScreen from "./screens/RateScreen";
+import BullrunCover from "./screens/BullrunCover";
+import BullrunRules from "./screens/BullrunRules";
+import Bullrun from "./screens/Bullrun";
 
 
 function App() {
@@ -102,6 +105,36 @@ function App() {
           element={
             <ProtectedRoute>
               <RabbitHoleGame />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* BULL RUN COVER */}
+        <Route
+          path="race/:raceId/bullrun/preview"
+          element={
+            <ProtectedRoute>
+              <BullrunCover />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* BULL RUN RULES */}
+        <Route
+          path="race/:raceId/bullrun/rules"
+          element={
+            <ProtectedRoute>
+              <BullrunRules />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* BULL RUN */}
+        <Route
+          path="race/:raceId/bullrun"
+          element={
+            <ProtectedRoute>
+              <Bullrun />
             </ProtectedRoute>
           }
         />

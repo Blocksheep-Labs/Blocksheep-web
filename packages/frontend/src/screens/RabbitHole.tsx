@@ -13,7 +13,7 @@ import Timer from "../components/Timer";
 import UserCount from "../components/UserCount";
 import { waitForTransactionReceipt  } from '@wagmi/core';
 import { useTimer } from "react-timer-hook";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import { usePrivy } from "@privy-io/react-auth";
@@ -37,7 +37,7 @@ function RabbitHoleGame() {
   const {smartAccountAddress} = useSmartAccount();
   const [phase, setPhase] = useState<"Default" | "CloseTunnel" | "OpenTunnel" | "Reset">("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
-
+  const location = useLocation();
   const [modalType, setModalType] = useState<string | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
@@ -56,6 +56,8 @@ function RabbitHoleGame() {
   const [raceData, setRaceData] = useState<any>(undefined);
   const [gameStarted, setGameStarted] = useState(false);
   const [roundIsFinished, setRoundIsFinsihed] = useState(false);
+  const [amountOfPlayersnextClicked, setAmountOfPlayersNextClicked] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -131,6 +133,10 @@ function RabbitHoleGame() {
 
       
       socket.on("race-fuel-all-tunnel", (progress) => {
+        if (gameOver) {
+          return;
+        };
+
         const usersData = progress.progresses;
 
         console.log("FUEL TUNNEL DATA", usersData);
@@ -141,7 +147,7 @@ function RabbitHoleGame() {
 
         usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean, isPending: boolean, isCompleted: boolean}) => {
           if (i.userAddress === smartAccountAddress) {
-            setDisplayNumber(i.fuel);
+            //setDisplayNumber(i.fuel);
             setMaxFuel(i.maxAvailableFuel);
           }
           i.gameReached && amountOfReachedPerGame2++;
@@ -194,6 +200,17 @@ function RabbitHoleGame() {
             setAmountOfComplteted(amountOfComplteted + 1);
           }
         }
+
+        if (progress.property === "game2-wait-to-finish") {
+          // set amount of next clicked
+          setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
+          if (amountOfPlayersnextClicked + 1 >= raceData.numberOfPlayersRequired) {
+            closeLoadingModal();
+            navigate(`/race/${raceId}/bullrun/preview`, {
+              state: location.state
+            });
+          }
+        }
       });
   
       return () => {
@@ -205,7 +222,7 @@ function RabbitHoleGame() {
         socket.off('progress-updated');
       }
     }
-  }, [socket, amountOfConnected, smartAccountAddress, amountOfComplteted, raceData]);
+  }, [socket, amountOfConnected, smartAccountAddress, amountOfComplteted, raceData, amountOfPlayersnextClicked, gameOver]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -379,23 +396,24 @@ function RabbitHoleGame() {
       newListOfPlayers = players;
     }
 
-    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, smartAccountAddress)
+    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string))
 
     /*
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
       property: "game2-set-fuel",
-      value: {її
+      value: {
         fuel: 0,
         maxAvailableFuel: maxFuel,
         isPending: true,
       }
-    });ї
+    });
     */
     
     // if user was playing with him itself
     if (newListOfPlayers.length === 0) {
+      setGameOver(true);
       console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
       handleFinishTunnelGame(raceId as string, true);
       setIsRolling(false);
@@ -404,6 +422,7 @@ function RabbitHoleGame() {
     
     // if user lost the game
     if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && newListOfPlayers.length > 0) {
+      setGameOver(true);
       console.log("YOU LOSE :(")
       handleFinishTunnelGame(raceId as string, false);
       setIsRolling(false);
@@ -412,6 +431,7 @@ function RabbitHoleGame() {
 
     // if the user is one in players array -> he won
     if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === smartAccountAddress) {
+      setGameOver(true);
       console.log("YOU WIN!");
       handleFinishTunnelGame(raceId as string, true);
       setIsRolling(false);
@@ -429,12 +449,16 @@ function RabbitHoleGame() {
     restart(time);
     //socket.emit("get-all-fuel-tunnel", { raceId });
     //setPhase("Default");
-    setIsRolling(false);
+    //setIsRolling(false);
   }
 
   function onNextGameClicked() {
-    // set
-    navigate(`/race/${raceId}/rate`);
+    openLoadingModal();
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: smartAccountAddress,
+      property: "game2-wait-to-finish",
+    });
   }
 
   function closeLoadingModal() {

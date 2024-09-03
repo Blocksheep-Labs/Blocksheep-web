@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import React from "react";
+import RabbitTailImage from "../../assets/rabbit-hole/flufflytail.png";
 
 function RabbitTail({ phase }) {
   React.useEffect(() => {
@@ -21,7 +22,7 @@ function RabbitTail({ phase }) {
     }
   }, [phase]);
 
-  return <img className="rabbit-tail" src="https://i.ibb.co/3FG2ch1/flufflytail.png" alt="Rabbit Tail" />;
+  return <img className="rabbit-tail" src={RabbitTailImage} alt="Rabbit Tail" />;
 }
 
 export default RabbitTail;

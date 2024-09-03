@@ -79,6 +79,7 @@ io.on("connection", socket => {
                 userAddress,
                 progress: {
                     countdown: false,
+                    
                     game1_preview: false,
                     game1_rules: false,
                     game1: {
@@ -88,10 +89,13 @@ io.on("connection", socket => {
                         of: 0,
                         answers: "",
                     },
+
                     board1: false,
+
                     game2_preview: false,
                     game2_rules: false,
                     game2: {
+                        waitingToFinish: false,
                         isCompleted: false,
                         fuel: 0,
                         maxAvailableFuel: 10,
@@ -99,6 +103,12 @@ io.on("connection", socket => {
                         isPending: false,
                         gameReached: false,
                     },
+
+                    game3_preview: false,
+                    game3_rules: false,
+                    game3: {
+                        isCompleted: false,
+                    }
                 }
             }
 

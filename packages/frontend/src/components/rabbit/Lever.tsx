@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useEffect, useRef, useState } from "react";
+import LeverHandleImage from "../../assets/rabbit-hole/Lever-handle.png";
 
 const Lever = (props: {
   isRolling: boolean;
@@ -70,7 +71,7 @@ const Lever = (props: {
 
       <div className="lever-container z-20">
         <img
-          src="https://i.ibb.co/fXQVWpW/Lever-handle.png"
+          src={LeverHandleImage}
           alt="Rotating Lever"
           ref={leverRef}
           style={{

@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+import RabbitHeadImage from "../../assets/rabbit-hole/rabbit.png"
 import React from "react";
 
 function RabbitHead({ phase }) {
@@ -18,7 +19,7 @@ function RabbitHead({ phase }) {
     }
   }, [phase]);
 
-  return <img className="rabbit-head" src="https://i.ibb.co/pvJj4gh/rabbit.png" alt="Rabbit Head" />;
+  return <img className="rabbit-head" src={RabbitHeadImage} alt="Rabbit Head" />;
 }
 
 export default RabbitHead;

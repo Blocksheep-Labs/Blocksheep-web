@@ -8,9 +8,12 @@ module.exports = {
         race_pattern: 'url("/race-background.png")',
         race_bg: 'url("/race-bg.png")',
         tunnel_bg: 'url("/tunnel-bg.png")',
+        bullrun_bg: 'url("/bullrun-bg.png")',
         underdog_cover_bg: 'url("/underdog-cover-bg.png")',
         rabbit_hole_cover_bg: 'url("/rabbit-hole-cover-bg.png")',
-        stats_top_bg: 'url("/podium.png")'
+        stats_top_bg: 'url("/podium.png")',
+        bullrun_cover_bg: 'url("/bullrun-cover-bg.png")',
+        bullrun_rules_bg: 'url("/bullrun-rules-bg.png")'
       },
     },
   },

@@ -13,7 +13,8 @@ module.exports = {
         rabbit_hole_cover_bg: 'url("/rabbit-hole-cover-bg.png")',
         stats_top_bg: 'url("/podium.png")',
         bullrun_cover_bg: 'url("/bullrun-cover-bg.png")',
-        bullrun_rules_bg: 'url("/bullrun-rules-bg.png")'
+        bullrun_rules_bg: 'url("/bullrun-rules-bg.png")',
+        bullrun_next_bg: 'url("/bullrun-next-round-bg.png")',
       },
     },
   },

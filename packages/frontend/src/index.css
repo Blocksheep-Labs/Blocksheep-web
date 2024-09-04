@@ -182,10 +182,9 @@ body{
 
 .gasoline-gauge {
   width: 80%;
-  background-color:orange;
   background-position: bottom;
   transition: height 0.5s ease-out;
-  transform: rotateZ(3.142rad);
+  background: linear-gradient(orange, rgb(255, 224, 168));
   position:absolute;
   top: 12px;
   max-height: 75px;

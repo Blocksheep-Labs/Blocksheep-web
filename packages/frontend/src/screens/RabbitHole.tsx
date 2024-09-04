@@ -60,6 +60,7 @@ function RabbitHoleGame() {
   const [roundIsFinished, setRoundIsFinsihed] = useState(false);
   const [amountOfPlayersnextClicked, setAmountOfPlayersNextClicked] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [userIsLost, setUserIsLost] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -124,7 +125,11 @@ function RabbitHoleGame() {
         setAmountOfConnected(amountOfConnected - 1);
         if (amountOfConnected - 1 == 1) {
           pause();
-          openWinModal();
+          if (modalIsOpen) {
+            setIsOpen(false);
+            setModalType(undefined);
+          }
+          handleFinishTunnelGame(String(raceId), true, 1);
         }
       });
 
@@ -297,7 +302,7 @@ function RabbitHoleGame() {
 
   // START THE TUNNEL IF ALL USERS ARE DONE WITH TX-s
   useEffect(() => {
-    if (!gameOver && isRolling && amountOfPending === 0 && raceId?.toString().length) {
+    if (isRolling && amountOfPending === 0 && raceId?.toString().length) {
       console.log("TUNNEL CHANGE", {displayNumber, maxFuel});
       socket.emit("get-all-fuel-tunnel", { raceId });
       closeLoadingModal();
@@ -314,10 +319,10 @@ function RabbitHoleGame() {
         setRoundIsFinsihed(true);
         setIsRolling(false);
       }, 16000);
-    } else if (!gameOver && isRolling && amountOfPending > 0 && raceId?.toString().length) {
+    } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();
     }
-  }, [isRolling, raceData, socket, raceId, amountOfPending, gameOver]);
+  }, [isRolling, raceData, socket, raceId, amountOfPending]);
 
 
   const handleFuelUpdate = (fuel: number) => {
@@ -382,8 +387,11 @@ function RabbitHoleGame() {
   }, [isRolling, players, roundIsFinished]);
 
 
-  const handleFinishTunnelGame = async(raceId: string, isWon: boolean) => {
+  const handleFinishTunnelGame = async(raceId: string, isWon: boolean, playersLeft: number) => {
+    //setIsRolling(true);
+    setGameOver(true);
     pause();
+    openLoadingModal();
     await finishTunnelGame(Number(raceId), isWon, smartAccountClient).then(async data => {
       await waitForTransactionReceipt(config, {
         hash: data,
@@ -397,6 +405,7 @@ function RabbitHoleGame() {
         value: { fuel: 10, maxAvailableFuel: 0 }
       });
       */
+      closeLoadingModal();
 
       if (isWon) {
         socket.emit("update-progress", {
@@ -407,9 +416,13 @@ function RabbitHoleGame() {
             isWon: true,
           }
         });
-        //openWinModal();
-        //setWinModalPermanentlyOpened(true);
+        if (playersLeft === 1) {
+          setModalType(undefined);
+          openWinModal();
+          setWinModalPermanentlyOpened(true);
+        }
       } else {
+        setUserIsLost(true);
         socket.emit("update-progress", {
           raceId,
           userAddress: smartAccountAddress,
@@ -418,8 +431,11 @@ function RabbitHoleGame() {
             isWon: false,
           }
         });
-        //openLoseModal();
-        //setLoseModalPermanentlyOpened(true);
+        if (playersLeft === 1) {
+          setModalType(undefined);
+          openLoseModal();
+          setLoseModalPermanentlyOpened(true);
+        }
       }
     });
   }
@@ -452,30 +468,29 @@ function RabbitHoleGame() {
       }
     });
     */
+
+    const remainingPlayersCount = newListOfPlayers.length;
     
-    // if user was playing with him itself
-    if (newListOfPlayers.length === 0) {
-      setGameOver(true);
+    // if user was playing with himself
+    if (remainingPlayersCount === 0) {
       console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
-      handleFinishTunnelGame(raceId as string, true);
+      handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
       setIsRolling(false);
       return;
     }
     
     // if user lost the game
-    if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && newListOfPlayers.length > 0) {
-      setGameOver(true);
+    if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
       console.log("YOU LOSE :(")
-      handleFinishTunnelGame(raceId as string, false);
+      handleFinishTunnelGame(raceId as string, false, remainingPlayersCount);
       setIsRolling(false);
       return;
     }
 
     // if the user is one in players array -> he won
-    if (newListOfPlayers.length === 1 && newListOfPlayers[0].address === smartAccountAddress) {
-      setGameOver(true);
+    if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
       console.log("YOU WIN!");
-      handleFinishTunnelGame(raceId as string, true);
+      handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
       setIsRolling(false);
       return;
     }
@@ -568,7 +583,7 @@ function RabbitHoleGame() {
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-tunnel_bg bg-cover bg-bottom relative">
-      <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{gameOver ? "Player eliminated, pls wait for the next game" : displayNumber}</p>
+      <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Player eliminated, pls wait for the next game" : displayNumber}</p>
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
@@ -585,7 +600,7 @@ function RabbitHoleGame() {
         </div>
         <div className="control-panels mb-10">
           <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={isRolling}/>
-          <GasolineGauge fuel={(maxFuel - displayNumber) * 8.6}/>
+          <GasolineGauge fuel={(maxFuel - displayNumber) * 8.8}/>
         </div>
 
       </div>
@@ -598,8 +613,6 @@ function RabbitHoleGame() {
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}
-        { winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1} /> }
-        { loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0} /> }
     </div>
   );
 }

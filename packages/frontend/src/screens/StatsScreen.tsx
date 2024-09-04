@@ -48,15 +48,15 @@ export default function StatsScreen() {
                 { 
                     // LEFT
                 }
-                <img src={`${stats && (smartAccountAddress === stats[1].address) ? BlackSheepImage : WhiteSheepImage}`} alt="left" className="absolute w-10 left-[88px] top-[56.5%]"/>
+                <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left" className="absolute w-10 left-[88px] top-[56.5%]"/>
                 { 
                     // CENTER
                 }
-                <img src={`${stats && (smartAccountAddress === stats[0].address) ? BlackSheepImage : WhiteSheepImage}`} alt="center" className="absolute w-10 top-[48%]"/>
+                <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center" className="absolute w-10 top-[48%]"/>
                 { 
                     // RIGHT
                 }
-                <img src={`${stats && (smartAccountAddress === stats[2].address) ? BlackSheepImage : WhiteSheepImage}`} alt="right" className="absolute w-10 right-[88px] top-[56.5%]"/>
+                <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right" className="absolute w-10 right-[88px] top-[56.5%]"/>
 
                 <p className="text-white font-bold text-center absolute top-[40%] w-full">
                     {

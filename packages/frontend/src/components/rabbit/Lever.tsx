@@ -66,7 +66,7 @@ const Lever = (props: {
   return (
     <>
       <div className="panel">
-        <div className="number-display font-bold">{displayNumber}/{maxAvailable}</div>
+        <div className="number-display font-bold">{displayNumber}</div>
       </div>
 
       <div className="lever-container z-20">

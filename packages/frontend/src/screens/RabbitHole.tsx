@@ -567,7 +567,8 @@ function RabbitHoleGame() {
   }
 
   return (
-    <div className="mx-auto flex h-dvh w-full flex-col bg-tunnel_bg bg-cover bg-bottom">
+    <div className="mx-auto flex h-dvh w-full flex-col bg-tunnel_bg bg-cover bg-bottom relative">
+      <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{gameOver ? "Player eliminated, pls wait for the next game" : displayNumber}</p>
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">

@@ -130,8 +130,8 @@ body{
 .player-container img {
   transition: all 0.5s ease-out;
   height: 50px;
-   position: absolute;
-   z-index: 2;
+  position: absolute;
+  z-index: 2;
   left:-10px;
 }
 

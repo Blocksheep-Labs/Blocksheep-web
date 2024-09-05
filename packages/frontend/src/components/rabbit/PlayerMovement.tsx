@@ -4,20 +4,18 @@ import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 
 const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: ConnectedUser[]}) => {
   const [prevStage, setPrevStage] = useState<undefined | string>(undefined);
-  const [prevPlayers, setPrevPlayers] = useState<ConnectedUser[]>([]);
   // Sort players by Fuel submitted
   const sortedPlayers = [...players].sort((a, b) => a.Fuel - b.Fuel);
+
+  console.log("SORTED PLAYERS:", {sortedPlayers})
 
   const playerRefs = useRef([]);
   const fuelRefs = useRef([]);
 
   useEffect(() => {
-
-
     // Update refs when players change
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
     fuelRefs.current   = players.map((_, i) => fuelRefs.current[i]   || React.createRef());
-
   }, [players]);
 
   //console.log("PLAYERS:", {players, phase})
@@ -33,6 +31,7 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
         // @ts-ignore
         const fuelElement = fuelRefs.current[index].current;
         if (!playerElement || !fuelElement) return;
+        //if (!playerElement) return;
   
         setPrevStage(phase);
         const positionStyle = `${28 * index}px`;
@@ -51,7 +50,8 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
             fuelElement.style.opacity = 0;
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
-          playerElement.style.left = '80%';
+          //playerElement.style.left = '80%';
+          //fuelElement.style.left = '80%';
           setTimeout(() => {
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';
@@ -84,25 +84,26 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
         }
       });
     }
-  }, [phase, sortedPlayers, prevStage]);
+  }, [phase, sortedPlayers, prevStage, playerRefs, fuelRefs]);
 
   return (
     <div className="player-container">
+      {sortedPlayers.map((player, index) => ( 
+        <img
+          key={player.id}
+          ref={playerRefs.current[index]}
+          src={player.src}
+          alt={player.id.toString()}
+        />
+      ))}
       {sortedPlayers.map((player, index) => (
-          <div className={`player-${index + 1} flex flex-row items-center justify-center`} key={index}>
-            <p
-                ref={fuelRefs.current[index]}
-                className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full opacity-70"
-            >
-              {player.Fuel}
-            </p>
-            <img
-                key={player.id}
-                ref={playerRefs.current[index]}
-                src={player.src}
-                alt={player.id.toString()}
-            />
-          </div>
+        <p
+          key={player.id}
+          ref={fuelRefs.current[index]}
+          className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full"
+        >
+          {player.Fuel}
+        </p>
       ))}
     </div>
   );

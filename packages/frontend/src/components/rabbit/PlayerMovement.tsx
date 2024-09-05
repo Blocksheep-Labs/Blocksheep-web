@@ -5,7 +5,7 @@ import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: ConnectedUser[]}) => {
   const [prevStage, setPrevStage] = useState<undefined | string>(undefined);
   // Sort players by Fuel submitted
-  const sortedPlayers = [...players].sort((a, b) => a.Fuel - b.Fuel);
+  const sortedPlayers = [...players].sort((a, b) => b.Fuel - a.Fuel);
 
   console.log("SORTED PLAYERS:", {sortedPlayers})
 
@@ -71,6 +71,11 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
             fuelElement.style.left = '150vw';
             fuelElement.style.transition = 'all 12s ease-out';
             fuelElement.style.opacity = 1;
+
+            setTimeout(() => {
+              if (index === sortedPlayers.length - 1)
+              playerElement.style.top = '400px';
+            }, 4000);
           }, 1000 + delay);
           
           /*

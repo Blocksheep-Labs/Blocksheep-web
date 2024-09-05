@@ -484,19 +484,21 @@ function RabbitHoleGame() {
         //return;
       }
 
-      setPlayers(newListOfPlayers);
-      //setMaxFuel(maxFuel - displayNumber);
-      setDisplayNumber(0);
-
-      // refetch users data
-      //return;
-      console.log("next round... time reset");
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + 10);
-      restart(time);
-      //socket.emit("get-all-fuel-tunnel", { raceId });
-      //setPhase("Default");
-      //setIsRolling(false);
+      setTimeout(() => {
+        setPlayers(newListOfPlayers);
+        //setMaxFuel(maxFuel - displayNumber);
+        setDisplayNumber(0);
+  
+        // refetch users data
+        //return;
+        console.log("next round... time reset");
+        const time = new Date();
+        time.setSeconds(time.getSeconds() + 10);
+        restart(time);
+        //socket.emit("get-all-fuel-tunnel", { raceId });
+        //setPhase("Default");
+        //setIsRolling(false);
+      }, 6000);
   }
 
   function onNextGameClicked() {

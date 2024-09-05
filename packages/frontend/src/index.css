@@ -135,6 +135,13 @@ body{
   left:-10px;
 }
 
+.player-container .fuel-text {
+  transition: all 0.5s ease-out;
+  position: absolute;
+  z-index: 3;
+  left:-10px;
+}
+
 /* /////////// */
 
 

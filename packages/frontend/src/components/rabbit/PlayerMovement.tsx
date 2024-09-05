@@ -4,14 +4,20 @@ import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 
 const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: ConnectedUser[]}) => {
   const [prevStage, setPrevStage] = useState<undefined | string>(undefined);
-  // Sort players by PlayerPosition
-  const sortedPlayers = [...players].sort((a, b) => a.PlayerPosition - b.PlayerPosition);
+  const [prevPlayers, setPrevPlayers] = useState<ConnectedUser[]>([]);
+  // Sort players by Fuel submitted
+  const sortedPlayers = [...players].sort((a, b) => a.Fuel - b.Fuel);
 
   const playerRefs = useRef([]);
+  const fuelRefs = useRef([]);
 
   useEffect(() => {
+
+
     // Update refs when players change
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
+    fuelRefs.current   = players.map((_, i) => fuelRefs.current[i]   || React.createRef());
+
   }, [players]);
 
   //console.log("PLAYERS:", {players, phase})
@@ -24,7 +30,9 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
       sortedPlayers.forEach((player, index) => {
         // @ts-ignore
         const playerElement = playerRefs.current[index].current;
-        if (!playerElement) return;
+        // @ts-ignore
+        const fuelElement = fuelRefs.current[index].current;
+        if (!playerElement || !fuelElement) return;
   
         setPrevStage(phase);
         const positionStyle = `${28 * index}px`;
@@ -35,12 +43,22 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
             playerElement.style.left = '50%';
             playerElement.style.visibility = 'visible';
             playerElement.style.top = positionStyle;
+
+            fuelElement.style.transition = 'all 1.5s ease-out';
+            fuelElement.style.left = '50%';
+            fuelElement.style.visibility = 'visible';
+            fuelElement.style.top = positionStyle;
+            fuelElement.style.opacity = 0;
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
           playerElement.style.left = '80%';
           setTimeout(() => {
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';
+
+            fuelElement.style.transition = 'all 0.5s ease-out';
+            fuelElement.style.left = '-100%';
+            fuelElement.style.opacity = 0;
           }, 3000);
         } else if (phase === 'OpenTunnel') {
           const delay = index * 1000;
@@ -48,6 +66,11 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
             playerElement.style.top = positionStyle;
             playerElement.style.left = '150vw';
             playerElement.style.transition = 'all 12s ease-out';
+
+            fuelElement.style.top = positionStyle;
+            fuelElement.style.left = '150vw';
+            fuelElement.style.transition = 'all 12s ease-out';
+            fuelElement.style.opacity = 1;
           }, 1000 + delay);
           
           /*
@@ -66,13 +89,20 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
   return (
     <div className="player-container">
       {sortedPlayers.map((player, index) => (
-        <img
-          key={player.id}
-          ref={playerRefs.current[index]}
-          src={player.src}
-          alt={player.id.toString()}
-          className={`player-${index + 1}`}
-        />
+          <div className={`player-${index + 1} flex flex-row items-center justify-center`} key={index}>
+            <p
+                ref={fuelRefs.current[index]}
+                className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full opacity-70"
+            >
+              {player.Fuel}
+            </p>
+            <img
+                key={player.id}
+                ref={playerRefs.current[index]}
+                src={player.src}
+                alt={player.id.toString()}
+            />
+          </div>
       ))}
     </div>
   );

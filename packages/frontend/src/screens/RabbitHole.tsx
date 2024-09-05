@@ -32,7 +32,7 @@ export type ConnectedUser = {
     Fuel: number
 }
 
-export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset";
+export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
 
 
 function RabbitHoleGame() {
@@ -391,53 +391,57 @@ function RabbitHoleGame() {
     //setIsRolling(true);
     setGameOver(true);
     pause();
-    openLoadingModal();
-    await finishTunnelGame(Number(raceId), isWon, smartAccountClient).then(async data => {
-      await waitForTransactionReceipt(config, {
-        hash: data,
-        confirmations: 2,
-      });
-      /*
-      socket.emit("update-progress", {
-        raceId,
-        userAddress: smartAccountAddress,
-        property: "game2-set-fuel",
-        value: { fuel: 10, maxAvailableFuel: 0 }
-      });
-      */
-      closeLoadingModal();
 
-      if (isWon) {
+    // wait for animations to finish
+    setTimeout(async () => {
+      openLoadingModal();
+      await finishTunnelGame(Number(raceId), isWon, smartAccountClient).then(async data => {
+        await waitForTransactionReceipt(config, {
+          hash: data,
+          confirmations: 2,
+        });
+        /*
         socket.emit("update-progress", {
           raceId,
           userAddress: smartAccountAddress,
-          property: "game2-complete",
-          value: {
-            isWon: true,
-          }
+          property: "game2-set-fuel",
+          value: { fuel: 10, maxAvailableFuel: 0 }
         });
-        if (playersLeft === 1) {
-          setModalType(undefined);
-          openWinModal();
-          setWinModalPermanentlyOpened(true);
-        }
-      } else {
-        setUserIsLost(true);
-        socket.emit("update-progress", {
-          raceId,
-          userAddress: smartAccountAddress,
-          property: "game2-complete",
-          value: {
-            isWon: false,
+        */
+        closeLoadingModal();
+
+        if (isWon) {
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-complete",
+            value: {
+              isWon: true,
+            }
+          });
+          if (playersLeft === 1) {
+            setModalType(undefined);
+            openWinModal();
+            setWinModalPermanentlyOpened(true);
           }
-        });
-        if (playersLeft === 1) {
-          setModalType(undefined);
-          openLoseModal();
-          setLoseModalPermanentlyOpened(true);
+        } else {
+          setUserIsLost(true);
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-complete",
+            value: {
+              isWon: false,
+            }
+          });
+          if (playersLeft === 1) {
+            setModalType(undefined);
+            openLoseModal();
+            setLoseModalPermanentlyOpened(true);
+          }
         }
-      }
-    });
+      });
+    }, 2000);
   }
 
 
@@ -470,44 +474,45 @@ function RabbitHoleGame() {
     */
 
     const remainingPlayersCount = newListOfPlayers.length;
-    
-    // if user was playing with himself
-    if (remainingPlayersCount === 0) {
-      console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
-      handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
-      setIsRolling(false);
-      return;
-    }
-    
-    // if user lost the game
-    if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
-      console.log("YOU LOSE :(")
-      handleFinishTunnelGame(raceId as string, false, remainingPlayersCount);
-      setIsRolling(false);
-      return;
-    }
 
-    // if the user is one in players array -> he won
-    if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
-      console.log("YOU WIN!");
-      handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
-      setIsRolling(false);
-      return;
-    }
+      // if user was playing with himself
+      if (remainingPlayersCount === 0) {
+        console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
+        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
+        setIsRolling(false);
+        return;
+      }
 
-    setPlayers(newListOfPlayers);
-    //setMaxFuel(maxFuel - displayNumber);
-    setDisplayNumber(0);
-    
-    // refetch users data
-    //return;
-    console.log("next round... time reset");
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-    restart(time);
-    //socket.emit("get-all-fuel-tunnel", { raceId });
-    //setPhase("Default");
-    //setIsRolling(false);
+      // if user lost the game
+      if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
+        console.log("YOU LOSE :(")
+        handleFinishTunnelGame(raceId as string, false, remainingPlayersCount);
+        setIsRolling(false);
+        return;
+      }
+
+      // if the user is one in players array -> he won
+      if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
+        console.log("YOU WIN!");
+
+        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
+        setIsRolling(false);
+        return;
+      }
+
+      setPlayers(newListOfPlayers);
+      //setMaxFuel(maxFuel - displayNumber);
+      setDisplayNumber(0);
+
+      // refetch users data
+      //return;
+      console.log("next round... time reset");
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restart(time);
+      //socket.emit("get-all-fuel-tunnel", { raceId });
+      //setPhase("Default");
+      //setIsRolling(false);
   }
 
   function onNextGameClicked() {

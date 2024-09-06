@@ -120,7 +120,8 @@ function RabbitHoleGame() {
       });
 
       
-      socket.on('leaved', () => {
+      socket.on('leaved', (data) => {
+        console.log("USER LEFT THE GAME:", data);
         setAmountOfConnected(amountOfConnected - 1);
         if (amountOfConnected - 1 == 1) {
           pause();

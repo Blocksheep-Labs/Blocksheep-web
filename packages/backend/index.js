@@ -18,14 +18,20 @@ let racesProgresses = [];
 io.on("connection", socket => { 
     // when user disconnects
     socket.on('disconnect', () => {
-        const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+        let user = null;
+        const roomsToEmitDisconnectEvent = connectedUsers.filter(i => {
+            if (i.id === socket.id) {
+                user = i;
+            }
+        }).map(i => i.room);
         // rm user
         connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
 
         // send the socket events
+        console.log({roomsToEmitDisconnectEvent})
         roomsToEmitDisconnectEvent.forEach(roomName => {
             socket.leave(roomName);
-            io.to(roomName).emit('leaved', {socketId: socket.id});
+            io.to(roomName).emit('leaved', {...user});
         });
     });
 
@@ -49,6 +55,7 @@ io.on("connection", socket => {
 
         socket.join(roomName);
         // send the socket event
+        console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName})
         io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId});
     });
 
@@ -107,7 +114,10 @@ io.on("connection", socket => {
                     game3_preview: false,
                     game3_rules: false,
                     game3: {
+                        selectedItems: [],
+                        points: [],
                         isCompleted: false,
+                        isPlaying: false,
                     }
                 }
             }

@@ -75,6 +75,17 @@ module.exports = (property, value, rProgress) => {
         case "game3-rules-complete":
             rProgress.progress.game3_rules = true;
             break;
+        case "game3-enroll": 
+            rProgress.progress.game3.isPlaying = true;
+            break;
+        case "game3-complete": 
+            rProgress.progress.game3.isPlaying = false;
+            rProgress.progress.game3.isCompleted = true;
+            break;
+        case "game3-add-item": 
+            rProgress.progress.game3.selectedItems.push(value.item);
+            rProgress.progress.game3.points.push(value.point);
+            break;
         case "game3-complete": 
             rProgress.progress.game3.isCompleted = true;
             break;

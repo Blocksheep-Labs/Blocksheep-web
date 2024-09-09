@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import WinMain from "../assets/win/win-main.png";
 import NextFlag from "../assets/common/flag.png";
-import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../utils/contract-functions";
+import { getScoreAtRaceOfUser } from "../utils/contract-functions";
 import { usePrivy } from "@privy-io/react-auth";
 
 export type WinModalProps = {
@@ -29,14 +29,14 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalPr
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
-      <div className="mx-[10%] mb-[40%] mt-[30%]">
+      <div className="mx-[10%] mb-[40%] mt-[30%] relative">
         <img src={WinMain} alt="loading-bg" />
         { 
           !preloadedScore
           ?
-          <p className="text-6xl font-bold text-white text-center mt-10">{score?.toString().length ? score : "Pls wait..."}</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">{score?.toString().length ? score : "Pls wait..."}</p>
           :
-          <p className="text-6xl font-bold text-white text-center mt-10">+{preloadedScore}</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+{preloadedScore}</p>
         }
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">

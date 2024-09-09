@@ -1,9 +1,6 @@
 "use client"
-import { useEffect, useState } from "react";
 import LoseMain from "../assets/lose/lose-main.png";
 import NextFlag from "../assets/common/flag.png";
-import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../utils/contract-functions";
-import { usePrivy } from "@privy-io/react-auth";
 
 export type WinModalProps = {
   handleClose: () => void;
@@ -20,9 +17,9 @@ function LoseModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalP
         { 
           !preloadedScore
           ?
-          <p className="text-6xl font-bold text-white text-center mt-10">+0</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">+0</p>
           :
-          <p className="text-6xl font-bold text-white text-center mt-10">+{preloadedScore}</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+{preloadedScore}</p>
         }
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">

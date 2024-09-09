@@ -17,21 +17,28 @@ let racesProgresses = [];
 
 io.on("connection", socket => { 
     // when user disconnects
-    socket.on('disconnect', () => {
-        let user = null;
-        const roomsToEmitDisconnectEvent = connectedUsers.filter(i => {
-            if (i.id === socket.id) {
-                user = i;
-            }
-        }).map(i => i.room);
+     // when user disconnects
+     socket.on('disconnect', () => {
+         const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+
         // rm user
-        connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
+        let userAddress = null;
+        connectedUsers = connectedUsers.filter(i => {
+            // i.id !== socket.id
+            if (i.id !== socket.id) {
+                return true;
+            } else {
+                userAddress = i.userAddress;
+                return false;
+            }
+        });
+
+        console.log({roomsToEmitDisconnectEvent})
 
         // send the socket events
-        console.log({roomsToEmitDisconnectEvent})
         roomsToEmitDisconnectEvent.forEach(roomName => {
             socket.leave(roomName);
-            io.to(roomName).emit('leaved', {...user});
+            io.to(roomName).emit('leaved', {socketId: socket.id, userAddress});
         });
     });
 
@@ -109,6 +116,8 @@ io.on("connection", socket => {
                         isWon: false,
                         isPending: false,
                         gameReached: false,
+                        isEliminated: false,
+                        pointsAllocated: 0,
                     },
 
                     game3_preview: false,

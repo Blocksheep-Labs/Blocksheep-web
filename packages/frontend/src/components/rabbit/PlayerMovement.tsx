@@ -7,7 +7,7 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
   // Sort players by Fuel submitted
   const sortedPlayers = [...players].sort((a, b) => b.Fuel - a.Fuel);
 
-  console.log("SORTED PLAYERS:", {sortedPlayers})
+  //console.log("SORTED PLAYERS:", {sortedPlayers})
 
   const playerRefs = useRef([]);
   const fuelRefs = useRef([]);
@@ -50,8 +50,8 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
             fuelElement.style.opacity = 0;
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
-          //playerElement.style.left = '80%';
-          //fuelElement.style.left = '80%';
+          playerElement.style.left = '50%';
+          fuelElement.style.left = '50%';
           setTimeout(() => {
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';

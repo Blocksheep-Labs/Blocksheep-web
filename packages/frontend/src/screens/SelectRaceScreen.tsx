@@ -46,12 +46,11 @@ function SelectRaceScreen() {
 
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      navigate(`/race/${raceId}/rabbit-hole/rules`, {
+      navigate(`/race/${raceId}/rabbit-hole/preview`, {
         state: generateStateObjectForGame(data, progress, "board")
       });
     });
     return;
-    
     
     
     if (!progress?.countdown) {
@@ -314,7 +313,6 @@ function SelectRaceScreen() {
             />
           ))}
       </div>
-
       { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
       { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {

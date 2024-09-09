@@ -120,7 +120,7 @@ export default function BullrunRules() {
                 <div className="bg-yellow-500 h-2.5" style={{width: `${totalSeconds * 10}%`}}></div>
             </div>
             <div className="mt-7 flex w-full justify-center">
-                <RibbonLabel text="RULES"/>
+                <RibbonLabel text="HOW TO PLAY"/>
             </div>
             <div className="h-fit flex flex-col gap-3 px-10 mt-4">
                 <Rule text="1 VS 1 AGAINST OTHER PLAYERS"/>

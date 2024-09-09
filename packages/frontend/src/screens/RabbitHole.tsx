@@ -49,7 +49,6 @@ function RabbitHoleGame() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [isRolling, setIsRolling] = useState(false);
-  const [amountOfReached, setAmountOfReached] = useState(0);
   const [amountOfPending, setAmountOfPending] = useState(0);
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
   const {smartAccountClient} = useSmartAccount();
@@ -60,6 +59,7 @@ function RabbitHoleGame() {
   const [gameOver, setGameOver] = useState(false);
   const [userIsLost, setUserIsLost] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
+  const [amountOfAllocatedPoinst, setAmountOfAllocatedPoints] = useState(0);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -145,7 +145,6 @@ function RabbitHoleGame() {
 
         console.log("FUEL TUNNEL DATA", usersData);
 
-        let amountOfReachedPerGame2 = 0;
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
 
@@ -154,12 +153,10 @@ function RabbitHoleGame() {
             //setDisplayNumber(i.fuel);
             setMaxFuel(i.maxAvailableFuel);
           }
-          i.gameReached && amountOfReachedPerGame2++;
           i.isPending && amountPendingPerGame2++;
           i.isCompleted && amountOfCompleted++;
         });
 
-        setAmountOfReached(amountOfReachedPerGame2);
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
@@ -218,7 +215,7 @@ function RabbitHoleGame() {
         if (progress.property === "game2-wait-to-finish") {
           // set amount of next clicked
           setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
-          if (amountOfPlayersnextClicked + 1 >= raceData.numberOfPlayersRequired) {
+          if (amountOfPlayersnextClicked + 1 >= raceData.numberOfPlayersRequired ) {
             closeLoadingModal();
             navigate(`/race/${raceId}/bullrun/preview`, {
               state: location.state
@@ -252,12 +249,9 @@ function RabbitHoleGame() {
   useEffect(() => {
     if (raceData && !isRolling) {
       console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<<")
-      if (amountOfReached !== raceData.numberOfPlayersRequired) {
-        console.log("Amount of players is enough, closing waiting modal...");
-        closeWaitingModal();
-      }
+      closeWaitingModal();
     }
-  }, [amountOfReached, amountOfPending, raceData, isRolling]);
+  }, [raceData, isRolling]);
 
   /*
   useEffect(() => {
@@ -272,13 +266,19 @@ function RabbitHoleGame() {
   // kick player if page chnages (closes)
   useEffect(() => {
     const handleTabClosing = () => {
+      socket.emit("update-progress", {
+        raceId,
+        userAddress: smartAccountAddress,
+        property: "game2-eliminate",
+      });
+      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE);
       openLoseModal();
     }
     window.addEventListener('unload', handleTabClosing);
     return () => {
       window.removeEventListener('unload', handleTabClosing);
     }
-  }, [openLoseModal]);
+  }, [openLoseModal, socket, smartAccountAddress, raceId]);
 
 
   // CHECK USER TO BE REGISTERED
@@ -390,13 +390,44 @@ function RabbitHoleGame() {
   }, [isRolling, players, roundIsFinished]);
 
 
+  // INITIAL USE EFFECT
+  useEffect(() => {
+    if (smartAccountAddress && location.state.progress) {
+      const game2state = location.state.progress.game2;
+      console.log(">>>>>>>>>>> INIT AFTER LEAVE <<<<<<<<<<<", {game2state});
+      /*
+        fuel: 0
+        gameReached: false
+        isCompleted: false
+        isEliminated: false
+        isPending: false
+        isWon: false
+        maxAvailableFuel: 10
+        waitingToFinish: false
+        pointsAllocated: 0
+      */
+
+      if (game2state.isEliminated) {
+        setUserIsLost(true);
+      }
+
+      if (game2state.pointsAllocated.toString().length) {
+        setAmountOfAllocatedPoints(game2state.pointsAllocated);
+      }
+    }
+  }, [smartAccountAddress]);
+
+
   const handleFinishTunnelGame = async(raceId: string, isWon: boolean, playersLeft: number) => {
     //setIsRolling(true);
     pause();
-
+    
     if (!gameOver) {
       setGameOver(true);
       !isWon && setUserIsLost(true);
+      
+      const amountOfPointsToAllocate = playersLeft <= 3 ? playersLeft : 0;
+      setAmountOfAllocatedPoints(amountOfPointsToAllocate)
 
       socket.emit("update-progress", {
         raceId,
@@ -404,6 +435,7 @@ function RabbitHoleGame() {
         property: "game2-complete",
         value: {
           isWon,
+          pointsAllocated: amountOfPointsToAllocate,
         }
       });
     }
@@ -472,6 +504,12 @@ function RabbitHoleGame() {
       // if user lost the game
       if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
         console.log("YOU LOSE :(")
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: "game2-eliminate",
+        });
+
         handleFinishTunnelGame(raceId as string, false, remainingPlayersCount);
         setIsRolling(false);
         //return;
@@ -589,7 +627,7 @@ function RabbitHoleGame() {
           <RabbitTail phase={phase} />
         </div>
         <div className="control-panels mb-10">
-          <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={isRolling}/>
+          <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={totalSeconds === 0 || userIsLost}/>
           <GasolineGauge fuel={(maxFuel - displayNumber) * 8.8}/>
         </div>
 

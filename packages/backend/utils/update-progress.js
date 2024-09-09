@@ -51,6 +51,9 @@ module.exports = (property, value, rProgress) => {
             }
             break;
         }
+        case "game2-eliminate": 
+            rProgress.progress.game2.isEliminated = true;
+            break;
         case "game2-set-fuel":
             rProgress.progress.game2 = {
                 ...rProgress.progress.game2,
@@ -64,6 +67,7 @@ module.exports = (property, value, rProgress) => {
                 ...rProgress.progress.game2,
                 isCompleted: true,
                 isWon: value.isWon,
+                pointsAllocated: value.pointsAllocated,
             }
             break;
         case "game2-wait-to-finish": {

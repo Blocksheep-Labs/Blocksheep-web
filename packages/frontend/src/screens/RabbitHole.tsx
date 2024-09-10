@@ -61,6 +61,7 @@ function RabbitHoleGame() {
   const [gameCompleted, setGameCompleted] = useState(false);
   const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
+  const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -430,10 +431,7 @@ function RabbitHoleGame() {
       setGameOver(true);
       setIsRolling(false);
       setGameCompleted(true);
-      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE);
-      openLoseModal();
-      setLoseModalPermanentlyOpened(true);
-     
+      
       if (game2state.isEliminated) {
         setUserIsLost(true);
       }
@@ -441,11 +439,14 @@ function RabbitHoleGame() {
       if (game2state.pointsAllocated.toString().length) {
         setAmountOfAllocatedPoints(game2state.pointsAllocated);
       }
+      
+      openLoseModal();
+      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, true);
     }
   }, [smartAccountAddress, raceId]);
 
 
-  const handleFinishTunnelGame = async(raceId: string, isWon: boolean, playersLeft: number) => {
+  const handleFinishTunnelGame = async(raceId: string, isWon: boolean, playersLeft: number, finishPermanently?: boolean) => {
     //setIsRolling(true);
     pause();
     
@@ -467,7 +468,7 @@ function RabbitHoleGame() {
       });
     }
 
-    if (playersLeft === 1) {
+    if (playersLeft === 1 || finishPermanently) {
       setGameCompleted(true);
       openLoadingModal();
       await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfAllocatedPoints).then(async data => {
@@ -584,11 +585,13 @@ function RabbitHoleGame() {
   function openWinModal() {
     setIsOpen(true);
     setModalType("win");
+    setWinModalPermanentlyOpened(true);
   }
 
   function openLoseModal() {
     setIsOpen(true);
     setModalType("lose");
+    setLoseModalPermanentlyOpened(true);
   }
 
   function openWaitingModal() {
@@ -605,6 +608,8 @@ function RabbitHoleGame() {
     setIsOpen(false);
     setModalType(undefined);
     openRaceModal();
+    setLoseModalPermanentlyOpened(false);
+    setWinModalPermanentlyOpened(false);
   }
 
   function closeWaitingModal() {
@@ -663,11 +668,13 @@ function RabbitHoleGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
-            {(modalType === "lose" || loseModalPermanentlyOpened)  && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
-            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1}/>}
+            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
+            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}
+        {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
+        {winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
     </div>
   );
 }

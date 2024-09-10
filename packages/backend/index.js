@@ -19,7 +19,8 @@ io.on("connection", socket => {
     // when user disconnects
      // when user disconnects
      socket.on('disconnect', () => {
-         const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+        const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+
 
         // rm user
         let userAddress = null;
@@ -37,8 +38,9 @@ io.on("connection", socket => {
 
         // send the socket events
         roomsToEmitDisconnectEvent.forEach(roomName => {
+            let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
             socket.leave(roomName);
-            io.to(roomName).emit('leaved', {socketId: socket.id, userAddress});
+            io.to(roomName).emit('leaved', {socketId: socket.id, userAddress, rProgress});
         });
     });
 

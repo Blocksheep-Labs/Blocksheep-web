@@ -59,7 +59,8 @@ function RabbitHoleGame() {
   const [gameOver, setGameOver] = useState(false);
   const [userIsLost, setUserIsLost] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
-  const [amountOfAllocatedPoinst, setAmountOfAllocatedPoints] = useState(0);
+  const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
+  const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -123,13 +124,21 @@ function RabbitHoleGame() {
       socket.on('leaved', (data) => {
         console.log("USER LEFT THE GAME:", data);
         setAmountOfConnected(amountOfConnected - 1);
-        if (amountOfConnected - 1 == 1) {
-          pause();
-          if (modalIsOpen) {
-            setIsOpen(false);
-            setModalType(undefined);
+
+        // if user was sending a TX
+        if (data.rProgress.progress.game2.isPending && amountOfPending - 1 >= 0) {
+          setAmountOfPending(amountOfPending - 1);
+        }
+        
+        if (!isRolling) {
+          if (amountOfConnected - 1 == 1 && !gameCompleted) {
+            pause();
+            if (modalIsOpen) {
+              setIsOpen(false);
+              setModalType(undefined);
+            }
+            handleFinishTunnelGame(String(raceId), true, 1);
           }
-          handleFinishTunnelGame(String(raceId), true, 1);
         }
       });
 
@@ -200,7 +209,7 @@ function RabbitHoleGame() {
 
         if (progress.property === "game2-complete") {
           if (raceData.numberOfPlayersRequired - (amountOfComplteted + 1) === -1) {
-            await finishTunnelGame(Number(raceId), true, smartAccountClient).then(async data => {
+            await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
                 confirmations: 2,
@@ -233,7 +242,18 @@ function RabbitHoleGame() {
         socket.off('progress-updated');
       }
     }
-  }, [socket, amountOfConnected, smartAccountAddress, amountOfComplteted, raceData, amountOfPlayersnextClicked, gameOver, amountOfPending]);
+  }, [
+    socket, 
+    amountOfConnected, 
+    smartAccountAddress, 
+    amountOfComplteted, 
+    raceData, 
+    amountOfPlayersnextClicked, 
+    gameOver, 
+    amountOfPending, 
+    gameCompleted,
+    isRolling
+  ]);
 
   // fetch required amount of users to wait
   useEffect(() => {
@@ -265,7 +285,8 @@ function RabbitHoleGame() {
 
   // kick player if page chnages (closes)
   useEffect(() => {
-    const handleTabClosing = () => {
+    const handleTabClosing = (e: any) => {
+      e.preventDefault();
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
@@ -392,7 +413,7 @@ function RabbitHoleGame() {
 
   // INITIAL USE EFFECT
   useEffect(() => {
-    if (smartAccountAddress && location.state.progress) {
+    if (smartAccountAddress && location.state.progress && String(raceId).length) {
       const game2state = location.state.progress.game2;
       console.log(">>>>>>>>>>> INIT AFTER LEAVE <<<<<<<<<<<", {game2state});
       /*
@@ -406,16 +427,22 @@ function RabbitHoleGame() {
         waitingToFinish: false
         pointsAllocated: 0
       */
-
+      setGameOver(true);
+      setIsRolling(false);
+      setGameCompleted(true);
+      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE);
+      openLoseModal();
+      setLoseModalPermanentlyOpened(true);
+     
       if (game2state.isEliminated) {
         setUserIsLost(true);
       }
-
+      
       if (game2state.pointsAllocated.toString().length) {
         setAmountOfAllocatedPoints(game2state.pointsAllocated);
       }
     }
-  }, [smartAccountAddress]);
+  }, [smartAccountAddress, raceId]);
 
 
   const handleFinishTunnelGame = async(raceId: string, isWon: boolean, playersLeft: number) => {
@@ -426,7 +453,7 @@ function RabbitHoleGame() {
       setGameOver(true);
       !isWon && setUserIsLost(true);
       
-      const amountOfPointsToAllocate = playersLeft <= 3 ? playersLeft : 0;
+      const amountOfPointsToAllocate = playersLeft <= 3 ? (4 - playersLeft) : 0;
       setAmountOfAllocatedPoints(amountOfPointsToAllocate)
 
       socket.emit("update-progress", {
@@ -443,7 +470,7 @@ function RabbitHoleGame() {
     if (playersLeft === 1) {
       setGameCompleted(true);
       openLoadingModal();
-      await finishTunnelGame(Number(raceId), isWon, smartAccountClient).then(async data => {
+      await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfAllocatedPoints).then(async data => {
         await waitForTransactionReceipt(config, {
           hash: data,
           confirmations: 2,
@@ -498,7 +525,7 @@ function RabbitHoleGame() {
         console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
         handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
         setIsRolling(false);
-        //return;
+        return;
       }
 
       // if user lost the game
@@ -636,7 +663,7 @@ function RabbitHoleGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
-            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
+            {(modalType === "lose" || loseModalPermanentlyOpened)  && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
             {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={1}/>}
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>

@@ -12,12 +12,12 @@ export type WinModalProps = {
 function LoseModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalProps) {
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
-      <div className="mx-[10%] mb-[40%] mt-[30%]">
+      <div className="mx-[10%] mb-[40%] mt-[30%] relative">
         <img src={LoseMain} alt="loading-bg" />
         { 
           !preloadedScore
           ?
-          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">+0</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+0</p>
           :
           <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+{preloadedScore}</p>
         }

@@ -355,7 +355,8 @@ export const refundBalance = async(amount: number, raceId: number, smartAccountC
 export const getScoreAtGameOfUser = async(
     raceId: number,
     gameIndex: number,
-    userAddress: `0x${string}`
+    userAddress: `0x${string}`,
+    gameName: string
 ) => {
     const data = await readContract(config, {
         ...BLOCK_SHEEP_BASE_CONFIG,
@@ -363,7 +364,8 @@ export const getScoreAtGameOfUser = async(
         args: [
             BigInt(raceId),
             BigInt(gameIndex),
-            userAddress
+            userAddress,
+            gameName
         ]
     });
 
@@ -396,6 +398,7 @@ export const finishTunnelGame = async(
     raceId: number,
     isWon: boolean,
     smartAccountClient: any,
+    points: number
 ) => {
     const finishTunnelGameHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
@@ -404,7 +407,7 @@ export const finishTunnelGame = async(
         data: encodeFunctionData({
             abi: BlockSheepAbi,
             functionName: "finishTunnelGame",
-            args: [raceId, isWon]
+            args: [raceId, isWon, points]
         }),
     });
 

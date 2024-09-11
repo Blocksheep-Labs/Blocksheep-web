@@ -14,12 +14,19 @@ function LoadingModal({
   closeHandler: () => void;
   answers: any[];
 }) {
-  const { smartAccountClient } = useSmartAccount();
+  const { smartAccountClient, smartAccountAddress } = useSmartAccount();
 
   useEffect(() => {
     if (raceId.toString() && gameIndex.toString() && questionIndexes && answers.length) {
       console.log("ANSWERS", { answers, answersAreSimilar: new Set(answers).size === 1 });
-      distributeRewardOfTheGame(raceId, gameIndex, questionIndexes, smartAccountClient, new Set(answers).size === 1)
+      distributeRewardOfTheGame(
+        raceId, 
+        gameIndex, 
+        questionIndexes, 
+        smartAccountClient, 
+        new Set(answers).size === 1, 
+        smartAccountAddress
+      )
         .then(data => {
           console.log("Distribute reward:", data);
           // wait for tx to finish before finalizing scores on next modal (win / lose modal)

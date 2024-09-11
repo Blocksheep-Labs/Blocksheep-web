@@ -7,7 +7,6 @@ import RabbitTail from "../components/rabbit/RabbitTail";
 import Lever from "../components/rabbit/Lever";
 import GasolineGauge from "../components/rabbit/GasolineGauge";
 import WinModal from "../components/WinModal";
-import LoadingModal from "../components/LoadingModal";
 import RaceModal from "../components/RaceModal";
 import Timer from "../components/Timer";
 import UserCount from "../components/UserCount";
@@ -16,7 +15,6 @@ import { useTimer } from "react-timer-hook";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { socket } from "../utils/socketio";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
-import { usePrivy } from "@privy-io/react-auth";
 import { finishTunnelGame, getRaceById, submitFuel } from "../utils/contract-functions";
 import LoseModal from "../components/LoseModal";
 import { config } from "../config/wagmi";
@@ -138,7 +136,7 @@ function RabbitHoleGame() {
               setIsOpen(false);
               setModalType(undefined);
             }
-            handleFinishTunnelGame(String(raceId), true, 1);
+            handleFinishTunnelGame(String(raceId), true, 1, 3, true);
           }
         }
       });
@@ -210,6 +208,7 @@ function RabbitHoleGame() {
 
         if (progress.property === "game2-complete") {
           if (raceData.numberOfPlayersRequired - (amountOfComplteted + 1) === -1) {
+            console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon: true, smartAccountClient, amountOfAllocatedPoints});
             await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
@@ -293,7 +292,7 @@ function RabbitHoleGame() {
         userAddress: smartAccountAddress,
         property: "game2-eliminate",
       });
-      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE);
+      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
       openLoseModal();
     }
     window.addEventListener('unload', handleTabClosing);
@@ -441,21 +440,24 @@ function RabbitHoleGame() {
       }
       
       openLoseModal();
-      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, true);
+      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
     }
   }, [smartAccountAddress, raceId]);
 
 
-  const handleFinishTunnelGame = async(raceId: string, isWon: boolean, playersLeft: number, finishPermanently?: boolean) => {
+  const handleFinishTunnelGame = async(
+    raceId: string, 
+    isWon: boolean, 
+    playersLeft: number, 
+    amountOfPointsToAllocate: number, 
+    finishPermanently?: boolean
+  ) => {
     //setIsRolling(true);
     pause();
     
     if (!gameOver) {
       setGameOver(true);
       !isWon && setUserIsLost(true);
-      
-      const amountOfPointsToAllocate = playersLeft <= 3 ? (4 - playersLeft) : 0;
-      setAmountOfAllocatedPoints(amountOfPointsToAllocate)
 
       socket.emit("update-progress", {
         raceId,
@@ -471,7 +473,8 @@ function RabbitHoleGame() {
     if (playersLeft === 1 || finishPermanently) {
       setGameCompleted(true);
       openLoadingModal();
-      await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfAllocatedPoints).then(async data => {
+      console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
+      await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
         await waitForTransactionReceipt(config, {
           hash: data,
           confirmations: 2,
@@ -524,7 +527,7 @@ function RabbitHoleGame() {
       // if user was playing with himself
       if (remainingPlayersCount === 0) {
         console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
-        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
+        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3, true);
         setIsRolling(false);
         return;
       }
@@ -538,7 +541,11 @@ function RabbitHoleGame() {
           property: "game2-eliminate",
         });
 
-        handleFinishTunnelGame(raceId as string, false, remainingPlayersCount);
+        const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
+        setAmountOfAllocatedPoints(amountOfPointsToAllocate);
+        console.log({amountOfPointsToAllocate})
+
+        handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
         setIsRolling(false);
         //return;
       }
@@ -546,7 +553,8 @@ function RabbitHoleGame() {
       // if the user is one in players array -> he won
       if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
         console.log("YOU WIN!");
-        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount);
+        setAmountOfAllocatedPoints(3);
+        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
         setIsRolling(false);
         //return;
       }
@@ -668,12 +676,17 @@ function RabbitHoleGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
-            {modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
-            {modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
+            {
+            //modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>
+            }
+
+            {
+            //modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>
+            }
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}
-        {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>}
+        {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
         {winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
     </div>
   );

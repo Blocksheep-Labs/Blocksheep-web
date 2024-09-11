@@ -28,16 +28,12 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-  const generateStateObjectForGame = (data: any, progress: any, step: "questions" | "board" | "start") => {
+  const generateStateObjectForGame = (data: any, progress: any, step?: "questions" | "board" | "start") => {
     return {
       questionsByGames: data.questionsByGames, 
       amountOfRegisteredUsers: data.registeredUsers.length, 
       progress,
-      completed: progress?.game1.completed || false,
-      of: progress?.game1.of || 0,
-      isDistributed: progress?.game1.isDistributed || false,
       step,
-      waitingToFinish: progress?.game1.waitingToFinish || false,
     }
   }
 
@@ -47,10 +43,11 @@ function SelectRaceScreen() {
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       navigate(`/race/${raceId}/rabbit-hole/preview`, {
-        state: generateStateObjectForGame(data, progress, "board")
+        state: generateStateObjectForGame(data, progress, undefined)
       });
     });
     return;
+    
     
     
     if (!progress?.countdown) {
@@ -65,7 +62,7 @@ function SelectRaceScreen() {
 
     // preview underdog game, passing the game state
     if (!progress?.game1_preview) {
-      console.log("GAME-1 PREVIEW");
+      console.log("UNDERDOG PREVIEW");
       getRaceById(Number(raceId),  smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/underdog/preview`, {
           state: generateStateObjectForGame(data, progress, "questions")
@@ -76,7 +73,7 @@ function SelectRaceScreen() {
 
     // rules underdog game, passing the game state
     if (!progress?.game1_rules) {
-      console.log("GAME-1 RULES");
+      console.log("UNDERDOG RULES");
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/underdog/rules`, {
           state: generateStateObjectForGame(data, progress, "questions")
@@ -87,7 +84,7 @@ function SelectRaceScreen() {
 
     // game 1 was not passed
     if (!progress?.game1?.isDistributed) {
-      console.log("GAME-1")
+      console.log("UNDERDOG")
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/underdog`, {
           state: generateStateObjectForGame(data, progress, "questions")
@@ -109,68 +106,68 @@ function SelectRaceScreen() {
     
     // preview rabbit hole game, passing the game state
     if (!progress?.game2_preview) {
-      console.log("GAME-2 PREVIEW");
+      console.log("RABBIT-HOLE PREVIEW");
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/rabbit-hole/preview`, {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, undefined)
         });
       });
       
       return;
     }
 
+    
     // rules rabbit hole game, passing the game state
     if (!progress?.game2_rules) {
-      console.log("GAME-2 RULES");
+      console.log("RABBIT-HOLE RULES");
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/rabbit-hole/rules`, {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, undefined)
         })
       })
       return;
     }
 
+    // user not clicked the 'next' button on win/lose modal of the 2nd game
+    if (!progress?.game2.waitingToFinish) {
+      console.log("RABBIT-HOLE");
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+        navigate(`/race/${raceId}/rabbit-hole`, {
+          state: generateStateObjectForGame(data, progress, undefined)
+        });
+      });
+      return;
+    }
+
     if (!progress?.game3_preview) {
-      console.log("GAME-3 PREVIEW");
+      console.log("BULLRUN PREVIEW");
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/bullrun/preview`, {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, undefined)
         });
       });
       return;
     }
 
     if (!progress?.game3_rules) {
-      console.log("GAME-3 RULES");
+      console.log("BULLRUN RULES");
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/bullrun/rules`, {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, undefined)
         });
       });
       return;
     }
 
     if (!progress?.game3.isCompleted) {
-      console.log("GAME-3 RULES");
+      console.log("BULLRUN RULES");
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         navigate(`/race/${raceId}/bullrun`, {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, undefined)
         });
       });
       return;
-    }
-
-    /*
-      !!! THIS WILL BE USED AFTER THE 3rd game will be finished !!!
-      // game 2 was not passed
-      if (!progress?.game2?.isCompleted) {
-        navigate(`/race/${raceId}/rabbit-hole`, {
-          state: generatStateObjectForGame2(progress)
-        });
-        return;
-      }
-    */
-      
+    }      
   }, [raceId]);
 
   const fetchAndSetRaces = useCallback(async() => {

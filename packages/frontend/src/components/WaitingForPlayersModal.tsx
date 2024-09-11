@@ -1,8 +1,4 @@
-import React, { useEffect } from "react";
 import WaitingBackground from "../assets/loading/waiting-players-bg.png";
-import { distributeRewardOfTheGame } from "../utils/contract-functions";
-import { config } from "../config/wagmi";
-import { waitForTransactionReceipt  } from '@wagmi/core';
 
 function WaitingForPlayersModal({
     numberOfPlayersRequired,

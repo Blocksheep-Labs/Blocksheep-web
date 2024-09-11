@@ -42,10 +42,10 @@ function UnderdogGame() {
   const [waitingToFinishModalPermanentlyOpened, setWaitingToFinishModalPermanentlyOpened] = useState(false);
   const [raceboardProgress, setRaceboardProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const questions = location.state?.questionsByGames[currentGameIndex];
-  const { step, completed, of, isDistributed, questionsByGames, waitingToFinish } = location.state;
+  const { step, questionsByGames, progress } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  const [finished, setFinished] = useState(questions.length === completed);
+  const [finished, setFinished] = useState(questions.length === progress.game1.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const [amountOfPlayersWaitingToFinish, setAmountOfPlayersWaitingToFinish] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
@@ -444,6 +444,8 @@ function UnderdogGame() {
     if (smartAccountAddress) {
       updateProgress();
 
+      const {isDistributed, of, completed, waitingToFinish} = progress.game1;
+
       // user finished the game
       if (step === "board") {
         console.log("BOARD");
@@ -479,7 +481,7 @@ function UnderdogGame() {
         return;
       }
     }
-  }, [step, completed, of, isDistributed, questionsByGames, smartAccountAddress, waitingToFinish]);
+  }, [step, progress.game1, questionsByGames, smartAccountAddress]);
 
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
   console.log(amountOfConnected, raceData?.numberOfPlayersRequired);

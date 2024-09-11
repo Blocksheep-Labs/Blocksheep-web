@@ -1,0 +1,176 @@
+const updateProgress = require("../utils/update-progress");
+
+// { room: string, id: string, userAddress: string }
+let connectedUsers = [];
+// { room: string, userAddress: string, progress: ("countdown": number, "game-1": number, "board-1": number, "game-2": number) }
+let racesProgresses = [];
+
+module.exports = (io) => {
+    io.on("connection", socket => { 
+        // when user disconnects
+         // when user disconnects
+         socket.on('disconnect', () => {
+            const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+    
+    
+            // rm user
+            let userAddress = null;
+            connectedUsers = connectedUsers.filter(i => {
+                // i.id !== socket.id
+                if (i.id !== socket.id) {
+                    return true;
+                } else {
+                    userAddress = i.userAddress;
+                    return false;
+                }
+            });
+    
+            console.log({roomsToEmitDisconnectEvent})
+    
+            // send the socket events
+            roomsToEmitDisconnectEvent.forEach(roomName => {
+                let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+                socket.leave(roomName);
+                io.to(roomName).emit('leaved', {socketId: socket.id, userAddress, rProgress});
+            });
+        });
+    
+        // connect the live
+        socket.on('connect-live-game', ({ raceId, userAddress }) => {
+            const roomName = `race-${raceId}`;
+            // find user 
+            const data = connectedUsers.find(i => i.raceId === raceId && i.userAddress === userAddress);
+    
+            if (!data) {
+                // add user
+                connectedUsers.push({ room: roomName, id: socket.id, userAddress });
+            } else {
+                connectedUsers = connectedUsers.map(i => {
+                    if (i => i.raceId === raceId && i.userAddress === userAddress) {
+                        i.id = socket.id;
+                    }
+                    return i;
+                });
+            }
+    
+            socket.join(roomName);
+            // send the socket event
+            console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName})
+            io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId});
+        });
+    
+        // minimize race (game)
+        socket.on('minimize-live-game', () => {
+            const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
+            // rm user
+            connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
+    
+            // send the socket events
+            roomsToEmitDisconnectEvent.forEach(roomName => {
+                socket.leave(roomName);
+                io.to(roomName).emit('leaved', {socketId: socket.id});
+            });
+        });
+    
+        // user completes the game
+        socket.on('update-progress', ({ raceId, userAddress, property, value }) => {
+            const roomName = `race-${raceId}`;
+            let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+            //console.log("UPDATE:", roomName, userAddress, property, value)
+    
+            //console.log(roomName, userAddress, rProgress);
+            if (!rProgress) {
+                //console.log("No progress was found, setting new")
+                rProgress = {
+                    room: roomName, 
+                    userAddress,
+                    progress: {
+                        countdown: false,
+                        
+                        game1_preview: false,
+                        game1_rules: false,
+                        game1: {
+                            waitingToFinish: false,
+                            isDistributed: false,
+                            completed: 0,
+                            of: 0,
+                            answers: "",
+                        },
+    
+                        board1: false,
+    
+                        game2_preview: false,
+                        game2_rules: false,
+                        game2: {
+                            waitingToFinish: false,
+                            isCompleted: false,
+                            fuel: 0,
+                            maxAvailableFuel: 10,
+                            isWon: false,
+                            isPending: false,
+                            gameReached: false,
+                            isEliminated: false,
+                            pointsAllocated: 0,
+                        },
+    
+                        game3_preview: false,
+                        game3_rules: false,
+                        game3: {
+                            selectedItems: [],
+                            points: [],
+                            isCompleted: false,
+                            isPlaying: false,
+                        }
+                    }
+                }
+    
+                rProgress = updateProgress(property, value, rProgress);       
+                racesProgresses.push(rProgress);
+            } else {
+                rProgress = updateProgress(property, value, rProgress);
+            }
+    
+            console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
+            console.log("EMIT:", {raceId, property, value, userAddress})
+            io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
+        });
+    
+        // get amount completed by raceId game gameId
+        socket.on('get-progress', ({ raceId, userAddress }) => {
+            const roomName = `race-${raceId}`;
+            const progress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+            io.to(socket.id).emit('race-progress', { progress });
+        });
+    
+        // get amount completed by raceId game gameId
+        socket.on('get-progress-questions', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            const progress = racesProgresses.filter(i => i?.room === roomName);
+            io.to(socket.id).emit('race-progress-questions', { progress });
+        });
+    
+        // get all progresses for tunnel game
+        socket.on('get-all-fuel-tunnel', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            const progresses = racesProgresses.filter(i => i.room === roomName);
+            
+            io.to(socket.id).emit(`race-fuel-all-tunnel`, {
+                progresses: progresses.map(i => {
+                    return {
+                        userAddress: i.userAddress,
+                        ...i.progress.game2
+                    }
+                }),
+            });
+        });
+    
+        // get users amount connected to the game 
+        socket.on('get-connected', async({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            const sockets = await io.in(roomName).fetchSockets();
+            io.to(socket.id).emit('amount-of-connected', { amount: sockets.length, raceId });
+        });
+    });
+
+    console.log("[SOCKET] Events applied.");
+}

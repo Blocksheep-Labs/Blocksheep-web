@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 
 
-const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: ConnectedUser[]}) => {
+const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases; players: ConnectedUser[], isRolling: boolean}) => {
   const [prevStage, setPrevStage] = useState<undefined | string>(undefined);
   // Sort players by Fuel submitted
   const sortedPlayers = [...players].sort((a, b) => b.Fuel - a.Fuel);
@@ -13,16 +13,18 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
   const fuelRefs = useRef([]);
 
   useEffect(() => {
-    // Update refs when players change
-    playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
-    fuelRefs.current   = players.map((_, i) => fuelRefs.current[i]   || React.createRef());
+    if (players) {
+      // Update refs when players change
+      playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
+      fuelRefs.current   = players.map((_, i) => fuelRefs.current[i]   || React.createRef());
+    }
   }, [players]);
 
   //console.log("PLAYERS:", {players, phase})
 
   useEffect(() => {
     console.log({prevStage, phase})
-    if (prevStage !== phase) {
+    if (prevStage !== phase && (isRolling || ['Reset', 'Default'].includes(phase))) {
       console.log("REFRESHING POS...");
   
       sortedPlayers.forEach((player, index) => {
@@ -38,6 +40,7 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
         console.log(positionStyle);
         if (['Reset', 'Default'].includes(phase)) {
           setTimeout(() => {
+            console.log(">>>>>>>>>>>>>>> RESET/DEFAULT TUNNEL");
             playerElement.style.transition = 'all 1.5s ease-out';
             playerElement.style.left = '50%';
             playerElement.style.visibility = 'visible';
@@ -50,8 +53,9 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
             fuelElement.style.opacity = 0;
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
-          playerElement.style.left = '50%';
-          fuelElement.style.left = '50%';
+          console.log(">>>>>>>>>>>>>>>>>>>>>>>> CLOSE TUNNEL");
+          //playerElement.style.left = '50%';
+          //fuelElement.style.left = '50%';
           setTimeout(() => {
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';
@@ -63,6 +67,7 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
         } else if (phase === 'OpenTunnel') {
           const delay = index * 1000;
           setTimeout(() => {
+            console.log(">>>>>>>>>>>>>>>>>>>>>>> OPEN TUNNEL");
             playerElement.style.top = positionStyle;
             playerElement.style.left = '150vw';
             playerElement.style.transition = 'all 12s ease-out';
@@ -89,7 +94,7 @@ const PlayerMovement = ({ phase, players }: {phase: RabbitHolePhases; players: C
         }
       });
     }
-  }, [phase, sortedPlayers, prevStage, playerRefs, fuelRefs]);
+  }, [phase, sortedPlayers, prevStage, playerRefs, fuelRefs, isRolling]);
 
   return (
     <div className="player-container">

@@ -77,7 +77,7 @@ const Lever = (props: {
           style={{
             opacity: `${isRolling ? "0.5" : "1"}`,
             transform: `rotate(${currentAngle}deg)`,
-            transition: "transform 0.5s ease-out",
+            transition: "transform 0.3s ease-out",
             height: "100px",
             position: "relative",
             top: "-45px",

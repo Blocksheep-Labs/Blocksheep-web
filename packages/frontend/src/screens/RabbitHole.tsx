@@ -168,7 +168,7 @@ function RabbitHoleGame() {
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
-        setPlayers(usersData.filter((i: any) => !i.isCompleted).map((i: any, index: number) => {
+        setPlayers(usersData.filter((i: any) => !i.isCompleted && !i.isEliminated).map((i: any, index: number) => {
           return {
             id: index,
             address: i.userAddress,
@@ -335,6 +335,10 @@ function RabbitHoleGame() {
         setPhase("Reset");
         setRoundIsFinsihed(true);
         setIsRolling(false);
+
+        setTimeout(() => {
+          setPhase("Default");
+        }, 3000);
       }, 16000);
     } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();
@@ -405,10 +409,10 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (players && !isRolling && roundIsFinished) {
-      calculateSubmittedFuelPerPlayers(players);
+      calculateSubmittedFuelPerPlayers(players, gameOver, amountOfAllocatedPoints);
       setRoundIsFinsihed(false);
     }
-  }, [isRolling, players, roundIsFinished]);
+  }, [isRolling, players, roundIsFinished, gameOver, amountOfAllocatedPoints]);
 
 
   // INITIAL USE EFFECT
@@ -495,7 +499,7 @@ function RabbitHoleGame() {
 
 
   // function that will end the game for the user with the lowest fuel amount
-  const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[]) => {
+  const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean, lastAmountOfAllocatedPoints: number) => {
     console.log("CALCULATING THE FUEL...", {players});
     const submittedFuelIsSimilar = players.every(i => i.Fuel === players[0].Fuel);
     console.log({submittedFuelIsSimilar})
@@ -541,11 +545,17 @@ function RabbitHoleGame() {
           property: "game2-eliminate",
         });
 
-        const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
-        setAmountOfAllocatedPoints(amountOfPointsToAllocate);
-        console.log({amountOfPointsToAllocate})
+        if (!isGameOver) {
+          const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
+          setAmountOfAllocatedPoints(amountOfPointsToAllocate);
+          console.log({amountOfPointsToAllocate})
+  
+          handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
+        } else {
+          console.log({lastAmountOfAllocatedPoints})
+          handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints);
+        }
 
-        handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
         setIsRolling(false);
         //return;
       }
@@ -566,10 +576,12 @@ function RabbitHoleGame() {
   
         // refetch users data
         //return;
-        console.log("next round... time reset");
-        const time = new Date();
-        time.setSeconds(time.getSeconds() + 10);
-        restart(time);
+        if (newListOfPlayers.length > 1) {
+          console.log("next round... time reset");
+          const time = new Date();
+          time.setSeconds(time.getSeconds() + 10);
+          restart(time);
+        }
         //socket.emit("get-all-fuel-tunnel", { raceId });
         //setPhase("Default");
         //setIsRolling(false);
@@ -661,7 +673,7 @@ function RabbitHoleGame() {
       <div className="app-container">
         <FuelBar players={players} />
         <div className="tunnel">
-          <PlayerMovement phase={phase} players={players} />
+          <PlayerMovement phase={phase} players={players} isRolling={isRolling}/>
           <RabbitHead phase={phase} />
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />

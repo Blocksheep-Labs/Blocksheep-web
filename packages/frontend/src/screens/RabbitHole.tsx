@@ -427,20 +427,20 @@ function RabbitHoleGame() {
         waitingToFinish: false
         pointsAllocated: 0
       */
-      setGameOver(true);
-      setIsRolling(false);
-      setGameCompleted(true);
+      
       
       if (game2state.isEliminated) {
+        setGameOver(true);
+        setIsRolling(false);
+        setGameCompleted(true);
         setUserIsLost(true);
+        openLoseModal();
+        handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
       }
       
       if (game2state.pointsAllocated.toString().length) {
         setAmountOfAllocatedPoints(game2state.pointsAllocated);
       }
-      
-      openLoseModal();
-      handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
     }
   }, [smartAccountAddress, raceId]);
 

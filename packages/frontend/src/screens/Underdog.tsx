@@ -45,7 +45,7 @@ function UnderdogGame() {
   const { step, questionsByGames, progress } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  const [finished, setFinished] = useState(questions.length === progress.game1.completed || false);
+  const [finished, setFinished] = useState(questions.length === progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const [amountOfPlayersWaitingToFinish, setAmountOfPlayersWaitingToFinish] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
@@ -81,6 +81,7 @@ function UnderdogGame() {
   const updateProgress = () => {
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then((data) => {
       if (data) {
+        console.log("SET RACE DATA", {data})
         setRaceData(data);
         let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
           return { curr: Number(i.progress), delta: 0, address: i.user };
@@ -441,8 +442,8 @@ function UnderdogGame() {
 
   // INITIAL USE EFFECT
   useEffect(() => {
-    if (smartAccountAddress) {
-      updateProgress();
+    updateProgress();
+    if (smartAccountAddress && progress?.game1) {
 
       const {isDistributed, of, completed, waitingToFinish} = progress.game1;
 
@@ -481,7 +482,7 @@ function UnderdogGame() {
         return;
       }
     }
-  }, [step, progress.game1, questionsByGames, smartAccountAddress]);
+  }, [step, progress?.game1, questionsByGames, smartAccountAddress]);
 
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
   console.log(amountOfConnected, raceData?.numberOfPlayersRequired);

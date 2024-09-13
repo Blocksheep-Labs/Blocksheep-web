@@ -338,7 +338,7 @@ function RabbitHoleGame() {
 
         setTimeout(() => {
           setPhase("Default");
-        }, 3000);
+        }, 6000);
       }, 16000);
     } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();

@@ -112,17 +112,19 @@ export default function RabbitHoleCover() {
 
 
     return (
-        <div className="mx-auto rounded-none flex h-dvh w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top">
+        <>
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
                 <div className="bg-yellow-500 h-2.5" style={{width: `${totalSeconds * 10}%`}}></div>
             </div>
-            {
-                modalIsOpen && modalType === "waiting" && 
-                <WaitingForPlayersModal 
-                    numberOfPlayers={amountOfConnected} 
-                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
-                />
-            }
-        </div>
+            <div className="mx-auto rounded-none flex h-dvh w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top">
+                {
+                    modalIsOpen && modalType === "waiting" && 
+                    <WaitingForPlayersModal 
+                        numberOfPlayers={amountOfConnected} 
+                        numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
+                    />
+                }
+            </div>
+        </>
     );
 }

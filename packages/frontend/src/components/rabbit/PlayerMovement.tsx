@@ -1,43 +1,36 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 
-
 const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases; players: ConnectedUser[], isRolling: boolean}) => {
   const [prevStage, setPrevStage] = useState<undefined | string>(undefined);
+
   // Sort players by Fuel submitted
   const sortedPlayers = [...players].sort((a, b) => b.Fuel - a.Fuel);
 
-  //console.log("SORTED PLAYERS:", {sortedPlayers})
+  const playerRefs = useRef<(React.RefObject<HTMLImageElement>)[]>([]);
+  const fuelRefs = useRef<(React.RefObject<HTMLParagraphElement>)[]>([]);
 
-  const playerRefs = useRef([]);
-  const fuelRefs = useRef([]);
-
+  // Update refs when players change
   useEffect(() => {
-    if (players) {
-      // Update refs when players change
-      playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
-      fuelRefs.current   = players.map((_, i) => fuelRefs.current[i]   || React.createRef());
-    }
+    playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
+    fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
   }, [players]);
 
-  //console.log("PLAYERS:", {players, phase})
-
+  // Handle the animations when the phase changes or players change
   useEffect(() => {
-    console.log({prevStage, phase})
-    if (prevStage !== phase && (isRolling || ['Reset', 'Default'].includes(phase))) {
+    console.log({ prevStage, phase });
+
+    if (prevStage !== phase || players.length !== playerRefs.current.length) {
       console.log("REFRESHING POS...");
-  
+
       sortedPlayers.forEach((player, index) => {
-        // @ts-ignore
-        const playerElement = playerRefs.current[index].current;
-        // @ts-ignore
-        const fuelElement = fuelRefs.current[index].current;
+        const playerElement = playerRefs.current[index]?.current;
+        const fuelElement = fuelRefs.current[index]?.current;
         if (!playerElement || !fuelElement) return;
-        //if (!playerElement) return;
-  
-        setPrevStage(phase);
+
         const positionStyle = `${28 * index}px`;
-        console.log(positionStyle);
+        setPrevStage(phase);
+
         if (['Reset', 'Default'].includes(phase)) {
           setTimeout(() => {
             console.log(">>>>>>>>>>>>>>> RESET/DEFAULT TUNNEL");
@@ -50,19 +43,17 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
             fuelElement.style.left = '50%';
             fuelElement.style.visibility = 'visible';
             fuelElement.style.top = positionStyle;
-            fuelElement.style.opacity = 0;
+            fuelElement.style.opacity = '0';
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
           console.log(">>>>>>>>>>>>>>>>>>>>>>>> CLOSE TUNNEL");
-          //playerElement.style.left = '50%';
-          //fuelElement.style.left = '50%';
           setTimeout(() => {
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';
 
             fuelElement.style.transition = 'all 0.5s ease-out';
             fuelElement.style.left = '-100%';
-            fuelElement.style.opacity = 0;
+            fuelElement.style.opacity = '0';
           }, 3000);
         } else if (phase === 'OpenTunnel') {
           const delay = index * 1000;
@@ -75,30 +66,20 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
             fuelElement.style.top = positionStyle;
             fuelElement.style.left = '150vw';
             fuelElement.style.transition = 'all 12s ease-out';
-            fuelElement.style.opacity = 1;
+            fuelElement.style.opacity = '1';
 
             setTimeout(() => {
-              if (index === sortedPlayers.length - 1)
-              playerElement.style.top = '400px';
+              if (index === sortedPlayers.length - 1) playerElement.style.top = '400px';
             }, 4000);
           }, 1000 + delay);
-          
-          /*
-          setTimeout(() => {
-            console.log("TIMEOUT!!!!!!!!!")
-            playerElement.style.visibility = 'hidden';
-            playerElement.style.left = '-10vw';
-            playerElement.style.transition = 'none';
-          }, 9000 + delay);
-          */
         }
       });
     }
-  }, [phase, sortedPlayers, prevStage, playerRefs, fuelRefs, isRolling]);
+  }, [phase, sortedPlayers, prevStage, playerRefs, fuelRefs, isRolling, players]);
 
   return (
     <div className="player-container">
-      {sortedPlayers.map((player, index) => ( 
+      {sortedPlayers.map((player, index) => (
         <img
           key={player.id}
           ref={playerRefs.current[index]}
@@ -120,3 +101,29 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
 };
 
 export default PlayerMovement;
+
+
+
+
+/*
+
+    <div className="player-container">
+      {sortedPlayers.map((player, index) => ( 
+        <img
+          key={player.id}
+          ref={playerRefs.current[index]}
+          src={player.src}
+          alt={player.id.toString()}
+        />
+      ))}
+      {sortedPlayers.map((player, index) => (
+        <p
+          key={player.id}
+          ref={fuelRefs.current[index]}
+          className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full"
+        >
+          {player.Fuel}
+        </p>
+      ))}
+    </div>
+*/

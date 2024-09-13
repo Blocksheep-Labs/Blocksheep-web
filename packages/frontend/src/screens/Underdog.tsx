@@ -206,6 +206,7 @@ function UnderdogGame() {
   };
 
   function openLoadingModal() {
+    pause();
     console.log("loading modal opened");
     setIsOpen(true);
     setModalType("loading");
@@ -353,7 +354,7 @@ function UnderdogGame() {
           // if the user is sending the TX or finished sending TX
           setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
-          if ((raceData.numberOfPlayersRequired == amountOfPlayersCompleted + 1)) {
+          if ((amountOfConnected == amountOfPlayersCompleted + 1)) {
             console.log("CLOSING MODAL..., openning win modal")
             openWinModal();
           }
@@ -487,7 +488,7 @@ function UnderdogGame() {
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
   console.log(amountOfConnected, raceData?.numberOfPlayersRequired);
   return (
-    <div className="mx-auto flex h-dvh w-full flex-col bg-play_pattern bg-cover bg-bottom">
+    <div className="mx-auto flex h-dvh w-full flex-col bg-underdog_bg bg-cover bg-bottom">
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">

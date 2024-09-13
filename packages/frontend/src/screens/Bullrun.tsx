@@ -100,26 +100,30 @@ export default function Bullrun() {
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
-                <div className="w-16 h-16 absolute top-[17%] right-[65px]">
-                    { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
-                    { selectedPerk === "shield" && <img src={Shield} alt="shield"/> }
-                    { selectedPerk === "swords" && <img src={Swords} alt="swords"/> }
-                </div>
-                <div className="w-16 h-16 absolute top-[27%] right-[65px]">
+                <div className="w-16 h-16 absolute bottom-[-7px] right-[65px] z-50 flex flex-row gap-2 justify-center">
+                    <div className="w-16 h-16">
+                        { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
+                        { selectedPerk === "shield" && <img src={Shield} alt="shield"/> }
+                        { selectedPerk === "swords" && <img src={Swords} alt="swords"/> }
+                    </div>
                     <p className="font-bold text-2xl w-full text-center">+X</p>
                 </div>
-                <img src={LeftCurtain} alt="left-curtain" className="h-full"/>
+                <div className="h-full relative flex items-end justify-end">
+                    <img src={LeftCurtain} alt="left-curtain" className="asbolute bottom-0 left-0"/>
+                </div>
             </div>
             <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20">
-                <div className="w-16 h-16 absolute top-[17%] right-[65px]">
-                    { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
-                    { selectedPerk === "shield" && <img src={Shield} alt="shield"/> }
-                    { selectedPerk === "swords" && <img src={Swords} alt="swords"/> }
-                </div>
-                <div className="w-16 h-16 absolute top-[27%] right-[65px]">
+                <div className="w-16 h-16 absolute bottom-[-7px] right-[65px] z-50 flex flex-row gap-2 justify-center">
                     <p className="font-bold text-2xl w-full text-center">+X</p>
+                    <div className="w-16 h-16">
+                        { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
+                        { selectedPerk === "shield" && <img src={Shield} alt="shield"/> }
+                        { selectedPerk === "swords" && <img src={Swords} alt="swords"/> }
+                    </div>
                 </div>
-                <img src={RightCurtain} alt="right-curtain" className="h-full"/>
+                <div className="h-full relative flex items-end justify-end">
+                    <img src={RightCurtain} alt="right-curtain" className="asbolute bottom-0 right-0"/>
+                </div>
             </div>
             <div className="absolute top-4 w-full flex justify-center flex-col items-center gap-3">
                 <Timer seconds={totalSeconds} />

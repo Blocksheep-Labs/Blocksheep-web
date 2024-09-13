@@ -1,4 +1,7 @@
-const updateProgress = require("../utils/update-progress");
+const updateProgress = require("./update-progress");
+const underdogBaseState = require("./default-states-by-games/underdog");
+const rabbitHoleBaseState = require("./default-states-by-games/rabbit-hole");
+const bullrunBaseState = require("./default-states-by-games/bullrun");
 
 // { room: string, id: string, userAddress: string }
 let connectedUsers = [];
@@ -86,41 +89,12 @@ module.exports = (io) => {
                     userAddress,
                     progress: {
                         countdown: false,
-                        
-                        game1_preview: false,
-                        game1_rules: false,
-                        game1: {
-                            waitingToFinish: false,
-                            isDistributed: false,
-                            completed: 0,
-                            of: 0,
-                            answers: "",
-                        },
-    
                         board1: false,
-    
-                        game2_preview: false,
-                        game2_rules: false,
-                        game2: {
-                            waitingToFinish: false,
-                            isCompleted: false,
-                            fuel: 0,
-                            maxAvailableFuel: 10,
-                            isWon: false,
-                            isPending: false,
-                            gameReached: false,
-                            isEliminated: false,
-                            pointsAllocated: 0,
-                        },
-    
-                        game3_preview: false,
-                        game3_rules: false,
-                        game3: {
-                            selectedItems: [],
-                            points: [],
-                            isCompleted: false,
-                            isPlaying: false,
-                        }
+
+                        // initial games states
+                        ...underdogBaseState,
+                        ...rabbitHoleBaseState,
+                        ...bullrunBaseState,
                     }
                 }
     

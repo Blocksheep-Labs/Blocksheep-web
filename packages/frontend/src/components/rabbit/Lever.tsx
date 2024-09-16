@@ -40,7 +40,7 @@ const Lever = (props: {
       setCurrentAngle(currentAngle + 4);
 
       // calculate the rotation angle based on total rotations count
-      if (currentAngle > 360 * rotationCount + 10) {
+      if (currentAngle % 90 == 0 && currentAngle !== 0) {
         if (displayNumber == 10) return;
 
         setRotationCount(rotationCount + 1);
@@ -77,7 +77,7 @@ const Lever = (props: {
           style={{
             opacity: `${isRolling ? "0.5" : "1"}`,
             transform: `rotate(${currentAngle}deg)`,
-            transition: "transform 0.3s ease-out",
+            transition: "transform 0.5s ease-out",
             height: "100px",
             position: "relative",
             top: "-45px",

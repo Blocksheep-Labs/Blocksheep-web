@@ -18,10 +18,10 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
 
   // Handle the animations when the phase changes or players change
   useEffect(() => {
-    console.log({ prevStage, phase });
+    //console.log({ prevStage, phase });
 
     if (prevStage !== phase || players.length !== playerRefs.current.length) {
-      console.log("REFRESHING POS...");
+      //console.log("REFRESHING POS...");
 
       sortedPlayers.forEach((player, index) => {
         const playerElement = playerRefs.current[index]?.current;

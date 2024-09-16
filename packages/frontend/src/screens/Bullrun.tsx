@@ -100,7 +100,7 @@ export default function Bullrun() {
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
-                <div className="w-16 h-16 absolute bottom-[-7px] right-[65px] z-50 flex flex-row gap-2 justify-center">
+                <div className="w-16 h-16 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-24">
                     <div className="w-16 h-16">
                         { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
                         { selectedPerk === "shield" && <img src={Shield} alt="shield"/> }
@@ -108,12 +108,13 @@ export default function Bullrun() {
                     </div>
                     <p className="font-bold text-2xl w-full text-center">+X</p>
                 </div>
-                <div className="h-full relative flex items-end justify-end">
+                <div className="h-full w-[100%] bg-black/30 absolute top-0 backdrop-blur-lg"></div>
+                <div className="h-full flex items-center justify-end absolute">
                     <img src={LeftCurtain} alt="left-curtain" className="asbolute bottom-0 left-0"/>
                 </div>
             </div>
-            <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20">
-                <div className="w-16 h-16 absolute bottom-[-7px] right-[65px] z-50 flex flex-row gap-2 justify-center">
+            <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20 ">
+                <div className="w-16 h-16 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-24">
                     <p className="font-bold text-2xl w-full text-center">+X</p>
                     <div className="w-16 h-16">
                         { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
@@ -121,7 +122,8 @@ export default function Bullrun() {
                         { selectedPerk === "swords" && <img src={Swords} alt="swords"/> }
                     </div>
                 </div>
-                <div className="h-full relative flex items-end justify-end">
+                <div className="h-full w-[100%] bg-black/30 absolute top-0 backdrop-blur-lg"></div>
+                <div className="h-full relative flex items-center justify-end">
                     <img src={RightCurtain} alt="right-curtain" className="asbolute bottom-0 right-0"/>
                 </div>
             </div>

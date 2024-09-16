@@ -506,7 +506,10 @@ function RabbitHoleGame() {
 
     let newListOfPlayers;
     if (!submittedFuelIsSimilar) {
-      newListOfPlayers = players.toSorted((a, b) => a.Fuel - b.Fuel).slice(1, players.length);
+      const sorted = players.toSorted((a, b) => a.Fuel - b.Fuel);
+      const minFuel = sorted[0].Fuel;
+
+      newListOfPlayers = players.filter(i => i.Fuel !== minFuel);
     } else {
       newListOfPlayers = players;
     }
@@ -680,7 +683,7 @@ function RabbitHoleGame() {
         </div>
         <div className="control-panels mb-10">
           <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={totalSeconds === 0 || userIsLost}/>
-          <GasolineGauge fuel={(maxFuel - displayNumber) * 8.8}/>
+          <GasolineGauge fuel={(maxFuel - displayNumber) * 8.8} maxFuel={maxFuel - displayNumber}/>
         </div>
 
       </div>

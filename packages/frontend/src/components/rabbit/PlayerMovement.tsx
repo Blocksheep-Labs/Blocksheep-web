@@ -69,7 +69,16 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
             fuelElement.style.opacity = '1';
 
             setTimeout(() => {
-              if (index === sortedPlayers.length - 1) playerElement.style.top = '400px';
+              const minFuel = sortedPlayers[sortedPlayers.length - 1].Fuel;
+              const listOfMinFuelPlayers = sortedPlayers.filter(i => i.Fuel === minFuel);
+
+              // if all the submitted fuel were similar
+              if (listOfMinFuelPlayers.length === sortedPlayers.length) {
+                return;
+              }
+
+              // remove all players with minimum fuel
+              if (index >= sortedPlayers.length - listOfMinFuelPlayers.length) playerElement.style.top = '400px';
             }, 4000);
           }, 1000 + delay);
         }

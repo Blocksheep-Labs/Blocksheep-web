@@ -67,7 +67,7 @@ function RabbitHoleGame() {
   const { totalSeconds, restart, start, pause } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
-      console.log("Time expired.")
+      //console.log("Time expired.")
       handleTunnelChange();
     },
     autoStart: false,
@@ -78,7 +78,7 @@ function RabbitHoleGame() {
     //console.log({amountOfConnected, start, modalIsOpen, isRolling, raceId, raceData})
     if (!gameStarted && raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted)) {
       setGameStarted(true);
-      console.log("STARTING THE GAME...")
+      //console.log("STARTING THE GAME...")
       if (raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted) && start) {
         socket.emit("get-all-fuel-tunnel", { raceId });
         //closeWaitingModal();
@@ -94,7 +94,7 @@ function RabbitHoleGame() {
   useEffect(() => {
     if (smartAccountAddress && raceData) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
-        console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
+        //console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
@@ -112,7 +112,7 @@ function RabbitHoleGame() {
             setIsOpen(false);
             setModalType(undefined);
             // reset timer
-            console.log("UPDATE TIMER")
+            //console.log("UPDATE TIMER")
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
           }
@@ -121,7 +121,7 @@ function RabbitHoleGame() {
 
       
       socket.on('leaved', (data) => {
-        console.log("USER LEFT THE GAME:", data);
+        //console.log("USER LEFT THE GAME:", data);
         setAmountOfConnected(amountOfConnected - 1);
 
         // if user was sending a TX
@@ -151,7 +151,7 @@ function RabbitHoleGame() {
 
         const usersData = progress.progresses;
 
-        console.log("FUEL TUNNEL DATA", usersData);
+        //console.log("FUEL TUNNEL DATA", usersData);
 
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
@@ -186,6 +186,7 @@ function RabbitHoleGame() {
           if (progress.value?.isPending != undefined) {
             // sending...
             if (progress.value.isPending) {
+              /*
               console.log(
                 "IS PENDING PROP:", 
                 { 
@@ -193,14 +194,17 @@ function RabbitHoleGame() {
                   amountOfPending: amountOfPending + 1,
                 }
               );
+              */
               setAmountOfPending(amountOfPending + 1);
             }
             // sent 
             else {
+              /*
               console.log("TX WAS SENT:", { 
                 max: raceData.numberOfPlayersRequired - amountOfComplteted,
                 amountOfPending: amountOfPending - 1,
               })
+              */
               setAmountOfPending(amountOfPending - 1);
             }
           }
@@ -208,7 +212,7 @@ function RabbitHoleGame() {
 
         if (progress.property === "game2-complete") {
           if (raceData.numberOfPlayersRequired - (amountOfComplteted + 1) === -1) {
-            console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon: true, smartAccountClient, amountOfAllocatedPoints});
+            //console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon: true, smartAccountClient, amountOfAllocatedPoints});
             await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
@@ -268,7 +272,7 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (raceData && !isRolling) {
-      console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<<")
+      //console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<<")
       closeWaitingModal();
     }
   }, [raceData, isRolling]);
@@ -320,7 +324,7 @@ function RabbitHoleGame() {
   // START THE TUNNEL IF ALL USERS ARE DONE WITH TX-s
   useEffect(() => {
     if (isRolling && amountOfPending === 0 && raceId?.toString().length) {
-      console.log("TUNNEL CHANGE", {displayNumber, maxFuel});
+      //console.log("TUNNEL CHANGE", {displayNumber, maxFuel});
       socket.emit("get-all-fuel-tunnel", { raceId });
       closeLoadingModal();
 
@@ -348,7 +352,7 @@ function RabbitHoleGame() {
 
   const handleFuelUpdate = (fuel: number) => {
     if (!isRolling && !gameOver && fuel <= maxFuel) {
-      console.log({fuel, phase})
+      //console.log({fuel, phase})
       setDisplayNumber(fuel);
       socket.emit("update-progress", {
         raceId,
@@ -508,7 +512,7 @@ function RabbitHoleGame() {
     if (!submittedFuelIsSimilar) {
       const sorted = players.toSorted((a, b) => a.Fuel - b.Fuel);
       const minFuel = sorted[0].Fuel;
-
+      
       newListOfPlayers = players.filter(i => i.Fuel !== minFuel);
     } else {
       newListOfPlayers = players;

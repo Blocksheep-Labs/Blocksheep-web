@@ -39,11 +39,11 @@ export default function Bullrun() {
     const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
     const [amountOfConnected, setAmountOfConnected] = useState(0);
 
-    const [status, setStatus] = useState('waiting'); // 'waiting', 'playing', 'finished'
-    const [matches, setMatches] = useState<any[]>([]); // Current round matches
-    const [round, setRound] = useState(1); // Current round number
-    const [gamesPlayed, setGamesPlayed] = useState({}); // Track games played per player
+    const [status, setStatus] = useState('waiting'); // could be 'playing', 'waiting', or 'finished'
+    const [opponent, setOpponent] = useState(null);
+    const [gamesPlayed, setGamesPlayed] = useState(0);
     const [waiting, setWaiting] = useState(false);
+    //const [players, setPlayers] = useState([]);
 
 
     const time = new Date();
@@ -179,45 +179,45 @@ export default function Bullrun() {
 
 
     useEffect(() => {
-        if (String(raceId).length) {
-            // Join the game
-            socket.emit('bullrun-join-game', { raceId });
+        // On mount, join the game
+        socket.emit('bullrun-join-game', { raceId: 'some-race-id' });
 
-            // Listen for new round pairings
-            socket.on('bullrun-new-round', (roundPairs) => {
-                setMatches(roundPairs);
-                setStatus('playing');
-                setRound(prev => prev + 1);
-            });
+        // Listen for game start
+        socket.on('bullrun-game-start', ({ message, opponent }) => {
+            setStatus('playing');
+            setOpponent(opponent);
+        });
 
-            // Listen for game start
-            socket.on('bullrun-game-start', ({ message }) => {
-                setStatus('playing');
-                setWaiting(false);
-            });
+        // Listen for waiting
+        socket.on('bullrun-waiting', ({ message }) => {
+            setStatus('waiting');
+            setWaiting(true);
+        });
 
-            // Listen for waiting
-            socket.on('bullrun-waiting', ({ message }) => {
-                setStatus('waiting');
-                setWaiting(true);
-            });
+        socket.on('bullrun-game-complete', ({ message }) => {
+            setStatus('finished');
+        });
 
-            // Listen for game completion
-            socket.on('bullrun-game-complete', ({ message }) => {
-                setStatus('finished');
-            });
+        socket.on('amount-of-connected', ({ amount, raceId }) => {
+            console.log(`Players connected: ${amount}`);
+        });
 
-            return () => {
-                socket.off('bullrun-new-round');
-                socket.off('bullrun-game-start');
-                socket.off('bullrun-waiting');
-                socket.off('bullrun-game-complete');
-            };
-        }
-    }, [raceId]);
+        return () => {
+            socket.off('amount-of-connected');
+            socket.off('bullrun-game-complete');
+            socket.off('bullrun-waiting');
+            socket.off('bullrun-game-start');
+        };
+    }, []);
 
     function endGame() {
         socket.emit('bullrun-game-end', { raceId });
+    
+        setGamesPlayed(prev => prev + 1);
+    
+        if (gamesPlayed >= 7) {
+            setStatus('finished');
+        }
     }
 
     return (

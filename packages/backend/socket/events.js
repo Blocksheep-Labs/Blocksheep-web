@@ -14,12 +14,6 @@ let matchesPlayed = {};  // matches between players (e.g., { 'player1_id': ['pla
 let gameCounts = {};     // number of games each player has played (e.g., { 'player1_id': 3, ... })
 
 
-function initializePlayer(playerId) {
-    if (!matchesPlayed[playerId]) matchesPlayed[playerId] = [];
-    if (!gameCounts[playerId]) gameCounts[playerId] = 0;
-}
-
-
 module.exports = (io) => {
     io.on("connection", socket => { 
         // when user disconnects
@@ -162,9 +156,13 @@ module.exports = (io) => {
         socket.on('bullrun-join-game', ({ raceId }) => {
             const roomName = `race-${raceId}`;
             socket.join(roomName);
-    
+        
+            function initializePlayer(playerId) {
+                if (!matchesPlayed[playerId]) matchesPlayed[playerId] = [];
+                if (!gameCounts[playerId]) gameCounts[playerId] = 0;
+            }
             initializePlayer(socket.id);
-    
+        
             if (activePlayers.length < 8) {
                 activePlayers.push(socket);
                 io.to(socket.id).emit('bullrun-game-start', { message: 'You have joined the game', raceId });
@@ -173,67 +171,67 @@ module.exports = (io) => {
                 io.to(socket.id).emit('bullrun-waiting', { message: 'You are in the queue, waiting to join', raceId });
             }
         });
-    
+        
         // End round for 1v1 bullrun
         socket.on('bullrun-game-end', ({ raceId }) => {
             function rotatePlayers() {
                 if (waitingPlayers.length > 0) {
-                    const leavingPlayer = activePlayers.shift();
-                    const nextPlayer = waitingPlayers.shift();
-    
-                    activePlayers.push(nextPlayer);
-                    waitingPlayers.push(leavingPlayer);
-    
+                    const leavingPlayer = activePlayers.shift();  // Remove one player from the game
+                    const nextPlayer = waitingPlayers.shift();    // Add the waiting player
+                    
+                    activePlayers.push(nextPlayer);  // Add the new player to the game
+                    waitingPlayers.push(leavingPlayer);  // Put the leaving player into the waiting queue
+                    
                     io.to(leavingPlayer.id).emit('bullrun-waiting', { message: 'You are now waiting for the next round', raceId });
                     io.to(nextPlayer.id).emit('bullrun-game-start', { message: 'You are now playing', raceId });
                 }
             }
             rotatePlayers();
-    
+        
             function checkGameCompletion() {
                 activePlayers.forEach(player => {
                     if (gameCounts[player.id] >= 8) {
                         io.to(player.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
-                        activePlayers.splice(activePlayers.indexOf(player), 1);
+                        activePlayers = activePlayers.filter(p => p.id !== player.id);  // Remove the player from the active list
                     }
                 });
             }
             checkGameCompletion();
-    
+        
             function pairPlayers() {
                 const numPlayers = activePlayers.length;
                 const pairs = [];
-                let roundPairs = [];
-    
+        
                 for (let i = 0; i < numPlayers; i++) {
+                    const player1 = activePlayers[i];
                     for (let j = i + 1; j < numPlayers; j++) {
-                        const player1 = activePlayers[i];
                         const player2 = activePlayers[j];
-    
-                        // Check if players can be paired
+        
+                        // Ensure the pairing is valid
                         if (
-                            //!matchesPlayed[player1.id].includes(player2.id) &&
-                            gameCounts[player1.id] < 8 &&
-                            gameCounts[player2.id] < 8) {
-                            pairs.push([player1.id, player2.id]);
+                            //!matchesPlayed[player1.id].includes(player2.id) && 
+                            gameCounts[player1.id] < 8 && 
+                            gameCounts[player2.id] < 8
+                        ) {
+                            const roomName = `1v1-${player1.id}-${player2.id}`;
+                            player1.join(roomName);
+                            player2.join(roomName);
+        
+                            matchesPlayed[player1.id].push(player2.id);
+                            matchesPlayed[player2.id].push(player1.id);
+        
+                            gameCounts[player1.id]++;
+                            gameCounts[player2.id]++;
+        
+                            pairs.push({ player1: player1.id, player2: player2.id });
                         }
                     }
                 }
-    
-                // Generate round pairs ensuring that each player plays exactly 8 games
-                while (roundPairs.length < 8 && pairs.length > 0) {
-                    const pair = pairs.shift(); // Get the next available pair
-                    const [p1, p2] = pair;
-                    if (gameCounts[p1] < 8 && gameCounts[p2] < 8) {
-                        roundPairs.push(pair);
-                        gameCounts[p1]++;
-                        gameCounts[p2]++;
-                        matchesPlayed[p1].push(p2);
-                        matchesPlayed[p2].push(p1);
-                    }
-                }
-    
-                io.to(roomName).emit('bullrun-new-round', roundPairs);
+        
+                pairs.forEach(pair => {
+                    const roomName = `1v1-${pair.player1}-${pair.player2}`;
+                    io.to(roomName).emit('bullrun-start-game', { players: [pair.player1, pair.player2], raceId });
+                });
             }
             pairPlayers();
         });

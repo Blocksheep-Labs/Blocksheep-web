@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { socket } from "../utils/socketio";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
 import Shield from "../assets/bullrun/defence.png";
@@ -13,6 +13,9 @@ import RightCurtain from "../assets/bullrun/bullrun-next-round-bg-right.png";
 import { LegacyRef, MutableRefObject, useEffect, useRef, useState } from "react";
 import { useTimer } from "react-timer-hook";
 import BullrunRulesModal from "../components/BullrunRulesModal";
+import RaceModal from "../components/RaceModal";
+import { getRaceById } from "../utils/contract-functions";
+import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -25,11 +28,22 @@ const BullrunRulesGGridModal = () => {
 export default function Bullrun() {
     const {smartAccountAddress} = useSmartAccount();
     const navigate = useNavigate();
+    const location = useLocation();
     const {raceId} = useParams();
     const [selectedPerk, setSelectedPerk] = useState<undefined | BullrunPerks>(undefined);
     const refLeftCurtain = useRef<HTMLDivElement>(null);
     const refRightCurtain = useRef<HTMLDivElement>(null);
     const [rulesModalIsOpened, setRulesModalIsOpened] = useState(false);
+    const [raceModalISOpened, setRaceModalIsOpened] = useState(false);
+    const [waitingModalIsOpened, setWaitingModalIsOpened] = useState(false);
+    const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
+    const [amountOfConnected, setAmountOfConnected] = useState(0);
+
+    const [status, setStatus] = useState('waiting'); // 'waiting', 'playing', 'finished'
+    const [matches, setMatches] = useState<any[]>([]); // Current round matches
+    const [round, setRound] = useState(1); // Current round number
+    const [gamesPlayed, setGamesPlayed] = useState({}); // Track games played per player
+    const [waiting, setWaiting] = useState(false);
 
 
     const time = new Date();
@@ -44,7 +58,15 @@ export default function Bullrun() {
         autoStart: false,
     });
 
-    console.log({rulesModalIsOpened})
+    useEffect(() => {
+        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
+        } else {
+            pause();
+        }
+    }, [amountOfConnected, location.state]);
 
     const closeCurtains = () => {
         if (refLeftCurtain.current && refRightCurtain.current) {
@@ -66,8 +88,6 @@ export default function Bullrun() {
                 time.setSeconds(time.getSeconds() + 10);
                 restart(time);
             }, 6000);
-
-
         }
     }
 
@@ -80,22 +100,150 @@ export default function Bullrun() {
         navigate(`/race/${raceId}/stats`);
     }
 
+    const fetchRaceData = () => {
+        getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+            if (data) {
+                let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
+                    return { curr: Number(i.progress), delta: 0, address: i.user };
+                });
+                setProgress(newProgress);
+            }
+        });
+    }
+
+    const handleFinish = () => {
+        fetchRaceData();
+        setRaceModalIsOpened(true);
+    }
+
     // fetch socket data and start timer
     useEffect(() => {
-
         // TODO fetch socket data
-
         start();
     }, []);
 
+    // handle socket events
+    useEffect(() => {
+        if (smartAccountAddress && location.state) {
+            socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
+                console.log({amount})
+                if (raceId === raceIdSocket) {
+                    setAmountOfConnected(amount);
+                    // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+                    if (amount === location.state.amountOfRegisteredUsers) {
+                        setWaitingModalIsOpened(false);
+                    }
+                }
+            });
+
+            socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+                console.log("JOINED", raceIdSocket, raceId);
+
+                if (raceId == raceIdSocket) {
+                    console.log("JOINED++")
+                    setAmountOfConnected(amountOfConnected + 1);
+                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
+                        setWaitingModalIsOpened(false);
+                    }
+                }
+            });
+
+            socket.on('leaved', () => {
+                console.log("LEAVED")
+                setAmountOfConnected(amountOfConnected - 1);
+                setWaitingModalIsOpened(true);
+            });
+
+
+            socket.on('race-progress', (progress) => {
+                console.log("RACE PROGRESS PER USER:", progress);
+            });
+        
+            return () => {
+                socket.off('joined');
+                socket.off('amount-of-connected');
+                socket.off('leaved');
+                socket.off('race-progress');
+            }
+        }
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+
+    useEffect(() => {
+        setWaitingModalIsOpened(true);
+        if (smartAccountAddress && location.state) {
+            socket.emit("get-connected", { raceId });
+            socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
+            
+        }
+    }, [socket, raceId, smartAccountAddress, location.state]);
+
+
+    useEffect(() => {
+        if (String(raceId).length) {
+            // Join the game
+            socket.emit('bullrun-join-game', { raceId });
+
+            // Listen for new round pairings
+            socket.on('bullrun-new-round', (roundPairs) => {
+                setMatches(roundPairs);
+                setStatus('playing');
+                setRound(prev => prev + 1);
+            });
+
+            // Listen for game start
+            socket.on('bullrun-game-start', ({ message }) => {
+                setStatus('playing');
+                setWaiting(false);
+            });
+
+            // Listen for waiting
+            socket.on('bullrun-waiting', ({ message }) => {
+                setStatus('waiting');
+                setWaiting(true);
+            });
+
+            // Listen for game completion
+            socket.on('bullrun-game-complete', ({ message }) => {
+                setStatus('finished');
+            });
+
+            return () => {
+                socket.off('bullrun-new-round');
+                socket.off('bullrun-game-start');
+                socket.off('bullrun-waiting');
+                socket.off('bullrun-game-complete');
+            };
+        }
+    }, [raceId]);
+
+    function endGame() {
+        socket.emit('bullrun-game-end', { raceId });
+    }
+
     return (
         <div className="mx-auto flex h-dvh w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative">
+            {
+                raceModalISOpened
+                &&
+                <RaceModal
+                    disableBtn={false}
+                    progress={progress}
+                    handleClose={handleNavigate}
+                />
+            }
             { 
                 rulesModalIsOpened 
                 && 
                 <BullrunRulesModal 
                     handleClose={() => setRulesModalIsOpened(false)} 
                     timeToStart={totalSeconds.toString()}
+                />
+            }
+            {
+                waitingModalIsOpened && 
+                <WaitingForPlayersModal 
+                    numberOfPlayers={amountOfConnected} 
+                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
                 />
             }
 
@@ -150,7 +298,7 @@ export default function Bullrun() {
             </div>
             
             <button 
-                onClick={handleNavigate}
+                onClick={handleFinish}
                 className="absolute top-0 right-0 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
             >
                 NEXT

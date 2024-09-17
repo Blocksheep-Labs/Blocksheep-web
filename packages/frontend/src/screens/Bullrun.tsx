@@ -184,6 +184,9 @@ export default function Bullrun() {
 
         // Listen for game start
         socket.on('bullrun-game-start', ({ message, opponent }) => {
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
             setStatus('playing');
             setOpponent(opponent);
         });
@@ -192,6 +195,7 @@ export default function Bullrun() {
         socket.on('bullrun-waiting', ({ message }) => {
             setStatus('waiting');
             setWaiting(true);
+            pause();
         });
 
         socket.on('bullrun-game-complete', ({ message }) => {

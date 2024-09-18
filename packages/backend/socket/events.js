@@ -12,6 +12,8 @@ let activePlayers = [];
 let waitingPlayers = [];
 let matchesPlayed = {};  // matches between players (e.g., { 'player1_id': ['player2_id', ...] })
 let gameCounts = {};     // number of games each player has played (e.g., { 'player1_id': 3, ... })
+let gameCompletes = {};
+
 
 
 module.exports = (io) => {
@@ -152,17 +154,37 @@ module.exports = (io) => {
         });
 
 
+        socket.on('bullrun-set-perk', ({ id, opponentId, userAddress, raceId, selectedPerk }) => {
+            const playerToEmit = activePlayers.find(i => i.id == opponentId);
+            console.log({ id, opponentId, userAddress, raceId, selectedPerk })
+            if (playerToEmit) {
+                io.to(playerToEmit.id).emit('bullrun-perk-set', { id, opponentId, userAddress, raceId, selectedPerk });
+            }
+        });
 
-        socket.on('bullrun-join-game', ({ raceId }) => {
+        
+        socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId, selectedPerk }) => {
+            const playerToEmit = activePlayers.find(i => i.id == opponentId);
+
+            if (playerToEmit) {
+                io.to(playerToEmit.id).emit('bullrun-pending', { id, userAddress, isPending, raceId, selectedPerk });
+                io.to(socket.id).emit('bullrun-pending', { id, userAddress, isPending, raceId, selectedPerk });
+            }
+        });
+
+        socket.on('bullrun-join-game', ({ raceId, userAddress }) => {
+            console.log('bullrun-join-game', { raceId, userAddress });
             const roomName = `race-${raceId}`;
             socket.join(roomName);
         
+            // Initialize game data for the player
             function initializePlayer(playerId) {
                 if (!matchesPlayed[playerId]) matchesPlayed[playerId] = [];
                 if (!gameCounts[playerId]) gameCounts[playerId] = 0;
             }
             initializePlayer(socket.id);
         
+            socket.userAddress = userAddress;
             if (activePlayers.length < 8) {
                 activePlayers.push(socket);
                 io.to(socket.id).emit('bullrun-game-start', { message: 'You have joined the game', raceId });
@@ -170,7 +192,38 @@ module.exports = (io) => {
                 waitingPlayers.push(socket);
                 io.to(socket.id).emit('bullrun-waiting', { message: 'You are in the queue, waiting to join', raceId });
             }
+        
+            console.log({ activePlayers, waitingPlayers });
+        
+            // Now pair the players and start the game
+            function pairPlayers() {
+                const numPlayers = activePlayers.length;
+        
+                for (let i = 0; i < numPlayers; i++) {
+                    const player1 = activePlayers[i];
+                    for (let j = i + 1; j < numPlayers; j++) {
+                        const player2 = activePlayers[j];
+        
+                        // Ensure that the players can still play more games
+                        if (gameCounts[player1.id] < 8 && gameCounts[player2.id] < 8) {
+                            // Set up a room for this 1v1 match
+                            const roomName = `1v1-${player1.id}-${player2.id}`;
+                            player1.join(roomName);
+                            player2.join(roomName);
+        
+                            // Emit game start to both players, with their correct opponents
+                            io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: {id: player2.id, userAddress: player2.userAddress} });
+                            io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: {id: player1.id, userAddress: player1.userAddress} });
+                            
+                            console.log(`Pairing players: ${player1.id} vs ${player2.id}`);
+                        }
+                    }
+                }
+            }
+        
+            pairPlayers();
         });
+        
         
         // End round for 1v1 bullrun
         socket.on('bullrun-game-end', ({ raceId }) => {
@@ -184,54 +237,54 @@ module.exports = (io) => {
                     
                     io.to(leavingPlayer.id).emit('bullrun-waiting', { message: 'You are now waiting for the next round', raceId });
                     io.to(nextPlayer.id).emit('bullrun-game-start', { message: 'You are now playing', raceId });
+                } else {
+                    console.log("NO GAME WAITING PLAYERS")
                 }
             }
             rotatePlayers();
         
-            function checkGameCompletion() {
-                activePlayers.forEach(player => {
-                    if (gameCounts[player.id] >= 8) {
-                        io.to(player.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
-                        activePlayers = activePlayers.filter(p => p.id !== player.id);  // Remove the player from the active list
-                    }
-                });
-            }
-            checkGameCompletion();
         
             function pairPlayers() {
                 const numPlayers = activePlayers.length;
-                const pairs = [];
-        
+            
                 for (let i = 0; i < numPlayers; i++) {
                     const player1 = activePlayers[i];
                     for (let j = i + 1; j < numPlayers; j++) {
                         const player2 = activePlayers[j];
-        
-                        // Ensure the pairing is valid
-                        if (
-                            //!matchesPlayed[player1.id].includes(player2.id) && 
-                            gameCounts[player1.id] < 8 && 
-                            gameCounts[player2.id] < 8
-                        ) {
-                            const roomName = `1v1-${player1.id}-${player2.id}`;
-                            player1.join(roomName);
-                            player2.join(roomName);
-        
-                            matchesPlayed[player1.id].push(player2.id);
-                            matchesPlayed[player2.id].push(player1.id);
-        
-                            gameCounts[player1.id]++;
-                            gameCounts[player2.id]++;
-        
-                            pairs.push({ player1: player1.id, player2: player2.id });
+                        
+                        const roomName = `1v1-${player1.id}-${player2.id}`;
+
+                        if (socket.id == player1.id) {
+                            if (gameCounts[player1.id] < 3) {
+                                player1.join(roomName);
+                                matchesPlayed[player1.id].push(player2.id);
+                                gameCounts[player1.id]++;
+                                console.log("INCREMENTED gameCounts per", player1.id, gameCounts[player1.id]);
+                                io.to(roomName).emit('bullrun-start-game', { players: [player1.id, player2.id], raceId });
+
+                                if (gameCounts[player1.id] >= 3) {
+                                    io.to(player1.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
+                                    gameCompletes[player1.id] = true;
+                                }
+                            }
+                        }
+
+                        if (socket.id == player2.id) {
+                            if (gameCounts[player2.id] < 3) {
+                                player2.join(roomName);
+                                matchesPlayed[player2.id].push(player1.id);
+                                gameCounts[player2.id]++;
+                                console.log("INCREMENTED gameCounts per", player2.id, gameCounts[player2.id]);
+                                io.to(roomName).emit('bullrun-start-game', { players: [player1.id, player2.id], raceId });
+
+                                if (gameCounts[player2.id] >= 3) {
+                                    io.to(player2.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
+                                    gameCompletes[player2.id] = true;
+                                }
+                            }
                         }
                     }
                 }
-        
-                pairs.forEach(pair => {
-                    const roomName = `1v1-${pair.player1}-${pair.player2}`;
-                    io.to(roomName).emit('bullrun-start-game', { players: [pair.player1, pair.player2], raceId });
-                });
             }
             pairPlayers();
         });

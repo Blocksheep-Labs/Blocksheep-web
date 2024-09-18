@@ -42,7 +42,7 @@ function SelectRaceScreen() {
 
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      navigate(`/race/${raceId}/rabbit-hole/preview`, {
+      navigate(`/race/${raceId}/bullrun`, {
         state: generateStateObjectForGame(data, progress, undefined)
       });
     });

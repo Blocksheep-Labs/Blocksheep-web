@@ -493,7 +493,12 @@ export const adminCreateRace = async(
         data: encodeFunctionData({
             abi: BlockSheepAbi,
             functionName: "addRace",
-            args: [title, hoursBeforeFinish, playersRequired, [{gameId: 0, questionIds: [0, 1, 2]}]]
+            args: [
+                title, 
+                hoursBeforeFinish, 
+                playersRequired, 
+                [{gameId: 0, questionIds: [0, 1, 2]}], 
+                [[-1, -2, 3], [1, 0, 0], [-1, 1, 1]]]
         }),
     });
 
@@ -506,6 +511,33 @@ export const userHasAdminAccess = async(smartAccountClient: any) => {
         ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "userHasAdminAccess",
         args: [smartAccountClient.account.address]
+    });
+
+    return userIsAdmin;
+}
+
+
+
+export const BULLRUN_makeChoice = async(smartAccountClient: any, raceId: number, choice: string, points: number) => {
+    const setPointsHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "BULLRUN_makeChoice",
+            args: [raceId, choice, points]  
+        }),
+    });
+
+    return setPointsHash;
+}
+
+export const BULLRUN_getPerksMatrix = async(raceId: number) => {
+    const userIsAdmin = await readContract(config, {
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: "BULLRUN_getPerksMatrix",
+        args: [raceId]
     });
 
     return userIsAdmin;

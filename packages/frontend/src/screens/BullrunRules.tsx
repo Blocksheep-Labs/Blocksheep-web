@@ -7,9 +7,11 @@ import { useSmartAccount } from "../hooks/smartAccountProvider";
 import RibbonLabel from "../components/RibbonLabel";
 import Rule from "../components/Rule";
 import BullrunRulesGrid from "../components/BullrunRulesGrid";
+import { BULLRUN_getPerksMatrix } from "../utils/contract-functions";
 
 
 export default function BullrunRules() {
+    const { smartAccountClient } = useSmartAccount();
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
@@ -17,6 +19,7 @@ export default function BullrunRules() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -34,6 +37,7 @@ export default function BullrunRules() {
                 userAddress: smartAccountAddress,
                 property: "game3-rules-complete",
             });
+            
             navigate(`/race/${raceId}/bullrun`, {
                 state: location.state
             });
@@ -43,15 +47,22 @@ export default function BullrunRules() {
 
     useEffect(() => {
         if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
-          
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
-          
         } else {
             pause();
         }
     }, [amountOfConnected, location.state]);
+
+    // fetch points matrix
+    useEffect(() => {
+        if (String(raceId).length) {
+            BULLRUN_getPerksMatrix(Number(raceId)).then(data => {
+                setPointsMatrix(data as number[][]);
+            });
+        }
+    }, [raceId]);
 
     // handle socket events
     useEffect(() => {
@@ -126,7 +137,7 @@ export default function BullrunRules() {
                 <Rule text="1 VS 1 AGAINST OTHER PLAYERS"/>
                 <Rule text="FIGHT - DEFEND - RUN"/>
             </div>
-            <BullrunRulesGrid/>
+            <BullrunRulesGrid pointsMatrix={pointsMatrix}/>
             {
                 modalIsOpen && modalType === "waiting" && 
                 <WaitingForPlayersModal 

@@ -24,9 +24,9 @@ const updateBullrunProgress = (property, value, rProgress) => {
             break;
         case "game3-add-item": 
             rProgress.progress.game3.selectedItems.push(value.item);
-            rProgress.progress.game3.points.push(value.point);
             break;
-    
+        case "game3-set-points":
+            rProgress.progress.game3.points.push(value.point);
         default:
             break;
     }

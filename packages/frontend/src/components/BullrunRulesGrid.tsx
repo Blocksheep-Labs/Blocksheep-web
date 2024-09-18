@@ -2,7 +2,11 @@ import Shield from "../assets/bullrun/defence.png";
 import Swords from "../assets/bullrun/fight.png";
 import BullHead from "../assets/bullrun/run.png";
 
-export default function BullrunRulesGrid() {
+export default function BullrunRulesGrid({
+    pointsMatrix
+}: {
+    pointsMatrix: number[][]
+}) {
     return (
         <div className="grid gap-[3px] bg-white mx-10 mt-5 font-bold p-[3px] grid-cols-4 grid-rows-4 w-fit">
             <div className="h-[70px] w-[70px] bg-gray-300 relative p-1">
@@ -20,19 +24,31 @@ export default function BullrunRulesGrid() {
             <div className="flex items-center justify-center bg-gray-300"><img src={BullHead} alt="run"  className="w-12"/></div>
 
             <div className="flex items-center justify-center bg-gray-300"><img src={Swords} alt="swords" className="w-12"/></div>
-            <div className="flex items-center justify-center bg-red-400 text-2xl">-1</div>
-            <div className="flex items-center justify-center bg-red-400 text-2xl">-2</div>
-            <div className="flex items-center justify-center bg-green-400 text-2xl">+3</div>
+            {
+                pointsMatrix[0].map((i, key) => {
+                    return (
+                        <div key={key} className={`flex items-center justify-center ${i < 0 ? 'bg-red-400' : 'bg-green-400'} ${i == 0 && 'bg-gray-400'} text-2xl`}>{Number(i)}</div>
+                    );
+                })
+            }
 
             <div className="flex items-center justify-center bg-gray-300"><img src={Shield} alt="shield" className="w-12"/></div>
-            <div className="flex items-center justify-center bg-green-400 text-2xl">+1</div>
-            <div className="flex items-center justify-center bg-gray-300 text-2xl">0</div>
-            <div className="flex items-center justify-center bg-gray-300 text-2xl">0</div>
+            {
+                pointsMatrix[1].map((i, key) => {
+                    return (
+                        <div key={key} className={`flex items-center justify-center ${i < 0 ? 'bg-red-400' : 'bg-green-400'} ${i == 0 && 'bg-gray-400'} text-2xl`}>{Number(i)}</div>
+                    );
+                })
+            }
 
             <div className="flex items-center justify-center bg-gray-300"><img src={BullHead} alt="run" className="w-12"/></div>
-            <div className="flex items-center justify-center bg-red-400 text-2xl">-1</div>
-            <div className="flex items-center justify-center bg-green-400 text-2xl">+1</div>
-            <div className="flex items-center justify-center bg-green-400 text-2xl">+1</div>
+            {
+                pointsMatrix[2].map((i, key) => {
+                    return (
+                        <div key={key} className={`flex items-center justify-center ${i < 0 ? 'bg-red-400' : 'bg-green-400'} ${i == 0 && 'bg-gray-400'} text-2xl`}>{Number(i)}</div>
+                    );
+                })
+            }
         </div>
     );
 }

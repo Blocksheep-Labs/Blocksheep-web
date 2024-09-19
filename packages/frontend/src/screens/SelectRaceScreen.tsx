@@ -40,16 +40,13 @@ function SelectRaceScreen() {
   const handleNavigate = useCallback((progress: any) => {
     console.log("PROGRESS-----------", progress);
 
-    /*
+    
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      navigate(`/race/${raceId}/bullrun`, {
+      navigate(`/race/${raceId}/rabbit-hole/rules`, {
         state: generateStateObjectForGame(data, progress, undefined)
       });
     });
     return;
-    */
-    
-    
     
     
     if (!progress?.countdown) {

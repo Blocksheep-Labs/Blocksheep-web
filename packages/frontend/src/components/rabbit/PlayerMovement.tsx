@@ -2,55 +2,65 @@ import React, { useEffect, useRef, useState } from "react";
 import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 
 const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases; players: ConnectedUser[], isRolling: boolean}) => {
-  const [prevStage, setPrevStage] = useState<undefined | string>(undefined);
-
-  // Sort players by Fuel submitted
-  const sortedPlayers = [...players].sort((a, b) => b.Fuel - a.Fuel);
+  const [prevStage, setPrevStage] = useState<RabbitHolePhases | undefined>(undefined);
+  const [sortedPlayers, setSortedPlayers] = useState<ConnectedUser[]>([]);
+  const [animationTrigger, setAnimationTrigger] = useState<boolean>(false);
 
   const playerRefs = useRef<(React.RefObject<HTMLImageElement>)[]>([]);
   const fuelRefs = useRef<(React.RefObject<HTMLParagraphElement>)[]>([]);
 
-  // Update refs when players change
+  // Sort players and update refs when players change
   useEffect(() => {
+    const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
+    setSortedPlayers(sorted);
+    
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
     fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
   }, [players]);
 
-  // Handle the animations when the phase changes or players change
+  // Handle animations when the phase changes or players change
   useEffect(() => {
-    //console.log({ prevStage, phase });
-
-    if (prevStage !== phase || players.length !== playerRefs.current.length) {
-      //console.log("REFRESHING POS...");
-
+    // Trigger animations only when necessary
+    if (prevStage !== phase || animationTrigger) {
       sortedPlayers.forEach((player, index) => {
         const playerElement = playerRefs.current[index]?.current;
         const fuelElement = fuelRefs.current[index]?.current;
         if (!playerElement || !fuelElement) return;
 
         const positionStyle = `${28 * index}px`;
-        setPrevStage(phase);
 
+        // Set the initial position and visibility of elements
+        playerElement.style.position = 'absolute';
+        fuelElement.style.position = 'absolute';
+        playerElement.style.visibility = 'visible';
+        fuelElement.style.visibility = 'visible';
+        
+        setPrevStage(phase);
+        setAnimationTrigger(false);
+
+        // Animation logic for different phases
         if (['Reset', 'Default'].includes(phase)) {
           setTimeout(() => {
-            console.log(">>>>>>>>>>>>>>> RESET/DEFAULT TUNNEL");
+            playerElement.style.position = "absolute";
             playerElement.style.transition = 'all 1.5s ease-out';
             playerElement.style.left = '50%';
-            playerElement.style.visibility = 'visible';
             playerElement.style.top = positionStyle;
 
+            fuelElement.style.position = "absolute";
             fuelElement.style.transition = 'all 1.5s ease-out';
             fuelElement.style.left = '50%';
-            fuelElement.style.visibility = 'visible';
             fuelElement.style.top = positionStyle;
             fuelElement.style.opacity = '0';
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
-          console.log(">>>>>>>>>>>>>>>>>>>>>>>> CLOSE TUNNEL");
           setTimeout(() => {
+            playerElement.style.transition = 'all 0s ease-out';
+            playerElement.style.left = '50%';
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';
 
+            fuelElement.style.transition = 'all 0s ease-out';
+            fuelElement.style.left = '50%';
             fuelElement.style.transition = 'all 0.5s ease-out';
             fuelElement.style.left = '-100%';
             fuelElement.style.opacity = '0';
@@ -58,7 +68,6 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
         } else if (phase === 'OpenTunnel') {
           const delay = index * 1000;
           setTimeout(() => {
-            console.log(">>>>>>>>>>>>>>>>>>>>>>> OPEN TUNNEL");
             playerElement.style.top = positionStyle;
             playerElement.style.left = '150vw';
             playerElement.style.transition = 'all 12s ease-out';
@@ -84,7 +93,14 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
         }
       });
     }
-  }, [phase, sortedPlayers, prevStage, playerRefs, fuelRefs, isRolling, players]);
+  }, [phase, sortedPlayers, prevStage, animationTrigger, playerRefs, fuelRefs, isRolling, players]);
+
+  // Handle phase changes to trigger animations
+  useEffect(() => {
+    if (prevStage !== phase) {
+      setAnimationTrigger(true);
+    }
+  }, [phase, prevStage]);
 
   return (
     <div className="player-container">
@@ -94,6 +110,7 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
           ref={playerRefs.current[index]}
           src={player.src}
           alt={player.id.toString()}
+          //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
         />
       ))}
       {sortedPlayers.map((player, index) => (
@@ -101,6 +118,7 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
           key={player.id}
           ref={fuelRefs.current[index]}
           className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full"
+          //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
         >
           {player.Fuel}
         </p>
@@ -110,29 +128,3 @@ const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases;
 };
 
 export default PlayerMovement;
-
-
-
-
-/*
-
-    <div className="player-container">
-      {sortedPlayers.map((player, index) => ( 
-        <img
-          key={player.id}
-          ref={playerRefs.current[index]}
-          src={player.src}
-          alt={player.id.toString()}
-        />
-      ))}
-      {sortedPlayers.map((player, index) => (
-        <p
-          key={player.id}
-          ref={fuelRefs.current[index]}
-          className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full"
-        >
-          {player.Fuel}
-        </p>
-      ))}
-    </div>
-*/

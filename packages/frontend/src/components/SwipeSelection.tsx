@@ -118,7 +118,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(({ onSwipe, onFi
                 <div className="relative ">
                   <img src={`/questions/question${currentQuestionIndex + 1}.png`} alt="play-card" />
                   <img
-                    src={BottomYellowBg}
+                    src={data[currentQuestionIndex].info.imgUrl}
                     alt="bottom-yellow-top"
                     className="absolute inset-x-0 bottom-0"
                   />

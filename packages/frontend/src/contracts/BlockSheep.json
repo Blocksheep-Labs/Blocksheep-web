@@ -51,6 +51,11 @@
 						"internalType": "string[]",
 						"name": "answers",
 						"type": "string[]"
+					},
+					{
+						"internalType": "string",
+						"name": "imgUrl",
+						"type": "string"
 					}
 				],
 				"internalType": "struct BlockSheep.QuestionInfo",
@@ -76,6 +81,11 @@
 						"internalType": "string[]",
 						"name": "answers",
 						"type": "string[]"
+					},
+					{
+						"internalType": "string",
+						"name": "imgUrl",
+						"type": "string"
 					}
 				],
 				"internalType": "struct BlockSheep.QuestionInfo[]",
@@ -178,14 +188,32 @@
 				"type": "uint256"
 			},
 			{
-				"internalType": "string",
-				"name": "choice",
-				"type": "string"
+				"internalType": "address",
+				"name": "opponentAddress",
+				"type": "address"
+			}
+		],
+		"name": "BULLRUN_distribute",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
 			},
 			{
 				"internalType": "uint256",
-				"name": "points",
+				"name": "perkIndex",
 				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "opponentAddress",
+				"type": "address"
 			}
 		],
 		"name": "BULLRUN_makeChoice",
@@ -292,6 +320,11 @@
 	},
 	{
 		"inputs": [],
+		"name": "GameIsNotComplted",
+		"type": "error"
+	},
+	{
+		"inputs": [],
 		"name": "InvalidGameIndex",
 		"type": "error"
 	},
@@ -345,37 +378,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			}
-		],
-		"name": "refundBalance",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			}
-		],
-		"name": "register",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "token",
 				"type": "address"
@@ -407,6 +409,37 @@
 		],
 		"name": "OwnershipTransferred",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "refundBalance",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "register",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"anonymous": false,
@@ -551,6 +584,30 @@
 	{
 		"inputs": [
 			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "BULLRUN_gameParticipants",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
 				"name": "user",
 				"type": "address"
@@ -564,9 +621,9 @@
 		"name": "BULLRUN_getAmountOfPointsPerGame",
 		"outputs": [
 			{
-				"internalType": "uint256",
-				"name": "points",
-				"type": "uint256"
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
 			}
 		],
 		"stateMutability": "view",
@@ -597,24 +654,77 @@
 				"internalType": "uint256",
 				"name": "raceId",
 				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "BULLRUN_getUserChoicesIndexes",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
 			}
 		],
 		"name": "BULLRUN_getWinnersPerGame",
 		"outputs": [
 			{
 				"internalType": "address",
-				"name": "",
+				"name": "user1",
 				"type": "address"
 			},
 			{
 				"internalType": "address",
-				"name": "",
+				"name": "user2",
 				"type": "address"
 			},
 			{
 				"internalType": "address",
-				"name": "",
+				"name": "user3",
 				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "BULLRUN_pointsPerPerks",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
 			}
 		],
 		"stateMutability": "view",
@@ -698,6 +808,11 @@
 								"internalType": "string[]",
 								"name": "answers",
 								"type": "string[]"
+							},
+							{
+								"internalType": "string",
+								"name": "imgUrl",
+								"type": "string"
 							}
 						],
 						"internalType": "struct BlockSheep.QuestionInfo",
@@ -1074,6 +1189,11 @@
 				"internalType": "string",
 				"name": "content",
 				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "imgUrl",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -1108,6 +1228,37 @@
 				"type": "bool"
 			}
 		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			}
+		],
+		"name": "validateGameCompletion",
+		"outputs": [],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "validateRaceId",
+		"outputs": [],
 		"stateMutability": "view",
 		"type": "function"
 	}

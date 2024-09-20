@@ -107,7 +107,6 @@ export default function Bullrun() {
                 raceId,
                 userAddress: smartAccountAddress,
                 isPending: true,
-                selectedPerk,
             });
 
             BULLRUN_makeChoice(
@@ -124,7 +123,6 @@ export default function Bullrun() {
                     raceId,
                     userAddress: smartAccountAddress,
                     isPending: false,
-                    selectedPerk,
                 });
 
                 closeCurtains();
@@ -133,12 +131,12 @@ export default function Bullrun() {
     }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent, selectedPerk]);
 
     const handlePerkChange = (perk: BullrunPerks) => {
-        socket.emit('bullrun-set-perk', {
+        socket.emit('bullrun-set-pending', {
             id: socket.id,
             opponentId: opponent?.id,
             raceId,
             userAddress: smartAccountAddress,
-            selectedPerk,
+            isPending: true,
         });
         setSelectedPerk(perk);
     }
@@ -248,15 +246,8 @@ export default function Bullrun() {
                 }
             });
 
-            socket.on('bullrun-perk-set', ({ id, opponentId, userAddress, raceId, selectedPerk }) => {
-                console.log({id, socketId: socket.id})
-                console.log("OPPONENT SELECTED PERK", selectedPerk)
-                setOpponentsSelectedPerk(selectedPerk);
-            });
-
             return () => {
                 socket.off('bullrun-pending');
-                socket.off('bullrun-perk-set');
             }
         }
     }, [raceId, smartAccountAddress, opponent, amountOfPending]);

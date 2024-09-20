@@ -153,22 +153,13 @@ module.exports = (io) => {
             io.to(socket.id).emit('amount-of-connected', { amount: sockets.length, raceId });
         });
 
-
-        socket.on('bullrun-set-perk', ({ id, opponentId, userAddress, raceId, selectedPerk }) => {
-            const playerToEmit = activePlayers.find(i => i.id == opponentId);
-            console.log({ id, opponentId, userAddress, raceId, selectedPerk })
-            if (playerToEmit) {
-                io.to(playerToEmit.id).emit('bullrun-perk-set', { id, opponentId, userAddress, raceId, selectedPerk });
-            }
-        });
-
         
-        socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId, selectedPerk }) => {
+        socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId }) => {
             const playerToEmit = activePlayers.find(i => i.id == opponentId);
 
             if (playerToEmit) {
-                io.to(playerToEmit.id).emit('bullrun-pending', { id, userAddress, isPending, raceId, selectedPerk });
-                io.to(socket.id).emit('bullrun-pending', { id, userAddress, isPending, raceId, selectedPerk });
+                io.to(playerToEmit.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
+                io.to(socket.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
             }
         });
 

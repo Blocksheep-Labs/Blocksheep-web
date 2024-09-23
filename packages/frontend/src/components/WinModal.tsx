@@ -4,6 +4,7 @@ import WinMain from "../assets/win/win-main.png";
 import NextFlag from "../assets/common/flag.png";
 import { getScoreAtRaceOfUser } from "../utils/contract-functions";
 import { usePrivy } from "@privy-io/react-auth";
+import { useSmartAccount } from "../hooks/smartAccountProvider";
 
 export type WinModalProps = {
   handleClose: () => void;
@@ -13,19 +14,19 @@ export type WinModalProps = {
 };
 
 function WinModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalProps) {
-  const { user } = usePrivy();
+  const { smartAccountAddress } = useSmartAccount();
   const [score, setScore] = useState<null | number>(null);
 
   useEffect(() => {
-    if (raceId?.toString() && gameIndex?.toString() && user?.wallet?.address && !preloadedScore) {
-      getScoreAtRaceOfUser(raceId, user.wallet.address as `0x${string}`)
+    if (raceId?.toString() && gameIndex?.toString() && smartAccountAddress && !preloadedScore) {
+      getScoreAtRaceOfUser(raceId, smartAccountAddress as `0x${string}`)
         .then(data => {
           console.log("Get score:", data);
           // wait for tx to finish
           setScore(Number(data));
         });
     }
-  }, [raceId, gameIndex, user?.wallet?.address, preloadedScore])
+  }, [raceId, gameIndex, smartAccountAddress, preloadedScore])
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">

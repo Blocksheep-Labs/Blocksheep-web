@@ -518,7 +518,12 @@ export const userHasAdminAccess = async(smartAccountClient: any) => {
 
 
 
-export const BULLRUN_makeChoice = async(smartAccountClient: any, raceId: number, choice: string, points: number) => {
+export const BULLRUN_makeChoice = async(
+    smartAccountClient: any, 
+    raceId: number, 
+    perkIndex: number, 
+    opponentAddress: string
+) => {
     const setPointsHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
         chain: SELECTED_CHAIN,
@@ -526,7 +531,7 @@ export const BULLRUN_makeChoice = async(smartAccountClient: any, raceId: number,
         data: encodeFunctionData({
             abi: BlockSheepAbi,
             functionName: "BULLRUN_makeChoice",
-            args: [raceId, choice, points]  
+            args: [raceId, perkIndex, opponentAddress]  
         }),
     });
 
@@ -534,11 +539,55 @@ export const BULLRUN_makeChoice = async(smartAccountClient: any, raceId: number,
 }
 
 export const BULLRUN_getPerksMatrix = async(raceId: number) => {
-    const userIsAdmin = await readContract(config, {
+    const perksMatrix = await readContract(config, {
         ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "BULLRUN_getPerksMatrix",
         args: [raceId]
     });
 
-    return userIsAdmin;
+    return perksMatrix;
 }
+
+export const BULLRUN_distribute = async(
+    smartAccountClient: any,
+    raceId: number,
+    opponentAddress: string,
+) => {
+    const distributeHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: BLOCK_SHEEP_CONTRACT,
+        data: encodeFunctionData({
+            abi: BlockSheepAbi,
+            functionName: "BULLRUN_distribute",
+            args: [raceId, opponentAddress]  
+        }),
+    });
+
+    return distributeHash; 
+}
+
+
+export const BULLRUN_getAmountOfPointsPerGame = async(
+    userAddress: string, raceId: number
+) => {
+    const points = await readContract(config, {
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: "BULLRUN_getAmountOfPointsPerGame",
+        args: [userAddress, raceId]
+    });
+
+    return points;
+};
+
+export const BULLRUN_getUserChoicesIndexes = async(
+    userAddress: string, raceId: number
+) => {
+    const points = await readContract(config, {
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: "BULLRUN_getUserChoicesIndexes",
+        args: [raceId, userAddress]
+    });
+
+    return points;
+};

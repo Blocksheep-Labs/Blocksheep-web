@@ -27,7 +27,19 @@ export default function BullrunRulesGrid({
             {
                 pointsMatrix[0].map((i, key) => {
                     return (
-                        <div key={key} className={`flex items-center justify-center ${i < 0 ? 'bg-red-400' : 'bg-green-400'} ${i == 0 && 'bg-gray-400'} text-2xl`}>{Number(i)}</div>
+                        <div key={key} className={
+                            `flex items-center justify-center 
+                            ${
+                                (() => {
+                                    if (Number(i) == 0) {
+                                        return 'bg-gray-400';
+                                    } else {
+                                        return Number(i) < 0 ? 'bg-red-400' : 'bg-green-400';
+                                    }
+                                })()
+                            }
+                            text-2xl`
+                        }>{Number(i)}</div>
                     );
                 })
             }
@@ -36,7 +48,19 @@ export default function BullrunRulesGrid({
             {
                 pointsMatrix[1].map((i, key) => {
                     return (
-                        <div key={key} className={`flex items-center justify-center ${i < 0 ? 'bg-red-400' : 'bg-green-400'} ${i == 0 && 'bg-gray-400'} text-2xl`}>{Number(i)}</div>
+                        <div key={key} className={
+                            `flex items-center justify-center 
+                            ${
+                                (() => {
+                                    if (Number(i) == 0) {
+                                        return 'bg-gray-400';
+                                    } else {
+                                        return Number(i) < 0 ? 'bg-red-400' : 'bg-green-400';
+                                    }
+                                })()
+                            }
+                            text-2xl`
+                        }>{Number(i)}</div>
                     );
                 })
             }
@@ -45,7 +69,19 @@ export default function BullrunRulesGrid({
             {
                 pointsMatrix[2].map((i, key) => {
                     return (
-                        <div key={key} className={`flex items-center justify-center ${i < 0 ? 'bg-red-400' : 'bg-green-400'} ${i == 0 && 'bg-gray-400'} text-2xl`}>{Number(i)}</div>
+                        <div key={key} className={
+                            `flex items-center justify-center 
+                            ${
+                                (() => {
+                                    if (Number(i) == 0) {
+                                        return 'bg-gray-400';
+                                    } else {
+                                        return Number(i) < 0 ? 'bg-red-400' : 'bg-green-400';
+                                    }
+                                })()
+                            }
+                            text-2xl`
+                        }>{Number(i)}</div>
                     );
                 })
             }

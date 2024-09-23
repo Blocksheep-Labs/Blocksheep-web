@@ -246,14 +246,14 @@ module.exports = (io) => {
                         const roomName = `1v1-${player1.id}-${player2.id}`;
 
                         if (socket.id == player1.id) {
-                            if (gameCounts[player1.id] < 3) {
+                            if (gameCounts[player1.id] < 8) {
                                 player1.join(roomName);
                                 matchesPlayed[player1.id].push(player2.id);
                                 gameCounts[player1.id]++;
                                 console.log("INCREMENTED gameCounts per", player1.id, gameCounts[player1.id]);
                                 io.to(roomName).emit('bullrun-start-game', { players: [player1.id, player2.id], raceId });
 
-                                if (gameCounts[player1.id] >= 3) {
+                                if (gameCounts[player1.id] >= 8) {
                                     io.to(player1.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
                                     gameCompletes[player1.id] = true;
                                 }
@@ -261,7 +261,7 @@ module.exports = (io) => {
                         }
 
                         if (socket.id == player2.id) {
-                            if (gameCounts[player2.id] < 3) {
+                            if (gameCounts[player2.id] < 8) {
                                 player2.join(roomName);
                                 matchesPlayed[player2.id].push(player1.id);
                                 gameCounts[player2.id]++;

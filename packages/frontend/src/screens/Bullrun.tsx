@@ -14,7 +14,7 @@ import { LegacyRef, MutableRefObject, useEffect, useRef, useState } from "react"
 import { useTimer } from "react-timer-hook";
 import BullrunRulesModal from "../components/BullrunRulesModal";
 import RaceModal from "../components/RaceModal";
-import { BULLRUN_getPerksMatrix, BULLRUN_makeChoice, getRaceById } from "../utils/contract-functions";
+import { BULLRUN_distribute, BULLRUN_getAmountOfPointsPerGame, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndexes, BULLRUN_makeChoice, getRaceById } from "../utils/contract-functions";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import shortenAddress from "../utils/shortenAddress";
 
@@ -26,7 +26,7 @@ export default function Bullrun() {
     const navigate = useNavigate();
     const location = useLocation();
     const {raceId} = useParams();
-    const [selectedPerk, setSelectedPerk] = useState<undefined | BullrunPerks>("shield");
+    const [selectedPerk, setSelectedPerk] = useState<undefined | number>(1);
     const [opponentsSelectedPerk, setOpponentsSelectedPerk] = useState<undefined | BullrunPerks>(undefined);
 
     const refLeftCurtain = useRef<HTMLDivElement>(null);
@@ -37,25 +37,26 @@ export default function Bullrun() {
     const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [amountOfPending, setAmountOfPending] = useState(0);
-    const [sendingTX, setSendingTX] = useState(false);
     const [roundStarted, setRoundStarted] = useState(false);
     const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
+    const [perksLocked, setPerksLocked] = useState(false);
 
     const [status, setStatus] = useState('waiting'); // could be 'playing', 'waiting', or 'finished'
     const [opponent, setOpponent] = useState<{id: string, userAddress: string} | undefined>(undefined);
     const [gamesPlayed, setGamesPlayed] = useState(1);
     const [waiting, setWaiting] = useState(false);
+    const [yourLastPerk, setYourLastPerk] = useState(-1);
+    const [lastOpponentPerk, setLastOpponentPerk] = useState(-1);
     //const [players, setPlayers] = useState([]);
 
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
 
-    const { totalSeconds, restart, start, pause } = useTimer({
+    const { totalSeconds, restart, start, pause, resume } = useTimer({
         expiryTimestamp: time,
         onExpire: () => {
             console.log("Time expired.")
-            setSendingTX(true);
             setRoundStarted(true);
         },
         autoStart: false,
@@ -97,48 +98,58 @@ export default function Bullrun() {
         }
     }
 
+    
+
     useEffect(() => {
         if (amountOfPending == 0 && roundStarted) {
             setRoundStarted(false);
 
-            socket.emit('bullrun-set-pending', {
-                id: socket.id,
-                opponentId: opponent?.id,
-                raceId,
-                userAddress: smartAccountAddress,
-                isPending: true,
-            });
-
-            BULLRUN_makeChoice(
+            console.log("ITS TIME TO FETCH DATA FROM THE CONTRACT!!!")
+            BULLRUN_distribute(
                 smartAccountClient,
-                Number(raceId), 
-                selectedPerk as string, 
-                0
-            ).then(data => {
-                setSendingTX(false);
-                console.log("MADE CHOICE:", data);
-                socket.emit('bullrun-set-pending', {
-                    id: socket.id,
-                    opponentId: opponent?.id,
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    isPending: false,
-                });
-
-                closeCurtains();
+                Number(raceId),
+                opponent?.userAddress as string,
+            ).then(() => {
+                console.log("POINTS DISTRIBUTED");
+            }).finally(() => {
+                Promise.all([
+                    BULLRUN_getUserChoicesIndexes(smartAccountAddress as string, Number(raceId)),
+                    BULLRUN_getUserChoicesIndexes(opponent?.userAddress as string, Number(raceId))
+                ]).then(data => {
+                    setYourLastPerk
+                    console.log(data);
+                })
             });
         }
-    }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent, selectedPerk]);
+    }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent]);
 
-    const handlePerkChange = (perk: BullrunPerks) => {
+    const setPending = (isPending: boolean) => {
         socket.emit('bullrun-set-pending', {
             id: socket.id,
             opponentId: opponent?.id,
             raceId,
             userAddress: smartAccountAddress,
-            isPending: true,
+            isPending,
         });
+    }
+
+    const handlePerkChange = (perk: number) => {
+        pause();
+        setPerksLocked(true);
+        setPending(true);
         setSelectedPerk(perk);
+
+        BULLRUN_makeChoice(
+            smartAccountClient,
+            Number(raceId), 
+            perk,
+            opponent?.userAddress as string
+        ).then(data => {
+            console.log("MADE CHOICE:", data);
+        }).finally(() => {
+            setPending(false);
+            resume();
+        });
     }
 
     const handleNavigate = () => {
@@ -294,9 +305,9 @@ export default function Bullrun() {
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
                 <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] right-14">
                     <div className="w-20 h-10">
-                        { selectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
-                        { selectedPerk === "shield" && <img src={Shield} alt="shield"/> }
-                        { selectedPerk === "swords" && <img src={Swords} alt="swords"/> }
+                        { selectedPerk === 0 && <img src={BullHead} alt="bullhead"/> }
+                        { selectedPerk === 1 && <img src={Shield}   alt="shield"/>   }
+                        { selectedPerk === 2 && <img src={Swords}   alt="swords"/>   }
                     </div>
                     <p className="font-bold text-2xl w-full text-center">+X</p>
                 </div>
@@ -379,79 +390,21 @@ export default function Bullrun() {
             <div className="bottom-2 absolute flex flex-row gap-3 items-center justify-center">
                 <img 
                     src={Swords} alt="swords" 
-                    className={`w-16 h-16 ${selectedPerk === "swords" && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'}`}
-                    onClick={() => handlePerkChange("swords")}
+                    className={`w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${perksLocked && 'opacity-50'}`}
+                    onClick={() => handlePerkChange(0)}
                 />
                 <img 
                     src={Shield} alt="shield" 
-                    className={`w-16 h-16 ${selectedPerk === "shield" && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'}`}
-                    onClick={() => handlePerkChange("shield")}
+                    className={`w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${perksLocked && 'opacity-50'}`}
+                    onClick={() => handlePerkChange(1)}
                 />
                 <img 
                     src={BullHead} alt="run"  
-                    className={`w-16 h-16 ${selectedPerk === "run" && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'}`}
-                    onClick={() => handlePerkChange("run")}
+                    className={`w-16 h-16 ${selectedPerk === 2 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${perksLocked && 'opacity-50'}`}
+                    onClick={() => handlePerkChange(2)}
                 />
             </div>
         </div>
     );
 }
 
-
-
-/*
-    // handle socket events
-    useEffect(() => {
-        if (smartAccountAddress && location.state) {
-            socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
-                console.log({amount})
-                if (raceId === raceIdSocket) {
-                    setAmountOfConnected(amount);
-                    // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
-                        setWaitingModalIsOpened(false);
-                    }
-                }
-            });
-
-            socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
-                console.log("JOINED", raceIdSocket, raceId);
-
-                if (raceId == raceIdSocket) {
-                    console.log("JOINED++")
-                    setAmountOfConnected(amountOfConnected + 1);
-                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
-                        setWaitingModalIsOpened(false);
-                    }
-                }
-            });
-
-            socket.on('leaved', () => {
-                console.log("LEAVED")
-                setAmountOfConnected(amountOfConnected - 1);
-                setWaitingModalIsOpened(true);
-            });
-
-
-            socket.on('race-progress', (progress) => {
-                console.log("RACE PROGRESS PER USER:", progress);
-            });
-        
-            return () => {
-                socket.off('joined');
-                socket.off('amount-of-connected');
-                socket.off('leaved');
-                socket.off('race-progress');
-            }
-        }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
-
-    useEffect(() => {
-        setWaitingModalIsOpened(true);
-        if (smartAccountAddress && location.state) {
-            socket.emit("get-connected", { raceId });
-            socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
-            
-        }
-    }, [socket, raceId, smartAccountAddress, location.state]);
-*/

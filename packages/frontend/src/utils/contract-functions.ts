@@ -484,7 +484,8 @@ export const adminCreateRace = async(
     title: string,
     hoursBeforeFinish: number,
     playersRequired: number,
-    smartAccountClient: any
+    smartAccountClient: any,
+    questionIds: number[],
 ) => {
     const creationHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
@@ -497,7 +498,7 @@ export const adminCreateRace = async(
                 title, 
                 hoursBeforeFinish, 
                 playersRequired, 
-                [{gameId: 0, questionIds: [0, 1, 2]}], 
+                [{gameId: 0, questionIds}], 
                 [[-1, -2, 3], [1, 0, 0], [-1, 1, 1]]]
         }),
     });

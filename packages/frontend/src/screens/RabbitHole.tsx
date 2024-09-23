@@ -159,7 +159,7 @@ function RabbitHoleGame() {
         usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean, isPending: boolean, isCompleted: boolean}) => {
           if (i.userAddress === smartAccountAddress) {
             //setDisplayNumber(i.fuel);
-            setMaxFuel(i.maxAvailableFuel);
+            //setMaxFuel(i.maxAvailableFuel);
           }
           i.isPending && amountPendingPerGame2++;
           i.isCompleted && amountOfCompleted++;
@@ -579,6 +579,7 @@ function RabbitHoleGame() {
       setTimeout(() => {
         setPlayers(newListOfPlayers);
         //setMaxFuel(maxFuel - displayNumber);
+        setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
         setDisplayNumber(0);
   
         // refetch users data

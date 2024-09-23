@@ -94,6 +94,12 @@ export default function Bullrun() {
                     time.setSeconds(time.getSeconds() + 10);
                     restart(time);
                 }
+
+                setTimeout(() => {
+                    setYourLastPerk(-1);
+                    setLastOpponentPerk(-1);
+                    setPerksLocked(false);
+                }, 1500);
             }, 6000);
         }
     }
@@ -115,10 +121,11 @@ export default function Bullrun() {
                 Promise.all([
                     BULLRUN_getUserChoicesIndexes(smartAccountAddress as string, Number(raceId)),
                     BULLRUN_getUserChoicesIndexes(opponent?.userAddress as string, Number(raceId))
-                ]).then(data => {
-                    setYourLastPerk
-                    console.log(data);
-                })
+                ]).then((data: any[]) => {
+                    setYourLastPerk(data[0][data.length - 1]);
+                    setLastOpponentPerk(data[1][data.length - 1]);
+                    closeCurtains();
+                });
             });
         }
     }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent]);
@@ -309,7 +316,7 @@ export default function Bullrun() {
                         { selectedPerk === 1 && <img src={Shield}   alt="shield"/>   }
                         { selectedPerk === 2 && <img src={Swords}   alt="swords"/>   }
                     </div>
-                    <p className="font-bold text-2xl w-full text-center">+X</p>
+                    <p className="font-bold text-2xl w-full text-center">{yourLastPerk >= 0 ? pointsMatrix[yourLastPerk][lastOpponentPerk] : "---"}</p>
                 </div>
                 <div className="h-full w-[100%] bg-black/30 absolute top-0 backdrop-blur-lg"></div>
                 <div className="h-full flex items-center justify-end absolute">
@@ -318,7 +325,7 @@ export default function Bullrun() {
             </div>
             <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20 ">
                 <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] left-14">
-                    <p className="font-bold text-2xl w-full text-center">+X</p>
+                    <p className="font-bold text-2xl w-full text-center">{lastOpponentPerk >= 0 ? pointsMatrix[lastOpponentPerk][yourLastPerk] : "---"}</p>
                     <div className="w-20 h-10">
                         { opponentsSelectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
                         { opponentsSelectedPerk === "shield" && <img src={Shield} alt="shield"/> }

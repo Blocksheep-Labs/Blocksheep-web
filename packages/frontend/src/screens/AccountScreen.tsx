@@ -46,7 +46,7 @@ function AccountScreen() {
 
   const handleDeposit = (amount: number) => {
     console.log(smartAccountAddress, user)
-    buyTokens(amount, smartAccountClient).then(console.log).catch(console.error)
+    buyTokens(amount, smartAccountClient, smartAccountAddress).then(console.log).catch(console.error)
   }
 
   const handleWithdraw = (amount: number) => {
@@ -59,20 +59,26 @@ function AccountScreen() {
     });
   }
 
+  const handleAddressClick = () => {
+    navigator.clipboard.writeText(smartAccountAddress as string);
+    alert(smartAccountAddress as string);
+  }
+
   console.log(smartAccountAddress)
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
-      <button onClick={() => handleDeposit(30)}>Test deposit for 1 game</button>
+      <button className="bg-black p-2 text-white" onClick={() => handleDeposit(30)}>Test deposit for 1 game</button>
       <div className="mt-10 flex flex-col gap-5 cursor-pointer">
         <ProfileButton 
-          text={`Address: ${smartAccountAddress}`}
+          text={`Address: ${smartAccountAddress && shortenAddress(smartAccountAddress as string)}`}
           bgColors="bg-gradient-to-r from-[#efb828] to-[#fbe572] text-[#18243F] hover:text-white border-[#793325]" 
           icon={
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
               <path fillRule="evenodd" d="M4.5 3.75a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V6.75a3 3 0 0 0-3-3h-15Zm4.125 3a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm-3.873 8.703a4.126 4.126 0 0 1 7.746 0 .75.75 0 0 1-.351.92 7.47 7.47 0 0 1-3.522.877 7.47 7.47 0 0 1-3.522-.877.75.75 0 0 1-.351-.92ZM15 8.25a.75.75 0 0 0 0 1.5h3.75a.75.75 0 0 0 0-1.5H15ZM14.25 12a.75.75 0 0 1 .75-.75h3.75a.75.75 0 0 1 0 1.5H15a.75.75 0 0 1-.75-.75Zm.75 2.25a.75.75 0 0 0 0 1.5h3.75a.75.75 0 0 0 0-1.5H15Z" clipRule="evenodd" />
             </svg>
           }
+          onClick={handleAddressClick}
         />
         
         <ProfileButton 

@@ -431,11 +431,23 @@ export const getScoreAtRaceOfUser = async(
 }
 
 
-export const buyTokens = async(amount: number, smartAccountClient: any) => {
+export const buyTokens = async(amount: number, smartAccountClient: any, smartAccountAddress: any) => {
     const decimals = await getTokenDecimals();
     const needToDeposit = amount * 10 * 10**Number(decimals);
 
     console.log({decimals, needToDeposit, account: smartAccountClient.account})
+
+    const mintHash = await smartAccountClient.sendTransaction({
+        account: smartAccountClient.account!,
+        chain: SELECTED_CHAIN,
+        to: USDC_ADDR,
+        data: encodeFunctionData({
+            abi: MockUsdcAbi,
+            functionName: "mint",
+            args: [smartAccountAddress, needToDeposit]
+        }),
+    });
+    console.log("MINT:", mintHash);
 
     const approveHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,

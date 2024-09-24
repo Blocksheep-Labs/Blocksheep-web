@@ -26,8 +26,7 @@ export default function Bullrun() {
     const navigate = useNavigate();
     const location = useLocation();
     const {raceId} = useParams();
-    const [selectedPerk, setSelectedPerk] = useState<undefined | number>(1);
-    const [opponentsSelectedPerk, setOpponentsSelectedPerk] = useState<undefined | BullrunPerks>(undefined);
+    const [selectedPerk, setSelectedPerk] = useState<undefined | number>(-1);
 
     const refLeftCurtain = useRef<HTMLDivElement>(null);
     const refRightCurtain = useRef<HTMLDivElement>(null);
@@ -47,6 +46,7 @@ export default function Bullrun() {
     const [waiting, setWaiting] = useState(false);
     const [yourLastPerk, setYourLastPerk] = useState(-1);
     const [lastOpponentPerk, setLastOpponentPerk] = useState(-1);
+    const [listOfPreviousPerksByOpponent, setListOfPreviousPerksByOpponent] = useState<any[]>([]);
     //const [players, setPlayers] = useState([]);
 
 
@@ -96,6 +96,7 @@ export default function Bullrun() {
                 }
 
                 setTimeout(() => {
+                    setSelectedPerk(-1);
                     setYourLastPerk(-1);
                     setLastOpponentPerk(-1);
                     setPerksLocked(false);
@@ -122,9 +123,15 @@ export default function Bullrun() {
                     BULLRUN_getUserChoicesIndexes(smartAccountAddress as string, Number(raceId)),
                     BULLRUN_getUserChoicesIndexes(opponent?.userAddress as string, Number(raceId))
                 ]).then((data: any[]) => {
-                    setYourLastPerk(data[0][data.length - 1]);
-                    setLastOpponentPerk(data[1][data.length - 1]);
+                    console.log({
+                        perk1: data[0][data[0].length - 1],
+                        perk2: data[1][data[1].length - 1]
+                    })
+                    setYourLastPerk(Number(data[0][data[0].length - 1]));
+                    setLastOpponentPerk(Number(data[1][data[1].length - 1]));
                     closeCurtains();
+
+                    console.log(pointsMatrix)
                 });
             });
         }
@@ -192,51 +199,58 @@ export default function Bullrun() {
 
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress) {
+
             BULLRUN_getPerksMatrix(Number(raceId)).then(data => {
                 setPointsMatrix(data as number[][]);
             });
-            // On mount, join the game
-            socket.emit('bullrun-join-game', { raceId, userAddress: smartAccountAddress });
-    
-            socket.on('bullrun-game-start', ({ opponent }) => {
-                const myId = socket.id;
+            getRaceById(Number(raceId), smartAccountAddress).then(data => {
+                // On mount, join the game
+                // data.numberOfPlayersRequired - 1
+                socket.emit('bullrun-join-game', { raceId, userAddress: smartAccountAddress, amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 });
+        
+                socket.on('bullrun-game-start', ({ opponent }) => {                    
+                    // Check if opponent exists
+                    if (opponent) {
+                        BULLRUN_getUserChoicesIndexes(opponent?.userAddress as string, Number(raceId)).then(data => {
+                            setListOfPreviousPerksByOpponent(data as any[]);
+                        });
+                        const time = new Date();
+                        time.setSeconds(time.getSeconds() + 10);
+                        restart(time);
                 
-                // Check if opponent exists
-                if (opponent) {
-                    const time = new Date();
-                    time.setSeconds(time.getSeconds() + 10);
-                    restart(time);
-            
-                    setStatus('playing');
-                    setOpponent(opponent);
-                    console.log("START: Playing against", opponent);
-                } else {
-                    console.log("START: Waiting for an opponent...");
+                        setStatus('playing');
+                        setOpponent(opponent);
+                        console.log("START: Playing against", opponent);
+                    } else {
+                        console.log("START: Waiting for an opponent...");
+                        setStatus('waiting');
+                        setOpponent(undefined);
+                        pause();
+                    }
+                });
+        
+                // Listen for waiting
+                socket.on('bullrun-waiting', ({ message }) => {
+                    console.log("WAITING");
                     setStatus('waiting');
-                    setOpponent(undefined);
-                }
+                    setWaiting(true);
+                    pause();
+                    console.log({message});
+                });
+        
+                socket.on('bullrun-game-complete', ({ message }) => {
+                    console.log("FINSIHED");
+                    setStatus('finished');
+                    pause();
+                    console.log({message});
+                });
+        
+                socket.on('amount-of-connected', ({ amount, raceId }) => {
+                    console.log(`Players connected: ${amount} ${raceId}`);
+                });
+        
             });
-    
-            // Listen for waiting
-            socket.on('bullrun-waiting', ({ message }) => {
-                console.log("WAITING");
-                setStatus('waiting');
-                setWaiting(true);
-                pause();
-                console.log({message});
-            });
-    
-            socket.on('bullrun-game-complete', ({ message }) => {
-                console.log("FINSIHED");
-                setStatus('finished');
-                pause();
-                console.log({message});
-            });
-    
-            socket.on('amount-of-connected', ({ amount, raceId }) => {
-                console.log(`Players connected: ${amount} ${raceId}`);
-            });
-    
+
             return () => {
                 socket.off('amount-of-connected');
                 socket.off('bullrun-game-complete');
@@ -312,11 +326,11 @@ export default function Bullrun() {
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
                 <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] right-14">
                     <div className="w-20 h-10">
-                        { selectedPerk === 0 && <img src={BullHead} alt="bullhead"/> }
-                        { selectedPerk === 1 && <img src={Shield}   alt="shield"/>   }
-                        { selectedPerk === 2 && <img src={Swords}   alt="swords"/>   }
+                        { yourLastPerk === 0 && <img src={BullHead} alt="bullhead"/> }
+                        { yourLastPerk === 1 && <img src={Shield}   alt="shield"/>   }
+                        { yourLastPerk === 2 && <img src={Swords}   alt="swords"/>   }
                     </div>
-                    <p className="font-bold text-2xl w-full text-center">{yourLastPerk >= 0 ? pointsMatrix[yourLastPerk][lastOpponentPerk] : "---"}</p>
+                    <p className="font-bold text-2xl w-full text-center">{yourLastPerk >= 0 ? Number(pointsMatrix[yourLastPerk][lastOpponentPerk]) : "---"}</p>
                 </div>
                 <div className="h-full w-[100%] bg-black/30 absolute top-0 backdrop-blur-lg"></div>
                 <div className="h-full flex items-center justify-end absolute">
@@ -325,11 +339,11 @@ export default function Bullrun() {
             </div>
             <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20 ">
                 <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] left-14">
-                    <p className="font-bold text-2xl w-full text-center">{lastOpponentPerk >= 0 ? pointsMatrix[lastOpponentPerk][yourLastPerk] : "---"}</p>
+                    <p className="font-bold text-2xl w-full text-center">{lastOpponentPerk >= 0 ? Number(pointsMatrix[lastOpponentPerk][yourLastPerk]) : "---"}</p>
                     <div className="w-20 h-10">
-                        { opponentsSelectedPerk === "run" && <img src={BullHead} alt="bullhead"/> }
-                        { opponentsSelectedPerk === "shield" && <img src={Shield} alt="shield"/> }
-                        { opponentsSelectedPerk === "swords" && <img src={Swords} alt="swords"/> }
+                        { lastOpponentPerk === 0 && <img src={BullHead} alt="bullhead"/> }
+                        { lastOpponentPerk === 1 && <img src={Shield} alt="shield"/> }
+                        { lastOpponentPerk === 2 && <img src={Swords} alt="swords"/> }
                     </div>
                 </div>
                 <div className="h-full w-[100%] bg-black/30 absolute top-0 backdrop-blur-lg"></div>
@@ -361,10 +375,13 @@ export default function Bullrun() {
                     </div>
                     
                     {
-
-                        //Array(gamesPlayed).fill(0).map((i, key) => {
-                        //    return <div key={key} className="flex items-center justify-center border-[1px] border-black">X</div>
-                        //})
+                        listOfPreviousPerksByOpponent.map((i, key) => {
+                            return <div key={key} className="flex items-center justify-center border-[1px] border-black p-1">
+                                { Number(i) === 0 && <img src={BullHead} alt="bullhead"/> }
+                                { Number(i) === 1 && <img src={Shield} alt="shield"/> }
+                                { Number(i) === 2 && <img src={Swords} alt="swords"/> }
+                            </div>
+                        })
                     }
                 </div>
             </div>

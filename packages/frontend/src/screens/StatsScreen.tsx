@@ -7,6 +7,8 @@ import shortenAddress from "../utils/shortenAddress";
 import StatsImage from "../assets/stats/podium.png";
 import WhiteSheepImage from "../assets/rabbit-hole/sheeepy.png";
 import BlackSheepImage from "../assets/rabbit-hole/blacksheep.png";
+import NextFlag from "../assets/common/flag.png";
+import { socket } from "../utils/socketio";
 
 export default function StatsScreen() {
     const navigate = useNavigate();
@@ -18,6 +20,7 @@ export default function StatsScreen() {
     const date = new Date();
 
     useEffect(() => {
+        socket.disconnect();
         if (raceId?.length && smartAccountAddress) {
             getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
                 if (data) {
@@ -85,6 +88,16 @@ export default function StatsScreen() {
                         })
                     }
                 </div>
+            </div>
+
+            <div className="absolute bottom-0 right-0 w-[40%]">
+                <button
+                className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
+                onClick={() => navigate('/select')}
+                >
+                Home
+                </button>
+                <img src={NextFlag} alt="next-flag" />
             </div>
         </div>
     );

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../components/RibbonLabel";
-import RaceItem from "../components/RaceItem";
+import RaceItem from "../components/race-item/RaceItem";
 // import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
 // import { BLOCK_SHEEP_CONTRACT } from "../constants";
 // import BlockSheep from "../contracts/BlockSheep";
@@ -298,7 +298,7 @@ function SelectRaceScreen() {
       <div className="mt-16 flex w-full justify-center">
         <RibbonLabel text="Races"/>
       </div>
-      <div className="mx-8 my-4 flex h-3/5 flex-col gap-20 overflow-y-auto pt-4">
+      <div className="mx-8 my-4 flex h-3/5 flex-col gap-28 overflow-y-auto pt-28 items-center">
         {races &&
           races.map((r, i) => (
             <RaceItem

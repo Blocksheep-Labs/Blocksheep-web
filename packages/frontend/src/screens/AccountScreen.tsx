@@ -8,6 +8,7 @@ import { buyTokens, withdrawTokens } from "../utils/contract-functions";
 import { useState } from "react";
 import SelectAmountModal from "../components/SelectAmountModal";
 import { usePrivy } from "@privy-io/react-auth";
+import { useBalance } from "wagmi";
 
 
 const ProfileButton = ({text, onClick, bgColors, icon}: {text: string; onClick?: () => void; bgColors: string, icon: React.ReactNode}) => {
@@ -32,6 +33,10 @@ function AccountScreen() {
   const [ modalIsOpen, setModalsOpen ] = useState(false);
   const { logout, user } = usePrivy();
 
+  const { data: ETHBalance } = useBalance({
+    address: smartAccountAddress
+  });
+
   console.log({userBalance})
 
   const openDepositModal = () => {
@@ -46,7 +51,7 @@ function AccountScreen() {
 
   const handleDeposit = (amount: number) => {
     console.log(smartAccountAddress, user)
-    buyTokens(amount, smartAccountClient, smartAccountAddress).then(console.log).catch(console.error)
+    buyTokens(amount, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted)).then(console.log).catch(console.error)
   }
 
   const handleWithdraw = (amount: number) => {
@@ -64,7 +69,7 @@ function AccountScreen() {
     alert(smartAccountAddress as string);
   }
 
-  console.log(smartAccountAddress)
+  console.log(smartAccountAddress, `Balance: ${Number(ETHBalance?.formatted)}`)
 
   return (
     <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">

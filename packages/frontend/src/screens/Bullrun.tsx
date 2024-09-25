@@ -14,9 +14,10 @@ import { LegacyRef, MutableRefObject, useEffect, useRef, useState } from "react"
 import { useTimer } from "react-timer-hook";
 import BullrunRulesModal from "../components/BullrunRulesModal";
 import RaceModal from "../components/RaceModal";
-import { BULLRUN_distribute, BULLRUN_getAmountOfPointsPerGame, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndexes, BULLRUN_makeChoice, getRaceById } from "../utils/contract-functions";
+import { BULLRUN_distribute, BULLRUN_getAmountOfPointsPerGame, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndexes, BULLRUN_getWinnersPerGame, BULLRUN_makeChoice, getRaceById } from "../utils/contract-functions";
 import WaitingForPlayersModal from "../components/WaitingForPlayersModal";
 import shortenAddress from "../utils/shortenAddress";
+import WinModal from "../components/WinModal";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -33,20 +34,21 @@ export default function Bullrun() {
     const [rulesModalIsOpened, setRulesModalIsOpened] = useState(false);
     const [raceModalISOpened, setRaceModalIsOpened] = useState(false);
     const [waitingModalIsOpened, setWaitingModalIsOpened] = useState(false);
+    const [winModalIsOpened, setWinModalIsOpened] = useState(false);
     const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
-    const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [amountOfPending, setAmountOfPending] = useState(0);
     const [roundStarted, setRoundStarted] = useState(false);
     const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
     const [perksLocked, setPerksLocked] = useState(false);
+    const [raceData, setRaceData] = useState<any>(undefined);
 
     const [status, setStatus] = useState('waiting'); // could be 'playing', 'waiting', or 'finished'
     const [opponent, setOpponent] = useState<{id: string, userAddress: string} | undefined>(undefined);
     const [gamesPlayed, setGamesPlayed] = useState(1);
-    const [waiting, setWaiting] = useState(false);
     const [yourLastPerk, setYourLastPerk] = useState(-1);
     const [lastOpponentPerk, setLastOpponentPerk] = useState(-1);
     const [listOfPreviousPerksByOpponent, setListOfPreviousPerksByOpponent] = useState<any[]>([]);
+    const [preloadedScore, setPreloadedScore] = useState(0);
     //const [players, setPlayers] = useState([]);
 
 
@@ -61,16 +63,6 @@ export default function Bullrun() {
         },
         autoStart: false,
     });
-
-    useEffect(() => {
-        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
-            restart(time);
-        } else {
-            pause();
-        }
-    }, [amountOfConnected, location.state]);
 
     const closeCurtains = () => {
         if (refLeftCurtain.current && refRightCurtain.current) {
@@ -89,11 +81,10 @@ export default function Bullrun() {
                 rightCurtain.style.right = "-50%";
                 
                 endGame();
-                if (gamesPlayed !== 3) {
-                    const time = new Date();
-                    time.setSeconds(time.getSeconds() + 10);
-                    restart(time);
-                }
+                
+                const time = new Date();
+                time.setSeconds(time.getSeconds() + 10);
+                restart(time);
 
                 setTimeout(() => {
                     setSelectedPerk(-1);
@@ -110,7 +101,7 @@ export default function Bullrun() {
     useEffect(() => {
         if (amountOfPending == 0 && roundStarted) {
             setRoundStarted(false);
-
+            setWaitingModalIsOpened(true);
             console.log("ITS TIME TO FETCH DATA FROM THE CONTRACT!!!")
             BULLRUN_distribute(
                 smartAccountClient,
@@ -127,10 +118,10 @@ export default function Bullrun() {
                         perk1: data[0][data[0].length - 1],
                         perk2: data[1][data[1].length - 1]
                     })
-                    setYourLastPerk(Number(data[0][data[0].length - 1]));
-                    setLastOpponentPerk(Number(data[1][data[1].length - 1]));
+                    setYourLastPerk(Number(data[1][data[1].length - 1]));
+                    setLastOpponentPerk(Number(data[0][data[0].length - 1]));
                     closeCurtains();
-
+                    setWaitingModalIsOpened(false);
                     console.log(pointsMatrix)
                 });
             });
@@ -186,8 +177,10 @@ export default function Bullrun() {
         });
     }
 
-    const handleFinish = () => {
+    const handleMoveToNextGame = () => {
         fetchRaceData();
+        setRulesModalIsOpened(false);
+        setWinModalIsOpened(false);
         setRaceModalIsOpened(true);
     }
 
@@ -204,8 +197,9 @@ export default function Bullrun() {
                 setPointsMatrix(data as number[][]);
             });
             getRaceById(Number(raceId), smartAccountAddress).then(data => {
+                setRaceData(data);
                 // On mount, join the game
-                // data.numberOfPlayersRequired - 1
+                // amount of games per player is (N) players - 1: (n - 1);
                 socket.emit('bullrun-join-game', { raceId, userAddress: smartAccountAddress, amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 });
         
                 socket.on('bullrun-game-start', ({ opponent }) => {                    
@@ -213,14 +207,14 @@ export default function Bullrun() {
                     if (opponent) {
                         BULLRUN_getUserChoicesIndexes(opponent?.userAddress as string, Number(raceId)).then(data => {
                             setListOfPreviousPerksByOpponent(data as any[]);
+                            const time = new Date();
+                            time.setSeconds(time.getSeconds() + 10);
+                            restart(time);
+                    
+                            setStatus('playing');
+                            setOpponent(opponent);
+                            console.log("START: Playing against", opponent);
                         });
-                        const time = new Date();
-                        time.setSeconds(time.getSeconds() + 10);
-                        restart(time);
-                
-                        setStatus('playing');
-                        setOpponent(opponent);
-                        console.log("START: Playing against", opponent);
                     } else {
                         console.log("START: Waiting for an opponent...");
                         setStatus('waiting');
@@ -228,12 +222,11 @@ export default function Bullrun() {
                         pause();
                     }
                 });
-        
+
                 // Listen for waiting
                 socket.on('bullrun-waiting', ({ message }) => {
                     console.log("WAITING");
                     setStatus('waiting');
-                    setWaiting(true);
                     pause();
                     console.log({message});
                 });
@@ -248,7 +241,6 @@ export default function Bullrun() {
                 socket.on('amount-of-connected', ({ amount, raceId }) => {
                     console.log(`Players connected: ${amount} ${raceId}`);
                 });
-        
             });
 
             return () => {
@@ -278,11 +270,46 @@ export default function Bullrun() {
                 }
             });
 
+            socket.on('leaved', ({socketId, userAddress}) => {
+                if (opponent && opponent.id == socketId) {
+                    console.log("OPPONENT LEAVED");
+                    if (amountOfPending > 1) {
+                        setAmountOfPending(prev => prev - 1);
+                    }
+                }
+            });
+
+            socket.on('bullrun-amount-of-completed-games', ({ gameCompletesAmount }) => {
+                // check if all users completed all the games  [required amount of games per user] * [players amount]
+                if (gameCompletesAmount >= (Number(raceData?.numberOfPlayersRequired) - 1) * Number(raceData?.numberOfPlayersRequired)) {
+                    BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
+                        console.log("Winners data:", data)
+
+                        if (data.firstPlaceUser == smartAccountAddress) {
+                            setPreloadedScore(3);
+                        }
+
+                        if (data.secondPlaceUser == smartAccountAddress) {
+                            setPreloadedScore(2);
+                        }
+
+                        if (data.thirdPlaceUser == smartAccountAddress) {
+                            setPreloadedScore(1);
+                        }
+
+                        setWinModalIsOpened(true);
+                    });
+                }
+            });
+
             return () => {
                 socket.off('bullrun-pending');
+                socket.off('leaved');
+                socket.off('bullrun-amount-of-completed-games');
             }
         }
-    }, [raceId, smartAccountAddress, opponent, amountOfPending]);
+    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData]);
+
 
     function endGame() {
         console.log("NEXT OPPONENT >>>>")
@@ -290,7 +317,8 @@ export default function Bullrun() {
     
         setGamesPlayed(prev => prev + 1);
     
-        if (gamesPlayed >= 7) {
+        if (gamesPlayed >= raceData.numberOfPlayersRequired - 1) {
+            pause();
             setStatus('finished');
         }
     }
@@ -318,9 +346,14 @@ export default function Bullrun() {
             {
                 waitingModalIsOpened && 
                 <WaitingForPlayersModal 
-                    numberOfPlayers={amountOfConnected} 
+                    replacedText="..."
+                    numberOfPlayers={0} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
                 />
+            }
+            {
+                winModalIsOpened && 
+                <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore}/>
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
@@ -387,7 +420,7 @@ export default function Bullrun() {
             </div>
             
             <button 
-                onClick={handleFinish}
+                onClick={handleMoveToNextGame}
                 className="absolute top-0 right-0 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
             >
                 NEXT

@@ -431,11 +431,12 @@ export const getScoreAtRaceOfUser = async(
 }
 
 
-export const buyTokens = async(amount: number, smartAccountClient: any, smartAccountAddress: any) => {
+export const buyTokens = async(amount: number, smartAccountClient: any, smartAccountAddress: any, currentETHBlance: number) => {
     const decimals = await getTokenDecimals();
     const needToDeposit = amount * 10 * 10**Number(decimals);
 
-    console.log({decimals, needToDeposit, account: smartAccountClient.account})
+    console.log({decimals, needToDeposit, account: smartAccountClient.account, currentETHBlance})
+
 
     const mintHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,
@@ -444,7 +445,7 @@ export const buyTokens = async(amount: number, smartAccountClient: any, smartAcc
         data: encodeFunctionData({
             abi: MockUsdcAbi,
             functionName: "mint",
-            args: [smartAccountAddress, needToDeposit]
+            args: [smartAccountAddress, needToDeposit, currentETHBlance < 0.0012]
         }),
     });
     console.log("MINT:", mintHash);
@@ -604,3 +605,21 @@ export const BULLRUN_getUserChoicesIndexes = async(
 
     return points;
 };
+
+
+export const BULLRUN_getWinnersPerGame = async(raceId: number) => {
+    const winners = await readContract(config, {
+        ...BLOCK_SHEEP_BASE_CONFIG,
+        functionName: "BULLRUN_getWinnersPerGame",
+        args: [raceId]
+    });
+
+    return {
+        // @ts-ignore
+        firstPlaceUser: winners[0],
+        // @ts-ignore
+        secondPlaceUser: winners[1],
+        // @ts-ignore
+        thirdPlaceUser: winners[2],
+    };
+}

@@ -14,6 +14,7 @@ let matchesPlayed = {};  // matches between players (e.g., { 'player1_id': ['pla
 let gameCounts = {};     // number of games each player has played (e.g., { 'player1_id': 3, ... })
 let gamesRequired = {};  // number of games per player required to move to next game  { 'player1_id': 3, ... }
 let gameCompletes = {};
+let gameCompletesAmount = {};
 
 
 
@@ -156,7 +157,7 @@ module.exports = (io) => {
 
         
         socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId }) => {
-            const playerToEmit = activePlayers.find(i => i.id == opponentId);
+            const playerToEmit = activePlayers[raceId]?.find(i => i.id == opponentId);
 
             if (playerToEmit) {
                 io.to(playerToEmit.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
@@ -172,6 +173,7 @@ module.exports = (io) => {
             // Initialize game data for the player
             function initializePlayer(playerId) {
                 if (!gamesRequired[raceId]) {
+                    gameCompletesAmount[raceId] = 0;
                     matchesPlayed[raceId] = {};
                     gameCounts[raceId] = {};
                     gamesRequired[raceId] = {};
@@ -209,7 +211,9 @@ module.exports = (io) => {
                         // Ensure that the players can still play more games
                         if (
                             gameCounts[raceId][player1.id] < gamesRequired[raceId][player1.id] && 
-                            gameCounts[raceId][player2.id] < gamesRequired[raceId][player2.id]
+                            gameCounts[raceId][player2.id] < gamesRequired[raceId][player2.id] &&
+                            !matchesPlayed[raceId][player1.id].includes(player2.id) && 
+                            !matchesPlayed[raceId][player2.id].includes(player1.id)
                         ) {
                             // Set up a room for this 1v1 match
                             const roomName = `1v1-${player1.id}-${player2.id}`;
@@ -250,7 +254,7 @@ module.exports = (io) => {
         
         
             function pairPlayers() {
-                const numPlayers = activePlayers[raceId].length;
+                const numPlayers = activePlayers[raceId]?.length;
             
                 for (let i = 0; i < numPlayers; i++) {
                     const player1 = activePlayers[raceId][i];
@@ -259,7 +263,7 @@ module.exports = (io) => {
                         
                         const roomName = `1v1-${player1.id}-${player2.id}`;
 
-                        if (socket.id == player1.id) {
+                        if (socket.id == player1.id && !matchesPlayed[raceId][player1.id].includes(player2.id)) {
                             if (gameCounts[raceId][player1.id] < gamesRequired[raceId][player1.id]) {
                                 player1.join(roomName);
                                 matchesPlayed[raceId][player1.id].push(player2.id);
@@ -270,11 +274,12 @@ module.exports = (io) => {
                                 if (gameCounts[raceId][player1.id] >= gamesRequired[raceId][player1.id]) {
                                     io.to(player1.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
                                     gameCompletes[player1.id] = true;
+                                    gameCompletesAmount[raceId]++;
                                 }
                             }
                         }
 
-                        if (socket.id == player2.id) {
+                        if (socket.id == player2.id && !matchesPlayed[raceId][player2.id].includes(player1.id)) {
                             if (gameCounts[raceId][player2.id] < gamesRequired[raceId][player2.id]) {
                                 player2.join(roomName);
                                 matchesPlayed[raceId][player2.id].push(player1.id);
@@ -285,6 +290,7 @@ module.exports = (io) => {
                                 if (gameCounts[raceId][player2.id] >= gamesRequired[raceId][player2.id]) {
                                     io.to(player2.id).emit('bullrun-game-complete', { message: 'You have completed all your games', raceId });
                                     gameCompletes[player2.id] = true;
+                                    gameCompletesAmount[raceId]++;
                                 }
                             }
                         }
@@ -292,6 +298,7 @@ module.exports = (io) => {
                 }
             }
             pairPlayers();
+            io.to(`race-${raceId}`).emit('bullrun-amount-of-completed-games', { gameCompletesAmount: gameCompletesAmount[raceId] });
         });
     });
 

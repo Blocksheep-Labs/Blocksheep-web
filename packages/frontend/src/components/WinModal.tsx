@@ -33,9 +33,9 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalPr
       <div className="mx-[10%] mb-[40%] mt-[30%] relative">
         <img src={WinMain} alt="loading-bg" />
         { 
-          !String(preloadedScore).length
+          preloadedScore == undefined || !String(preloadedScore).length
           ?
-          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">{score?.toString().length ? score : "Pls wait..."}</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">{score?.toString().length ? `+${score}` : "Pls wait..."}</p>
           :
           <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+{preloadedScore}</p>
         }

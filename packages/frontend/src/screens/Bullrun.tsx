@@ -200,7 +200,11 @@ export default function Bullrun() {
                 setRaceData(data);
                 // On mount, join the game
                 // amount of games per player is (N) players - 1: (n - 1);
-                socket.emit('bullrun-join-game', { raceId, userAddress: smartAccountAddress, amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 });
+                socket.emit('bullrun-join-game', { 
+                    raceId, 
+                    userAddress: smartAccountAddress, 
+                    amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 
+                });
         
                 socket.on('bullrun-game-start', ({ opponent }) => {                    
                     // Check if opponent exists
@@ -225,17 +229,24 @@ export default function Bullrun() {
 
                 // Listen for waiting
                 socket.on('bullrun-waiting', ({ message }) => {
-                    console.log("WAITING");
+                    console.log({message});
                     setStatus('waiting');
                     pause();
-                    console.log({message});
                 });
         
                 socket.on('bullrun-game-complete', ({ message }) => {
-                    console.log("FINSIHED");
+                    console.log({message});
                     setStatus('finished');
                     pause();
+                });
+
+                socket.on('bullrun-game-continue', ({ message }) => {
                     console.log({message});
+                    socket.emit('bullrun-join-game', { 
+                        raceId, 
+                        userAddress: smartAccountAddress, 
+                        amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 
+                    });
                 });
         
                 socket.on('amount-of-connected', ({ amount, raceId }) => {
@@ -248,6 +259,7 @@ export default function Bullrun() {
                 socket.off('bullrun-game-complete');
                 socket.off('bullrun-waiting');
                 socket.off('bullrun-game-start');
+                socket.off('bullrun-game-continue');
             };
         }
     }, [raceId, smartAccountAddress]);
@@ -280,8 +292,9 @@ export default function Bullrun() {
             });
 
             socket.on('bullrun-amount-of-completed-games', ({ gameCompletesAmount }) => {
+                console.log({gameCompletesAmount})
                 // check if all users completed all the games  [required amount of games per user] * [players amount]
-                if (gameCompletesAmount >= (Number(raceData?.numberOfPlayersRequired) - 1) * Number(raceData?.numberOfPlayersRequired)) {
+                if (gameCompletesAmount >= Number(raceData?.numberOfPlayersRequired)) {
                     BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
                         console.log("Winners data:", data)
 

@@ -12,6 +12,13 @@ import { refundBalance } from "../../utils/contract-functions";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../../config/wagmi";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+
+import BullRunIcon from "../../assets/common/bullrun-icon.jpg";
+import RabbitHoleIcon from "../../assets/common/rabbithole-icon.jpg";
+import UnderdogIcon from "../../assets/common/underdog-icon.jpg";
+import GamePreview from "../../assets/common/game-preview.jpg";
+
+
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
 type RaceStatusItemProps = {
   icon: string;
@@ -82,7 +89,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
         <div className="contentLayer greenLayer">
           <div className="topImageWrapper">
             <img
-              src="https://i.postimg.cc/CKTB7v5G/1.jpg"
+              src={GamePreview}
               alt="Top Icon"
               className="topImage"
             />
@@ -181,17 +188,17 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
 
         <div className="miniIcons">
           <img
-            src="https://i.postimg.cc/x1djH8HV/underdog-icon.jpg"
+            src={UnderdogIcon}
             alt="Mini Icon"
             className="miniIcon"
           />
           <img
-            src="https://i.postimg.cc/x1djH8HV/underdog-icon.jpg"
+            src={RabbitHoleIcon}
             alt="Mini Icon"
             className="miniIcon"
           />
           <img
-            src="https://i.postimg.cc/x1djH8HV/underdog-icon.jpg"
+            src={BullRunIcon}
             alt="Mini Icon"
             className="miniIcon"
           />

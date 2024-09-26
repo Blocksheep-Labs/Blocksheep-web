@@ -375,9 +375,9 @@ export default function Bullrun() {
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
                 <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] right-14">
                     <div className="w-20 h-10">
-                        { yourLastPerk === 0 && <img src={BullHead} alt="bullhead"/> }
+                        { yourLastPerk === 2 && <img src={BullHead} alt="bullhead"/> }
                         { yourLastPerk === 1 && <img src={Shield}   alt="shield"/>   }
-                        { yourLastPerk === 2 && <img src={Swords}   alt="swords"/>   }
+                        { yourLastPerk === 0 && <img src={Swords}   alt="swords"/>   }
                     </div>
                     <p className="font-bold text-2xl w-full text-center">{yourLastPerk >= 0 ? Number(pointsMatrix[yourLastPerk][lastOpponentPerk]) : "---"}</p>
                 </div>
@@ -390,9 +390,9 @@ export default function Bullrun() {
                 <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] left-14">
                     <p className="font-bold text-2xl w-full text-center">{lastOpponentPerk >= 0 ? Number(pointsMatrix[lastOpponentPerk][yourLastPerk]) : "---"}</p>
                     <div className="w-20 h-10">
-                        { lastOpponentPerk === 0 && <img src={BullHead} alt="bullhead"/> }
-                        { lastOpponentPerk === 1 && <img src={Shield} alt="shield"/> }
-                        { lastOpponentPerk === 2 && <img src={Swords} alt="swords"/> }
+                        { lastOpponentPerk === 2 && <img src={BullHead} alt="bullhead"/> }
+                        { lastOpponentPerk === 1 && <img src={Shield}   alt="shield"/> }
+                        { lastOpponentPerk === 0 && <img src={Swords}   alt="swords"/> }
                     </div>
                 </div>
                 <div className="h-full w-[100%] bg-black/30 absolute top-0 backdrop-blur-lg"></div>

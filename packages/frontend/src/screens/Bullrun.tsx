@@ -428,9 +428,9 @@ export default function Bullrun() {
                     {
                         status === "playing" && listOfPreviousPerksByOpponent.map((i, key) => {
                             return <div key={key} className="flex items-center justify-center border-[1px] border-black p-1">
-                                { Number(i) === 0 && <img src={BullHead} alt="bullhead"/> }
+                                { Number(i) === 2 && <img src={BullHead} alt="bullhead"/> }
                                 { Number(i) === 1 && <img src={Shield} alt="shield"/> }
-                                { Number(i) === 2 && <img src={Swords} alt="swords"/> }
+                                { Number(i) === 0 && <img src={Swords} alt="swords"/> }
                             </div>
                         })
                     }

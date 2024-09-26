@@ -50,6 +50,7 @@ function SelectRaceScreen() {
     */
     
     
+    
     if (!progress?.countdown) {
       console.log("COUNTDOWN")
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
@@ -255,6 +256,9 @@ function SelectRaceScreen() {
   }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
 
   const onClickJoin = useCallback((id: number) => {
+    if (!socket.connected) {
+      socket.connect();
+    }
     if (smartAccountAddress) {
       socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
       setTimeout(() => {

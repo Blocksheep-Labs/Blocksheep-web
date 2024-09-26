@@ -91,6 +91,7 @@ export default function Bullrun() {
                     setYourLastPerk(-1);
                     setLastOpponentPerk(-1);
                     setPerksLocked(false);
+                    //setOpponent(undefined);
                 }, 1500);
             }, 6000);
         }
@@ -139,6 +140,8 @@ export default function Bullrun() {
     }
 
     const handlePerkChange = (perk: number) => {
+        if (status !== "playing") return;
+
         pause();
         setPerksLocked(true);
         setPending(true);
@@ -411,17 +414,19 @@ export default function Bullrun() {
                                     return "Finished";
                                 }
 
+                                if (status === "waiting") {
+                                    return "Waiting for player..."
+                                }
+
                                 if (opponent?.userAddress) {
                                     return shortenAddress(opponent.userAddress);
-                                } else {
-                                    return "Waiting for player..."
                                 }
                             })()
                         }
                     </div>
                     
                     {
-                        listOfPreviousPerksByOpponent.map((i, key) => {
+                        status === "playing" && listOfPreviousPerksByOpponent.map((i, key) => {
                             return <div key={key} className="flex items-center justify-center border-[1px] border-black p-1">
                                 { Number(i) === 0 && <img src={BullHead} alt="bullhead"/> }
                                 { Number(i) === 1 && <img src={Shield} alt="shield"/> }
@@ -460,17 +465,17 @@ export default function Bullrun() {
             <div className="bottom-2 absolute flex flex-row gap-3 items-center justify-center">
                 <img 
                     src={Swords} alt="swords" 
-                    className={`w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${perksLocked && 'opacity-50'}`}
+                    className={`w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
                     onClick={() => handlePerkChange(0)}
                 />
                 <img 
                     src={Shield} alt="shield" 
-                    className={`w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${perksLocked && 'opacity-50'}`}
+                    className={`w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
                     onClick={() => handlePerkChange(1)}
                 />
                 <img 
                     src={BullHead} alt="run"  
-                    className={`w-16 h-16 ${selectedPerk === 2 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${perksLocked && 'opacity-50'}`}
+                    className={`w-16 h-16 ${selectedPerk === 2 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
                     onClick={() => handlePerkChange(2)}
                 />
             </div>

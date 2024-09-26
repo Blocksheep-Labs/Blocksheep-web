@@ -17,6 +17,7 @@ import BullRunIcon from "../../assets/common/bullrun-icon.jpg";
 import RabbitHoleIcon from "../../assets/common/rabbithole-icon.jpg";
 import UnderdogIcon from "../../assets/common/underdog-icon.jpg";
 import GamePreview from "../../assets/common/game-preview.jpg";
+import USDCIcon from "../../assets/common/usdc.png";
 
 
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
@@ -100,7 +101,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
               <div className="gridItem">
                 <div className="iconBox">
                   <img
-                    src="https://i.postimg.cc/fbLhpdL8/sheeepy.png"
+                    src={SheepIcon}
                     alt="Sheep Icon"
                     className="icon"
                   />
@@ -111,7 +112,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
               <div className="gridItem">
                 <div className="iconBox">
                   <img
-                    src="https://i.postimg.cc/gcyByJcj/usdc.png"
+                    src={USDCIcon}
                     alt="Coin Icon"
                     className="icon"
                   />
@@ -122,7 +123,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
               <div className="gridItem">
                 <div className="timerBox">
                   <img
-                    src="https://i.postimg.cc/Znq7K8GQ/timer.png"
+                    src={TimerIcon}
                     alt="Timer Icon"
                     className="timerIcon"
                   />

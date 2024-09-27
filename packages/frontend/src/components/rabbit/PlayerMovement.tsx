@@ -83,19 +83,26 @@ const PlayerMovement = ({
             fuelElement.style.top = positionStyle;
             fuelElement.style.left = '150vw';
             fuelElement.style.transition = 'all 12s ease-out';
-            fuelElement.style.opacity = '1';
+            if (!player.isCompleted && !player.isEliminated) {
+              fuelElement.style.opacity = '1';
+            }
 
             setTimeout(() => {
               const minFuel = sortedPlayers[sortedPlayers.length - 1].Fuel;
               const listOfMinFuelPlayers = sortedPlayers.filter(i => i.Fuel === minFuel);
 
-              // if all the submitted fuel were similar
+              // if all the submitted amounts of fuel were similar
               if (listOfMinFuelPlayers.length === sortedPlayers.length) {
                 return;
               }
 
               // remove all players with minimum fuel
-              if (index >= sortedPlayers.length - listOfMinFuelPlayers.length) playerElement.style.top = '400px';
+              if (index >= sortedPlayers.length - listOfMinFuelPlayers.length) {
+                  playerElement.style.top = '400px';
+                  fuelElement.style.top = '400px';
+                  playerElement.style.opacity = "0";
+                  fuelElement.style.opacity = "0";
+              };
             }, 4000);
           }, 1000 + delay);
         }
@@ -118,6 +125,7 @@ const PlayerMovement = ({
           ref={playerRefs.current[index]}
           src={player.src}
           alt={player.id.toString()}
+          style={{ opacity: player.isEliminated ? 0 : 1 }}
           //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
         />
       ))}
@@ -126,6 +134,7 @@ const PlayerMovement = ({
           key={player.id}
           ref={fuelRefs.current[index]}
           className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full"
+          style={{ opacity: player.isEliminated ? 0 : 1 }}
           //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
         >
           {player.Fuel}

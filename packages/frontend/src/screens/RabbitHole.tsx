@@ -28,6 +28,7 @@ export type ConnectedUser = {
     src: string; 
     PlayerPosition: number; 
     Fuel: number;
+    maxAvailableFuel: number;
     isEliminated: boolean;
     isCompleted: boolean;
 }
@@ -179,6 +180,7 @@ function RabbitHoleGame() {
             src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
             PlayerPosition: i.fuel / 9,
             Fuel: i.fuel,
+            maxAvailableFuel: i.maxAvailableFuel,
             isEliminated: i.isEliminated,
             isCompleted: i.isCompleted,
           }
@@ -511,33 +513,21 @@ function RabbitHoleGame() {
   // function that will end the game for the user with the lowest fuel amount
   const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean, lastAmountOfAllocatedPoints: number) => {
     console.log("CALCULATING THE FUEL...", {players});
-    const submittedFuelIsSimilar = players.every(i => i.Fuel === players[0].Fuel);
+    const actualListOfPlayers = players.filter(i => !i.isCompleted && !i.isEliminated);
+    const submittedFuelIsSimilar = actualListOfPlayers.every(i => i.Fuel === actualListOfPlayers[0].Fuel);
     console.log({submittedFuelIsSimilar})
 
     let newListOfPlayers;
     if (!submittedFuelIsSimilar) {
-      const sorted = players.toSorted((a, b) => a.Fuel - b.Fuel);
+      const sorted = actualListOfPlayers.toSorted((a, b) => a.Fuel - b.Fuel);
       const minFuel = sorted[0].Fuel;
       
-      newListOfPlayers = players.filter(i => i.Fuel !== minFuel);
+      newListOfPlayers = actualListOfPlayers.filter(i => i.Fuel !== minFuel);
     } else {
-      newListOfPlayers = players;
+      newListOfPlayers = actualListOfPlayers;
     }
 
     console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string))
-
-    /*
-    socket.emit("update-progress", {
-      raceId,
-      userAddress: smartAccountAddress,
-      property: "game2-set-fuel",
-      value: {
-        fuel: 0,
-        maxAvailableFuel: maxFuel,
-        isPending: true,
-      }
-    });
-    */
 
     const remainingPlayersCount = newListOfPlayers.length;
 
@@ -582,8 +572,20 @@ function RabbitHoleGame() {
         //return;
       }
 
+      // if all the remaining players sit with 0 avgailable fuel
+      if (newListOfPlayers.map(i => i.maxAvailableFuel).every(i => i == 0)) {
+        console.log("YOU LOSE :(")
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: "game2-eliminate",
+        });
+        handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints, true);
+        return;
+      }
+
       setTimeout(() => {
-        setPlayers(newListOfPlayers);
+        //setPlayers(newListOfPlayers);
         //setMaxFuel(maxFuel - displayNumber);
         setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
         setDisplayNumber(0);

@@ -16,7 +16,7 @@ export default function RabbitHoleCover() {
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
 
     const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
+    time.setSeconds(time.getSeconds() + 3);
 
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
@@ -43,7 +43,7 @@ export default function RabbitHoleCover() {
     useEffect(() => {
         if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
             const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
+            time.setSeconds(time.getSeconds() + 3);
             restart(time);
         } else {
             pause();
@@ -114,7 +114,7 @@ export default function RabbitHoleCover() {
     return (
         <>
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5" style={{width: `${totalSeconds * 10}%`}}></div>
+                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 33.33}%`}}></div>
             </div>
             <div className="mx-auto rounded-none flex h-dvh w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top">
                 {

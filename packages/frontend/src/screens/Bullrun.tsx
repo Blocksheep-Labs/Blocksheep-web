@@ -438,12 +438,16 @@ export default function Bullrun() {
                 </div>
             </div>
             
-            <button 
-                onClick={handleMoveToNextGame}
-                className="absolute top-0 right-0 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
-            >
-                NEXT
-            </button>
+            {
+                /*
+                    <button 
+                        onClick={handleMoveToNextGame}
+                        className="absolute top-0 right-0 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
+                    >
+                        NEXT
+                    </button>
+                */
+            }
                 
             <div className="absolute top-[45%] right-0 cursor-pointer bg-[#eec245] p-2 rounded-l-full z-10 flex items-center justify-center" onClick={() => setRulesModalIsOpened(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-12">

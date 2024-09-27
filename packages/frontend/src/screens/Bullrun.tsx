@@ -75,7 +75,6 @@ export default function Bullrun() {
             rightCurtain.style.transition = 'all 1s ease-out';
             rightCurtain.style.right = "0px";
 
-
             setTimeout(() => {
                 leftCurtain.style.left = "-50%";
                 rightCurtain.style.right = "-50%";
@@ -119,8 +118,8 @@ export default function Bullrun() {
                         perk1: data[0][data[0].length - 1],
                         perk2: data[1][data[1].length - 1]
                     })
-                    setYourLastPerk(Number(data[1][data[1].length - 1]));
-                    setLastOpponentPerk(Number(data[0][data[0].length - 1]));
+                    setYourLastPerk(Number(data[0][data[0].length - 1]));
+                    setLastOpponentPerk(Number(data[1][data[1].length - 1]));
                     closeCurtains();
                     setWaitingModalIsOpened(false);
                     console.log(pointsMatrix)
@@ -373,7 +372,8 @@ export default function Bullrun() {
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
-                <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] right-14">
+                <p className="bg-black p-2 opacity-80 text-white z-30 absolute top-[30%] left-0 rounded-l-rone rounded-r-2xl">You</p>
+                <div className="w-20 h-10 z-50 flex flex-row gap-0 justify-center absolute top-[50%] mt-[85px] right-14 p-2">
                     <div className="w-20 h-10">
                         { yourLastPerk === 2 && <img src={BullHead} alt="bullhead"/> }
                         { yourLastPerk === 1 && <img src={Shield}   alt="shield"/>   }
@@ -386,8 +386,9 @@ export default function Bullrun() {
                     <img src={LeftCurtain} alt="left-curtain" className="asbolute bottom-0 left-0"/>
                 </div>
             </div>
-            <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20 ">
-                <div className="w-20 h-10 z-50 flex flex-row gap-2 justify-center absolute top-[50%] mt-[90px] left-14">
+            <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20">
+                <p className="bg-black p-2 opacity-80 text-white z-30 absolute top-[30%] right-0 rounded-r-rone rounded-l-2xl">Your opponent</p>
+                <div className="w-20 h-10 z-50 flex flex-row gap-0 justify-center absolute top-[50%] mt-[85px] left-14 p-2">
                     <p className="font-bold text-2xl w-full text-center">{lastOpponentPerk >= 0 ? Number(pointsMatrix[lastOpponentPerk][yourLastPerk]) : "---"}</p>
                     <div className="w-20 h-10">
                         { lastOpponentPerk === 2 && <img src={BullHead} alt="bullhead"/> }

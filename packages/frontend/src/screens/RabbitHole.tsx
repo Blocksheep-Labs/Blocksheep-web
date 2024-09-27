@@ -27,7 +27,9 @@ export type ConnectedUser = {
     address: string; 
     src: string; 
     PlayerPosition: number; 
-    Fuel: number
+    Fuel: number;
+    isEliminated: boolean;
+    isCompleted: boolean;
 }
 
 export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
@@ -37,6 +39,7 @@ function RabbitHoleGame() {
   const {smartAccountAddress} = useSmartAccount();
   const [phase, setPhase] = useState<RabbitHolePhases>("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
+
   const location = useLocation();
   const [modalType, setModalType] = useState<string | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -60,6 +63,7 @@ function RabbitHoleGame() {
   const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
+
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -168,13 +172,15 @@ function RabbitHoleGame() {
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
-        setPlayers(usersData.filter((i: any) => !i.isCompleted && !i.isEliminated).map((i: any, index: number) => {
+        setPlayers(usersData.map((i: any, index: number) => {
           return {
             id: index,
             address: i.userAddress,
             src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
             PlayerPosition: i.fuel / 9,
             Fuel: i.fuel,
+            isEliminated: i.isEliminated,
+            isCompleted: i.isCompleted,
           }
         }));
       });
@@ -256,7 +262,7 @@ function RabbitHoleGame() {
     gameOver, 
     amountOfPending, 
     gameCompleted,
-    isRolling
+    isRolling,
   ]);
 
   // fetch required amount of users to wait

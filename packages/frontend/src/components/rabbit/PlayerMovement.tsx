@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ConnectedUser, RabbitHolePhases } from "../../screens/RabbitHole";
 
-const PlayerMovement = ({ phase, players, isRolling }: {phase: RabbitHolePhases; players: ConnectedUser[], isRolling: boolean}) => {
+const PlayerMovement = ({ 
+  phase, 
+  players, 
+  isRolling, 
+}: {
+  phase: RabbitHolePhases; 
+  players: ConnectedUser[];
+  isRolling: boolean;
+}) => {
   const [prevStage, setPrevStage] = useState<RabbitHolePhases | undefined>(undefined);
   const [sortedPlayers, setSortedPlayers] = useState<ConnectedUser[]>([]);
   const [animationTrigger, setAnimationTrigger] = useState<boolean>(false);

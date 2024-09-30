@@ -1,25 +1,27 @@
-import SelectRaceScreen from "./screens/SelectRaceScreen";
+import SelectRaceScreen from "./screens/basic/SelectRaceScreen";
 import BottomTab from "./components/BottomTab";
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
-import UnderdogGame from "./screens/Underdog";
-import CountDownScreen from "./screens/CountDownScreen";
+import UnderdogGame from "./screens/underdog/Underdog";
+import CountDownScreen from "./screens/addons/CountDownScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
-import AccountScreen from "./screens/AccountScreen";
-import RabbitHoleGame from "./screens/RabbitHole";
+import AccountScreen from "./screens/basic/AccountScreen";
+import RabbitHoleGame from "./screens/rabbit-hole/RabbitHole";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
-import HomeScreen from "./screens/HomeScreen";
-import AdminScreen from "./screens/AdminScreen";
-import UnderdogCover from "./screens/UnderdogCover";
-import UnderdogRules from "./screens/UnderdogRules";
-import RabbitHoleRules from "./screens/RabbitHoleRules";
-import RabbitHoleCover from "./screens/RabbitHoleCover";
-import StatsScreen from "./screens/StatsScreen";
-import RateScreen from "./screens/RateScreen";
-import BullrunCover from "./screens/BullrunCover";
-import BullrunRules from "./screens/BullrunRules";
-import Bullrun from "./screens/Bullrun";
+import HomeScreen from "./screens/basic/HomeScreen";
+import AdminScreen from "./screens/basic/AdminScreen";
+import UnderdogCover from "./screens/underdog/UnderdogCover";
+import UnderdogRules from "./screens/underdog/UnderdogRules";
+import RabbitHoleRules from "./screens/rabbit-hole/RabbitHoleRules";
+import RabbitHoleCover from "./screens/rabbit-hole/RabbitHoleCover";
+import StatsScreen from "./screens/addons/StatsScreen";
+import RateScreen from "./screens/addons/RateScreen";
+import BullrunCover from "./screens/bullrun/BullrunCover";
+import BullrunRules from "./screens/bullrun/BullrunRules";
+import Bullrun from "./screens/bullrun/Bullrun";
+import StoryScreen from "./screens/addons/StoryScreen";
+import SetNicknameScreen from "./screens/addons/SetNicknameScreen";
 
 
 function App() {
@@ -45,6 +47,24 @@ function App() {
           element={
             <ProtectedRoute>
               <CountDownScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route 
+          path="race/:raceId/story/:part"
+          element={
+            <ProtectedRoute>
+              <StoryScreen/>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route 
+          path="race/:raceId/set-nickname"
+          element={
+            <ProtectedRoute>
+              <SetNicknameScreen/>
             </ProtectedRoute>
           }
         />

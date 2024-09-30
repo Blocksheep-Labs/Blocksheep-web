@@ -1,0 +1,28 @@
+import WaitingBackground from "../../assets/loading/waiting-players-bg.png";
+
+function WaitingForPlayersModal({
+    numberOfPlayersRequired,
+    numberOfPlayers,
+    replacedText
+}: {
+    numberOfPlayersRequired: number;
+    numberOfPlayers: number;
+    replacedText?: string,
+}) {
+  return (
+    <div className="loading-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
+      <div className="mx-[10%] mb-[40%] mt-[30%]">
+        <img src={WaitingBackground} alt="waiting-for-players-bg" />
+        {
+          replacedText 
+          ?
+          <p className="text-6xl font-bold text-white text-center mt-10">{replacedText}</p>
+          :
+          <p className="text-6xl font-bold text-white text-center mt-10">{numberOfPlayers}/{numberOfPlayersRequired}</p>
+        }
+      </div>
+    </div>
+  );
+}
+
+export default WaitingForPlayersModal;

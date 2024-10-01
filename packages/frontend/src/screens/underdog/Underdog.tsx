@@ -435,7 +435,7 @@ function UnderdogGame() {
 
 
   function nextClicked() {
-    navigate(`/race/${raceId}/rabbit-hole/preview`, {
+    navigate(`/race/${raceId}/set-nickname`, {
       state: location.state
     });
   }

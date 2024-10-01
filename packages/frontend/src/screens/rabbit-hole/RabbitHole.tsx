@@ -31,6 +31,7 @@ export type ConnectedUser = {
     maxAvailableFuel: number;
     isEliminated: boolean;
     isCompleted: boolean;
+    name: string;
 }
 
 export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
@@ -183,6 +184,7 @@ function RabbitHoleGame() {
             maxAvailableFuel: i.maxAvailableFuel,
             isEliminated: i.isEliminated,
             isCompleted: i.isCompleted,
+            name: "Newbie"
           }
         }));
       });
@@ -520,9 +522,7 @@ function RabbitHoleGame() {
     let newListOfPlayers;
     if (!submittedFuelIsSimilar) {
       const sorted = actualListOfPlayers.toSorted((a, b) => a.Fuel - b.Fuel);
-      const minFuel = sorted[0].Fuel;
-      
-      newListOfPlayers = actualListOfPlayers.filter(i => i.Fuel !== minFuel);
+      newListOfPlayers = sorted.slice(0, actualListOfPlayers.length - 1);
     } else {
       newListOfPlayers = actualListOfPlayers;
     }
@@ -704,13 +704,6 @@ function RabbitHoleGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
-            {
-            //modalType === "lose"    && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={0}/>
-            }
-
-            {
-            //modalType === "win"     && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>
-            }
             {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}

@@ -39,7 +39,7 @@ function CountDownScreen() {
     //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
     //return;
 
-
+    
     navigate(`/race/${raceId}/underdog/preview`, {
       state: location.state
     });

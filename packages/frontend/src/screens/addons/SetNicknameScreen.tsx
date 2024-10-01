@@ -2,12 +2,13 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 import { socket } from "../../utils/socketio";
 import RibbonLabel from "../../components/RibbonLabel";
-import Rule from "../../components/Rule";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useEffect, useRef, useState } from "react";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import NextFlag from "../../assets/common/flag.png";
+import ChooseNameSheep from "../../assets/common/choosename.png";
 import { httpGetUserDataByAddress, httpRaceInsertUser, httpSetNameByAddress } from "../../utils/http-requests";
+import Rule from "../../components/Rule";
 
 
 export default function SetNicknameScreen() {
@@ -18,15 +19,29 @@ export default function SetNicknameScreen() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [amountOfNextClicked, setAmountOfNextClicked] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [modalType, setModalType] = useState<"waiting" | "leaving" | "nickname-set" | undefined>(undefined);
     const inputRef = useRef<HTMLInputElement | null>(null);
+
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 15);
+
+    const { totalSeconds, restart, pause } = useTimer({
+        expiryTimestamp: time,
+        onExpire: () => {
+            handleSubmitNickname();
+        },
+        autoStart: true
+    });
 
     const handleSubmitNickname = () => {
         if (inputRef.current) {
-            const nickname = inputRef.current.value;
+            let nickname = inputRef.current.value;
+
+            if (!nickname.length || nickname.length > 10) {
+                nickname = Date.now().toString().slice(0, 5);
+            }
 
             if (nickname.length > 0 && nickname.length < 10 && smartAccountAddress) {
-                // TODO: SET NICKNAME with http req
                 httpSetNameByAddress(nickname, smartAccountAddress).then(({data}) => {
                     httpRaceInsertUser(`race-${raceId}`, data.user._id).then(({data}) => {
                         console.log(data)
@@ -35,9 +50,10 @@ export default function SetNicknameScreen() {
                             userAddress: smartAccountAddress,
                             property: 'set-nickname'
                         });
-                    })
+                        setModalIsOpen(true);
+                        setModalType("nickname-set");
+                    });
                 });
-
             }
         }
     }
@@ -50,6 +66,7 @@ export default function SetNicknameScreen() {
                 if (data.user) {
                     inputRef.current && (inputRef.current.value = data.user.name)
                 }
+                inputRef.current && inputRef.current.focus();
             });
         }
     }, [smartAccountAddress, inputRef.current])
@@ -74,7 +91,7 @@ export default function SetNicknameScreen() {
                 if (raceId == raceIdSocket) {
                     console.log("JOINED++")
                     setAmountOfConnected(amountOfConnected + 1);
-                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
+                    if ((amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) && modalType !== "nickname-set") {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -86,8 +103,8 @@ export default function SetNicknameScreen() {
                 setAmountOfConnected(amountOfConnected - 1);
                 if (!modalIsOpen) {
                     setModalIsOpen(true);
+                    setModalType("waiting");
                 }
-                setModalType("waiting");
             });
 
             socket.on('progress-updated', ({raceId: raceIdSocket, property, value, userAddress, rProgress}) => {
@@ -96,8 +113,9 @@ export default function SetNicknameScreen() {
                     setAmountOfNextClicked(prev => prev + 1);
 
                     if (amountOfNextClicked + 1 == location.state.amountOfRegisteredUsers) {
-                        setModalIsOpen(true);
-                        setModalType("waiting");
+                        navigate(`/race/${raceId}/rabbit-hole/preview`, {
+                            state: location.state
+                        });
                     }
                 }
             });
@@ -123,13 +141,18 @@ export default function SetNicknameScreen() {
 
     return (
         <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
+                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 6.66}%`}}></div>
+            </div>
             <div className="mt-7 flex w-full justify-center">
-                <RibbonLabel text="SET NICKNAME"/>
+                <RibbonLabel text="CHOOSE NAME"/>
             </div>
-            <div className="h-full flex flex-col gap-3 px-10 mt-4">
-                <Rule text="IT IS REQUIRED TO SET A NICKNAME TO MOVE TO NEXT STEP"/>
-                <input ref={inputRef} type="text" className="p-2 rounded-xl border-[2px] border-black text-center font-[Berlin-Bold] text-[20px]"></input>
+            <div className="h-full w-screen flex flex-col gap-3 px-10 mt-4 relative">
+                <Rule text="NICKNAME MAXIMUM LENGTH MUST BE 10"/>
+                <input ref={inputRef} type="text" className="z-20 p-2 rounded-xl border-0 text-center font-[Berlin-Bold] bg-transparent text-[14px] absolute bottom-44 left-12 w-[90px]"></input>
+                <img src={ChooseNameSheep} alt="name-sheep" className="absolute bottom-20 w-[280px] left-[-50px]"/>
             </div>
+            
             <div className="absolute bottom-0 right-0 w-[40%]">
                 <button
                 className="absolute mt-[14px] w-full -rotate-12 text-center font-[Berlin-Bold] text-[25px] text-[#18243F] hover:text-white"
@@ -141,7 +164,7 @@ export default function SetNicknameScreen() {
             </div>
             {
                 
-                modalIsOpen && modalType === "waiting" && 
+                modalIsOpen && ["waiting", "nickname-set"].includes(modalType as string) && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}

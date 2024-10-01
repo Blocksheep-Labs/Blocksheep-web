@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ConnectedUser, RabbitHolePhases } from "../../screens/rabbit-hole/RabbitHole";
 
+
 const PlayerMovement = ({ 
   phase, 
   players, 
@@ -28,47 +29,52 @@ const PlayerMovement = ({
 
   // Handle animations when the phase changes or players change
   useEffect(() => {
-    // Trigger animations only when necessary
     if (prevStage !== phase || animationTrigger) {
       sortedPlayers.forEach((player, index) => {
         const playerElement = playerRefs.current[index]?.current;
         const fuelElement = fuelRefs.current[index]?.current;
         if (!playerElement || !fuelElement) return;
+  
+        const column = Math.floor(index / 3);  
+        const row = index % 3;                 
 
-        const positionStyle = `${28 * index}px`;
-
-        // Set the initial position and visibility of elements
+        const topPosition = `${28 * row}px`;  
+        const leftPosition = `${(50 - (12 * column))}%`;
+        
+        // Set initial position and visibility
         playerElement.style.position = 'absolute';
-        fuelElement.style.position = 'absolute';
+        playerElement.style.transition = 'all 1.5s ease-out';
         playerElement.style.visibility = 'visible';
+        
+        fuelElement.style.position = 'absolute';
+        fuelElement.style.transition = 'all 1.5s ease-out';
         fuelElement.style.visibility = 'visible';
         
         setPrevStage(phase);
         setAnimationTrigger(false);
-
+        
         // Animation logic for different phases
         if (['Reset', 'Default'].includes(phase)) {
+          console.log({leftPosition, topPosition})
           setTimeout(() => {
-            playerElement.style.position = "absolute";
             playerElement.style.transition = 'all 1.5s ease-out';
-            playerElement.style.left = '50%';
-            playerElement.style.top = positionStyle;
-
-            fuelElement.style.position = "absolute";
+            playerElement.style.left = leftPosition;
+            playerElement.style.top = topPosition;
+  
             fuelElement.style.transition = 'all 1.5s ease-out';
-            fuelElement.style.left = '50%';
-            fuelElement.style.top = positionStyle;
+            fuelElement.style.left = leftPosition;
+            fuelElement.style.top = topPosition;
             fuelElement.style.opacity = '0';
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
           setTimeout(() => {
             playerElement.style.transition = 'all 0s ease-out';
-            playerElement.style.left = '50%';
+            playerElement.style.left = leftPosition;
             playerElement.style.transition = 'all 0.5s ease-out';
             playerElement.style.left = '-100%';
-
+  
             fuelElement.style.transition = 'all 0s ease-out';
-            fuelElement.style.left = '50%';
+            fuelElement.style.left = leftPosition;
             fuelElement.style.transition = 'all 0.5s ease-out';
             fuelElement.style.left = '-100%';
             fuelElement.style.opacity = '0';
@@ -76,33 +82,31 @@ const PlayerMovement = ({
         } else if (phase === 'OpenTunnel') {
           const delay = index * 1000;
           setTimeout(() => {
-            playerElement.style.top = positionStyle;
+            playerElement.style.top = topPosition;
             playerElement.style.left = '150vw';
             playerElement.style.transition = 'all 12s ease-out';
-
-            fuelElement.style.top = positionStyle;
+            
+            fuelElement.style.top = topPosition;
             fuelElement.style.left = '150vw';
             fuelElement.style.transition = 'all 12s ease-out';
             if (!player.isCompleted && !player.isEliminated) {
               fuelElement.style.opacity = '1';
             }
-
+  
             setTimeout(() => {
               const minFuel = sortedPlayers[sortedPlayers.length - 1].Fuel;
               const listOfMinFuelPlayers = sortedPlayers.filter(i => i.Fuel === minFuel);
-
-              // if all the submitted amounts of fuel were similar
+  
               if (listOfMinFuelPlayers.length === sortedPlayers.length) {
                 return;
               }
-
-              // remove all players with minimum fuel
-              if (index >= sortedPlayers.length - listOfMinFuelPlayers.length) {
-                  playerElement.style.top = '400px';
-                  fuelElement.style.top = '400px';
-                  playerElement.style.opacity = "0";
-                  fuelElement.style.opacity = "0";
-              };
+  
+              if (index >= sortedPlayers.length - 1) {
+                playerElement.style.top = '400px';
+                fuelElement.style.top   = '400px';
+                playerElement.style.opacity = "0";
+                fuelElement.style.opacity   = "0";
+              }
             }, 4000);
           }, 1000 + delay);
         }
@@ -120,20 +124,23 @@ const PlayerMovement = ({
   return (
     <div className="player-container">
       {sortedPlayers.map((player, index) => (
-        <img
-          key={player.id}
-          ref={playerRefs.current[index]}
-          src={player.src}
-          alt={player.id.toString()}
-          style={{ opacity: player.isEliminated ? 0 : 1 }}
-          //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
-        />
+        <div ref={playerRefs.current[index]} key={player.id} style={{ opacity: player.isEliminated ? 0 : 1 }} className="relative">
+            <img
+              className="absolute"
+              src={player.src}
+              alt={player.id.toString()}
+            />
+            <p className="absolute top-[-20px] text-[10px] text-white bg-black font-bold px-1 rounded-full w-fit" style={{ opacity: phase == "CloseTunnel" ? 0 : 1 }}>
+              {player.name}
+            </p>
+            
+        </div>
       ))}
       {sortedPlayers.map((player, index) => (
         <p
           key={player.id}
           ref={fuelRefs.current[index]}
-          className="fuel-text text-[10px] text-white bg-black font-bold px-1 rounded-full"
+          className="fuel-text absolute text-[10px] text-white bg-black font-bold px-1 rounded-full w-fit"
           style={{ opacity: player.isEliminated ? 0 : 1 }}
           //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
         >

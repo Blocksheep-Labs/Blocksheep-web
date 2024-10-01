@@ -66,7 +66,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         return i;
     });
 
-    console.log({data})
+    //console.log({data})
 
     // @ts-ignore
     data = data.filter(r => {
@@ -74,12 +74,12 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
         if (!r.refunded) {
             // user was regiistered into the race
             if (r.registered && ([1,2,3,4].includes(Number(r.status)))) {
-                console.log(r)
+                //console.log(r)
                 return true;
             }
 
             if (!r.registered && [2,3].includes(r.status)) {
-                console.log(r)
+                //console.log(r)
                 return true;
             }
 
@@ -92,7 +92,7 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
                 return false;
             }
             if (r.registered) {
-                console.log(r)
+                //console.log(r)
                 return true;
             }
             return false;

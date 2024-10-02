@@ -52,6 +52,7 @@ export default function SetNicknameScreen() {
                         });
                         setModalIsOpen(true);
                         setModalType("nickname-set");
+                        pause();
                     });
                 });
             }

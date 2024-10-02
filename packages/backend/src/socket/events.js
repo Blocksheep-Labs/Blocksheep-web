@@ -100,6 +100,14 @@ module.exports = (io) => {
                         countdown: false,
                         board1: false,
                         nicknameSet: false,
+                        story: {
+                            intro: false,
+                            part1: false,
+                            part2: false,
+                            part3: false,
+                            part4: false,
+                            conclusion: false,
+                        },
 
                         // initial games states
                         ...underdogBaseState,

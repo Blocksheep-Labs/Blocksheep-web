@@ -1,17 +1,29 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import NextFlag from "../../assets/common/flag.png";
 import RaceBoard from "../RaceBoard";
+import { httpGetRaceDataById } from "../../utils/http-requests";
 
 export type RaceModalProps = {
+  raceId: number;
   progress: { curr: number; delta: number; address: string  }[];
   handleClose: () => void;
   disableBtn: boolean,
 };
 
-function RaceModal({ progress, handleClose, disableBtn }: RaceModalProps) {
+function RaceModal({ progress, handleClose, disableBtn, raceId }: RaceModalProps) {
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (raceId) {
+      httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
+        setUsers(data.race.users);
+      });
+    }
+  }, [raceId]);
+
   return (
     <div className="race-board absolute inset-0 bg-[rgb(153,161,149)]">
-      <RaceBoard progress={progress} />
+      <RaceBoard progress={progress} users={users}/>
 
       <div className="absolute bottom-0 right-0 w-2/5">
         <button

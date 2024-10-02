@@ -21,6 +21,7 @@ import { config } from "../../config/wagmi";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
 import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
+import { httpGetRaceDataById } from "../../utils/http-requests";
 
 export type ConnectedUser = {
     id: number;
@@ -65,7 +66,6 @@ function RabbitHoleGame() {
   const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
-
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -153,7 +153,7 @@ function RabbitHoleGame() {
       });
 
       
-      socket.on("race-fuel-all-tunnel", (progress) => {
+      socket.on("race-fuel-all-tunnel", async(progress) => {
 
         const usersData = progress.progresses;
 
@@ -174,7 +174,10 @@ function RabbitHoleGame() {
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
+        const usersDATA = await httpGetRaceDataById(`race-${raceId}`);
         setPlayers(usersData.map((i: any, index: number) => {
+          const user = usersDATA.data.race.users.find((j: any) => j.address == i.userAddress);
+
           return {
             id: index,
             address: i.userAddress,
@@ -184,7 +187,7 @@ function RabbitHoleGame() {
             maxAvailableFuel: i.maxAvailableFuel,
             isEliminated: i.isEliminated,
             isCompleted: i.isCompleted,
-            name: "Newbie"
+            name: user?.name || "Newbie"
           }
         }));
       });
@@ -667,9 +670,17 @@ function RabbitHoleGame() {
   }
 
   const fetchRaceData = () => {
-    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      if (data) {
-        let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
+    Promise.all([
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
+      httpGetRaceDataById(`race-${raceId}`)
+    ]).then(data => {
+      return {
+        contractData: data[0],
+        serverData: data[1].data,
+      }
+    }).then(data => {
+      if (data.contractData) {
+        let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
           return { curr: Number(i.progress), delta: 0, address: i.user };
         });
         setProgress(newProgress);
@@ -704,7 +715,7 @@ function RabbitHoleGame() {
           <>
             {modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
             {modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> }
-            {modalType === "race"    && <RaceModal progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
+            {modalType === "race"    && <RaceModal raceId={Number(raceId)} progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}
         {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}

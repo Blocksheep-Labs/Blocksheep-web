@@ -532,7 +532,7 @@ function UnderdogGame() {
           }
           {
             modalType === "race" && 
-            <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
+            <RaceModal raceId={Number(raceId)} progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
           }
           {
             modalType === "waiting" && 
@@ -547,7 +547,7 @@ function UnderdogGame() {
 
       {
         boardPermanentlyOpened && 
-        <RaceModal progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
+        <RaceModal raceId={Number(raceId)} progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
       }
       {
         distributePermanentlyOpened && 

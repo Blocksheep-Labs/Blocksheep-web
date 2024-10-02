@@ -49,6 +49,7 @@ export default function Bullrun() {
     const [lastOpponentPerk, setLastOpponentPerk] = useState(-1);
     const [listOfPreviousPerksByOpponent, setListOfPreviousPerksByOpponent] = useState<any[]>([]);
     const [preloadedScore, setPreloadedScore] = useState(0);
+    const [users, setUsers] = useState<any[]>([]);
     //const [players, setPlayers] = useState([]);
 
 
@@ -344,6 +345,7 @@ export default function Bullrun() {
                 raceModalISOpened
                 &&
                 <RaceModal
+                    raceId={Number(raceId)}
                     disableBtn={false}
                     progress={progress}
                     handleClose={handleNavigate}

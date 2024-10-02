@@ -9,6 +9,7 @@ import WhiteSheepImage from "../../assets/rabbit-hole/sheeepy.png";
 import BlackSheepImage from "../../assets/rabbit-hole/blacksheep.png";
 import NextFlag from "../../assets/common/flag.png";
 import { socket } from "../../utils/socketio";
+import { httpGetRaceDataById } from "../../utils/http-requests";
 
 export default function StatsScreen() {
     const navigate = useNavigate();
@@ -16,29 +17,36 @@ export default function StatsScreen() {
     const {smartAccountAddress} = useSmartAccount();
     const location = useLocation();
     const [stats, setStats] = useState<{curr: number; address: string}[] | undefined>(undefined);
+    const [users, setUsers] = useState<any[]>([]);
     
     const date = new Date();
 
     useEffect(() => {
         socket.disconnect();
         if (raceId?.length && smartAccountAddress) {
-            getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-                if (data) {
-                    console.log(data)
-                    // VALIDATE USER FOR BEING REGISTERED
-                    if (!data.registeredUsers.includes(smartAccountAddress)) {
-                        //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
-                        navigate('/');
-                    }
-
-                    let newProgress: { curr: number; address: string }[] = data.progress.map(i => {
-                        return { curr: Number(i.progress), address: i.user };
-                    });
-
-                    setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
-
-                    console.log("PROGRESS:", newProgress);
+            Promise.all([
+                getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
+                httpGetRaceDataById(`race-${raceId}`),
+            ]).then(data => {
+                return {
+                    contractData: data[0],
+                    serverData: data[1].data,
                 }
+            }).then(data => {
+                console.log({data});
+                // VALIDATE USER FOR BEING REGISTERED
+                if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
+                    //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
+                    navigate('/');
+                }
+
+                let newProgress: { curr: number; address: string }[] = data.contractData.progress.map(i => {
+                    return { curr: Number(i.progress), address: i.user };
+                });
+                setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
+                console.log("PROGRESS:", newProgress);
+                
+                setUsers(data.serverData.race.users);
             });
         }
     }, [raceId, smartAccountAddress]);
@@ -48,17 +56,27 @@ export default function StatsScreen() {
             <div className="h-[60%] w-full flex justify-center relative">
                 <img src={StatsImage} alt="stats image"/>
 
+                
                 { 
                     // LEFT
                 }
+                <p className="bg-black font-bold text-white text-[7px] absolute p-1 rounded-xl left-[108px] top-[56.5%] z-10" style={{ transform: 'translate(-50%, -50%)' }}>
+                    textaaaaaaa
+                </p>
                 <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left" className="absolute w-10 left-[88px] top-[56.5%]"/>
                 { 
                     // CENTER
                 }
+                <p className="bg-black font-bold text-white text-[7px] absolute p-1 rounded-xl top-[48%] left-[50%] z-10" style={{ transform: 'translate(-50%, -50%)' }}>
+                    text
+                </p>
                 <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center" className="absolute w-10 top-[48%]"/>
                 { 
                     // RIGHT
                 }
+                <p className="bg-black font-bold text-white text-[7px] absolute p-1 rounded-xl right-[88px] top-[56.5%] z-10" style={{ transform: 'translate(-50%, -50%)' }}>
+                    text
+                </p>
                 <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right" className="absolute w-10 right-[88px] top-[56.5%]"/>
 
                 <p className="text-white font-bold text-center absolute top-[40%] w-full">
@@ -81,7 +99,7 @@ export default function StatsScreen() {
                                         className="w-[20%] border-r-[1px] border-black flex justify-center items-center">{i.curr}
                                     </div>
                                     <div
-                                        className="w-[80%] flex justify-center items-center">{shortenAddress(i.address)}
+                                        className="w-[80%] flex justify-center items-center">{users.find(j => j.address == i.address)?.name} ({shortenAddress(i.address)})
                                     </div>
                                 </div>
                             );
@@ -95,7 +113,7 @@ export default function StatsScreen() {
                 className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
                 onClick={() => navigate('/select')}
                 >
-                Home
+                    Home
                 </button>
                 <img src={NextFlag} alt="next-flag" />
             </div>

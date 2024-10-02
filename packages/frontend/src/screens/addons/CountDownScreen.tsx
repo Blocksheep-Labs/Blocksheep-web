@@ -6,6 +6,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { httpGetRaceDataById } from "../../utils/http-requests";
 
 
 function CountDownScreen() {
@@ -19,7 +20,7 @@ function CountDownScreen() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-
+  const [users, setUsers] = useState<any[]>([]);
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
       raceId, 
@@ -39,7 +40,6 @@ function CountDownScreen() {
     //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
     //return;
 
-    
     navigate(`/race/${raceId}/underdog/preview`, {
       state: location.state
     });
@@ -47,23 +47,36 @@ function CountDownScreen() {
 
   useEffect(() => {
     if (raceId?.length && smartAccountAddress) {
-      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-        if (data) {
-          console.log(data)
-          // VALIDATE USER FOR BEING REGISTERED
-          if (!data.registeredUsers.includes(smartAccountAddress)) {
-            //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
+      Promise.all([
+        getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
+        httpGetRaceDataById(`race-${raceId}`)
+      ]).then(data => {
+        return {
+          contractData: data[0],
+          serverData: data[1].data,
+        }
+      }).then(data => {
+        if (data.contractData && data.serverData) {
+          // CONTRACT DATA
+          console.log({data});
+          // validate user for being registered
+          if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
+            // console.log("USER IS NOT LOGGED IN")
             navigate('/');
           } 
 
-          setData(data);
+          setData(data.contractData);
 
-          let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
+          let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
             return { curr: Number(i.progress), delta: 0, address: i.user };
           });
           setProgress(newProgress);
+
+          // SERVER DATA
+          setUsers(data.serverData.race.users);
         }
       });
+
     }
   }, [raceId, smartAccountAddress]);
 
@@ -157,7 +170,7 @@ function CountDownScreen() {
     <>
       <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
-          <RaceBoard progress={progress} />
+          <RaceBoard progress={progress} users={users}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">
             <div className="flex size-36 items-center justify-center rounded-3xl bg-yellow-500">
               <p className="font-[Berlin] text-[70px]">{seconds === 0 ? "GO" : seconds}</p>

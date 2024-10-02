@@ -31,10 +31,12 @@ export default function StoryScreen() {
                 userAddress: smartAccountAddress,
                 property: "game1-rules-complete",
             });
-            navigate(`/race/${raceId}/underdog`, {
+            */
+
+            navigate(`/race/${raceId}/countdown`, {
                 state: location.state
             });
-            */
+            
         },
         autoStart: true
     });

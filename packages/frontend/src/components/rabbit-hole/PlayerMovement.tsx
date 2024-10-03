@@ -30,6 +30,9 @@ const PlayerMovement = ({
   // Handle animations when the phase changes or players change
   useEffect(() => {
     if (prevStage !== phase || animationTrigger) {
+      let execOnce = false;
+      let loopExecuted = false;
+
       sortedPlayers.forEach((player, index) => {
         const playerElement = playerRefs.current[index]?.current;
         const fuelElement = fuelRefs.current[index]?.current;
@@ -57,6 +60,9 @@ const PlayerMovement = ({
         if (phase === 'Default') {
           console.log({leftPosition, topPosition})
           setTimeout(() => {
+            loopExecuted = false;
+            execOnce = false;
+            
             console.log("DEFAULT")
             if (!player.isCompleted && !player.isEliminated) {
               playerElement.style.transition = 'all 1.5s ease-out';
@@ -113,19 +119,30 @@ const PlayerMovement = ({
                 return;
               }
 
-              // loop throug players
-              activePlayers.forEach((i) => {
-                if (i.address == player.address && i.Fuel == minFuel) {
-                  console.log("DOWN")
+              execOnce = listOfMinFuelPlayers.length > 1;
+
+              // loop through players
+              for (let i = 0; i < activePlayers.length; i++) {
+                if (execOnce && loopExecuted) {
+                  break;
+                }
+
+                const playerData = activePlayers[i];
+                if (playerData.address == player.address && playerData.Fuel == minFuel) {
+                  console.log("DOWN");
                   //playerElement.style.transition = 'all 2s ease-out';
                   //fuelElement.style.transition = 'all 2s ease-out';
-                  fuelElement.style.top   = '600px';
-                  fuelElement.style.opacity   = "0";
+                  fuelElement.style.top = '600px';
+                  fuelElement.style.opacity = "0";
 
                   playerElement.style.top = '600px';
                   playerElement.style.opacity = "0";
+
+                  if (execOnce) {
+                    loopExecuted = true;
+                  }
                 }
-              });
+              }
             }, 4000);
           }, 1000 + delay);
         }

@@ -210,9 +210,12 @@ module.exports = (io) => {
             // Pair players and start the game
             function pairPlayers() {
                 console.log("LIST OF ACTIVE PLAYERS...", activePlayers[raceId].map(i => i.id));
-
+            
+                let maxRetries = activePlayers[raceId].length * 2; // Limit retries to prevent infinite loops
+                let retries = 0;
+            
                 // Pair players only if we have at least 2 waiting players
-                while (activePlayers[raceId].length >= 2) {
+                while (activePlayers[raceId].length >= 2 && retries < maxRetries) {
                     const player1 = activePlayers[raceId].shift();
                     const player2 = activePlayers[raceId].shift();
                     console.log("TRYING TO PAIR...", player1.id, player2.id);
@@ -220,8 +223,8 @@ module.exports = (io) => {
                     // Ensure player1 and player2 are not the same person
                     if (player1.id === player2.id) {
                         console.log("ERROR: Trying to pair player with themselves!", player1.id);
-                        waitingPlayers[raceId].push(player1); // Put both players back in waiting queue
-                        waitingPlayers[raceId].push(player2);
+                        waitingPlayers[raceId].push(player1, player2); // Put both players back in waiting queue
+                        retries++;
                         continue;
                     }
             
@@ -251,20 +254,26 @@ module.exports = (io) => {
                         incrementGameCount(player1, player2);
                     } else {
                         console.log("TRYING TO PAIR...", player1.id, player2.id, "FAILED!");
-                        // If pairing fails (e.g. they've already played), put them back in the waiting players queue
-                        waitingPlayers[raceId].push(player1, player2);
+                        // If pairing fails, put players back in the queue but rotate them
+                        waitingPlayers[raceId].push(player1);
+                        activePlayers[raceId].push(player2);
+                        retries++;
                         continue;  // Continue to try pairing other players
                     }
                 }
-        
+            
                 // If only one player is left unpaired, move them to the waiting list
                 if (activePlayers[raceId].length === 1) {
                     const remainingPlayer = activePlayers[raceId].shift();
                     waitingPlayers[raceId].push(remainingPlayer);
-                    //console.log("W", waitingPlayers[raceId].map(i => i.id));
                     io.to(remainingPlayer.id).emit('bullrun-waiting', { message: 'Waiting for an opponent', raceId });
                 }
+            
+                if (retries >= maxRetries) {
+                    console.log('Max retries reached, ending pairing attempts for now.');
+                }
             }
+            
 
             // Increment game count and handle completion checks
             function incrementGameCount(player1, player2) {

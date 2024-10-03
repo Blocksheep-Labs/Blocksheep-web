@@ -56,28 +56,36 @@ export default function StatsScreen() {
             <div className="h-[60%] w-full flex justify-center relative">
                 <img src={StatsImage} alt="stats image"/>
 
-                
-                { 
-                    // LEFT
-                }
-                <p className="bg-black font-bold text-white text-[7px] absolute p-1 rounded-xl left-[108px] top-[56.5%] z-10" style={{ transform: 'translate(-50%, -50%)' }}>
-                    textaaaaaaa
-                </p>
-                <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left" className="absolute w-10 left-[88px] top-[56.5%]"/>
-                { 
-                    // CENTER
-                }
-                <p className="bg-black font-bold text-white text-[7px] absolute p-1 rounded-xl top-[48%] left-[50%] z-10" style={{ transform: 'translate(-50%, -50%)' }}>
-                    text
-                </p>
-                <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center" className="absolute w-10 top-[48%]"/>
-                { 
-                    // RIGHT
-                }
-                <p className="bg-black font-bold text-white text-[7px] absolute p-1 rounded-xl right-[88px] top-[56.5%] z-10" style={{ transform: 'translate(-50%, -50%)' }}>
-                    text
-                </p>
-                <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right" className="absolute w-10 right-[88px] top-[56.5%]"/>
+
+                <div className="absolute w-10 left-[108px] top-[60.5%]" style={{ transform: 'translate(-50%, -50%)' }}>
+                    { 
+                        // LEFT
+                    }
+                    <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
+                        {stats && users && users.find(j => j.address == stats[1]?.address)?.name} 
+                    </p>
+                    <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left"/>
+                </div>
+
+                <div className="absolute w-10 top-[51%] left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
+                    { 
+                        // CENTER
+                    }
+                    <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
+                        {stats && users && users.find(j => j.address == stats[0]?.address)?.name} 
+                    </p>
+                    <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center"/>
+                </div>
+
+                <div className="absolute w-10 right-[88px] top-[51%]">
+                    { 
+                        // RIGHT
+                    }
+                    <p className="bg-black text-center font-bold text-white text-[7px] p-1 rounded-xl z-10">
+                        {stats && users && users.find(j => j.address == stats[2]?.address)?.name} 
+                    </p>
+                    <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right"/>
+                </div>
 
                 <p className="text-white font-bold text-center absolute top-[40%] w-full">
                     {

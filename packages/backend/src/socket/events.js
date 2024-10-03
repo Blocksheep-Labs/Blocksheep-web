@@ -174,7 +174,7 @@ module.exports = (io) => {
         });
 
         socket.on('bullrun-join-game', async({ raceId, userAddress, amountOfGamesRequired }) => {
-            console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
+            //console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
             const roomName = `race-${raceId}`;
             socket.join(roomName);
 
@@ -200,22 +200,32 @@ module.exports = (io) => {
             activePlayers[raceId] = [...activePlayers[raceId], ...waitingPlayers[raceId]];
             waitingPlayers[raceId] = [];
 
-            console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
-            activePlayers[raceId].push(socket); 
-            console.log("GR_:", gamesRequired[raceId]);
-            console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => i.id));
+            //console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
+            if (!activePlayers[raceId].includes(socket)) {
+                activePlayers[raceId].push(socket); 
+            }
+            //console.log("GR_:", gamesRequired[raceId]);
+            //console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => i.id));
         
             // Pair players and start the game
             function pairPlayers() {
                 console.log("LIST OF ACTIVE PLAYERS...", activePlayers[raceId].map(i => i.id));
-        
+
                 // Pair players only if we have at least 2 waiting players
                 while (activePlayers[raceId].length >= 2) {
                     const player1 = activePlayers[raceId].shift();
                     const player2 = activePlayers[raceId].shift();
                     console.log("TRYING TO PAIR...", player1.id, player2.id);
-        
-                    // Ensure players can still play more games
+            
+                    // Ensure player1 and player2 are not the same person
+                    if (player1.id === player2.id) {
+                        console.log("ERROR: Trying to pair player with themselves!", player1.id);
+                        waitingPlayers[raceId].push(player1); // Put both players back in waiting queue
+                        waitingPlayers[raceId].push(player2);
+                        continue;
+                    }
+            
+                    // Ensure players can still play more games and haven't played each other yet
                     if (
                         gameCounts[raceId][player1.id] < gamesRequired[raceId][player1.id] &&
                         gameCounts[raceId][player2.id] < gamesRequired[raceId][player2.id] &&
@@ -226,24 +236,24 @@ module.exports = (io) => {
                         const roomName = `1v1-${player1.id}-${player2.id}`;
                         player1.join(roomName);
                         player2.join(roomName);
-        
+            
                         // Emit game start to both players, with their correct opponents
                         io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
                         io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
-        
+            
                         console.log(`Pairing players: ${player1.id} vs ${player2.id}`);
-        
+            
                         // Track matches played
                         matchesPlayed[raceId][player1.id].push(player2.id);
                         matchesPlayed[raceId][player2.id].push(player1.id);
-        
+            
                         // Increment their game counts
                         incrementGameCount(player1, player2);
                     } else {
                         console.log("TRYING TO PAIR...", player1.id, player2.id, "FAILED!");
                         // If pairing fails (e.g. they've already played), put them back in the waiting players queue
                         waitingPlayers[raceId].push(player1, player2);
-                        break;  // Stop pairing if we can't find valid players
+                        continue;  // Continue to try pairing other players
                     }
                 }
         
@@ -251,7 +261,7 @@ module.exports = (io) => {
                 if (activePlayers[raceId].length === 1) {
                     const remainingPlayer = activePlayers[raceId].shift();
                     waitingPlayers[raceId].push(remainingPlayer);
-                    console.log("W", waitingPlayers[raceId].map(i => i.id));
+                    //console.log("W", waitingPlayers[raceId].map(i => i.id));
                     io.to(remainingPlayer.id).emit('bullrun-waiting', { message: 'Waiting for an opponent', raceId });
                 }
             }

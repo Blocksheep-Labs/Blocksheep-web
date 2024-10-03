@@ -276,7 +276,9 @@ export default function Bullrun() {
                     setAmountOfPending(prev => prev + 1);
                 } else {
                     console.log("PENDING--", amountOfPending - 1);
-                    setAmountOfPending(prev => prev - 1);
+                    if (amountOfPending - 1 >= 0) {
+                        setAmountOfPending(prev => prev - 1);
+                    }
 
                     if (amountOfPending - 1 == 0) {
                         console.log("Round ended!")

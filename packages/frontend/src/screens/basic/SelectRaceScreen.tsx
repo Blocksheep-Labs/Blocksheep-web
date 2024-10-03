@@ -44,18 +44,21 @@ function SelectRaceScreen() {
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       navigate(`/race/${raceId}/rabbit-hole/rules`, {
-        state: generateStateObjectForGame(data, progress, undefined)
+        state: generateStateObjectForGame(data, progress, '/', undefined)
       });
     });
     return;
     */
+    
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+      /*
       if (!progress?.story?.intro) {
           navigate(`/race/${raceId}/story/intro`, {
             state: generateStateObjectForGame(data, progress, `/race/${raceId}/countdown`, "start")
           });
         return;
       }
+      */
 
       if (!progress?.countdown) {
         console.log("COUNTDOWN")
@@ -101,12 +104,14 @@ function SelectRaceScreen() {
         return;
       }
 
+      /*
       if (!progress?.story?.part1) {
         navigate(`/race/${raceId}/story/part1`, {
           state: generateStateObjectForGame(data, progress, `/race/${raceId}/rabbit-hole/preview`, "start")
         });
         return;
       }
+      */
 
       // preview rabbit hole game, passing the game state
       if (!progress?.game2_preview) {
@@ -135,12 +140,14 @@ function SelectRaceScreen() {
         return;
       }
 
+      /*
       if (!progress?.story?.part2) {
         navigate(`/race/${raceId}/story/part2`, {
           state: generateStateObjectForGame(data, progress, `/race/${raceId}/bullrun/preview`, "start")
         });
         return;
       }
+      */
 
       if (!progress?.game3_preview) {
         console.log("BULLRUN PREVIEW");
@@ -166,21 +173,24 @@ function SelectRaceScreen() {
         return;
       }  
 
+      /*
       if (!progress?.story?.part3) {
         navigate(`/race/${raceId}/story/part3`, {
           state: generateStateObjectForGame(data, progress, `/race/${raceId}/story/conclusion`, "start")
         });
       }
+      */
 
 
       // TODO: RABBIT HOLE V2 MUST BE HERE
 
-
+      /*
       if (!progress?.story?.conclusion) {
         navigate(`/race/${raceId}/story/conclusion`, {
           state: generateStateObjectForGame(data, progress, `race/${raceId}/stats`, "start")
         });
       }
+      */
     });
   }, [raceId]);
 

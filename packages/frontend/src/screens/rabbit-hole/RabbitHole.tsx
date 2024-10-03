@@ -189,7 +189,7 @@ function RabbitHoleGame() {
             isCompleted: i.isCompleted,
             name: user?.name || "Newbie"
           }
-        }));
+        }).toSorted((a: any, b: any) => a.id - b.id));
       });
       
 
@@ -355,7 +355,7 @@ function RabbitHoleGame() {
 
         setTimeout(() => {
           setPhase("Default");
-        }, 6000);
+        }, 9000);
       }, 16000);
     } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();
@@ -524,8 +524,9 @@ function RabbitHoleGame() {
 
     let newListOfPlayers;
     if (!submittedFuelIsSimilar) {
-      const sorted = actualListOfPlayers.toSorted((a, b) => a.Fuel - b.Fuel);
-      newListOfPlayers = sorted.slice(0, actualListOfPlayers.length - 1);
+      const sorted = actualListOfPlayers.toSorted((a, b) => a.id - b.id).toSorted((a, b) => a.Fuel - b.Fuel);
+      console.log({actualListOfPlayers});
+      newListOfPlayers = sorted.slice(1, actualListOfPlayers.length);
     } else {
       newListOfPlayers = actualListOfPlayers;
     }

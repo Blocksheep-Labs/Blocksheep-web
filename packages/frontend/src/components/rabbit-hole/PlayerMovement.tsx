@@ -20,7 +20,7 @@ const PlayerMovement = ({
 
   // Sort players and update refs when players change
   useEffect(() => {
-    const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
+    const sorted = [...players].sort((a, b) => a.Fuel - b.Fuel);
     setSortedPlayers(sorted);
     
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
@@ -54,20 +54,24 @@ const PlayerMovement = ({
         setAnimationTrigger(false);
         
         // Animation logic for different phases
-        if (['Reset', 'Default'].includes(phase)) {
+        if (phase === 'Default') {
           console.log({leftPosition, topPosition})
           setTimeout(() => {
-            playerElement.style.transition = 'all 1.5s ease-out';
-            playerElement.style.left = leftPosition;
-            playerElement.style.top = topPosition;
-  
-            fuelElement.style.transition = 'all 1.5s ease-out';
-            fuelElement.style.left = leftPosition;
-            fuelElement.style.top = topPosition;
-            fuelElement.style.opacity = '0';
+            console.log("DEFAULT")
+            if (!player.isCompleted && !player.isEliminated) {
+              playerElement.style.transition = 'all 1.5s ease-out';
+              playerElement.style.left = leftPosition;
+              playerElement.style.top = topPosition;
+    
+              fuelElement.style.transition = 'all 1.5s ease-out';
+              fuelElement.style.left = leftPosition;
+              fuelElement.style.top = topPosition;
+              fuelElement.style.opacity = '0';
+            }
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
           setTimeout(() => {
+            console.log("CLOSE")
             playerElement.style.transition = 'all 0s ease-out';
             playerElement.style.left = leftPosition;
             playerElement.style.transition = 'all 0.5s ease-out';
@@ -82,31 +86,46 @@ const PlayerMovement = ({
         } else if (phase === 'OpenTunnel') {
           const delay = index * 1000;
           setTimeout(() => {
+            console.log("OPEN")
             playerElement.style.top = topPosition;
-            playerElement.style.left = '150vw';
-            playerElement.style.transition = 'all 12s ease-out';
+            playerElement.style.left = leftPosition;
+            playerElement.style.transition = 'all 6s ease-out';
             
             fuelElement.style.top = topPosition;
-            fuelElement.style.left = '150vw';
-            fuelElement.style.transition = 'all 12s ease-out';
+            fuelElement.style.left = leftPosition;
+            fuelElement.style.transition = 'all 6s ease-out';
             if (!player.isCompleted && !player.isEliminated) {
+              playerElement.style.opacity = '1';
               fuelElement.style.opacity = '1';
             }
   
             setTimeout(() => {
-              const minFuel = sortedPlayers[sortedPlayers.length - 1].Fuel;
-              const listOfMinFuelPlayers = sortedPlayers.filter(i => i.Fuel === minFuel);
+              // get players who is not eleiminated
+              const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
+
+              // get minimal fuel in the list
+              const minFuel = activePlayers[0].Fuel;
+
+              // count min fuel players (same fuel)
+              const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
   
-              if (listOfMinFuelPlayers.length === sortedPlayers.length) {
+              if (listOfMinFuelPlayers.length === activePlayers.length) {
                 return;
               }
-  
-              if (index >= sortedPlayers.length - 1) {
-                playerElement.style.top = '400px';
-                fuelElement.style.top   = '400px';
-                playerElement.style.opacity = "0";
-                fuelElement.style.opacity   = "0";
-              }
+
+              // loop throug players
+              activePlayers.forEach((i) => {
+                if (i.address == player.address && i.Fuel == minFuel) {
+                  console.log("DOWN")
+                  //playerElement.style.transition = 'all 2s ease-out';
+                  //fuelElement.style.transition = 'all 2s ease-out';
+                  fuelElement.style.top   = '600px';
+                  fuelElement.style.opacity   = "0";
+
+                  playerElement.style.top = '600px';
+                  playerElement.style.opacity = "0";
+                }
+              });
             }, 4000);
           }, 1000 + delay);
         }

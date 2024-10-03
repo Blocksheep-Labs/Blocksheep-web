@@ -73,7 +73,7 @@ function CountDownScreen() {
           setProgress(newProgress);
 
           // SERVER DATA
-          setUsers(data.serverData.race.users);
+          setUsers(data?.serverData?.race?.users || []);
         }
       });
 

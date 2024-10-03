@@ -36,7 +36,6 @@ export default function StoryScreen() {
             navigate(`/race/${raceId}/countdown`, {
                 state: location.state
             });
-            
         },
         autoStart: true
     });

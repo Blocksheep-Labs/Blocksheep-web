@@ -30,7 +30,7 @@ function RaceBoard({ progress, users }: { progress: { curr: number; delta: numbe
               {
                 (() => {
                   const user = users.find(i => i.address == address);
-                  if (user.address == address) {
+                  if (user?.address == address) {
                     return user.name;
                   }
                   return "Newbie"

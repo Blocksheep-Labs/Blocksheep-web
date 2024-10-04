@@ -7,7 +7,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 
 export default function StoryScreen() {
     const navigate = useNavigate();
-    const {raceId} = useParams();
+    const {raceId, part} = useParams();
     const {smartAccountAddress} = useSmartAccount();
     const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -20,19 +20,17 @@ export default function StoryScreen() {
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
         onExpire: () => {
-            /*
             console.log("UPDATE PROGRESS", {
                 raceId,
                 userAddress: smartAccountAddress,
-                property: "game1-rules-complete",
+                property: `story-${part}`,
             });
             socket.emit('update-progress', {
                 raceId,
                 userAddress: smartAccountAddress,
-                property: "game1-rules-complete",
+                property: `story-${part}`,
             });
-            */
-
+            
             navigate(`/race/${raceId}/countdown`, {
                 state: location.state
             });

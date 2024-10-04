@@ -18,6 +18,7 @@ import { BULLRUN_distribute, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndex
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import shortenAddress from "../../utils/shortenAddress";
 import WinModal from "../../components/modals/WinModal";
+import { httpGetRaceDataById } from "../../utils/http-requests";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -189,9 +190,13 @@ export default function Bullrun() {
 
     // fetch socket data and start timer
     useEffect(() => {
-        // TODO fetch socket data
+        if (smartAccountAddress && String(raceId).length) {
+            httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
+                setUsers(data?.race?.users || []);
+            });
+        }
         start();
-    }, []);
+    }, [smartAccountAddress, raceId]);
 
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress) {
@@ -376,7 +381,9 @@ export default function Bullrun() {
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
-                <p className="bg-black p-2 opacity-80 text-white z-30 absolute top-[30%] left-0 rounded-l-rone rounded-r-2xl">You</p>
+                <p className="bg-black p-2 opacity-80 text-white z-30 absolute top-[30%] left-0 rounded-l-rone rounded-r-2xl">
+                    {users.length && users.find(i => i.address == smartAccountAddress)?.name}
+                </p>
                 <div className="w-20 h-10 z-50 flex flex-row gap-0 justify-center absolute top-[50%] mt-[85px] right-14 p-2">
                     <div className="w-20 h-10">
                         { yourLastPerk === 2 && <img src={BullHead} alt="bullhead"/> }
@@ -391,7 +398,9 @@ export default function Bullrun() {
                 </div>
             </div>
             <div ref={refRightCurtain} className="h-full w-[50%] absolute top-0 right-[-50%] z-20">
-                <p className="bg-black p-2 opacity-80 text-white z-30 absolute top-[30%] right-0 rounded-r-rone rounded-l-2xl">Your opponent</p>
+                <p className="bg-black p-2 opacity-80 text-white z-30 absolute top-[30%] right-0 rounded-r-rone rounded-l-2xl">
+                    {users.length && opponent && users.find(i => i.address == opponent?.userAddress)?.name}
+                </p>
                 <div className="w-20 h-10 z-50 flex flex-row gap-0 justify-center absolute top-[50%] mt-[85px] left-14 p-2">
                     <p className="font-bold text-2xl w-full text-center">{lastOpponentPerk >= 0 ? Number(pointsMatrix[lastOpponentPerk][yourLastPerk]) : "---"}</p>
                     <div className="w-20 h-10">
@@ -424,7 +433,7 @@ export default function Bullrun() {
                                 }
 
                                 if (opponent?.userAddress) {
-                                    return shortenAddress(opponent.userAddress);
+                                    return users.length ? users.find(i => i.address == opponent.userAddress)?.name : shortenAddress(opponent.userAddress);
                                 }
                             })()
                         }

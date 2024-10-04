@@ -26,6 +26,25 @@ module.exports = (property, value, rProgress) => {
             break;
         case "set-nickname":
             rProgress.progress.nicknameSet = true;
+            break;
+        case "story-intro":
+            rProgress.progress.story.intro = true;
+            break;
+        case "story-part1":
+            rProgress.progress.story.part1 = true;
+            break;
+        case "story-part2":
+            rProgress.progress.story.part2 = true;
+            break;
+        case "story-part3":
+            rProgress.progress.story.part3 = true;
+            break;
+        case "story-part4":
+            rProgress.progress.story.part4 = true;
+            break;
+        case "story-conclusion":
+            rProgress.progress.story.conclusion = true;
+            break;
         default:
             break;
     }

@@ -14,6 +14,7 @@ import RegisteredModal from "../../components/modals/RegisteredModal";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 
 
 function SelectRaceScreen() {
@@ -28,13 +29,12 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-  const generateStateObjectForGame = (data: any, progress: any, nextUrl: string, step?: "questions" | "board" | "start") => {
+  const generateStateObjectForGame = (data: any, progress: any, step?: "questions" | "board" | "start") => {
     return {
       questionsByGames: data.questionsByGames, 
       amountOfRegisteredUsers: data.registeredUsers.length, 
       progress,
       step,
-      nextUrl,
     }
   }
 
@@ -49,22 +49,21 @@ function SelectRaceScreen() {
     });
     return;
     */
-    
+    const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      /*
       if (!progress?.story?.intro) {
-          navigate(`/race/${raceId}/story/intro`, {
-            state: generateStateObjectForGame(data, progress, `/race/${raceId}/countdown`, "start")
+          navigate(generateLink("STORY_INTRO", rIdNumber), {
+            state: generateStateObjectForGame(data, progress, "start")
           });
         return;
       }
-      */
+      
 
       if (!progress?.countdown) {
         console.log("COUNTDOWN")
-        navigate(`/race/${raceId}/countdown`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/underdog/preview`, "start")
+        navigate(generateLink("RACE_START", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, "start")
         });
         return;
       }
@@ -72,8 +71,8 @@ function SelectRaceScreen() {
       // preview underdog game, passing the game state
       if (!progress?.game1_preview) {
         console.log("UNDERDOG PREVIEW");
-        navigate(`/race/${raceId}/underdog/preview`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/underdog/rules`, "questions")
+        navigate(generateLink("UNDERDOG_PREVIEW", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, "questions")
         });
         return;
       }
@@ -81,8 +80,8 @@ function SelectRaceScreen() {
       // rules underdog game, passing the game state
       if (!progress?.game1_rules) {
         console.log("UNDERDOG RULES");
-        navigate(`/race/${raceId}/underdog/rules`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/underdog`, "questions")
+        navigate(generateLink("UNDERDOG_RULES", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, "questions")
         });
         return;
       }
@@ -90,8 +89,8 @@ function SelectRaceScreen() {
       // game 1 was not passed
       if (!progress?.game1?.isDistributed) {
         console.log("UNDERDOG")
-        navigate(`/race/${raceId}/underdog`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/story/part1`, "questions")
+        navigate(generateLink("UNDERDOG", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, "questions")
         });
         return;
       }
@@ -99,26 +98,33 @@ function SelectRaceScreen() {
       // countdown 2 (before the first game) was not passed
       if (!progress?.board1) {
         console.log("BOARD-1")
-        navigate(`/race/${raceId}/underdog`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/story/part1`, "board")
+        navigate(generateLink("UNDERDOG", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, "board")
         });
         return;
       }
 
-      /*
-      if (!progress?.story?.part1) {
-        navigate(`/race/${raceId}/story/part1`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/rabbit-hole/preview`, "start")
+      if (!progress?.nicknameSet) {
+        console.log("SET_NICKNAME")
+        navigate(generateLink("ADD_NAME", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, "board")
         });
         return;
       }
-      */
+
+      if (!progress?.story?.part1) {
+        navigate(generateLink("STORY_PART_1", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
+        });
+        return;
+      }
+      
 
       // preview rabbit hole game, passing the game state
       if (!progress?.game2_preview) {
         console.log("RABBIT-HOLE PREVIEW");
-        navigate(`/race/${raceId}/rabbit-hole/preview`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/rabbit-hole/rules`, undefined)
+        navigate(generateLink("RABBIT_HOLE_PREVIEW", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
         return;
       }
@@ -126,8 +132,8 @@ function SelectRaceScreen() {
       // rules rabbit hole game, passing the game state
       if (!progress?.game2_rules) {
         console.log("RABBIT-HOLE RULES");
-        navigate(`/race/${raceId}/rabbit-hole/rules`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/rabbit-hole`, undefined)
+        navigate(generateLink("RABBIT_HOLE_RULES", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         })
         return;
       }
@@ -135,63 +141,94 @@ function SelectRaceScreen() {
       // user not clicked the 'next' button on win/lose modal of the 2nd game
       if (!progress?.game2.waitingToFinish) {
         console.log("RABBIT-HOLE");
-        navigate(`/race/${raceId}/rabbit-hole`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/story/part2`, undefined)
+        navigate(generateLink("RABBIT_HOLE", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
         return;
       }
 
-      /*
+      
       if (!progress?.story?.part2) {
-        navigate(`/race/${raceId}/story/part2`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/bullrun/preview`, "start")
+        navigate(generateLink("STORY_PART_2", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
         return;
       }
-      */
+      
 
       if (!progress?.game3_preview) {
         console.log("BULLRUN PREVIEW");
-        navigate(`/race/${raceId}/bullrun/preview`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/bullrun/rules`, undefined)
+        navigate(generateLink("BULL_RUN_PREVIEW", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
         return;
       }
 
       if (!progress?.game3_rules) {
         console.log("BULLRUN RULES");
-        navigate(`/race/${raceId}/bullrun/rules`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/bullrun`, undefined)
+        navigate(generateLink("BULL_RUN_RULES", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
         return;
       }
 
       if (!progress?.game3.isCompleted) {
         console.log("BULLRUN");
-        navigate(`/race/${raceId}/bullrun`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/story/part3`, undefined)
+        navigate(generateLink("BULL_RUN", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
         return;
       }  
 
-      /*
+      
       if (!progress?.story?.part3) {
-        navigate(`/race/${raceId}/story/part3`, {
-          state: generateStateObjectForGame(data, progress, `/race/${raceId}/story/conclusion`, "start")
+        navigate(generateLink("STORY_PART_3", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
+        return;
       }
-      */
+      
+      if (!progress?.story?.game2_v2_preview) {
+        navigate(generateLink("RABBIT_HOLE_V2_PREVIEW", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
+        });
+        return;
+      }
 
+      if (!progress?.story?.game2_v2_rules) {
+        navigate(generateLink("RABBIT_HOLE_V2_RULES", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
+        });
+        return;
+      }
 
-      // TODO: RABBIT HOLE V2 MUST BE HERE
+      // user not clicked the 'next' button on win/lose modal of the 2nd game v2
+      if (!progress?.game2.waitingToFinish) {
+        console.log("RABBIT-HOLE");
+        navigate(generateLink("RABBIT_HOLE_V2", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
+        });
+        return;
+      }
 
-      /*
+      
       if (!progress?.story?.conclusion) {
-        navigate(`/race/${raceId}/story/conclusion`, {
-          state: generateStateObjectForGame(data, progress, `race/${raceId}/stats`, "start")
+        navigate(generateLink("STORY_CONCLUSION", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
         });
+        return;
       }
-      */
+
+      if (!progress?.rate) {
+        navigate(generateLink("RATE", rIdNumber), {
+          state: generateStateObjectForGame(data, progress, undefined)
+        });
+        return;
+      }
+
+      navigate(generateLink("PODIUM", rIdNumber), {
+        state: generateStateObjectForGame(data, progress, undefined)
+      });
     });
   }, [raceId]);
 

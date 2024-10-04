@@ -5,10 +5,11 @@ import { socket } from "../../utils/socketio";
 import { useEffect, useState } from "react";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 
 export default function RabbitHoleCover() {
     const navigate = useNavigate();
-    const {raceId} = useParams();
+    const {raceId, version} = useParams();
     const { smartAccountAddress } = useSmartAccount();
     const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -33,7 +34,17 @@ export default function RabbitHoleCover() {
                 property: "game2-preview-complete",
             });
 
-            navigate(`/race/${raceId}/rabbit-hole/rules`, {
+            let redirectLink = '/';
+
+            switch (version) {
+                case "v1":
+                    redirectLink = generateLink("RABBIT_HOLE_RULES", Number(raceId)); break;
+                case "v2": 
+                    redirectLink = generateLink("RABBIT_HOLE_V2_RULES", Number(raceId)); break;
+                default:
+                    break;
+            }
+            navigate(redirectLink, {
                 state: location.state
             });
         },

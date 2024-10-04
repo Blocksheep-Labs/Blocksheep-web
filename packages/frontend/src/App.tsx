@@ -22,6 +22,7 @@ import BullrunRules from "./screens/bullrun/BullrunRules";
 import Bullrun from "./screens/bullrun/Bullrun";
 import StoryScreen from "./screens/addons/StoryScreen";
 import SetNicknameScreen from "./screens/addons/SetNicknameScreen";
+import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
 
 
 function App() {
@@ -47,6 +48,15 @@ function App() {
           element={
             <ProtectedRoute>
               <CountDownScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route 
+          path="race/:raceId/race-update/:board"
+          element={
+            <ProtectedRoute>
+              <RaceUpdateScreen/>
             </ProtectedRoute>
           }
         />
@@ -101,7 +111,7 @@ function App() {
 
         {/* RABBIT HOLE COVER */}
         <Route
-          path="race/:raceId/rabbit-hole/preview"
+          path="race/:raceId/rabbit-hole/:version/preview"
           element={
             <ProtectedRoute>
               <RabbitHoleCover />
@@ -111,7 +121,7 @@ function App() {
 
         {/* RABBIT HOLE RULES */}
         <Route
-          path="race/:raceId/rabbit-hole/rules"
+          path="race/:raceId/rabbit-hole/:version/rules"
           element={
             <ProtectedRoute>
               <RabbitHoleRules />
@@ -121,7 +131,7 @@ function App() {
         
         {/* RABBIT HOLE GAME */}
         <Route
-          path="race/:raceId/rabbit-hole"
+          path="race/:raceId/rabbit-hole/:version"
           element={
             <ProtectedRoute>
               <RabbitHoleGame />

@@ -22,6 +22,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
 import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
 import { httpGetRaceDataById } from "../../utils/http-requests";
+import generateLink from "../../utils/linkGetter";
 
 export type ConnectedUser = {
     id: number;
@@ -47,7 +48,7 @@ function RabbitHoleGame() {
   const [modalType, setModalType] = useState<string | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const {raceId} = useParams();
+  const {raceId, version} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
   const [maxFuel, setMaxFuel] = useState(10);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -243,7 +244,17 @@ function RabbitHoleGame() {
           setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
           if (amountOfPlayersnextClicked + 1 >= raceData.numberOfPlayersRequired ) {
             closeLoadingModal();
-            navigate(`/race/${raceId}/bullrun/preview`, {
+            let redirectLink = "/";
+
+            switch (version) {
+              case "v1":
+                redirectLink = generateLink("STORY_PART_2", Number(raceId)); break;
+              case "v2":
+                redirectLink = generateLink("STORY_PART_4", Number(raceId)); break;
+              default:
+                break;
+            }
+            navigate(redirectLink, {
               state: location.state
             });
           }

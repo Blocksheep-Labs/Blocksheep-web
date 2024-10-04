@@ -99,6 +99,9 @@ module.exports = (io) => {
                     progress: {
                         countdown: false,
                         board1: false,
+                        board2: false,
+                        board3: false,
+                        board4: false,
                         nicknameSet: false,
                         story: {
                             intro: false,
@@ -109,7 +112,6 @@ module.exports = (io) => {
                             conclusion: false,
                         },
                         
-
                         // initial games states
                         ...underdogBaseState,
                         ...rabbitHoleBaseState,
@@ -127,6 +129,8 @@ module.exports = (io) => {
             console.log("EMIT:", {raceId, property, value, userAddress})
             io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
         });
+
+
     
         // get amount completed by raceId game gameId
         socket.on('get-progress', ({ raceId, userAddress }) => {
@@ -163,7 +167,7 @@ module.exports = (io) => {
             const sockets = await io.in(roomName).fetchSockets();
             io.to(socket.id).emit('amount-of-connected', { amount: sockets.length, raceId });
         });
-
+        
         
         socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId }) => {
             const playerToEmit = activePlayers[raceId]?.find(i => i.id == opponentId);

@@ -6,6 +6,7 @@ import Rule from "../../components/Rule";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 
 
 export default function UnderdogRules() {
@@ -33,7 +34,7 @@ export default function UnderdogRules() {
                 userAddress: smartAccountAddress,
                 property: "game1-rules-complete",
             });
-            navigate(`/race/${raceId}/underdog`, {
+            navigate(generateLink("UNDERDOG", Number(raceId)), {
                 state: location.state
             });
         },

@@ -9,6 +9,7 @@ import NextFlag from "../../assets/common/flag.png";
 import ChooseNameSheep from "../../assets/common/choosename.png";
 import { httpGetUserDataByAddress, httpRaceInsertUser, httpSetNameByAddress } from "../../utils/http-requests";
 import Rule from "../../components/Rule";
+import generateLink from "../../utils/linkGetter";
 
 
 export default function SetNicknameScreen() {
@@ -114,7 +115,7 @@ export default function SetNicknameScreen() {
                     setAmountOfNextClicked(prev => prev + 1);
 
                     if (amountOfNextClicked + 1 == location.state.amountOfRegisteredUsers) {
-                        navigate(`/race/${raceId}/rabbit-hole/preview`, {
+                        navigate(generateLink("RACE_UPDATE_1", Number(raceId)), {
                             state: location.state
                         });
                     }

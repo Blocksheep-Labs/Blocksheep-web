@@ -5,6 +5,7 @@ import { socket } from "../../utils/socketio";
 import { useEffect, useState } from "react";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 
 export default function UnderdogCover() {
     const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function UnderdogCover() {
                 userAddress: smartAccountAddress,
                 property: "game1-preview-complete",
             });
-            navigate(`/race/${raceId}/underdog/rules`, {
+            navigate(generateLink("UNDERDOG_RULES", Number(raceId)), {
                 state: location.state
             });
         },

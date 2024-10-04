@@ -4,6 +4,8 @@ import { socket } from "../../utils/socketio";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { useTimer } from "react-timer-hook";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
+import generateLink from "../../utils/linkGetter";
+import StoryVideo from "../../assets/stories/sh.mp4";
 
 export default function StoryScreen() {
     const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function StoryScreen() {
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
 
     const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
+    time.setSeconds(time.getSeconds() + 6);
 
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
@@ -30,8 +32,26 @@ export default function StoryScreen() {
                 userAddress: smartAccountAddress,
                 property: `story-${part}`,
             });
+
+            let redirectLink = "/";
+            switch (part) {
+                case "intro":
+                    redirectLink = generateLink("RACE_START", Number(raceId)); break;
+                case "part1": 
+                    redirectLink = generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)); break;
+                case "part2": 
+                    redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); break;
+                case "part3": 
+                    redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); break;
+                case "part4":
+                    redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); break;
+                case "conclusion":
+                    redirectLink = generateLink("PODIUM", Number(raceId)); break;
+                default:
+                    break;
+            }
             
-            navigate(`/race/${raceId}/countdown`, {
+            navigate(redirectLink, {
                 state: location.state
             });
         },
@@ -41,7 +61,7 @@ export default function StoryScreen() {
     useEffect(() => {
         if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
             const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
+            time.setSeconds(time.getSeconds() + 6);
             restart(time);
         } else {
             pause();
@@ -97,18 +117,18 @@ export default function StoryScreen() {
         setModalIsOpen(true);
         setModalType("waiting");
         if (smartAccountAddress && location.state) {
-        socket.emit("get-connected", { raceId });
-        socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
+            socket.emit("get-connected", { raceId });
+            socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
     }, [socket, raceId, smartAccountAddress, location.state]);
 
     return (
         <div className="bg-white h-full relative">
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 10}%`}}></div>
+                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 16.66}%`}}></div>
             </div>
             <video autoPlay muted className="asbolute w-full h-full object-cover">
-                <source src="https://dhozvkf4o988s.cloudfront.net/u6xcem%2Ffile%2F9d0985772eb3af5cd98e28022de6e4ff_a0d560eb84c307cefd2cf4303467a2b0.mp4?response-content-disposition=inline%3Bfilename%3D%229d0985772eb3af5cd98e28022de6e4ff_a0d560eb84c307cefd2cf4303467a2b0.mp4%22%3B&response-content-type=video%2Fmp4&Expires=1727712074&Signature=YZBCe13MGQ97jRiRq3-lJOBfrAubyyL7mQdVuiWXEHZBDq1AIPe9mmPxBhaKkjT~r4W3VSEDRB0mcq886X63aOwURr9NSkCVCrvcOBLXTITQkLNEcjlz8Y3BjCVyFsCAfJ1PEJpsvLLa8H2yyNkhVlE8qOUa43LvnWjWARKFsphUAuZLCZSGByRVFln56y4fdiItrQ6xuCyP5qrcNtV1ONXXsS8ocpU-nYWEMZuu4X4Lbq0YnFSY4iEkklmWGKxohAtKOuYqc9Jg3d73CZMD3957ubsFNt4ICntN2Uxph6d7nzAHY2vlQc2FpJYZ~o5OIw9wi01PADIR1NngK4Zp0g__&Key-Pair-Id=APKAJT5WQLLEOADKLHBQ" type="video/mp4" />
+                <source src={StoryVideo} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
 

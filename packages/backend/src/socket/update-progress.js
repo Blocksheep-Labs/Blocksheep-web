@@ -24,6 +24,15 @@ module.exports = (property, value, rProgress) => {
         case "board1":
             rProgress.progress.board1 = true;
             break;
+        case "board2":
+            rProgress.progress.board2 = true;
+            break;
+        case "board3":
+            rProgress.progress.board3 = true;
+            break;
+        case "board4":
+            rProgress.progress.board4 = true;
+            break;
         case "set-nickname":
             rProgress.progress.nicknameSet = true;
             break;

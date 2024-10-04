@@ -4,6 +4,7 @@ import { socket } from "../../utils/socketio";
 import { useEffect, useState } from "react";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 
 export default function BullrunCover() {
     const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function BullrunCover() {
                 userAddress: smartAccountAddress,
                 property: "game3-preview-complete",
             });
-            navigate(`/race/${raceId}/bullrun/rules`, {
+            navigate(generateLink("BULL_RUN_RULES", Number(raceId)), {
                 state: location.state
             });
         },

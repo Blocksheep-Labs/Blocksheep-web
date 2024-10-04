@@ -15,6 +15,7 @@ import { config } from "../../config/wagmi";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -36,10 +37,10 @@ function UnderdogGame() {
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
-  const [boardPermanentlyOpened, setBoardPermanentlyOpened] = useState(false);
   const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
   const [waitingToFinishModalPermanentlyOpened, setWaitingToFinishModalPermanentlyOpened] = useState(false);
-  const [raceboardProgress, setRaceboardProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
+
+  const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
   const questions = location.state?.questionsByGames[currentGameIndex];
   const { step, questionsByGames, progress } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
@@ -58,7 +59,7 @@ function UnderdogGame() {
   time.setSeconds(time.getSeconds() + 10);
 
   useEffect(() => {
-    if (!modalIsOpen && !boardPermanentlyOpened && !distributePermanentlyOpened) {
+    if (!modalIsOpen && !distributePermanentlyOpened) {
       console.log("flipState set time ", flipState);
       const time = new Date();
       time.setSeconds(time.getSeconds() + 10);
@@ -67,7 +68,7 @@ function UnderdogGame() {
     } else {
       pause();
     }
-  }, [flipState, modalIsOpen, boardPermanentlyOpened, distributePermanentlyOpened]);
+  }, [flipState, modalIsOpen, distributePermanentlyOpened]);
 
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
@@ -82,11 +83,6 @@ function UnderdogGame() {
       if (data) {
         console.log("SET RACE DATA", {data})
         setRaceData(data);
-        let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
-          return { curr: Number(i.progress), delta: 0, address: i.user };
-        });
-        console.log("NEW PROGRESS:", newProgress)
-        setRaceboardProgress(newProgress);
       }
     });
   };
@@ -239,20 +235,18 @@ function UnderdogGame() {
     console.log("win modal closed")
     setIsOpen(false);
     setModalType(undefined);
-    updateProgress();
-    openRaceModal();
+    openWaitingAfterFinishModal();
   }
 
-  function closeBoardModal() {
-    console.log("close board modal")
-    setIsOpen(false);
-    setModalType(undefined);
-    setBoardPermanentlyOpened(false);
-  }
 
   function openWaitingAfterFinishModal() {
-    setIsOpen(true);
-    setModalType("waiting-after-finish");
+    socket.emit("update-progress", {
+      raceId,
+      userAddress: smartAccountAddress,
+      property: "game1-wait-after-finish",
+    });
+    setWaitingToFinishModalPermanentlyOpened(true);
+    pause();
   }
 
   function closeWaitingBeforeFinishModal() {
@@ -264,32 +258,6 @@ function UnderdogGame() {
   function openWaitingBeforeFinishModal() {
     setIsOpen(true);
     setModalType("waiting-before-finish");
-  }
-
-  function openRaceModal() {
-    console.log("open board modal")
-    setIsOpen(true);
-    setModalType("race");
-  }
-
-  function closeRaceModal() {
-    if (raceData?.numberOfPlayersRequired <= amountOfPlayersRaceboardNextClicked + 1) {
-      setBoardPermanentlyOpened(false);
-      setIsOpen(false);
-      setModalType(undefined);
-      setRoundId(roundId + 1);
-      nextClicked();
-    } else {
-      openWaitingAfterFinishModal();
-    }
-    
-    // user is now watched the progress after the first game
-    socket.emit('update-progress', { 
-      raceId, 
-      userAddress: smartAccountAddress,
-      property: "board1",
-      value: true,
-    });
   }
 
 
@@ -311,7 +279,7 @@ function UnderdogGame() {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected
-          if (amount === raceData.numberOfPlayersRequired && modalType !== "race") {
+          if (amount === raceData.numberOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
           }
@@ -359,16 +327,6 @@ function UnderdogGame() {
           }
         }
 
-        if (progress.property === "board1") {
-          setAmountOfPlayersRaceboardNextClicked(amountOfPlayersRaceboardNextClicked + 1);
-          console.log("GAME1 BOARD++", amountOfPlayersRaceboardNextClicked + 1);
-          if ((raceData.numberOfPlayersRequired == amountOfPlayersRaceboardNextClicked + 1) && finished) {
-            console.log("MOVING TO NEXT GAME...");
-            closeBoardModal();
-            nextClicked();
-          }
-        }
-
         if (progress.property === "game1-wait-to-finish") {
           setAmountOfPlayersWaitingToFinish(amountOfPlayersWaitingToFinish + 1);
           // track users answers (to reduce amount of txs in loadingModal on distribute reward step)
@@ -382,12 +340,21 @@ function UnderdogGame() {
             openLoadingModal();
           }
         }
+
+        if (progress.property === "game1-wait-after-finish") {
+          console.log("NEXT_CLICKED++")
+          setWaitingAfterFinishPlayersCount(prev => prev + 1);
+          if (raceData.numberOfPlayersRequired <= waitingAfterFinishPlayersCount + 1) {
+            console.log("MOVE FORWARD")
+            nextClicked();
+          }
+        }
       });
 
       socket.on('race-progress-questions', ({progress}) => {
         console.log("RACE PROGRESS QUESTIONS:", progress);
         let isDistributedAmount = 0;
-        let boardNextClickedAmount = 0;
+        let waitingAfterFinishAmount = 0;
         let waitingToFinishAmount = 0;
         let answers: any[] = [];
         progress.forEach((i: any) => {
@@ -395,8 +362,8 @@ function UnderdogGame() {
             isDistributedAmount++;
           }
 
-          if (i.progress.board1) {
-            boardNextClickedAmount++;
+          if (i.progress.waitingAfterFinish) {
+            waitingAfterFinishAmount++;
           }
 
           if (i.progress.game1.waitingToFinish) {
@@ -405,9 +372,9 @@ function UnderdogGame() {
           }
         });
 
-        console.log({isDistributedAmount, boardNextClickedAmount, waitingToFinishAmount});
+        console.log({isDistributedAmount, waitingAfterFinishAmount, waitingToFinishAmount});
         setAmountOfPlayersCompleted(isDistributedAmount);
-        setAmountOfPlayersRaceboardNextClicked(boardNextClickedAmount);
+        setWaitingAfterFinishPlayersCount(waitingAfterFinishAmount);
         setAmountOfPlayersWaitingToFinish(waitingToFinishAmount);
         setUserAnswers(answers);
       });
@@ -421,7 +388,7 @@ function UnderdogGame() {
         socket.off('race-progress-questions');
       }
     }
-  }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, amountOfPlayersWaitingToFinish]);
+  }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, amountOfPlayersWaitingToFinish, waitingAfterFinishPlayersCount]);
 
   // fetch server-side data
   useEffect(() => {
@@ -435,7 +402,7 @@ function UnderdogGame() {
 
 
   function nextClicked() {
-    navigate(`/race/${raceId}/set-nickname`, {
+    navigate(generateLink("ADD_NAME", Number(raceId)), {
       state: location.state
     });
   }
@@ -446,20 +413,6 @@ function UnderdogGame() {
     if (smartAccountAddress && progress?.game1) {
 
       const {isDistributed, of, completed, waitingToFinish} = progress.game1;
-
-      // user finished the game
-      if (step === "board") {
-        console.log("BOARD");
-        pause();
-        setBoardPermanentlyOpened(true);
-        return;
-      }
-
-      if (isDistributed) {
-        pause();
-        setBoardPermanentlyOpened(true);
-        return;
-      }
       
       // continue answering questions
       if (completed != of && completed < of && step == "questions") {
@@ -531,10 +484,6 @@ function UnderdogGame() {
             <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
           }
           {
-            modalType === "race" && 
-            <RaceModal raceId={Number(raceId)} progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
-          }
-          {
             modalType === "waiting" && 
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
           }
@@ -545,10 +494,6 @@ function UnderdogGame() {
         </>
       )}
 
-      {
-        boardPermanentlyOpened && 
-        <RaceModal raceId={Number(raceId)} progress={raceboardProgress || []} handleClose={closeRaceModal} disableBtn={amountOfConnected !== (raceData?.numberOfPlayersRequired || 9)}/>
-      }
       {
         distributePermanentlyOpened && 
         <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={usersAnswers}/>

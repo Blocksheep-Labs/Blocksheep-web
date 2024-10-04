@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import RaceBoard from "../../components/RaceBoard";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../../utils/contract-functions";
-import { usePrivy } from "@privy-io/react-auth";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
@@ -10,38 +9,52 @@ import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 
 
-function CountDownScreen() {
+function RaceUpdateScreen() {
   const location = useLocation();
   const { smartAccountAddress } = useSmartAccount();
-  const [seconds, setSeconds] = useState(5);
+  const [seconds, setSeconds] = useState(10);
   const navigate = useNavigate();
-  const {raceId} = useParams();
+  const {raceId, board} = useParams();
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [data, setData] = useState<any>(undefined);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [users, setUsers] = useState<any[]>([]);
+
+  
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
       raceId, 
       userAddress: smartAccountAddress,
-      property: "countdown",
+      property: board,
       value: true,
     })
+
     // user have seen the raceboard progress, we must update update the state
     socket.emit('update-progress', {
       raceId, 
       userAddress: smartAccountAddress,
-      property: "countdown",
+      property: board,
       value: true,
     });
+    
+    let redirectLink = '/';
 
-    //console.log("BEFORE NAVIGATE", data);
-    //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
-    //return;
+    switch (board) {
+      case "board1":
+        redirectLink = generateLink("STORY_PART_1", Number(raceId)); break;
+      case "board2":
+        redirectLink = generateLink("STORY_PART_2", Number(raceId)); break;
+      case "board3":
+        redirectLink = generateLink("STORY_PART_3", Number(raceId)); break;
+      case "board4":
+        redirectLink = generateLink("STORY_PART_4", Number(raceId)); break;
+      default:
+        break;
+    }
 
-    navigate(generateLink("UNDERDOG_PREVIEW", Number(raceId)), {
+    navigate(redirectLink, {
       state: location.state
     });
   };
@@ -88,7 +101,7 @@ function CountDownScreen() {
       }, 1000);
 
       return () => {
-        setSeconds(5);
+        setSeconds(10);
         clearInterval(interval);
       };
     }
@@ -170,13 +183,11 @@ function CountDownScreen() {
   return (
     <>
       <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+        <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700 absolute top-0 z-20">
+            <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${seconds * 10}%`}}></div>
+        </div>
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
-          <div className="absolute left-0 top-0 flex size-full items-center justify-center">
-            <div className="flex size-36 items-center justify-center rounded-3xl bg-yellow-500">
-              <p className="font-[Berlin] text-[70px]">{seconds === 0 ? "GO" : seconds}</p>
-            </div>
-          </div>
         </div>
       </div>
       {
@@ -190,4 +201,4 @@ function CountDownScreen() {
   );
 }
 
-export default CountDownScreen;
+export default RaceUpdateScreen;

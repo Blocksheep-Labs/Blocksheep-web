@@ -7,11 +7,12 @@ import Rule from "../../components/Rule";
 import { useEffect, useState } from "react";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import generateLink from "../../utils/linkGetter";
 
 
 export default function RabbitHoleRules() {
     const navigate = useNavigate();
-    const {raceId} = useParams();
+    const {raceId, version} = useParams();
     const {smartAccountAddress} = useSmartAccount();
     const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -35,7 +36,17 @@ export default function RabbitHoleRules() {
                 property: "game2-rules-complete",
             });
 
-            navigate(`/race/${raceId}/rabbit-hole`, {
+            let redirectLink = '/';
+
+            switch (version) {
+                case "v1":
+                    redirectLink = generateLink("RABBIT_HOLE", Number(raceId)); break;
+                case "v2": 
+                    redirectLink = generateLink("RABBIT_HOLE_V2", Number(raceId)); break;
+                default:
+                    break;
+            }
+            navigate(redirectLink, {
                 state: location.state
             });
         },

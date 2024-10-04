@@ -8,6 +8,7 @@ import RibbonLabel from "../../components/RibbonLabel";
 import Rule from "../../components/Rule";
 import BullrunRulesGrid from "../../components/BullrunRulesGrid";
 import { BULLRUN_getPerksMatrix } from "../../utils/contract-functions";
+import generateLink from "../../utils/linkGetter";
 
 
 export default function BullrunRules() {
@@ -37,7 +38,7 @@ export default function BullrunRules() {
                 property: "game3-rules-complete",
             });
             
-            navigate(`/race/${raceId}/bullrun`, {
+            navigate(generateLink("BULL_RUN", Number(raceId)), {
                 state: location.state
             });
         },

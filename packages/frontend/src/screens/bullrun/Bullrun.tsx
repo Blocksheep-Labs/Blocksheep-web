@@ -19,6 +19,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import shortenAddress from "../../utils/shortenAddress";
 import WinModal from "../../components/modals/WinModal";
 import { httpGetRaceDataById } from "../../utils/http-requests";
+import generateLink from "../../utils/linkGetter";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -51,6 +52,7 @@ export default function Bullrun() {
     const [listOfPreviousPerksByOpponent, setListOfPreviousPerksByOpponent] = useState<any[]>([]);
     const [preloadedScore, setPreloadedScore] = useState(0);
     const [users, setUsers] = useState<any[]>([]);
+    const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
     //const [players, setPlayers] = useState([]);
 
 
@@ -167,7 +169,6 @@ export default function Bullrun() {
             userAddress: smartAccountAddress,
             property: "game3-complete",
         });
-        navigate(`/race/${raceId}/stats`);
     }
 
     const fetchRaceData = () => {
@@ -298,6 +299,19 @@ export default function Bullrun() {
                     if (amountOfPending > 1) {
                         setAmountOfPending(prev => prev - 1);
                     }
+                }
+            });
+
+            socket.on("progress-updated", async(progress) => {
+                console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
+                if (progress.property === "game3-complete") {
+                  setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
+                  if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
+                    
+                    navigate(generateLink("STORY_PART_3", Number(raceId)), {
+                        state: location.state
+                    });
+                  }
                 }
             });
 

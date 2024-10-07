@@ -7,6 +7,23 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import generateLink from "../../utils/linkGetter";
 import StoryVideo from "../../assets/stories/sh.mp4";
 
+
+const getStoryPart = (part: string) => {
+    let story_part = "";
+    switch (part) {
+        case "intro": story_part = "STORY_INTRO"; break;
+        case "part1": story_part = "STORY_PART_1"; break;
+        case "part2": story_part = "STORY_PART_2"; break;
+        case "part3": story_part = "STORY_PART_3"; break;
+        case "part4": story_part = "STORY_PART_4"; break;
+        case "conclusion": story_part = "STORY_CONCLUSION"; break;
+        default:
+            break;
+    }
+
+    return story_part;
+}
+
 export default function StoryScreen() {
     const navigate = useNavigate();
     const {raceId, part} = useParams();
@@ -36,21 +53,28 @@ export default function StoryScreen() {
             let redirectLink = "/";
             switch (part) {
                 case "intro":
-                    redirectLink = generateLink("RACE_START", Number(raceId)); break;
+                    redirectLink = generateLink("RACE_START", Number(raceId)); 
+                    break;
                 case "part1": 
-                    redirectLink = generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)); break;
+                    redirectLink = generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)); 
+                    break;
                 case "part2": 
-                    redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); break;
+                    redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
+                    break;
                 case "part3": 
-                    redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); break;
+                    redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                    break;
                 case "part4":
-                    redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); break;
+                    redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); 
+                    break;
                 case "conclusion":
-                    redirectLink = generateLink("PODIUM", Number(raceId)); break;
+                    redirectLink = generateLink("PODIUM", Number(raceId)); 
+                    break;
                 default:
                     break;
             }
             
+            socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
             navigate(redirectLink, {
                 state: location.state
             });
@@ -70,7 +94,7 @@ export default function StoryScreen() {
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && location.state && part) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
@@ -83,26 +107,28 @@ export default function StoryScreen() {
                 }
             });
 
-            socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+            socket.on('joined', ({ raceId: raceIdSocket, userAddress, part: socketPart }) => {
                 console.log("JOINED", raceIdSocket, raceId);
-
-                if (raceId == raceIdSocket) {
+                if (raceId == raceIdSocket && socketPart == getStoryPart(part) ) {
                     console.log("JOINED++")
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    socket.emit("get-connected", { raceId });
                 }
             });
 
-            socket.on('leaved', () => {
-                console.log("LEAVED")
-                setAmountOfConnected(amountOfConnected - 1);
-                if (!modalIsOpen) {
-                    setModalIsOpen(true);
+            socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
+                if (partSocket == getStoryPart(part) && raceId == raceIdSocket && !movedToNext) {
+                    console.log("LEAVED")
+                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!modalIsOpen) {
+                        setModalIsOpen(true);
+                    }
+                    setModalType("waiting");
                 }
-                setModalType("waiting");
             });
         
             return () => {
@@ -111,16 +137,18 @@ export default function StoryScreen() {
                 socket.off('leaved');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state, part]);
 
     useEffect(() => {
-        setModalIsOpen(true);
-        setModalType("waiting");
-        if (smartAccountAddress && location.state) {
-            socket.emit("get-connected", { raceId });
-            socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
+        if(smartAccountAddress && String(raceId).length && part) {
+            setModalIsOpen(true);
+            setModalType("waiting");
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
         }
-    }, [socket, raceId, smartAccountAddress, location.state]);
+    }, [smartAccountAddress, socket, raceId, part]);
 
     return (
         <div className="bg-white h-full relative">
@@ -140,7 +168,7 @@ export default function StoryScreen() {
             </div>
 
             {
-                modalIsOpen && modalType === "waiting" && 
+                location.state.amountOfRegisteredUsers > amountOfConnected && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}

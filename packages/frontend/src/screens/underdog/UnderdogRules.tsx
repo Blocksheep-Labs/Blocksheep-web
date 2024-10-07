@@ -34,6 +34,8 @@ export default function UnderdogRules() {
                 userAddress: smartAccountAddress,
                 property: "game1-rules-complete",
             });
+
+            socket.emit('minimize-live-game', { part: 'UNDERDOG_RULES', raceId });
             navigate(generateLink("UNDERDOG", Number(raceId)), {
                 state: location.state
             });
@@ -68,26 +70,29 @@ export default function UnderdogRules() {
                 }
             });
 
-            socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+            socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket) {
+                if (raceId == raceIdSocket && part == "UNDERDOG_RULES") {
                     console.log("JOINED++")
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    socket.emit("get-connected", { raceId });
                 }
             });
 
-            socket.on('leaved', () => {
-                console.log("LEAVED")
-                setAmountOfConnected(amountOfConnected - 1);
-                if (!modalIsOpen) {
-                    setModalIsOpen(true);
+            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+                if (part == "UNDERDOG_RULES" && raceId == raceIdSocket && !movedToNext) {
+                    console.log("LEAVED")
+                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!modalIsOpen) {
+                        setModalIsOpen(true);
+                    }
+                    setModalType("waiting");
                 }
-                setModalType("waiting");
             });
 
 
@@ -108,10 +113,18 @@ export default function UnderdogRules() {
         setModalIsOpen(true);
         setModalType("waiting");
         if (smartAccountAddress && location.state) {
-        socket.emit("get-connected", { raceId });
-        socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
+            socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
     }, [socket, raceId, smartAccountAddress, location.state]);
+
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_RULES" });
+        }
+    }, [smartAccountAddress, socket, raceId]);
 
 
     return (

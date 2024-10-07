@@ -22,7 +22,6 @@ export default function StatsScreen() {
     const date = new Date();
 
     useEffect(() => {
-        socket.disconnect();
         if (raceId?.length && smartAccountAddress) {
             Promise.all([
                 getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),

@@ -293,8 +293,8 @@ export default function Bullrun() {
                 }
             });
 
-            socket.on('leaved', ({socketId, userAddress}) => {
-                if (opponent && opponent.id == socketId) {
+            socket.on('leaved', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
+                if (opponent && opponent.id == socketId && part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
                     console.log("OPPONENT LEAVED");
                     if (amountOfPending > 1) {
                         setAmountOfPending(prev => prev - 1);
@@ -339,13 +339,29 @@ export default function Bullrun() {
                 }
             });
 
+            socket.on('joined', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
+                if (opponent && opponent.id == socketId && part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
+                    console.log("OPPONENT JOINED");
+                    setAmountOfPending(prev => prev + 1);
+                }
+            });
+
             return () => {
                 socket.off('bullrun-pending');
                 socket.off('leaved');
                 socket.off('bullrun-amount-of-completed-games');
             }
         }
-    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData]);
+    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, amountOfPlayersCompleted]);
+
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length && raceData) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN" });
+        }
+    }, [smartAccountAddress, socket, raceId, raceData]);
 
 
     function endGame() {

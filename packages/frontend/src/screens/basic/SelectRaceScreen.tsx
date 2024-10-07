@@ -40,6 +40,7 @@ function SelectRaceScreen() {
 
   const handleNavigate = useCallback((progress: any) => {
     console.log("PROGRESS-----------", progress);
+    socket.emit('minimize-live-game', { part: 'RACE_SELECTION' });
 
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
@@ -52,6 +53,7 @@ function SelectRaceScreen() {
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+
       if (!progress?.story?.intro) {
           navigate(generateLink("STORY_INTRO", rIdNumber), {
             state: generateStateObjectForGame(data, progress, "start")
@@ -299,12 +301,14 @@ function SelectRaceScreen() {
         }
       });
 
-      socket.on('leaved', () => {
-        setAmountOfConnected(amountOfConnected - 1);
-        if (!modalIsOpen) {
-          setIsOpen(true);
+      socket.on('leaved', ({ raceId: raceIdSocket, part }) => {
+        if (raceId == raceIdSocket && part == 'RACE_SELECTION') {
+          setAmountOfConnected(amountOfConnected - 1);
+          if (!modalIsOpen) {
+            setIsOpen(true);
+          }
+          setModalType("waiting");
         }
-        setModalType("waiting");
       });
   
       return () => {
@@ -317,9 +321,8 @@ function SelectRaceScreen() {
   }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
 
   const onClickJoin = useCallback((id: number) => {
-    if (!socket.connected) {
-      socket.connect();
-    }
+    socket.connect();
+    
     if (smartAccountAddress) {
       socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
       setTimeout(() => {

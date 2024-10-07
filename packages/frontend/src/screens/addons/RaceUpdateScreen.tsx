@@ -8,6 +8,23 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 
+const getPart = (board: string) => {
+  let selectedPart = "";
+  switch (board) {
+    case "board1":
+      selectedPart = "RACE_UPDATE_1"; break;
+    case "board2":
+      selectedPart = "RACE_UPDATE_2"; break;
+    case "board3":
+      selectedPart = "RACE_UPDATE_3"; break;
+    case "board4":
+      selectedPart = "RACE_UPDATE_4"; break;
+    default:
+      break;
+  }
+
+  return selectedPart;
+}
 
 function RaceUpdateScreen() {
   const location = useLocation();
@@ -54,6 +71,7 @@ function RaceUpdateScreen() {
         break;
     }
 
+    socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
     navigate(redirectLink, {
       state: location.state
     });
@@ -121,7 +139,7 @@ function RaceUpdateScreen() {
 
   // handle socket events
   useEffect(() => {
-    if (smartAccountAddress && data) {
+    if (smartAccountAddress && data && board) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {
@@ -134,26 +152,30 @@ function RaceUpdateScreen() {
         }
       });
 
-      socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+      socket.on('joined', ({ raceId: raceIdSocket, userAddress, part: socketPart }) => {
         console.log("JOINED", raceIdSocket, raceId);
 
-        if (raceId == raceIdSocket) {
+        if (raceId == raceIdSocket && socketPart == getPart(board)) {
           console.log("JOINED++")
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
           }
+
+          socket.emit("get-connected", { raceId });
         }
       });
 
-      socket.on('leaved', () => {
-        console.log("LEAVED")
-        setAmountOfConnected(amountOfConnected - 1);
-        if (!modalIsOpen) {
-          setModalIsOpen(true);
+      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+        if (part == getPart(board) && raceId == raceIdSocket && !movedToNext) {
+          console.log("LEAVED")
+          setAmountOfConnected(amountOfConnected - 1);
+          if (!modalIsOpen) {
+            setModalIsOpen(true);
+          }
+          setModalType("waiting");
         }
-        setModalType("waiting");
       });
 
 
@@ -168,16 +190,24 @@ function RaceUpdateScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, data]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, data, board]);
 
   useEffect(() => {
     setModalIsOpen(true);
     setModalType("waiting");
     if (smartAccountAddress && data) {
-      socket.emit("get-connected", { raceId });
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
     }
   }, [socket, raceId, smartAccountAddress, data]);
+
+  useEffect(() => {
+    if(smartAccountAddress && String(raceId).length && board && data) {
+        if (!socket.connected) {
+          socket.connect();
+        }
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getPart(board) });
+    }
+  }, [smartAccountAddress, socket, raceId, board, data]);
 
 
   return (

@@ -22,6 +22,8 @@ function CountDownScreen() {
   const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [users, setUsers] = useState<any[]>([]);
+
+
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
       raceId, 
@@ -41,6 +43,7 @@ function CountDownScreen() {
     //console.log(`/race/${raceId}/${data.questionsByGames.length}/${data.gamesCompletedPerUser.length}/questions`)
     //return;
 
+    socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
     navigate(generateLink("UNDERDOG_PREVIEW", Number(raceId)), {
       state: location.state
     });
@@ -96,51 +99,49 @@ function CountDownScreen() {
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
-    let timer: NodeJS.Timeout;
     if (seconds === 0 && data && amountOfConnected === data.numberOfPlayersRequired) {
-      timer = setTimeout(handleClose, 1000);
       handleClose();
     }
-    return () => {
-      clearTimeout(timer);
-    };
   }, [seconds, amountOfConnected, data]);
 
   // handle socket events
   useEffect(() => {
-    if (smartAccountAddress && data) {
+    if (smartAccountAddress && location.state) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === data.numberOfPlayersRequired) {
+          if (amount === location.state.amountOfRegisteredUsers) {
             setModalIsOpen(false);
             setModalType(undefined);
           }
         }
       });
 
-      socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
-        console.log("JOINED", raceIdSocket, raceId);
-
-        if (raceId == raceIdSocket) {
-          console.log("JOINED++")
-          setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
-            setModalIsOpen(false);
-            setModalType(undefined);
+      socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
+          console.log("JOINED", raceIdSocket, raceId, part);
+  
+          if (raceId == raceIdSocket && part == "RACE_START") {
+            console.log("JOINED++")
+            setAmountOfConnected(amountOfConnected + 1);
+            if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
+              setModalIsOpen(false);
+              setModalType(undefined);
+            }
+            socket.emit("get-connected", { raceId });
           }
-        }
       });
 
-      socket.on('leaved', () => {
-        console.log("LEAVED")
-        setAmountOfConnected(amountOfConnected - 1);
-        if (!modalIsOpen) {
-          setModalIsOpen(true);
+      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+        if (part == "RACE_START" && raceIdSocket == raceId && !movedToNext) {
+          console.log("LEAVED")
+          setAmountOfConnected(amountOfConnected - 1);
+          if (!modalIsOpen) {
+            setModalIsOpen(true);
+          }
+          setModalType("waiting");
         }
-        setModalType("waiting");
       });
 
 
@@ -155,16 +156,20 @@ function CountDownScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, data]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+
+
 
   useEffect(() => {
-    setModalIsOpen(true);
-    setModalType("waiting");
-    if (smartAccountAddress && data) {
-      socket.emit("get-connected", { raceId });
-      socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
+    if(smartAccountAddress && String(raceId).length) {
+        setModalIsOpen(true);
+        setModalType("waiting");
+        if (!socket.connected) {
+          socket.connect();
+        }
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RACE_START" });
     }
-  }, [socket, raceId, smartAccountAddress, data]);
+  }, [smartAccountAddress, socket, raceId]);
 
 
   return (

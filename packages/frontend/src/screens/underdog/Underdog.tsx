@@ -286,8 +286,8 @@ function UnderdogGame() {
         }
       });
 
-      socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
-        if (raceId == raceIdSocket) {
+      socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
+        if (raceId == raceIdSocket && part == "UNDERDOG") {
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= raceData.numberOfPlayersRequired) {
             if (modalType === "waiting" && !finished) {
@@ -301,18 +301,21 @@ function UnderdogGame() {
               resume();
             }
           }
+          socket.emit("get-connected", { raceId });
         }
       });
 
-      socket.on('leaved', () => {
-        setAmountOfConnected(amountOfConnected - 1);
-        if (!modalIsOpen && !finished) {
-          setIsOpen(true);
-          setModalType("waiting");
+      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+        if (part == "UNDERDOG" && raceId == raceIdSocket && !movedToNext) {
+          setAmountOfConnected(amountOfConnected - 1);
+          if (!modalIsOpen && !finished) {
+            setIsOpen(true);
+            setModalType("waiting");
+          }
+          // pause timer
+          setSubmittingAnswer(true);
+          pause();
         }
-        // pause timer
-        setSubmittingAnswer(true);
-        pause();
       });
 
       socket.on("progress-updated", async(progress) => {
@@ -394,14 +397,24 @@ function UnderdogGame() {
   useEffect(() => {
     if (smartAccountAddress && raceData) {
       console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<")
-      socket.emit("get-connected", { raceId });
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-progress-questions", { raceId });
     }
   }, [socket, smartAccountAddress, raceData]); 
 
 
+  useEffect(() => {
+    if(smartAccountAddress && String(raceId).length && raceData) {
+        if (!socket.connected) {
+          socket.connect();
+        }
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
+    }
+  }, [smartAccountAddress, socket, raceId, raceData]);
+
+
   function nextClicked() {
+    socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
     navigate(generateLink("ADD_NAME", Number(raceId)), {
       state: location.state
     });

@@ -27,12 +27,16 @@ module.exports = (io) => {
     
             // rm user
             let userAddress = null;
+            let raceId = null;
+            let part = null;
             connectedUsers = connectedUsers.filter(i => {
                 // i.id !== socket.id
                 if (i.id !== socket.id) {
                     return true;
                 } else {
                     userAddress = i.userAddress;
+                    raceId = i.raceId;
+                    part = i.part;
                     return false;
                 }
             });
@@ -41,24 +45,25 @@ module.exports = (io) => {
     
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {
-                let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+                //let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
                 socket.leave(roomName);
-                io.to(roomName).emit('leaved', {socketId: socket.id, userAddress, rProgress});
+                io.to(roomName).emit('leaved', {socketId: socket.id, userAddress, raceId, movedToNext: false, part});
             });
         });
     
         // connect the live
-        socket.on('connect-live-game', ({ raceId, userAddress }) => {
+        socket.on('connect-live-game', ({ raceId, userAddress, part }) => {
             const roomName = `race-${raceId}`;
             // find user 
             const data = connectedUsers.find(i => i.raceId === raceId && i.userAddress === userAddress);
     
             if (!data) {
                 // add user
-                connectedUsers.push({ room: roomName, id: socket.id, userAddress });
+                connectedUsers.push({ room: roomName, id: socket.id, userAddress, raceId, part });
             } else {
                 connectedUsers = connectedUsers.map(i => {
                     if (i => i.raceId === raceId && i.userAddress === userAddress) {
+                        i.part = part;
                         i.id = socket.id;
                     }
                     return i;
@@ -67,12 +72,13 @@ module.exports = (io) => {
     
             socket.join(roomName);
             // send the socket event
-            console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName})
-            io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId});
+            console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName, part})
+            io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId, part});
         });
     
         // minimize race (game)
-        socket.on('minimize-live-game', () => {
+        socket.on('minimize-live-game', ({ part, raceId }) => {
+            console.log('mimized', { part, raceId })
             const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
             // rm user
             connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
@@ -80,7 +86,7 @@ module.exports = (io) => {
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {
                 socket.leave(roomName);
-                io.to(roomName).emit('leaved', {socketId: socket.id});
+                io.to(roomName).emit('leaved', {socketId: socket.id, part, raceId, movedToNext: true});
             });
         });
     
@@ -125,8 +131,8 @@ module.exports = (io) => {
                 rProgress = updateProgress(property, value, rProgress);
             }
     
-            console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
-            console.log("EMIT:", {raceId, property, value, userAddress})
+            //console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
+            //console.log("EMIT:", {raceId, property, value, userAddress})
             io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
         });
 

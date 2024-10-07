@@ -46,6 +46,8 @@ export default function RabbitHoleRules() {
                 default:
                     break;
             }
+
+            socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_RULES', raceId });
             navigate(redirectLink, {
                 state: location.state
             });
@@ -81,26 +83,29 @@ export default function RabbitHoleRules() {
                 }
             });
 
-            socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+            socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket) {
+                if (raceId == raceIdSocket && part == "RABBIT_HOLE_RULES") {
                     console.log("JOINED++")
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    socket.emit("get-connected", { raceId });
                 }
             });
 
-            socket.on('leaved', () => {
-                console.log("LEAVED")
-                setAmountOfConnected(amountOfConnected - 1);
-                if (!modalIsOpen) {
-                    setModalIsOpen(true);
+            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+                if (part == "RABBIT_HOLE_RULES" && raceIdSocket == raceId && !movedToNext) {
+                    console.log("LEAVED")
+                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!modalIsOpen) {
+                        setModalIsOpen(true);
+                    }
+                    setModalType("waiting");
                 }
-                setModalType("waiting");
             });
 
 
@@ -121,10 +126,19 @@ export default function RabbitHoleRules() {
         setModalIsOpen(true);
         setModalType("waiting");
         if (smartAccountAddress && location.state) {
-            socket.emit("get-connected", { raceId });
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
     }, [socket, raceId, smartAccountAddress, location.state]);
+
+
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE_RULES" });
+        }
+    }, [smartAccountAddress, socket, raceId]);
 
 
     return (

@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RibbonLabel from "../../components/RibbonLabel";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import generateLink from "../../utils/linkGetter";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { socket } from "../../utils/socketio";
+import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
+import { useTimer } from "react-timer-hook";
 
 const Rating = ({
     handleChange,
@@ -36,15 +41,118 @@ export default function RateScreen() {
     const [bullRunRate, setBullruneRate] = useState(3);
     const navigate = useNavigate();
     const {raceId} = useParams();
+    const location = useLocation();
+    const {smartAccountAddress} = useSmartAccount();
+    const [amountOfConnected, setAmountOfConnected] = useState(0);
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
 
 
-    const handleNavigate = () => {
-        // TODO: probably save rates somewhere...
-        navigate(`/race/${raceId}/stats`);
-    }
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+
+    const { totalSeconds, restart, pause } = useTimer({
+        expiryTimestamp: time,
+        onExpire: () => {
+            console.log("UPDATE PROGRESS", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: `rate`,
+            });
+            socket.emit('update-progress', {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: `rate`,
+            });
+
+            socket.emit('minimize-live-game', { part: "RATE", raceId });
+            navigate(generateLink("STORY_CONCLUSION", Number(raceId)), {
+                state: location.state
+            });
+        },
+        autoStart: true
+    });
+
+
+    useEffect(() => {
+        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
+          
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
+          
+        } else {
+            pause();
+        }
+    }, [amountOfConnected, location.state]);
+
+
+    // handle socket events
+    useEffect(() => {
+        if (smartAccountAddress && location.state) {
+            socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
+                console.log({amount})
+                if (raceId === raceIdSocket) {
+                    setAmountOfConnected(amount);
+                    // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+                    if (amount === location.state.amountOfRegisteredUsers) {
+                        setModalIsOpen(false);
+                        setModalType(undefined);
+                    }
+                }
+            });
+
+            socket.on('joined', ({ raceId: raceIdSocket, userAddress, part: socketPart }) => {
+                console.log("JOINED", raceIdSocket, raceId);
+                if (raceId == raceIdSocket && socketPart == "RATE" ) {
+                    console.log("JOINED++")
+                    setAmountOfConnected(amountOfConnected + 1);
+                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
+                        setModalIsOpen(false);
+                        setModalType(undefined);
+                    }
+                    socket.emit("get-connected", { raceId });
+                }
+            });
+
+            socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
+                console.log({ part: partSocket, raceId: raceIdSocket, movedToNext });
+                if (partSocket == "RATE" && raceId == raceIdSocket && !movedToNext) {
+                    console.log("LEAVED")
+                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!modalIsOpen) {
+                        setModalIsOpen(true);
+                    }
+                    setModalType("waiting");
+                }
+            });
+        
+            return () => {
+                socket.off('joined');
+                socket.off('amount-of-connected');
+                socket.off('leaved');
+            }
+        }
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            setModalIsOpen(true);
+            setModalType("waiting");
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RATE" });
+        }
+    }, [smartAccountAddress, socket, raceId]);
+
+
 
     return (
         <div className="relative mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom items-center">
+            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
+                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 10}%`}}></div>
+            </div>
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="RATE THE FUN" smallerText/>
             </div>
@@ -66,12 +174,13 @@ export default function RateScreen() {
                 </div>
             </div>
 
-            <button 
-                onClick={handleNavigate}
-                className="absolute bottom-20 px-7 py-4 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
-            >
-                NEXT
-            </button>
+            {
+                location.state.amountOfRegisteredUsers > amountOfConnected && 
+                <WaitingForPlayersModal 
+                    numberOfPlayers={amountOfConnected} 
+                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
+                />
+            }
         </div>
     );
 }

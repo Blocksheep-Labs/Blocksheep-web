@@ -62,7 +62,8 @@ export default function StoryScreen() {
                     redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
                     break;
                 case "part3": 
-                    redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                    //redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                    redirectLink = generateLink("RATE", Number(raceId));
                     break;
                 case "part4":
                     redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); 
@@ -155,7 +156,7 @@ export default function StoryScreen() {
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 16.66}%`}}></div>
             </div>
-            <video autoPlay muted className="asbolute w-full h-full object-cover">
+            <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false}>
                 <source src={StoryVideo} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>

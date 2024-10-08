@@ -636,7 +636,7 @@ function RabbitHoleGame() {
   }
 
   function onNextGameClicked() {
-    openLoadingModal();
+    // openLoadingModal();
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
@@ -650,12 +650,14 @@ function RabbitHoleGame() {
   }
 
   function openWinModal() {
+    console.log("OPEN WIN MODAL");
     setIsOpen(true);
     setModalType("win");
     setWinModalPermanentlyOpened(true);
   }
 
   function openLoseModal() {
+    console.log("OPEN LOSE MODAL");
     setIsOpen(true);
     setModalType("lose");
     setLoseModalPermanentlyOpened(true);
@@ -692,8 +694,8 @@ function RabbitHoleGame() {
   }
 
   function closeRaceModal() {
-    setIsOpen(false);
-    setModalType(undefined);
+    //setIsOpen(false);
+    //setModalType(undefined);
     onNextGameClicked();
   }
 

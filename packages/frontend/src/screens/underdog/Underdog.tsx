@@ -324,7 +324,7 @@ function UnderdogGame() {
           // if the user is sending the TX or finished sending TX
           setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
-          if ((amountOfConnected == amountOfPlayersCompleted + 1)) {
+          if ((amountOfConnected <= amountOfPlayersCompleted + 1)) {
             console.log("CLOSING MODAL..., openning win modal")
             openWinModal();
           }

@@ -464,6 +464,8 @@ function UnderdogGame() {
         currentQuestionIndex !== questions.length 
         &&
         <SwipeSelection 
+          leftAction={onClickLike}
+          rightAction={onClickDislike}
           key={roundId.toString()} 
           ref={ref} 
           onFinish={onFinish} 

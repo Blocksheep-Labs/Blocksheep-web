@@ -224,14 +224,17 @@ function UnderdogGame() {
       }
     });
     openWinModal();
+    pause();
   }
 
   function openWinModal() {
-    console.log("win modal opened")
+    console.log("win modal opened");
+    setWaitingToFinishModalPermanentlyOpened(false);
+    setDistributePermanentlyOpened(false);
+
     setWinModalPermanentlyOpened(true);
     setFinished(true);
-    setIsOpen(true);
-    setModalType("win");
+    pause();
   }
 
   function closeWinModal() {
@@ -240,6 +243,7 @@ function UnderdogGame() {
     setIsOpen(false);
     setModalType(undefined);
     openWaitingAfterFinishModal();
+    pause();
   }
 
 
@@ -257,6 +261,7 @@ function UnderdogGame() {
     setIsOpen(false);
     setModalType(undefined);
     setWaitingToFinishModalPermanentlyOpened(false);
+    pause();
   }
 
   function openWaitingBeforeFinishModal() {

@@ -96,7 +96,11 @@ export default function SetNicknameScreen() {
                     if ((amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) && modalType !== "nickname-set") {
                         setModalIsOpen(false);
                         setModalType(undefined);
+                        const time = new Date();
+                        time.setSeconds(time.getSeconds() + 15);
+                        restart(time);
                     }
+
                     socket.emit("get-connected", { raceId });
                 }
             });
@@ -109,6 +113,7 @@ export default function SetNicknameScreen() {
                         setModalIsOpen(true);
                         setModalType("waiting");
                     }
+                    pause();
                 }
             });
 

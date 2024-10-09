@@ -483,6 +483,7 @@ function UnderdogGame() {
           onFinish={onFinish} 
           questions={questions || []}
           currentQuestionIndex={currentQuestionIndex}
+          disabled={modalIsOpen || submittingAnswer}
         />
       }
       

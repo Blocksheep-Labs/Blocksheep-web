@@ -24,14 +24,14 @@ export type SwipeSelectionProps = {
   rightAction: () => void;
   questions: any[];
   currentQuestionIndex: number;
+  disabled: boolean;
 };
 
 // eslint-disable-next-line react/display-name
 const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
-  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex }, ref) => {
+  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled }, ref) => {
     const data = questions;
     const [currentIndex, setCurrentIndex] = useState(data.length - 1);
-    const currentIndexRef = useRef<number>(currentIndex);
     const swipedFlags = useRef<boolean[]>(Array(data.length).fill(false)); // Tracks if a card has been swiped
 
     useImperativeHandle(ref, () => ({
@@ -50,11 +50,6 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
           .map(() => React.createRef()),
       [data.length],
     );
-
-    const updateCurrentIndex = (val: number) => {
-      setCurrentIndex(val);
-      currentIndexRef.current = val;
-    };
 
     const canSwipe = currentIndex >= 0;
 
@@ -78,15 +73,13 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     };
 
     const outOfFrame = (name: string, idx: number) => {
-      if (idx === currentIndexRef.current) {
-        //currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard();
-
-        // Trigger onSwipe if there are more cards to swipe
-        if (idx > 0 && currentQuestionIndex + 1 !== questions.length) {
-          onSwipe && onSwipe();
-        } else {
-          onFinish();
-        }
+      //currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard();
+      console.log("OUT OF FRAME", {idx});
+      // Trigger onSwipe if there are more cards to swipe
+      if (idx > 0) {
+        onSwipe && onSwipe();
+      } else {
+        onFinish();
       }
     };
 
@@ -99,16 +92,16 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     return (
       <>
         <div className="relative py-2">
-          <div className="bg-tunnel_bg cardContainer">
+          <div className={`bg-tunnel_bg cardContainer ${disabled && 'opacity-70'}`}>
             {data.map(({ id, info }, index) => (
               <TinderCard
                 ref={childRefs[index]}
                 className="swipe scale-50"
                 key={id}
-                onSwipe={(dir) => swiped(dir, info, index)}
-                onCardLeftScreen={() => outOfFrame(info, index)}
+                onSwipe={!disabled ? (dir) => swiped(dir, info, index) : undefined}
+                onCardLeftScreen={!disabled ? () => outOfFrame(info, index) : undefined}
                 swipeRequirementType="position"
-                preventSwipe={["up", "down"]}
+                preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
               >
                 <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
                   <div className="relative">

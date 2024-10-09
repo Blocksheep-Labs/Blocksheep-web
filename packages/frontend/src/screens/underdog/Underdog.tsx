@@ -320,14 +320,17 @@ function UnderdogGame() {
 
       socket.on("progress-updated", async(progress) => {
         console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
+
         if (progress.property === "game1-distribute") {
+
+          alert("DISTRIBUTE - " + amountOfPlayersCompleted + 1)
           // if the user is sending the TX or finished sending TX
-          setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
           if ((amountOfConnected <= amountOfPlayersCompleted + 1)) {
             console.log("CLOSING MODAL..., openning win modal")
             openWinModal();
           }
+          setAmountOfPlayersCompleted(prev => prev + 1);
         }
 
         if (progress.property === "game1-wait-to-finish") {

@@ -476,6 +476,8 @@ function UnderdogGame() {
         currentQuestionIndex !== questions.length 
         &&
         <SwipeSelection 
+          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
+          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
           key={roundId.toString()} 
@@ -486,16 +488,6 @@ function UnderdogGame() {
           disabled={modalIsOpen || submittingAnswer}
         />
       }
-      
-      <div className="m-auto mb-0 w-[65%]">
-        <SelectionBtnBox
-          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
-          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
-          leftAction={onClickLike}
-          rightAction={onClickDislike}
-          disabled={modalIsOpen || submittingAnswer}
-        />
-      </div>
         
       <div className="self-end">
         <img src={BottomTab} alt="" className="w-full" />

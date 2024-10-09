@@ -3,6 +3,7 @@ import BottomYellowBg from "../assets/gameplay/bottom-yellow-top.svg";
 
 import { RefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
 import React from "react";
+import SelectionBtnBox from "./SelectionBtnBox";
 
 type Direction = "left" | "right" | "up" | "down";
 
@@ -25,13 +26,16 @@ export type SwipeSelectionProps = {
   questions: any[];
   currentQuestionIndex: number;
   disabled: boolean;
+  leftLabel: string;
+  rightLabel: string;
 };
 
 // eslint-disable-next-line react/display-name
 const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
-  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled }, ref) => {
+  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled, leftLabel, rightLabel }, ref) => {
     const data = questions;
     const [currentIndex, setCurrentIndex] = useState(data.length - 1);
+    //const currentIndexRef = useRef<number>(currentIndex);
     const swipedFlags = useRef<boolean[]>(Array(data.length).fill(false)); // Tracks if a card has been swiped
 
     useImperativeHandle(ref, () => ({
@@ -51,10 +55,16 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
       [data.length],
     );
 
+    const updateCurrentIndex = (val: number) => {
+      console.log("updateCurrentIndex fn call:", {val})
+      setCurrentIndex(val);
+      //currentIndexRef.current = val;
+    };
+
     const canSwipe = currentIndex >= 0;
 
     const swiped = (direction: Direction, nameToDelete: string, index: number) => {
-      console.log({direction})
+      console.log("SWIPE FN CALL:", {direction, index})
       // Ensure this card is only swiped once
       if (swipedFlags.current[index]) return;
 
@@ -69,21 +79,25 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
       }
 
       // Update index after swipe
-      // updateCurrentIndex(index - 1);
+      updateCurrentIndex(index - 1);
     };
 
     const outOfFrame = (name: string, idx: number) => {
-      //currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard();
-      console.log("OUT OF FRAME", {idx});
-      // Trigger onSwipe if there are more cards to swipe
-      if (idx > 0) {
-        onSwipe && onSwipe();
-      } else {
-        onFinish();
-      }
+      console.log({idx})
+      //if (idx === currentIndexRef.current) {
+        //currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard();
+
+        // Trigger onSwipe if there are more cards to swipe
+        if (idx > 0 && currentQuestionIndex + 1 !== questions.length) {
+          onSwipe && onSwipe();
+        } else {
+          onFinish();
+        }
+      //}
     };
 
     const swipe = async (dir: Direction) => {
+      console.log("SWIPE CURRENT INDEX", { currentIndex })
       if (canSwipe && currentIndex < data.length) {
         await childRefs[currentIndex].current?.swipe(dir); // Swipe the card!
       }
@@ -99,7 +113,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
                 className="swipe scale-50"
                 key={id}
                 onSwipe={!disabled ? (dir) => swiped(dir, info, index) : undefined}
-                onCardLeftScreen={!disabled ? () => outOfFrame(info, index) : undefined}
+                onCardLeftScreen={() => outOfFrame(info, index)}
                 swipeRequirementType="position"
                 preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
               >
@@ -117,6 +131,17 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
               </TinderCard>
             ))}
           </div>
+        </div>
+        <div className="m-auto mb-0 w-[65%]">
+          <SelectionBtnBox
+            leftLabel={leftLabel}
+            rightLabel={rightLabel}
+            // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
+            leftAction={leftAction}
+            // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
+            rightAction={rightAction}
+            disabled={disabled}
+          />
         </div>
       </>
     );

@@ -58,7 +58,7 @@ function HomeScreen() {
 
 
   return (
-    <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom relative">
+    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom relative">
       <div className="flex items-center justify-center h-52">
         <img src={BlockSheepLogo} alt="blocksheep" className="w-60"/>
       </div>

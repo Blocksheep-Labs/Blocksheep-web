@@ -377,7 +377,7 @@ export default function Bullrun() {
     }
 
     return (
-        <div className="mx-auto flex h-dvh w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative">
+        <div className="mx-auto flex h-screen w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative">
             {
                 raceModalISOpened
                 &&

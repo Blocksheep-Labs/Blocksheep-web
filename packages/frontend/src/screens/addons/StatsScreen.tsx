@@ -51,7 +51,7 @@ export default function StatsScreen() {
     }, [raceId, smartAccountAddress]);
 
     return (
-        <div className="relative mx-auto flex h-dvh w-full flex-col bg-[#4c9230]">
+        <div className="relative mx-auto flex h-screen w-full flex-col bg-[#4c9230]">
             <div className="h-[60%] w-full flex justify-center relative">
                 <img src={StatsImage} alt="stats image"/>
 

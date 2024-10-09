@@ -212,7 +212,7 @@ function RaceUpdateScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
         <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700 absolute top-0 z-20">
             <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${seconds * 10}%`}}></div>
         </div>

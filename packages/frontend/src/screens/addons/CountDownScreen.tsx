@@ -174,7 +174,7 @@ function CountDownScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">

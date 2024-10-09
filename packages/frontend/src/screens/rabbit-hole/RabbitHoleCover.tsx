@@ -140,7 +140,7 @@ export default function RabbitHoleCover() {
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 33.33}%`}}></div>
             </div>
-            <div className="mx-auto rounded-none flex h-dvh w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top">
+            <div className="mx-auto rounded-none flex h-screen w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top">
                 {
                     modalIsOpen && modalType === "waiting" && 
                     <WaitingForPlayersModal 

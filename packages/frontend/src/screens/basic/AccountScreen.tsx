@@ -72,7 +72,7 @@ function AccountScreen() {
   console.log(smartAccountAddress, `Balance: ${Number(ETHBalance?.formatted)}`)
 
   return (
-    <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
       <button className="bg-black p-2 text-white" onClick={() => handleDeposit(30)}>Test deposit for 1 game</button>
       <div className="mt-10 flex flex-col gap-5 cursor-pointer">
         <ProfileButton 

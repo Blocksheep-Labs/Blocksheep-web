@@ -362,7 +362,7 @@ function SelectRaceScreen() {
   //console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
-    <div className="mx-auto flex h-dvh w-full flex-col bg-race_bg bg-cover bg-bottom">
+    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
       <div className="mt-16 flex w-full justify-center">
         <RibbonLabel text="Races"/>
       </div>

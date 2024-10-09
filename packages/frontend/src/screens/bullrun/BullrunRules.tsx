@@ -137,7 +137,7 @@ export default function BullrunRules() {
     }, [smartAccountAddress, socket, raceId]);
 
     return (
-        <div className="mx-auto flex h-dvh w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center">
+        <div className="mx-auto flex h-screen w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center">
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 10}%`}}></div>
             </div>

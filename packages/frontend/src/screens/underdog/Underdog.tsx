@@ -453,7 +453,7 @@ function UnderdogGame() {
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
   console.log(amountOfConnected, raceData?.numberOfPlayersRequired);
   return (
-    <div className="mx-auto flex h-dvh w-full flex-col bg-underdog_bg bg-cover bg-bottom">
+    <div className="mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-bottom">
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">

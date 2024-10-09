@@ -222,6 +222,7 @@ function UnderdogGame() {
         isDistributed: true,
       }
     });
+    openWinModal();
   }
 
   function openWinModal() {
@@ -323,14 +324,14 @@ function UnderdogGame() {
 
         if (progress.property === "game1-distribute") {
 
-          alert("DISTRIBUTE - " + amountOfPlayersCompleted + 1)
-          // if the user is sending the TX or finished sending TX
+          setAmountOfPlayersCompleted(prev => prev + 1);
+          
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
           if ((amountOfConnected <= amountOfPlayersCompleted + 1)) {
+            alert(amountOfPlayersCompleted)
             console.log("CLOSING MODAL..., openning win modal")
             openWinModal();
           }
-          setAmountOfPlayersCompleted(prev => prev + 1);
         }
 
         if (progress.property === "game1-wait-to-finish") {

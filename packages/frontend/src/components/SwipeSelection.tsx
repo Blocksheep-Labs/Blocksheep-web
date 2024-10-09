@@ -121,7 +121,8 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
                   <div className="relative">
                     <img src={`/questions/question${data.length - (index)}.png`} alt="play-card" />
                     <img
-                      src={data[data.length - (index + 1)].info.imgUrl}
+                      src="https://gateway.pinata.cloud/ipfs/bafkreicgp24henidhmn7pbghwjkkgdzd2cvmcj2tmpbp3zlbrczwvijq44"
+                      //src={data[data.length - (index + 1)].info.imgUrl}
                       alt="bottom-yellow-top"
                       className="absolute inset-x-0 bottom-0"
                     />

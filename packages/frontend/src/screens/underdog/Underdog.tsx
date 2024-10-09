@@ -39,6 +39,7 @@ function UnderdogGame() {
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
   const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
   const [waitingToFinishModalPermanentlyOpened, setWaitingToFinishModalPermanentlyOpened] = useState(false);
+  const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
 
   const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
   const questions = location.state?.questionsByGames[currentGameIndex];
@@ -227,6 +228,7 @@ function UnderdogGame() {
 
   function openWinModal() {
     console.log("win modal opened")
+    setWinModalPermanentlyOpened(true);
     setFinished(true);
     setIsOpen(true);
     setModalType("win");
@@ -234,6 +236,7 @@ function UnderdogGame() {
 
   function closeWinModal() {
     console.log("win modal closed")
+    setWinModalPermanentlyOpened(false);
     setIsOpen(false);
     setModalType(undefined);
     openWaitingAfterFinishModal();
@@ -328,7 +331,7 @@ function UnderdogGame() {
           
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
           if ((amountOfConnected <= amountOfPlayersCompleted + 1)) {
-            alert(amountOfPlayersCompleted)
+            // alert(amountOfPlayersCompleted)
             console.log("CLOSING MODAL..., openning win modal")
             openWinModal();
           }
@@ -520,6 +523,10 @@ function UnderdogGame() {
       {
         waitingToFinishModalPermanentlyOpened &&
         <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
+      }
+      {
+        winModalPermanentlyOpened && 
+        <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
       }
     </div>
   );

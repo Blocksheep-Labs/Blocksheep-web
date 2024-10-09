@@ -502,10 +502,6 @@ function UnderdogGame() {
             <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={usersAnswers}/>
           }
           {
-            modalType === "win" && 
-            <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
-          }
-          {
             modalType === "waiting" && 
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
           }

@@ -119,7 +119,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
                       className="absolute inset-x-0 bottom-0"
                     />
                   </div>
-                  <Content question={data[currentQuestionIndex].info.content} />
+                  <Content question={data[data.length - (index + 1)].info.content} />
                 </div>
               </TinderCard>
             ))}

@@ -156,7 +156,7 @@ export default function StoryScreen() {
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 16.66}%`}}></div>
             </div>
-            <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false}>
+            <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
                 <source src={StoryVideo} type="video/mp4" />
                 Your browser does not support the video tag.
             </video>

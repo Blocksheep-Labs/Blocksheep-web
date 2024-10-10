@@ -1,7 +1,7 @@
 import TinderCard from "react-tinder-card";
 import BottomYellowBg from "../assets/gameplay/bottom-yellow-top.svg";
 
-import { RefObject, forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { RefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import React from "react";
 import SelectionBtnBox from "./SelectionBtnBox";
 
@@ -28,15 +28,15 @@ export type SwipeSelectionProps = {
   disabled: boolean;
   leftLabel: string;
   rightLabel: string;
+  completedCount: number;
 };
 
 // eslint-disable-next-line react/display-name
 const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
-  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled, leftLabel, rightLabel }, ref) => {
-    const data = questions;
-    const [currentIndex, setCurrentIndex] = useState(data.length - 1);
+  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled, leftLabel, rightLabel, completedCount }, ref) => {
     //const currentIndexRef = useRef<number>(currentIndex);
-    const swipedFlags = useRef<boolean[]>(Array(data.length).fill(false)); // Tracks if a card has been swiped
+    const swipedFlags = useRef<boolean[]>(Array(questions.length).fill(false)); // Tracks if a card has been swiped
+    const [initTriggered, setInitTriggered] = useState(false);
 
     useImperativeHandle(ref, () => ({
       swipeLeft() {
@@ -49,27 +49,15 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
 
     const childRefs: RefObject<API>[] = useMemo(
       () =>
-        Array(data.length)
+        Array(questions.length)
           .fill(0)
           .map(() => React.createRef()),
-      [data.length],
+      [questions.length],
     );
 
-    const updateCurrentIndex = (val: number) => {
-      console.log("updateCurrentIndex fn call:", {val})
-      setCurrentIndex(val);
-      //currentIndexRef.current = val;
-    };
-
-    const canSwipe = currentIndex >= 0;
 
     const swiped = (direction: Direction, nameToDelete: string, index: number) => {
       console.log("SWIPE FN CALL:", {direction, index})
-      // Ensure this card is only swiped once
-      if (swipedFlags.current[index]) return;
-
-      // Mark this card as swiped
-      swipedFlags.current[index] = true;
 
       // Handle swipe direction
       if (direction === "left") {
@@ -77,73 +65,82 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
       } else if (direction === "right") {
         rightAction();
       }
-
-      // Update index after swipe
-      updateCurrentIndex(index - 1);
     };
 
     const outOfFrame = (name: string, idx: number) => {
       console.log({idx})
-      //if (idx === currentIndexRef.current) {
-        //currentIndexRef.current >= idx && childRefs[idx].current?.restoreCard();
 
-        // Trigger onSwipe if there are more cards to swipe
-        if (idx > 0 && currentQuestionIndex + 1 !== questions.length) {
-          onSwipe && onSwipe();
-        } else {
-          onFinish();
-        }
-      //}
+      // Ensure this card is only swiped once
+      if (swipedFlags.current[idx]) return;
+
+      // Mark this card as swiped
+      swipedFlags.current[idx] = true;
+
+      if (currentQuestionIndex + 1 == questions.length) {
+        onFinish();
+      } else {
+        onSwipe && onSwipe();
+      }
     };
 
     const swipe = async (dir: Direction) => {
-      console.log("SWIPE CURRENT INDEX", { currentIndex })
-      if (canSwipe && currentIndex < data.length) {
-        await childRefs[currentIndex].current?.swipe(dir); // Swipe the card!
+      console.log("SWIPE CURRENT INDEX", { currentQuestionIndex })
+      if (currentQuestionIndex <= questions.length - 1 + completedCount) {
+        await childRefs.toReversed()[currentQuestionIndex].current?.swipe(dir); // Swipe the card!
       }
     };
+
+    console.log({questions})
+
+
+    // INIT AFTER LEAVE
+    /*
+    useEffect(() => {
+      //console.log("REF SWIPES:", childRefs.map(i => i.current?.swipe.name), childRefs.map(i => i.current?.swipe.name).every(i => i == "swipe"))
+      //console.log({currentQuestionIndex, initTriggered, childRefs: childRefs.map(i => i.current?.swipe.name)})
+      if (completedCount && !initTriggered && childRefs.length == questions.length && childRefs.map(i => i.current?.swipe.name).every(i => i == "swipe")) {
+        console.log("SWIPE CARDS CALLED AFTER LEAVE...", completedCount)
+        setInitTriggered(true);
+        // 2 => [ 0, 0 ]
+        new Array(completedCount).fill(0).forEach((_, key) => {
+          console.log("SW FUNCTION", key, childRefs.toReversed()[key].current?.swipe);
+          childRefs.toReversed()[key].current?.swipe("left");
+        });
+      }
+    }, [completedCount, initTriggered, childRefs]);
+    */
 
     return (
       <>
         <div className="relative py-2">
           <div className={`bg-tunnel_bg cardContainer ${disabled && 'opacity-70'}`}>
-            {data.map(({ id, info }, index) => (
-              <TinderCard
-                ref={childRefs[index]}
-                className="swipe scale-50"
-                key={id}
-                onSwipe={!disabled ? (dir) => swiped(dir, info, index) : undefined}
-                onCardLeftScreen={() => outOfFrame(info, index)}
-                swipeRequirementType="position"
-                preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
-              >
-                <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
-                  <div className="relative">
-                    <img src={`/questions/question${data.length - (index)}.png`} alt="play-card" />
-                    <img
-                      src="https://gateway.pinata.cloud/ipfs/bafkreicgp24henidhmn7pbghwjkkgdzd2cvmcj2tmpbp3zlbrczwvijq44"
-                      //src={data[data.length - (index + 1)].info.imgUrl}
-                      alt="bottom-yellow-top"
-                      className="absolute inset-x-0 bottom-0"
-                    />
+            {questions.toReversed().map(({ id, info }, index) => (
+                <TinderCard
+                  ref={childRefs[index]}
+                  className="swipe scale-50"
+                  key={id}
+                  onSwipe={!disabled ? (dir) => swiped(dir, info, index) : undefined}
+                  onCardLeftScreen={() => outOfFrame(info, index)}
+                  swipeRequirementType="position"
+                  preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
+                >
+                  <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
+                    <div className="relative">
+                      <img src={`/questions/question1.png`} alt="play-card" />
+                      <img
+                        //src="https://gateway.pinata.cloud/ipfs/bafkreicgp24henidhmn7pbghwjkkgdzd2cvmcj2tmpbp3zlbrczwvijq44"
+                        src={info.imgUrl}
+                        alt="bottom-yellow-top"
+                        className="absolute inset-x-0 bottom-0"
+                      />
+                    </div>
+                    <Content question={info.content} />
                   </div>
-                  <Content question={data[data.length - (index + 1)].info.content} />
-                </div>
-              </TinderCard>
+                </TinderCard>
             ))}
           </div>
         </div>
-        <div className="m-auto mb-0 w-[65%]">
-          <SelectionBtnBox
-            leftLabel={leftLabel}
-            rightLabel={rightLabel}
-            // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
-            leftAction={leftAction}
-            // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
-            rightAction={rightAction}
-            disabled={disabled}
-          />
-        </div>
+        
       </>
     );
   },

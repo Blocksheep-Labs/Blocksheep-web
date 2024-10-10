@@ -44,12 +44,14 @@ function SelectRaceScreen() {
 
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      navigate(`/race/${raceId}/bullrun/rules`, {
-        state: generateStateObjectForGame(data, progress, '/', undefined)
+      console.log(generateStateObjectForGame(data, progress))
+      navigate(`/race/${raceId}/underdog`, {
+        state: generateStateObjectForGame(data, progress)
       });
     });
     return;
     */
+    
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {

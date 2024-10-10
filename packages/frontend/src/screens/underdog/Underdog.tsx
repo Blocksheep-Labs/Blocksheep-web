@@ -43,7 +43,7 @@ function UnderdogGame() {
 
   const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
   const questions = location.state?.questionsByGames[currentGameIndex];
-  const { step, questionsByGames, progress } = location.state;
+  const { questionsByGames, progress } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [finished, setFinished] = useState(questions.length === progress?.game1?.completed || false);
@@ -141,7 +141,7 @@ function UnderdogGame() {
     time.setSeconds(time.getSeconds() + 10);
     restart(time);
 
-    if (currentQuestionIndex !== questions.length)
+    if (currentQuestionIndex !== questions.length - 1)
       setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
@@ -197,7 +197,7 @@ function UnderdogGame() {
     restart(time);
     
     ref.current?.swipeRight();
-    if (currentQuestionIndex !== questions.length)
+    if (currentQuestionIndex !== questions.length - 1)
       setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
@@ -440,7 +440,7 @@ function UnderdogGame() {
       const {isDistributed, of, completed, waitingToFinish} = progress.game1;
       
       // continue answering questions
-      if (completed != of && completed < of && step == "questions") {
+      if (completed != of && completed < of) {
         console.log("CONTINUE FROM", completed);
         setCurrentQuestionIndex(completed);
         return;
@@ -454,13 +454,13 @@ function UnderdogGame() {
       }
       
       // user answered all questions but score was not calculated
-      if (!waitingToFinish && completed >= of && completed > 0 && of > 0 && !isDistributed && step == "questions") {
+      if (!waitingToFinish && completed >= of && completed > 0 && of > 0 && !isDistributed) {
         pause();
         setDistributePermanentlyOpened(true);
         return;
       }
     }
-  }, [step, progress?.game1, questionsByGames, smartAccountAddress]);
+  }, [progress?.game1, questionsByGames, smartAccountAddress]);
 
   //console.log("CURRENT Q INDEX:", currentQuestionIndex);
   console.log(amountOfConnected, raceData?.numberOfPlayersRequired);
@@ -473,7 +473,7 @@ function UnderdogGame() {
         </div>
       </div>
       {
-        currentQuestionIndex !== questions.length 
+        (currentQuestionIndex !== questions.length)
         &&
         <SwipeSelection 
           leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
@@ -483,11 +483,24 @@ function UnderdogGame() {
           key={roundId.toString()} 
           ref={ref} 
           onFinish={onFinish} 
-          questions={questions || []}
+          questions={questions.slice(progress?.game1 ? progress.game1.completed : 0, questions.length) || []}
           currentQuestionIndex={currentQuestionIndex}
           disabled={modalIsOpen || submittingAnswer}
+          completedCount={progress?.game1?.completed || 0}
         />
       }
+
+      <div className="m-auto mb-0 w-[65%]">
+        <SelectionBtnBox
+          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
+          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
+          // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
+          leftAction={onClickLike}
+          // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
+          rightAction={onClickDislike}
+          disabled={modalIsOpen || submittingAnswer}
+        />
+      </div>
         
       <div className="self-end">
         <img src={BottomTab} alt="" className="w-full" />

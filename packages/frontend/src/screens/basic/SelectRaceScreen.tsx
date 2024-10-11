@@ -46,11 +46,13 @@ function SelectRaceScreen() {
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       console.log(generateStateObjectForGame(data, progress))
       navigate(`/race/${raceId}/underdog`, {
-        state: generateStateObjectForGame(data, progress)
+        state: generateStateObjectForGame(data, progress),
+        replace: true,
       });
     });
     return;
     */
+    
     
     const rIdNumber = Number(raceId);
     
@@ -58,7 +60,8 @@ function SelectRaceScreen() {
 
       if (!progress?.story?.intro) {
           navigate(generateLink("STORY_INTRO", rIdNumber), {
-            state: generateStateObjectForGame(data, progress, "start")
+            state: generateStateObjectForGame(data, progress, "start"),
+            replace: true,
           });
         return;
       }
@@ -67,7 +70,8 @@ function SelectRaceScreen() {
       if (!progress?.countdown) {
         console.log("COUNTDOWN")
         navigate(generateLink("RACE_START", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "start")
+          state: generateStateObjectForGame(data, progress, "start"),
+          replace: true,
         });
         return;
       }
@@ -76,7 +80,8 @@ function SelectRaceScreen() {
       if (!progress?.game1_preview) {
         console.log("UNDERDOG PREVIEW");
         navigate(generateLink("UNDERDOG_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "questions")
+          state: generateStateObjectForGame(data, progress, "questions"),
+          replace: true,
         });
         return;
       }
@@ -85,7 +90,8 @@ function SelectRaceScreen() {
       if (!progress?.game1_rules) {
         console.log("UNDERDOG RULES");
         navigate(generateLink("UNDERDOG_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "questions")
+          state: generateStateObjectForGame(data, progress, "questions"),
+          replace: true,
         });
         return;
       }
@@ -94,7 +100,8 @@ function SelectRaceScreen() {
       if (!progress?.game1?.isDistributed) {
         console.log("UNDERDOG")
         navigate(generateLink("UNDERDOG", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "questions")
+          state: generateStateObjectForGame(data, progress, "questions"),
+          replace: true,
         });
         return;
       }
@@ -103,7 +110,8 @@ function SelectRaceScreen() {
       if (!progress?.board1) {
         console.log("BOARD-1")
         navigate(generateLink("UNDERDOG", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, "board"),
+          replace: true,
         });
         return;
       }
@@ -111,14 +119,16 @@ function SelectRaceScreen() {
       if (!progress?.nicknameSet) {
         console.log("SET_NICKNAME")
         navigate(generateLink("ADD_NAME", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "board")
+          state: generateStateObjectForGame(data, progress, "board"),
+          replace: true,
         });
         return;
       }
 
       if (!progress?.story?.part1) {
         navigate(generateLink("STORY_PART_1", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -128,7 +138,8 @@ function SelectRaceScreen() {
       if (!progress?.game2_preview) {
         console.log("RABBIT-HOLE PREVIEW");
         navigate(generateLink("RABBIT_HOLE_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -137,7 +148,8 @@ function SelectRaceScreen() {
       if (!progress?.game2_rules) {
         console.log("RABBIT-HOLE RULES");
         navigate(generateLink("RABBIT_HOLE_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         })
         return;
       }
@@ -146,7 +158,8 @@ function SelectRaceScreen() {
       if (!progress?.game2.waitingToFinish) {
         console.log("RABBIT-HOLE");
         navigate(generateLink("RABBIT_HOLE", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -154,7 +167,8 @@ function SelectRaceScreen() {
       
       if (!progress?.story?.part2) {
         navigate(generateLink("STORY_PART_2", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -163,7 +177,8 @@ function SelectRaceScreen() {
       if (!progress?.game3_preview) {
         console.log("BULLRUN PREVIEW");
         navigate(generateLink("BULL_RUN_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -171,7 +186,8 @@ function SelectRaceScreen() {
       if (!progress?.game3_rules) {
         console.log("BULLRUN RULES");
         navigate(generateLink("BULL_RUN_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -179,7 +195,8 @@ function SelectRaceScreen() {
       if (!progress?.game3.isCompleted) {
         console.log("BULLRUN");
         navigate(generateLink("BULL_RUN", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }  
@@ -187,21 +204,24 @@ function SelectRaceScreen() {
       
       if (!progress?.story?.part3) {
         navigate(generateLink("STORY_PART_3", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
       
       if (!progress?.story?.game2_v2_preview) {
         navigate(generateLink("RABBIT_HOLE_V2_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
 
       if (!progress?.story?.game2_v2_rules) {
         navigate(generateLink("RABBIT_HOLE_V2_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -210,7 +230,8 @@ function SelectRaceScreen() {
       if (!progress?.game2.waitingToFinish) {
         console.log("RABBIT-HOLE");
         navigate(generateLink("RABBIT_HOLE_V2", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
@@ -218,20 +239,23 @@ function SelectRaceScreen() {
       
       if (!progress?.story?.conclusion) {
         navigate(generateLink("STORY_CONCLUSION", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
 
       if (!progress?.rate) {
         navigate(generateLink("RATE", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined)
+          state: generateStateObjectForGame(data, progress, undefined),
+          replace: true,
         });
         return;
       }
 
       navigate(generateLink("PODIUM", rIdNumber), {
-        state: generateStateObjectForGame(data, progress, undefined)
+        state: generateStateObjectForGame(data, progress, undefined),
+        replace: true,
       });
     });
   }, [raceId]);

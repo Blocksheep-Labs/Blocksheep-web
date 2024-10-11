@@ -77,7 +77,8 @@ export default function StoryScreen() {
             
             socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
             navigate(redirectLink, {
-                state: location.state
+                state: location.state,
+                replace: true,
             });
         },
         autoStart: true

@@ -37,7 +37,8 @@ export default function UnderdogRules() {
 
             socket.emit('minimize-live-game', { part: 'UNDERDOG_RULES', raceId });
             navigate(generateLink("UNDERDOG", Number(raceId)), {
-                state: location.state
+                state: location.state,
+                replace: true,
             });
         },
         autoStart: true

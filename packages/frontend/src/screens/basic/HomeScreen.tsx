@@ -47,7 +47,7 @@ function HomeScreen() {
       } catch (error) {
         
       } finally {
-        navigate('/select');
+        navigate('/select', { replace: true });
       }
     }
 

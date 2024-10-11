@@ -49,7 +49,8 @@ export default function RabbitHoleRules() {
 
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_RULES', raceId });
             navigate(redirectLink, {
-                state: location.state
+                state: location.state,
+                replace: true,
             });
         },
         autoStart: true

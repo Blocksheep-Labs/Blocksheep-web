@@ -309,7 +309,8 @@ export default function Bullrun() {
                   if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
                     
                     navigate(generateLink("STORY_PART_3", Number(raceId)), {
-                        state: location.state
+                        state: location.state,
+                        replace: true,
                     });
                   }
                 }

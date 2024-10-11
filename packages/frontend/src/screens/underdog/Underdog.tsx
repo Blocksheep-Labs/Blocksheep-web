@@ -46,7 +46,7 @@ function UnderdogGame() {
   const { questionsByGames, progress } = location.state;
   //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  const [finished, setFinished] = useState(questions.length === progress?.game1?.completed || false);
+  const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const [amountOfPlayersWaitingToFinish, setAmountOfPlayersWaitingToFinish] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
@@ -75,7 +75,7 @@ function UnderdogGame() {
     expiryTimestamp: time,
     onExpire: () => {
       setFlipState(!flipState);
-      flipState ? onClickLike(false) : onClickDislike(false);
+      flipState ? onClickLike(currentGameIndex, false) : onClickDislike(currentGameIndex, false);
     },
   });
 
@@ -88,7 +88,7 @@ function UnderdogGame() {
     });
   };
   
-  const onClickLike = async(sendTx=true) => {
+  const onClickLike = async(qIndex: number, sendTx=true) => {
     setSubmittingAnswer(true);
     pause();
 
@@ -146,7 +146,7 @@ function UnderdogGame() {
   };
 
 
-  const onClickDislike = async(sendTx=true) => {
+  const onClickDislike = async(qIndex: number, sendTx=true) => {
     setSubmittingAnswer(true);
     pause();
 
@@ -204,8 +204,9 @@ function UnderdogGame() {
   function openLoadingModal() {
     pause();
     console.log("loading modal opened");
-    setIsOpen(true);
-    setModalType("loading");
+    //setIsOpen(true);
+    //setModalType("loading");
+    setDistributePermanentlyOpened(true);
   }
 
   function closeLoadingModal() {
@@ -271,6 +272,7 @@ function UnderdogGame() {
 
 
   function onFinish() {
+    setInterval(pause, 1000);
     console.log("FINISH, waiting for players...");
     socket.emit("update-progress", {
       raceId,
@@ -434,8 +436,7 @@ function UnderdogGame() {
 
   // INITIAL USE EFFECT
   useEffect(() => {
-    updateProgress();
-    if (smartAccountAddress && progress?.game1) {
+    if (smartAccountAddress && progress?.game1 && raceData) {
 
       const {isDistributed, of, completed, waitingToFinish} = progress.game1;
       
@@ -448,7 +449,9 @@ function UnderdogGame() {
 
       // start waiting other players to finish answering
       if (waitingToFinish) {
+        console.log("<<<<<<< INIT <<<<<<<")
         pause();
+        onFinish();
         setWaitingToFinishModalPermanentlyOpened(true);
         return;
       }
@@ -460,10 +463,16 @@ function UnderdogGame() {
         return;
       }
     }
-  }, [progress?.game1, questionsByGames, smartAccountAddress]);
+  }, [progress?.game1, questionsByGames, smartAccountAddress, raceData]);
 
-  //console.log("CURRENT Q INDEX:", currentQuestionIndex);
-  console.log(amountOfConnected, raceData?.numberOfPlayersRequired);
+  useEffect(() => {
+    updateProgress();
+  }, []);
+
+
+  console.log({questions})
+
+
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-bottom">
       <div className="relative my-4">
@@ -476,8 +485,6 @@ function UnderdogGame() {
         (currentQuestionIndex !== questions.length)
         &&
         <SwipeSelection 
-          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
-          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
           leftAction={onClickLike}
           rightAction={onClickDislike}
           key={roundId.toString()} 
@@ -499,6 +506,7 @@ function UnderdogGame() {
           // const swiped = (direction: Direction, nameToDelete: string, index: number) => {
           rightAction={onClickDislike}
           disabled={modalIsOpen || submittingAnswer}
+          currentQuestionIndex={currentQuestionIndex}
         />
       </div>
         

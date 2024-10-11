@@ -260,7 +260,8 @@ function RabbitHoleGame() {
 
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE', raceId });
             navigate(redirectLink, {
-              state: location.state
+              state: location.state,
+              replace: true,
             });
           }
         }
@@ -353,7 +354,7 @@ function RabbitHoleGame() {
             if (socket.connected) {
               socket.disconnect();
             }
-            navigate('/');
+            navigate('/', { replace: true });
           } 
           setRaceData(data);
         }

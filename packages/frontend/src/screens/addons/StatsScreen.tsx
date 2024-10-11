@@ -36,7 +36,7 @@ export default function StatsScreen() {
                 // VALIDATE USER FOR BEING REGISTERED
                 if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
                     //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
-                    navigate('/');
+                    navigate('/', { replace: true });
                 }
 
                 let newProgress: { curr: number; address: string }[] = data.contractData.progress.map(i => {
@@ -118,7 +118,7 @@ export default function StatsScreen() {
             <div className="absolute bottom-0 right-0 w-[40%]">
                 <button
                 className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
-                onClick={() => navigate('/select')}
+                onClick={() => navigate('/select', { replace: true })}
                 >
                     Home
                 </button>

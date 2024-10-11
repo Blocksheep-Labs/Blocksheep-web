@@ -125,7 +125,8 @@ export default function SetNicknameScreen() {
                     if (amountOfNextClicked + 1 == location.state.amountOfRegisteredUsers) {
                         socket.emit('minimize-live-game', { part: 'ADD_NAME', raceId });
                         navigate(generateLink("RACE_UPDATE_1", Number(raceId)), {
-                            state: location.state
+                            state: location.state,
+                            replace: true,
                         });
                     }
                 }

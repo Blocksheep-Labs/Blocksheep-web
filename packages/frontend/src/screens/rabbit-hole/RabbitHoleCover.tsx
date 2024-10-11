@@ -47,7 +47,8 @@ export default function RabbitHoleCover() {
 
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_PREVIEW', raceId });
             navigate(redirectLink, {
-                state: location.state
+                state: location.state,
+                replace: true,
             });
         },
         autoStart: true

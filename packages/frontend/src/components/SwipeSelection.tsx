@@ -21,22 +21,19 @@ const Content = ({ question }: { question: string }) => (
 export type SwipeSelectionProps = {
   onSwipe?: () => void;
   onFinish: () => void;
-  leftAction: () => void;
-  rightAction: () => void;
+  leftAction: (qIndex: number) => void;
+  rightAction: (qIndex: number) => void;
   questions: any[];
   currentQuestionIndex: number;
   disabled: boolean;
-  leftLabel: string;
-  rightLabel: string;
   completedCount: number;
 };
 
 // eslint-disable-next-line react/display-name
 const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
-  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled, leftLabel, rightLabel, completedCount }, ref) => {
+  ({ onSwipe, leftAction, rightAction, onFinish, questions, currentQuestionIndex, disabled, completedCount }, ref) => {
     //const currentIndexRef = useRef<number>(currentIndex);
     const swipedFlags = useRef<boolean[]>(Array(questions.length).fill(false)); // Tracks if a card has been swiped
-    const [initTriggered, setInitTriggered] = useState(false);
 
     useImperativeHandle(ref, () => ({
       swipeLeft() {
@@ -61,9 +58,9 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
 
       // Handle swipe direction
       if (direction === "left") {
-        leftAction();
+        leftAction(index);
       } else if (direction === "right") {
-        rightAction();
+        rightAction(index);
       }
     };
 
@@ -76,7 +73,8 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
       // Mark this card as swiped
       swipedFlags.current[idx] = true;
 
-      if (currentQuestionIndex + 1 == questions.length) {
+      if (currentQuestionIndex == 2) {
+        console.log(">>>>>>>>>>>>>> FINISH OUT OF FRAME <<<<<<<<<<<<<")
         onFinish();
       } else {
         onSwipe && onSwipe();
@@ -84,31 +82,11 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     };
 
     const swipe = async (dir: Direction) => {
-      console.log("SWIPE CURRENT INDEX", { currentQuestionIndex })
+      console.log("SWIPE CURRENT INDEX", { currentQuestionIndex: currentQuestionIndex - completedCount })
       if (currentQuestionIndex <= questions.length - 1 + completedCount) {
-        await childRefs.toReversed()[currentQuestionIndex].current?.swipe(dir); // Swipe the card!
+        await childRefs.toReversed()[currentQuestionIndex - completedCount].current?.swipe(dir); // Swipe the card!
       }
     };
-
-    console.log({questions})
-
-
-    // INIT AFTER LEAVE
-    /*
-    useEffect(() => {
-      //console.log("REF SWIPES:", childRefs.map(i => i.current?.swipe.name), childRefs.map(i => i.current?.swipe.name).every(i => i == "swipe"))
-      //console.log({currentQuestionIndex, initTriggered, childRefs: childRefs.map(i => i.current?.swipe.name)})
-      if (completedCount && !initTriggered && childRefs.length == questions.length && childRefs.map(i => i.current?.swipe.name).every(i => i == "swipe")) {
-        console.log("SWIPE CARDS CALLED AFTER LEAVE...", completedCount)
-        setInitTriggered(true);
-        // 2 => [ 0, 0 ]
-        new Array(completedCount).fill(0).forEach((_, key) => {
-          console.log("SW FUNCTION", key, childRefs.toReversed()[key].current?.swipe);
-          childRefs.toReversed()[key].current?.swipe("left");
-        });
-      }
-    }, [completedCount, initTriggered, childRefs]);
-    */
 
     return (
       <>
@@ -118,9 +96,9 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
                 <TinderCard
                   ref={childRefs[index]}
                   className="swipe scale-50"
-                  key={id}
-                  onSwipe={!disabled ? (dir) => swiped(dir, info, index) : undefined}
-                  onCardLeftScreen={() => outOfFrame(info, index)}
+                  key={index}
+                  onSwipe={!disabled ? (dir) => swiped(dir, info, index + completedCount) : undefined}
+                  onCardLeftScreen={() => outOfFrame(info, index + completedCount)}
                   swipeRequirementType="position"
                   preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
                 >

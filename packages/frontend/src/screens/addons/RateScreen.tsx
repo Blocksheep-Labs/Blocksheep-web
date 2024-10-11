@@ -67,7 +67,8 @@ export default function RateScreen() {
 
             socket.emit('minimize-live-game', { part: "RATE", raceId });
             navigate(generateLink("STORY_CONCLUSION", Number(raceId)), {
-                state: location.state
+                state: location.state,
+                replace: true,
             });
         },
         autoStart: true

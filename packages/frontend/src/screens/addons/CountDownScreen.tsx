@@ -45,7 +45,8 @@ function CountDownScreen() {
 
     socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
     navigate(generateLink("UNDERDOG_PREVIEW", Number(raceId)), {
-      state: location.state
+      state: location.state,
+      replace: true,
     });
   };
 
@@ -66,7 +67,7 @@ function CountDownScreen() {
           // validate user for being registered
           if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
             // console.log("USER IS NOT LOGGED IN")
-            navigate('/');
+            navigate('/', { replace: true });
           } 
 
           setData(data.contractData);

@@ -60,7 +60,7 @@ function AccountScreen() {
 
   const handleLogout = () => {
     logout().then(_ => {
-      navigate('/');
+      navigate('/', { replace: true });
     });
   }
 

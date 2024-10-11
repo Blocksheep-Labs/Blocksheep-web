@@ -73,7 +73,8 @@ function RaceUpdateScreen() {
 
     socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
     navigate(redirectLink, {
-      state: location.state
+      state: location.state,
+      replace: true,
     });
   };
 
@@ -94,7 +95,7 @@ function RaceUpdateScreen() {
           // validate user for being registered
           if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
             // console.log("USER IS NOT LOGGED IN")
-            navigate('/');
+            navigate('/', { replace: true, });
           } 
 
           setData(data.contractData);

@@ -23,6 +23,7 @@ import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
 import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import calculatePlayersV1 from "./calculations/v1";
 
 export type ConnectedUser = {
     id: number;
@@ -152,13 +153,14 @@ function RabbitHoleGame() {
       });
 
       socket.on('race-progress', (progress) => {
-        setDisplayNumber(progress?.game2?.fuel || 0);
-        setMaxFuel(progress?.game2?.maxAvailableFuel || 10);
+        // @ts-ignore
+        setDisplayNumber(progress?.game2[version]?.game?.fuel || 0);
+        // @ts-ignore
+        setMaxFuel(progress?.game2[version]?.game?.maxAvailableFuel || 10);
       });
 
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
-
         const usersData = progress.progresses;
 
         //console.log("FUEL TUNNEL DATA", usersData);
@@ -166,31 +168,52 @@ function RabbitHoleGame() {
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
 
-        usersData.forEach((i: {userAddress: string, fuel: number, maxAvailableFuel: number, gameReached: boolean, isPending: boolean, isCompleted: boolean}) => {
+        usersData.forEach((i: {
+          userAddress: string,
+          v1: {
+            fuel: number, 
+            maxAvailableFuel: number, 
+            gameReached: boolean, 
+            isPending: boolean, 
+            isCompleted: boolean
+          },
+          v2: {
+            fuel: number, 
+            maxAvailableFuel: number, 
+            gameReached: boolean, 
+            isPending: boolean, 
+            isCompleted: boolean
+          }
+        }) => {
           if (i.userAddress === smartAccountAddress) {
             //setDisplayNumber(i.fuel);
             //setMaxFuel(i.maxAvailableFuel);
           }
-          i.isPending && amountPendingPerGame2++;
-          i.isCompleted && amountOfCompleted++;
+          // @ts-ignore
+          i[version].isPending && amountPendingPerGame2++;
+          // @ts-ignore
+          i[version].isCompleted && amountOfCompleted++;
         });
 
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
-        const usersDATA = await httpGetRaceDataById(`race-${raceId}`);
+        const usersDATADB = await httpGetRaceDataById(`race-${raceId}`);
         setPlayers(usersData.map((i: any, index: number) => {
-          const user = usersDATA.data.race.users.find((j: any) => j.address == i.userAddress);
+          const user = usersDATADB.data.race.users.find((j: any) => j.address == i.userAddress);
+
+          // @ts-ignore
+          const dataByTunnelVersion = i[version];
 
           return {
             id: index,
             address: i.userAddress,
             src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
-            PlayerPosition: i.fuel / 9,
-            Fuel: i.fuel,
-            maxAvailableFuel: i.maxAvailableFuel,
-            isEliminated: i.isEliminated,
-            isCompleted: i.isCompleted,
+            PlayerPosition: dataByTunnelVersion.fuel / 9,
+            Fuel: dataByTunnelVersion.fuel,
+            maxAvailableFuel: dataByTunnelVersion.maxAvailableFuel,
+            isEliminated: dataByTunnelVersion.isEliminated,
+            isCompleted: dataByTunnelVersion.isCompleted,
             name: user?.name || "Newbie"
           }
         }).toSorted((a: any, b: any) => a.id - b.id));
@@ -333,6 +356,7 @@ function RabbitHoleGame() {
         raceId,
         userAddress: smartAccountAddress,
         property: "game2-eliminate",
+        version,
       });
       handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
       openLoseModal();
@@ -402,7 +426,8 @@ function RabbitHoleGame() {
         value: {
           fuel,
           maxAvailableFuel: maxFuel,
-        }
+        },
+        version,
       });
     }
   }
@@ -421,7 +446,8 @@ function RabbitHoleGame() {
           fuel: displayNumber,
           maxAvailableFuel: maxFuel - displayNumber,
           isPending: true,
-        }
+        },
+        version,
       });
   
       setTimeout(async() => {
@@ -441,7 +467,8 @@ function RabbitHoleGame() {
                 fuel: displayNumber,
                 maxAvailableFuel: maxFuel - displayNumber,
                 isPending: false,
-              }
+              },
+              version,
             });
           });
       }, 1000);
@@ -463,7 +490,8 @@ function RabbitHoleGame() {
   // INITIAL USE EFFECT
   useEffect(() => {
     if (smartAccountAddress && location.state.progress && String(raceId).length) {
-      const game2state = location.state.progress.game2;
+      // @ts-ignore
+      const game2state = location.state.progress.game2[version].game;
       console.log(">>>>>>>>>>> INIT AFTER LEAVE <<<<<<<<<<<", {game2state});
       /*
         fuel: 0
@@ -515,7 +543,8 @@ function RabbitHoleGame() {
         value: {
           isWon,
           pointsAllocated: amountOfPointsToAllocate,
-        }
+        },
+        version,
       });
     }
 
@@ -546,20 +575,39 @@ function RabbitHoleGame() {
   // function that will end the game for the user with the lowest fuel amount
   const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean, lastAmountOfAllocatedPoints: number) => {
     console.log("CALCULATING THE FUEL...", {players});
-    const actualListOfPlayers = players.filter(i => !i.isCompleted && !i.isEliminated);
-    const submittedFuelIsSimilar = actualListOfPlayers.every(i => i.Fuel === actualListOfPlayers[0].Fuel);
-    console.log({submittedFuelIsSimilar})
 
-    let newListOfPlayers;
-    if (!submittedFuelIsSimilar) {
-      const sorted = actualListOfPlayers.toSorted((a, b) => a.id - b.id).toSorted((a, b) => a.Fuel - b.Fuel);
-      console.log({actualListOfPlayers});
-      newListOfPlayers = sorted.slice(1, actualListOfPlayers.length);
-    } else {
-      newListOfPlayers = actualListOfPlayers;
+    let newListOfPlayers: ConnectedUser[] = [];
+    let bonuses: {address: string, amount: number}[] = [];
+
+    switch (version) {
+      case "v1":
+        newListOfPlayers = calculatePlayersV1(players).newListOfPlayers;
+        break;
+      case "v2":
+        const calculationResult = calculatePlayersV1(players);
+        newListOfPlayers = calculationResult.newListOfPlayers;
+        bonuses = calculationResult.bonuses;
+        break;
+      default:
+        break;
     }
+    
+    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
 
-    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string))
+    // get bonus for current user
+    const currentUserBonus = bonuses.find(i => i.address == smartAccountAddress)?.amount || 0;
+
+    // apply bonus
+    newListOfPlayers = newListOfPlayers.map(i => {
+      if (i.address == smartAccountAddress) {
+        i.maxAvailableFuel += currentUserBonus;
+        if (i.maxAvailableFuel > 10) {
+          i.maxAvailableFuel = 10;
+        }
+      }
+
+      return i;
+    });
 
     const remainingPlayersCount = newListOfPlayers.length;
 
@@ -578,6 +626,7 @@ function RabbitHoleGame() {
           raceId,
           userAddress: smartAccountAddress,
           property: "game2-eliminate",
+          version,
         });
 
         if (!isGameOver) {
@@ -611,6 +660,7 @@ function RabbitHoleGame() {
           raceId,
           userAddress: smartAccountAddress,
           property: "game2-eliminate",
+          version
         });
         handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints, true);
         return;
@@ -642,6 +692,7 @@ function RabbitHoleGame() {
       raceId,
       userAddress: smartAccountAddress,
       property: "game2-wait-to-finish",
+      version
     });
   }
 

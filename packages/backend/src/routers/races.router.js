@@ -7,4 +7,6 @@ racesRouter.get('/id', racesController.getRaceDataById);
 
 racesRouter.post('/insert-user', racesController.insertUser);
 
+racesRouter.post('/create', racesController.createRace);
+
 module.exports = racesRouter;

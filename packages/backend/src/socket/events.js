@@ -91,9 +91,13 @@ module.exports = (io) => {
         });
     
         // user completes the game
-        socket.on('update-progress', ({ raceId, userAddress, property, value }) => {
+        socket.on('update-progress', ({ raceId, userAddress, property, value, version }) => {
             const roomName = `race-${raceId}`;
             let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+
+            if (!version) {
+                version = "v1";
+            }
             //console.log("UPDATE:", roomName, userAddress, property, value)
     
             //console.log(roomName, userAddress, rProgress);
@@ -125,10 +129,10 @@ module.exports = (io) => {
                     }
                 }
     
-                rProgress = updateProgress(property, value, rProgress);       
+                rProgress = updateProgress(property, value, rProgress, version);       
                 racesProgresses.push(rProgress);
             } else {
-                rProgress = updateProgress(property, value, rProgress);
+                rProgress = updateProgress(property, value, rProgress, version);
             }
     
             //console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));

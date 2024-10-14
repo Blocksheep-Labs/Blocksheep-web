@@ -6,6 +6,11 @@ const racesSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
+    storyKey: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
     users: {
         type: [{
             type: mongoose.Schema.Types.ObjectId,

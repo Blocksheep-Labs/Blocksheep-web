@@ -33,7 +33,24 @@ const getRaceDataById = async(req, res) => {
     }
 }
 
+const createRace = async(req, res) => {
+    const { raceId, storyKey } = req.body;
+
+    try {
+        const race = await racesModel.createRace(raceId, storyKey);
+        return res.status(200).json({
+            ok: true,
+            race,
+        });
+    } catch (error) {
+        return res.status(400).json({
+            ok: false,
+        });
+    }
+}
+
 module.exports = {
     insertUser,
     getRaceDataById,
+    createRace
 }

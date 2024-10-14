@@ -134,7 +134,7 @@ function RabbitHoleGame() {
           setAmountOfConnected(amountOfConnected - 1);
   
           // if user was sending a TX
-          if (data.rProgress.progress.game2.isPending && amountOfPending - 1 >= 0) {
+          if (raceId == data.raceId && amountOfPending - 1 >= 0) {
             setAmountOfPending(amountOfPending - 1);
           }
           

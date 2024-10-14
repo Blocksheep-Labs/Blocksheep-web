@@ -37,5 +37,5 @@ export const httpGetRaceDataById = async(raceId: string) => {
 export const httpRaceInsertUser = async(raceId: string, userId: string) => {
     return await axios.post(`${SERVER_BASE}/races/insert-user`, {
         raceId, userId
-    })
+    });
 }

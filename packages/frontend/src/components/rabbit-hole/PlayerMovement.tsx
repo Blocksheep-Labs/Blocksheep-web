@@ -20,7 +20,7 @@ const PlayerMovement = ({
 
   // Sort players and update refs when players change
   useEffect(() => {
-    const sorted = [...players].sort((a, b) => a.Fuel - b.Fuel);
+    const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
     setSortedPlayers(sorted);
     
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
@@ -110,7 +110,7 @@ const PlayerMovement = ({
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
 
               // get minimal fuel in the list
-              const minFuel = activePlayers[0].Fuel;
+              const minFuel = activePlayers[sortedPlayers.length - 1].Fuel;
 
               // count min fuel players (same fuel)
               const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);

@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
-import { adminCreateRace, userHasAdminAccess } from "../../utils/contract-functions";
+import { adminCreateRace, getNextGameId, userHasAdminAccess } from "../../utils/contract-functions";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { useNavigate } from "react-router-dom";
+import { httpCreateRace } from "../../utils/http-requests";
 
 
 export default function AdminScreen() {
@@ -41,6 +42,9 @@ export default function AdminScreen() {
             numbers.push(randomNumber);
         }
 
+        const storyKey = Math.floor(Math.random() * 4);
+        const rID = await getNextGameId();
+
         // Log the values
         console.log({
             title,
@@ -55,7 +59,8 @@ export default function AdminScreen() {
             playersRequired, 
             smartAccountClient,
             numbers
-        ).then(_ => {
+        ).then(async _ => {
+            await httpCreateRace(`race-${rID}`, storyKey);
             alert("OK");
         });
     }

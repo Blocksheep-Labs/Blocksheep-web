@@ -23,6 +23,7 @@ import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
 import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import { txAttempts } from "../../utils/txAttempts";
 
 export type ConnectedUser = {
     id: number;
@@ -426,24 +427,32 @@ function RabbitHoleGame() {
   
       setTimeout(async() => {
         setIsRolling(true);
-        await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient)
-          .then(async data => {
-            await waitForTransactionReceipt(config, {
-              hash: data,
-              confirmations: 2,
+
+        txAttempts(
+          10,
+          async () => {
+            return await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient).then(async data => {
+              await waitForTransactionReceipt(config, {
+                hash: data,
+                confirmations: 2,
+              });
             });
-    
-            socket.emit("update-progress", {
-              raceId,
-              userAddress: smartAccountAddress,
-              property: "game2-set-fuel",
-              value: {
-                fuel: displayNumber,
-                maxAvailableFuel: maxFuel - displayNumber,
-                isPending: false,
-              }
-            });
+          },
+          3000
+        )
+        .catch(console.log)
+        .finally(() => {
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-set-fuel",
+            value: {
+              fuel: displayNumber,
+              maxAvailableFuel: maxFuel - displayNumber,
+              isPending: false,
+            }
           });
+        })
       }, 1000);
     } else {
       setTimeout(() => {
@@ -523,14 +532,23 @@ function RabbitHoleGame() {
       setGameCompleted(true);
       openLoadingModal();
       console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
-      await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
-        await waitForTransactionReceipt(config, {
-          hash: data,
-          confirmations: 2,
-        });
 
+      // try to recall tx sending on error
+      txAttempts(
+        10, 
+        async () => {
+          return await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
+            await waitForTransactionReceipt(config, {
+              hash: data,
+              confirmations: 2,
+            });
+          });
+        },
+        3000
+      )
+      .catch(console.log)
+      .finally(() => {
         closeLoadingModal();
-
         if (isWon) {
           setModalType(undefined);
           openWinModal();

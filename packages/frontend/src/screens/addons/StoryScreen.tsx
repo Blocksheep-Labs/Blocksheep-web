@@ -113,6 +113,7 @@ export default function StoryScreen() {
             });
 
             let redirectLink = "/";
+            /*
             switch (part) {
                 case "intro":
                     redirectLink = generateLink("RACE_START", Number(raceId)); 
@@ -131,6 +132,30 @@ export default function StoryScreen() {
                     break;
                 case "conclusion":
                     redirectLink = generateLink("RATE", Number(raceId));
+                    break;
+                default:
+                    break;
+            }
+            */
+
+            switch (part) {
+                case "intro":
+                    redirectLink = generateLink("RACE_START", Number(raceId)); 
+                    break;
+                case "part1": 
+                    redirectLink = generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)); 
+                    break;
+                case "part2": 
+                    redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
+                    break;
+                case "part3": 
+                    redirectLink = generateLink("RATE", Number(raceId));
+                    break;
+                case "part4":
+                    redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); 
+                    break;
+                case "conclusion":
+                    redirectLink = generateLink("PODIUM", Number(raceId)); 
                     break;
                 default:
                     break;
@@ -206,7 +231,7 @@ export default function StoryScreen() {
         if(smartAccountAddress && String(raceId).length && part) {
             httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
                 console.log("RACE DATA:", data);
-                setStoryKey(data.race.storyKey || 0);
+                setStoryKey(data?.race?.storyKey || 0);
             });
             setModalIsOpen(true);
             setModalType("waiting");

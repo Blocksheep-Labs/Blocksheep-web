@@ -16,6 +16,8 @@ import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
+import { txAttempts } from "../../utils/txAttempts";
+
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
@@ -114,35 +116,40 @@ function UnderdogGame() {
       }
     });
     
-    sendTx && await submitUserAnswer(
-      Number(raceId), 
-      currentGameIndex, 
-      currentQuestionIndex,
-      0,
-      smartAccountClient
-    ).then(async hash => {
-      await waitForTransactionReceipt(config, {
-        hash,
-        confirmations: 2
-      });
-    }).catch(err => {
+    sendTx && txAttempts(
+      5,
+      async () => {
+        return await submitUserAnswer(
+          Number(raceId), 
+          currentGameIndex, 
+          currentQuestionIndex,
+          0,
+          smartAccountClient
+        ).then(async hash => {
+          await waitForTransactionReceipt(config, {
+            hash,
+            confirmations: 2
+          });
+        })
+      },
+      3000
+    ).catch(err => {
       console.log(err);
       console.log("Answer can not be submitted, probably answered already");
-    });
-
-
-    setSubmittingAnswer(false);
-    resume();
-    
-    ref.current?.swipeLeft();
-
-    // reset time
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-    restart(time);
-
-    if (currentQuestionIndex !== questions.length - 1)
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }).finally(() => {
+      setSubmittingAnswer(false);
+      resume();
+      
+      ref.current?.swipeLeft();
+  
+      // reset time
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restart(time);
+  
+      if (currentQuestionIndex !== questions.length - 1)
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+    })
   };
 
 
@@ -172,33 +179,39 @@ function UnderdogGame() {
       }
     });
 
-    sendTx && await submitUserAnswer(
-      Number(raceId), 
-      currentGameIndex, 
-      currentQuestionIndex,
-      1,
-      smartAccountClient
-    ).then(async hash => {
-      await waitForTransactionReceipt(config, {
-        hash,
-        confirmations: 2
-      });
-    }).catch(err => {
+    sendTx && txAttempts(
+      5,
+      async () => {
+        return await submitUserAnswer(
+          Number(raceId), 
+          currentGameIndex, 
+          currentQuestionIndex,
+          1,
+          smartAccountClient
+        ).then(async hash => {
+          await waitForTransactionReceipt(config, {
+            hash,
+            confirmations: 2
+          });
+        });
+      },
+      3000,
+    ).catch(err => {
       console.log(err);
       console.log("Answer can not be submitted, probably answered already");
+    }).finally(() => {
+      setSubmittingAnswer(false);
+      resume();
+
+      // reset time
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restart(time);
+      
+      ref.current?.swipeRight();
+      if (currentQuestionIndex !== questions.length - 1)
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
     });
-
-    setSubmittingAnswer(false);
-    resume();
-
-    // reset time
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-    restart(time);
-    
-    ref.current?.swipeRight();
-    if (currentQuestionIndex !== questions.length - 1)
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
 
   function openLoadingModal() {
@@ -470,7 +483,7 @@ function UnderdogGame() {
   }, []);
 
 
-  console.log({questions})
+  //console.log({questions})
 
 
   return (

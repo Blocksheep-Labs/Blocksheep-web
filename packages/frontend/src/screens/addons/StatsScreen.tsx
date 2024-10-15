@@ -56,35 +56,44 @@ export default function StatsScreen() {
                 <img src={StatsImage} alt="stats image"/>
 
 
-                <div className="absolute w-10 left-[108px] top-[60.5%]" style={{ transform: 'translate(-50%, -50%)' }}>
-                    { 
-                        // LEFT
-                    }
-                    <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
-                        {stats && users && users.find(j => j.address == stats[1]?.address)?.name} 
-                    </p>
-                    <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left"/>
-                </div>
+                {
+                    users && users.length >= 2 &&
+                    <div className="absolute w-10 left-[108px] top-[60.5%]" style={{ transform: 'translate(-50%, -50%)' }}>
+                        { 
+                            // LEFT
+                        }
+                        <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
+                            {stats && users && users.find(j => j.address == stats[1]?.address)?.name} 
+                        </p>
+                        <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left"/>
+                    </div>
+                }
+                
+                {
+                    users && users.length >= 1 &&
+                    <div className="absolute w-10 top-[51%] left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
+                        { 
+                            // CENTER
+                        }
+                        <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
+                            {stats && users && users.find(j => j.address == stats[0]?.address)?.name} 
+                        </p>
+                        <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center"/>
+                    </div>
+                }
 
-                <div className="absolute w-10 top-[51%] left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
-                    { 
-                        // CENTER
-                    }
-                    <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
-                        {stats && users && users.find(j => j.address == stats[0]?.address)?.name} 
-                    </p>
-                    <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center"/>
-                </div>
-
-                <div className="absolute w-10 right-[88px] top-[51%]">
-                    { 
-                        // RIGHT
-                    }
-                    <p className="bg-black text-center font-bold text-white text-[7px] p-1 rounded-xl z-10">
-                        {stats && users && users.find(j => j.address == stats[2]?.address)?.name} 
-                    </p>
-                    <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right"/>
-                </div>
+                {
+                    users && users.length >= 3 &&
+                    <div className="absolute w-10 right-[88px] top-[51%]">
+                        { 
+                            // RIGHT
+                        }
+                        <p className="bg-black text-center font-bold text-white text-[7px] p-1 rounded-xl z-10">
+                            {stats && users && users.find(j => j.address == stats[2]?.address)?.name} 
+                        </p>
+                        <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right"/>
+                    </div>
+                }
 
                 <p className="text-white font-bold text-center absolute top-[40%] w-full">
                     {

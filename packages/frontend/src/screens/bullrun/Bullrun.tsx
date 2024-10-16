@@ -20,6 +20,7 @@ import shortenAddress from "../../utils/shortenAddress";
 import WinModal from "../../components/modals/WinModal";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import { txAttempts } from "../../utils/txAttempts";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -107,13 +108,22 @@ export default function Bullrun() {
             setRoundStarted(false);
             setWaitingModalIsOpened(true);
             console.log("ITS TIME TO FETCH DATA FROM THE CONTRACT!!!")
-            BULLRUN_distribute(
-                smartAccountClient,
-                Number(raceId),
-                opponent?.userAddress as string,
-            ).then(() => {
-                console.log("POINTS DISTRIBUTED");
-            }).finally(() => {
+
+            txAttempts(
+                10,
+                async () => {
+                    return await BULLRUN_distribute(
+                        smartAccountClient,
+                        Number(raceId),
+                        opponent?.userAddress as string,
+                    ).then(() => {
+                        console.log("POINTS DISTRIBUTED");
+                    })
+                },
+                3000
+            )
+            .catch(console.log)
+            .finally(() => {
                 Promise.all([
                     BULLRUN_getUserChoicesIndexes(smartAccountAddress as string, Number(raceId)),
                     BULLRUN_getUserChoicesIndexes(opponent?.userAddress as string, Number(raceId))
@@ -150,14 +160,20 @@ export default function Bullrun() {
         setPending(true);
         setSelectedPerk(perk);
 
-        BULLRUN_makeChoice(
-            smartAccountClient,
-            Number(raceId), 
-            perk,
-            opponent?.userAddress as string
-        ).then(data => {
-            console.log("MADE CHOICE:", data);
-        }).finally(() => {
+        txAttempts(
+            5,
+            async () => {
+                return await BULLRUN_makeChoice(
+                    smartAccountClient,
+                    Number(raceId), 
+                    perk,
+                    opponent?.userAddress as string
+                );
+            },
+            3000
+        )
+        .catch(console.log)
+        .finally(() => {
             setPending(false);
             resume();
         });

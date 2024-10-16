@@ -205,6 +205,8 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
           />
         </div>
       </div>
+
+      <button onClick={() => onClickJoin(race.id)}>Force join</button>
     </div>
   );
 }

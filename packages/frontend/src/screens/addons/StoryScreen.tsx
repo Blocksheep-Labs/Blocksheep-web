@@ -6,6 +6,16 @@ import { useTimer } from "react-timer-hook";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import generateLink from "../../utils/linkGetter";
 import StoryVideo from "../../assets/stories/sh.mp4";
+import { httpGetRaceDataById } from "../../utils/http-requests";
+
+
+const videos = [
+    StoryVideo,
+    StoryVideo,
+    StoryVideo,
+    StoryVideo,
+    StoryVideo
+];
 
 
 const getStoryText = (part: string, pos: number) => {
@@ -83,6 +93,7 @@ export default function StoryScreen() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [storyKey, setStoryKey] = useState<number | undefined>(undefined);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 6);
@@ -102,6 +113,7 @@ export default function StoryScreen() {
             });
 
             let redirectLink = "/";
+            /*
             switch (part) {
                 case "intro":
                     redirectLink = generateLink("RACE_START", Number(raceId)); 
@@ -114,6 +126,30 @@ export default function StoryScreen() {
                     break;
                 case "part3": 
                     redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                    break;
+                case "part4":
+                    redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); 
+                    break;
+                case "conclusion":
+                    redirectLink = generateLink("RATE", Number(raceId));
+                    break;
+                default:
+                    break;
+            }
+            */
+
+            switch (part) {
+                case "intro":
+                    redirectLink = generateLink("RACE_START", Number(raceId)); 
+                    break;
+                case "part1": 
+                    redirectLink = generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)); 
+                    break;
+                case "part2": 
+                    redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
+                    break;
+                case "part3": 
+                    redirectLink = generateLink("RATE", Number(raceId));
                     break;
                 case "part4":
                     redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); 
@@ -193,6 +229,10 @@ export default function StoryScreen() {
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {
+            httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
+                console.log("RACE DATA:", data);
+                setStoryKey(data?.race?.storyKey || 0);
+            });
             setModalIsOpen(true);
             setModalType("waiting");
             if (!socket.connected) {
@@ -207,14 +247,17 @@ export default function StoryScreen() {
             <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 16.66}%`}}></div>
             </div>
-            <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
-                <source src={StoryVideo} type="video/mp4" />
-                Your browser does not support the video tag.
-            </video>
+            {
+                storyKey != undefined &&
+                <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
+                    <source src={videos[storyKey]} type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
+            }
 
             <div className="absolute bottom-5 bg-black bg-opacity-50 p-5">
                 <p className="text-lg text-center text-white">
-                    { getStoryText(part as string, 0) }
+                    { storyKey != undefined && getStoryText(part as string, storyKey) }
                 </p>
             </div>
 

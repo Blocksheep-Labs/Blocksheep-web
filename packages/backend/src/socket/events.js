@@ -82,7 +82,7 @@ module.exports = (io) => {
             const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
             // rm user
             connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
-    
+            
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {
                 socket.leave(roomName);

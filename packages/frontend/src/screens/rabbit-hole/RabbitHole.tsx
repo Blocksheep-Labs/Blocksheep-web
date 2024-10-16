@@ -23,7 +23,9 @@ import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
 import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import { txAttempts } from "../../utils/txAttempts";
 import calculatePlayersV1 from "./calculations/v1";
+import calculatePlayersV2 from "./calculations/v2";
 
 export type ConnectedUser = {
     id: number;
@@ -135,7 +137,7 @@ function RabbitHoleGame() {
           setAmountOfConnected(amountOfConnected - 1);
   
           // if user was sending a TX
-          if (data.rProgress.progress.game2.isPending && amountOfPending - 1 >= 0) {
+          if (raceId == data.raceId && amountOfPending - 1 >= 0) {
             setAmountOfPending(amountOfPending - 1);
           }
           
@@ -452,25 +454,32 @@ function RabbitHoleGame() {
   
       setTimeout(async() => {
         setIsRolling(true);
-        await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient)
-          .then(async data => {
-            await waitForTransactionReceipt(config, {
-              hash: data,
-              confirmations: 2,
+
+        txAttempts(
+          10,
+          async () => {
+            return await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient).then(async data => {
+              await waitForTransactionReceipt(config, {
+                hash: data,
+                confirmations: 2,
+              });
             });
-    
-            socket.emit("update-progress", {
-              raceId,
-              userAddress: smartAccountAddress,
-              property: "game2-set-fuel",
-              value: {
-                fuel: displayNumber,
-                maxAvailableFuel: maxFuel - displayNumber,
-                isPending: false,
-              },
-              version,
-            });
+          },
+          3000
+        )
+        .catch(console.log)
+        .finally(() => {
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-set-fuel",
+            value: {
+              fuel: displayNumber,
+              maxAvailableFuel: maxFuel - displayNumber,
+              isPending: false,
+            }
           });
+        })
       }, 1000);
     } else {
       setTimeout(() => {
@@ -552,14 +561,23 @@ function RabbitHoleGame() {
       setGameCompleted(true);
       openLoadingModal();
       console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
-      await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
-        await waitForTransactionReceipt(config, {
-          hash: data,
-          confirmations: 2,
-        });
 
+      // try to recall tx sending on error
+      txAttempts(
+        10, 
+        async () => {
+          return await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
+            await waitForTransactionReceipt(config, {
+              hash: data,
+              confirmations: 2,
+            });
+          });
+        },
+        3000
+      )
+      .catch(console.log)
+      .finally(() => {
         closeLoadingModal();
-
         if (isWon) {
           setModalType(undefined);
           openWinModal();
@@ -584,7 +602,7 @@ function RabbitHoleGame() {
         newListOfPlayers = calculatePlayersV1(players).newListOfPlayers;
         break;
       case "v2":
-        const calculationResult = calculatePlayersV1(players);
+        const calculationResult = calculatePlayersV2(players);
         newListOfPlayers = calculationResult.newListOfPlayers;
         bonuses = calculationResult.bonuses;
         break;
@@ -782,7 +800,7 @@ function RabbitHoleGame() {
       <div className="app-container">
         <FuelBar players={players} />
         <div className="tunnel">
-          <PlayerMovement phase={phase} players={players} isRolling={isRolling}/>
+          <PlayerMovement phase={phase} players={players} isRolling={isRolling} amountOfComplteted={amountOfComplteted}/>
           <RabbitHead phase={phase} />
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />

@@ -39,8 +39,9 @@ function SelectRaceScreen() {
   }
 
   const handleNavigate = useCallback((progress: any) => {
+    console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
-    socket.emit('minimize-live-game', { part: 'RACE_SELECTION' });
+    socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
 
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
@@ -52,7 +53,6 @@ function SelectRaceScreen() {
     });
     return;
     */
-    
     
     const rIdNumber = Number(raceId);
     
@@ -302,8 +302,11 @@ function SelectRaceScreen() {
         if (data.raceId == raceId) {
           const race = races.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
-          console.log("CONNECTED:", data)
+          console.log("CONNECTED:", data);
+          setIsOpen(true);
+          setModalType("waiting");
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+          console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
           if (data.amount === race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
@@ -317,19 +320,21 @@ function SelectRaceScreen() {
         const race = races.find((r: any) => r.id === raceId);
         console.log(race);
         if (raceIdSocket == raceId) {
-          console.log("JOINED", raceIdSocket, userAddress);
+          console.log("JOINED++", raceIdSocket, userAddress);
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
-            handleNavigate(progress);
           }
+          socket.emit("get-connected", { raceId });
         }
       });
 
       socket.on('leaved', ({ raceId: raceIdSocket, part }) => {
+        console.log("LEAVED", { raceId: raceIdSocket, part })
         if (raceId == raceIdSocket && part == 'RACE_SELECTION') {
           setAmountOfConnected(amountOfConnected - 1);
+
           if (!modalIsOpen) {
             setIsOpen(true);
           }
@@ -359,10 +364,34 @@ function SelectRaceScreen() {
     setRaceId(id);
     setIsOpen(true);
     setModalType("waiting");
-
   }, [smartAccountAddress, socket]);
 
+  useEffect(() => {
+    if (socket && raceId !== null && smartAccountAddress) {
+      const handler = () => {
+        if (document.hidden) {
+          console.log('Tab is hidden, browser might be going idle.');
+          socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
+        } else {
+          console.log('Tab is active.');
+          socket.connect();
+          if (smartAccountAddress) {
+            socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
+            setTimeout(() => {
+              socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress });
+              socket.emit("get-connected", { raceId });
+            }, 500);
+          } 
+        }
+      }
 
+      document.addEventListener('visibilitychange', handler);
+  
+      return () => {
+        document.removeEventListener('visibilitychange', handler);
+      } 
+    }
+  }, [raceId, socket, smartAccountAddress]);
 
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);

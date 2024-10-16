@@ -749,7 +749,7 @@ function RabbitHoleGame() {
       <div className="app-container">
         <FuelBar players={players} />
         <div className="tunnel">
-          <PlayerMovement phase={phase} players={players} isRolling={isRolling}/>
+          <PlayerMovement phase={phase} players={players} isRolling={isRolling} amountOfComplteted={amountOfComplteted}/>
           <RabbitHead phase={phase} />
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />

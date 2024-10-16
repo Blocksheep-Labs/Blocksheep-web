@@ -6,10 +6,12 @@ const PlayerMovement = ({
   phase, 
   players, 
   isRolling, 
+  amountOfComplteted
 }: {
   phase: RabbitHolePhases; 
   players: ConnectedUser[];
   isRolling: boolean;
+  amountOfComplteted: number;
 }) => {
   const [prevStage, setPrevStage] = useState<RabbitHolePhases | undefined>(undefined);
   const [sortedPlayers, setSortedPlayers] = useState<ConnectedUser[]>([]);
@@ -110,7 +112,7 @@ const PlayerMovement = ({
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
 
               // get minimal fuel in the list
-              const minFuel = activePlayers[sortedPlayers.length - 1].Fuel;
+              const minFuel = activePlayers[sortedPlayers.length - 1 - amountOfComplteted].Fuel;
 
               // count min fuel players (same fuel)
               const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);

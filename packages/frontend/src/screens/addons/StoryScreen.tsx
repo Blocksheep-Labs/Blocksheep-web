@@ -248,7 +248,7 @@ export default function StoryScreen() {
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 16.66}%`}}></div>
             </div>
             {
-                storyKey &&
+                storyKey != undefined &&
                 <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
                     <source src={videos[storyKey]} type="video/mp4" />
                     Your browser does not support the video tag.
@@ -257,7 +257,7 @@ export default function StoryScreen() {
 
             <div className="absolute bottom-5 bg-black bg-opacity-50 p-5">
                 <p className="text-lg text-center text-white">
-                    { storyKey && getStoryText(part as string, storyKey) }
+                    { storyKey != undefined && getStoryText(part as string, storyKey) }
                 </p>
             </div>
 

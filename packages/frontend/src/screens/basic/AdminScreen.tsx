@@ -3,6 +3,7 @@ import { adminCreateRace, getNextGameId, userHasAdminAccess } from "../../utils/
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { useNavigate } from "react-router-dom";
 import { httpCreateRace } from "../../utils/http-requests";
+import { txAttempts } from "../../utils/txAttempts";
 
 
 export default function AdminScreen() {
@@ -35,7 +36,7 @@ export default function AdminScreen() {
         const duration = Number(formData.get('duration'));
         const playersRequired = Number(formData.get('playersRequired'));
         
-        const numbers = [];
+        const numbers: number[] = [];
         for (let i = 0; i < 3; i++) {
             // Generate a random number between 0 and 43 (inclusive)
             const randomNumber = Math.floor(Math.random() * 44);
@@ -53,15 +54,23 @@ export default function AdminScreen() {
             numbers
         });
 
-        await adminCreateRace(
-            title, 
-            duration,
-            playersRequired, 
-            smartAccountClient,
-            numbers
-        ).then(async _ => {
+
+        txAttempts(
+            3,
+            async() => {
+                return await adminCreateRace(
+                    title, 
+                    duration,
+                    playersRequired, 
+                    smartAccountClient,
+                    numbers
+                )
+            },
+            3000
+        )
+        .catch(console.log)
+        .then(async() => {
             await httpCreateRace(`race-${rID}`, storyKey);
-            alert("OK");
         });
     }
 

@@ -2,7 +2,7 @@ module.exports = {
     game2: {
         v1: {
             preview: false,
-            ules: false,
+            rules: false,
             game: {
                 waitingToFinish: false,
                 isCompleted: false,

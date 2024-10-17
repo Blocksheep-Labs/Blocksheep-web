@@ -98,7 +98,7 @@ module.exports = (io) => {
             if (!version) {
                 version = "v1";
             }
-            //console.log("UPDATE:", roomName, userAddress, property, value)
+            // console.log("UPDATE:", roomName, userAddress, property, value, version)
     
             //console.log(roomName, userAddress, rProgress);
             if (!rProgress) {
@@ -128,15 +128,17 @@ module.exports = (io) => {
                         ...bullrunBaseState,
                     }
                 }
-    
-                rProgress = updateProgress(property, value, rProgress, version);       
+                
+                console.log("WRITE NEW PROGRESS")
+                rProgress = {...updateProgress(property, value, rProgress, version)};       
                 racesProgresses.push(rProgress);
             } else {
-                rProgress = updateProgress(property, value, rProgress, version);
+                console.log("UPDATE EXISTING", userAddress, rProgress.userAddress, rProgress.progress.game2.v1.game);
+                rProgress = {...updateProgress(property, value, rProgress, version)};
             }
     
             //console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
-            //console.log("EMIT:", {raceId, property, value, userAddress})
+            console.log("EMIT:", {raceId, property, value, userAddress})
             io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
         });
 
@@ -160,6 +162,13 @@ module.exports = (io) => {
         socket.on('get-all-fuel-tunnel', ({ raceId }) => {
             const roomName = `race-${raceId}`;
             const progresses = racesProgresses.filter(i => i.room === roomName);
+
+            console.log("PROGRESSES", progresses.map(i => {
+                return {
+                    userAddress: i.userAddress,
+                    game2: {...i.progress.game2.v1.game}
+                }
+            }));
             
             io.to(socket.id).emit(`race-fuel-all-tunnel`, {
                 progresses: progresses.map(i => {

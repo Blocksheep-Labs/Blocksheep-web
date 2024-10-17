@@ -156,16 +156,16 @@ function RabbitHoleGame() {
 
       socket.on('race-progress', (progress) => {
         // @ts-ignore
-        setDisplayNumber(progress?.game2[version]?.game?.fuel || 0);
+        setDisplayNumber(progress?.game2?.[version]?.game?.fuel || 0);
         // @ts-ignore
-        setMaxFuel(progress?.game2[version]?.game?.maxAvailableFuel || 10);
+        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || 10);
       });
 
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
         const usersData = progress.progresses;
 
-        //console.log("FUEL TUNNEL DATA", usersData);
+        console.log("FUEL TUNNEL DATA", usersData);
 
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
@@ -192,9 +192,9 @@ function RabbitHoleGame() {
             //setMaxFuel(i.maxAvailableFuel);
           }
           // @ts-ignore
-          i[version].isPending && amountPendingPerGame2++;
+          i[version].game.isPending && amountPendingPerGame2++;
           // @ts-ignore
-          i[version].isCompleted && amountOfCompleted++;
+          i[version].game.isCompleted && amountOfCompleted++;
         });
 
         setAmountOfComplteted(amountOfCompleted);
@@ -204,6 +204,7 @@ function RabbitHoleGame() {
         setPlayers(usersData.map((i: any, index: number) => {
           const user = usersDATADB.data.race.users.find((j: any) => j.address == i.userAddress);
 
+          // console.log("USER DATA", {i});
           // @ts-ignore
           const dataByTunnelVersion = i[version];
 
@@ -211,11 +212,11 @@ function RabbitHoleGame() {
             id: index,
             address: i.userAddress,
             src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
-            PlayerPosition: dataByTunnelVersion.fuel / 9,
-            Fuel: dataByTunnelVersion.fuel,
-            maxAvailableFuel: dataByTunnelVersion.maxAvailableFuel,
-            isEliminated: dataByTunnelVersion.isEliminated,
-            isCompleted: dataByTunnelVersion.isCompleted,
+            PlayerPosition:   dataByTunnelVersion.game.fuel / 9,
+            Fuel:             dataByTunnelVersion.game.fuel,
+            maxAvailableFuel: dataByTunnelVersion.game.maxAvailableFuel,
+            isEliminated:     dataByTunnelVersion.game.isEliminated,
+            isCompleted:      dataByTunnelVersion.game.isCompleted,
             name: user?.name || "Newbie"
           }
         }).toSorted((a: any, b: any) => a.id - b.id));
@@ -421,6 +422,7 @@ function RabbitHoleGame() {
     if (!isRolling && !gameOver && fuel <= maxFuel) {
       //console.log({fuel, phase})
       setDisplayNumber(fuel);
+      /*
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
@@ -431,6 +433,7 @@ function RabbitHoleGame() {
         },
         version,
       });
+      */
     }
   }
 
@@ -450,6 +453,12 @@ function RabbitHoleGame() {
           isPending: true,
         },
         version,
+      });
+
+      console.log({
+        fuel: displayNumber,
+        maxAvailableFuel: maxFuel - displayNumber,
+        isPending: true
       });
   
       setTimeout(async() => {
@@ -478,6 +487,11 @@ function RabbitHoleGame() {
               maxAvailableFuel: maxFuel - displayNumber,
               isPending: false,
             }
+          });
+          console.log({
+            fuel: displayNumber,
+            maxAvailableFuel: maxFuel - displayNumber,
+            isPending: false
           });
         })
       }, 1000);

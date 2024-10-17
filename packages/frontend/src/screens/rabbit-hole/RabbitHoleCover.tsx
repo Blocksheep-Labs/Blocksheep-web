@@ -26,12 +26,14 @@ export default function RabbitHoleCover() {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "game2-preview-complete",
+                version
             });
             
             socket.emit('update-progress', {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "game2-preview-complete",
+                version
             });
 
             let redirectLink = '/';

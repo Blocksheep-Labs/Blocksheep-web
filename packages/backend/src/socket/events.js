@@ -90,21 +90,16 @@ module.exports = (io) => {
             });
         });
     
-        // user completes the game
+        // Listen for 'update-progress' events
         socket.on('update-progress', ({ raceId, userAddress, property, value, version }) => {
             const roomName = `race-${raceId}`;
+            
+            // try to find existing progress
             let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
-
-            if (!version) {
-                version = "v1";
-            }
-            // console.log("UPDATE:", roomName, userAddress, property, value, version)
-    
-            //console.log(roomName, userAddress, rProgress);
+            
             if (!rProgress) {
-                //console.log("No progress was found, setting new")
                 rProgress = {
-                    room: roomName, 
+                    room: roomName,
                     userAddress,
                     progress: {
                         countdown: false,
@@ -121,26 +116,27 @@ module.exports = (io) => {
                             part4: false,
                             conclusion: false,
                         },
-                        
-                        // initial games states
                         ...underdogBaseState,
                         ...rabbitHoleBaseState,
                         ...bullrunBaseState,
                     }
-                }
-                
-                console.log("WRITE NEW PROGRESS")
-                rProgress = {...updateProgress(property, value, rProgress, version)};       
+                };
+
                 racesProgresses.push(rProgress);
-            } else {
-                console.log("UPDATE EXISTING", userAddress, rProgress.userAddress, rProgress.progress.game2.v1.game);
-                rProgress = {...updateProgress(property, value, rProgress, version)};
             }
-    
-            //console.log("UPDATED PROGRESSES", racesProgresses.map(i => i.progress));
-            console.log("EMIT:", {raceId, property, value, userAddress})
-            io.to(roomName).emit('progress-updated', {raceId, property, value, userAddress, rProgress});
+
+            // clone to avoid issues
+            const updatedRProgress = JSON.parse(JSON.stringify(rProgress));
+
+            const updatedProgress = updateProgress(property, value, updatedRProgress, version);
+
+            // update rProgress by index
+            const index = racesProgresses.findIndex(i => i?.room === roomName && i?.userAddress === userAddress);
+            racesProgresses[index] = updatedProgress;
+
+            io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, updatedProgress });
         });
+
 
 
     

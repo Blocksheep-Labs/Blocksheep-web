@@ -486,7 +486,8 @@ function RabbitHoleGame() {
               fuel: displayNumber,
               maxAvailableFuel: maxFuel - displayNumber,
               isPending: false,
-            }
+            },
+            version
           });
           console.log({
             fuel: displayNumber,

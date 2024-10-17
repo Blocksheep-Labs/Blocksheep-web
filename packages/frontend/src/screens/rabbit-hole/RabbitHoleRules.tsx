@@ -29,11 +29,13 @@ export default function RabbitHoleRules() {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "game2-rules-complete",
+                version
             });
             socket.emit('update-progress', {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "game2-rules-complete",
+                version
             });
 
             let redirectLink = '/';

@@ -11,42 +11,53 @@ const triggers = [
 const updateRabbitHoleProgress = (property, value, rProgress, version) => {
     switch (property) {
         case "game2-preview-complete":
-            rProgress.progress.game2.v1.preview = true;
+            rProgress.progress.game2[version].preview = true;
             break;
         case "game2-rules-complete":
-            rProgress.progress.game2.v1.rules = true;
+            rProgress.progress.game2[version].rules = true;
             break;
         case "game2-reach": {
-            rProgress.progress.game2.v1.game = {
-                ...rProgress.progress.game2.v1.game,
-                gameReached: true,
-            }
+            rProgress.progress.game2[version] = {
+                ...rProgress.progress.game2[version],
+                game: {
+                    ...rProgress.progress.game2[version].game,
+                    gameReached: true,
+                }
+            };
             break;
         }
         case "game2-eliminate": 
-            rProgress.progress.game2.v1.game.isEliminated = true;
+            rProgress.progress.game2[version].game.isEliminated = true;
             break;
         case "game2-set-fuel":
             console.log("UPDATE FUEL", { ...value }, rProgress.userAddress);
-            rProgress.progress.game2.v1.game = {
-                ...rProgress.progress.game2.v1.game,
-                fuel: value.fuel,
-                maxAvailableFuel: value.maxAvailableFuel,
-                isPending: value.isPending || false,
-            }
-            console.log("UPDATE FUEL", rProgress.progress.game2.v1.game)
+            
+            rProgress.progress.game2[version] = {
+                ...rProgress.progress.game2[version],
+                game: {
+                    ...rProgress.progress.game2[version].game,
+                    fuel: value.fuel,
+                    maxAvailableFuel: value.maxAvailableFuel,
+                    isPending: value.isPending || false,
+                }
+            };
+
+            console.log("UPDATE FUEL", rProgress.progress.game2[version].game)
 
             break;
         case "game2-complete": 
-            rProgress.progress.game2.v1.game = {
-                ...rProgress.progress.game2.v1.game,
-                isCompleted: true,
-                isWon: value.isWon,
-                pointsAllocated: value.pointsAllocated,
+            rProgress.progress.game2[version] = {
+                ...rProgress.progress.game2[version],
+                game: {
+                    ...rProgress.progress.game2[version].game,
+                    isCompleted: true,
+                    isWon: value.isWon,
+                    pointsAllocated: value.pointsAllocated,
+                }
             }
             break;
         case "game2-wait-to-finish": {
-            rProgress.progress.game2.v1.game.waitingToFinish = true;
+            rProgress.progress.game2[version].game.waitingToFinish = true;
             break;
         }
         default:

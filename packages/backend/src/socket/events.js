@@ -134,7 +134,7 @@ module.exports = (io) => {
             const index = racesProgresses.findIndex(i => i?.room === roomName && i?.userAddress === userAddress);
             racesProgresses[index] = updatedProgress;
 
-            io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, updatedProgress });
+            io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
 
 

@@ -35,10 +35,8 @@ export default function Bullrun() {
     const refLeftCurtain = useRef<HTMLDivElement>(null);
     const refRightCurtain = useRef<HTMLDivElement>(null);
     const [rulesModalIsOpened, setRulesModalIsOpened] = useState(false);
-    const [raceModalISOpened, setRaceModalIsOpened] = useState(false);
     const [waitingModalIsOpened, setWaitingModalIsOpened] = useState(false);
     const [winModalIsOpened, setWinModalIsOpened] = useState(false);
-    const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
     const [amountOfPending, setAmountOfPending] = useState(0);
     const [roundStarted, setRoundStarted] = useState(false);
     const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
@@ -179,30 +177,15 @@ export default function Bullrun() {
         });
     }
 
-    const handleNavigate = () => {
+    const handleMoveToNextGame = () => {
+        setRulesModalIsOpened(false);
+        setWinModalIsOpened(false);
+
         socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
             property: "game3-complete",
         });
-    }
-
-    const fetchRaceData = () => {
-        getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-            if (data) {
-                let newProgress: { curr: number; delta: number; address: string }[] = data.progress.map(i => {
-                    return { curr: Number(i.progress), delta: 0, address: i.user };
-                });
-                setProgress(newProgress);
-            }
-        });
-    }
-
-    const handleMoveToNextGame = () => {
-        fetchRaceData();
-        setRulesModalIsOpened(false);
-        setWinModalIsOpened(false);
-        setRaceModalIsOpened(true);
     }
 
     // fetch socket data and start timer
@@ -324,7 +307,7 @@ export default function Bullrun() {
                   setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                   if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
                     
-                    navigate(generateLink("STORY_PART_3", Number(raceId)), {
+                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)), {
                         state: location.state,
                         replace: true,
                     });
@@ -395,16 +378,6 @@ export default function Bullrun() {
 
     return (
         <div className="mx-auto flex h-screen w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative">
-            {
-                raceModalISOpened
-                &&
-                <RaceModal
-                    raceId={Number(raceId)}
-                    disableBtn={false}
-                    progress={progress}
-                    handleClose={handleNavigate}
-                />
-            }
             { 
                 rulesModalIsOpened 
                 && 
@@ -497,17 +470,7 @@ export default function Bullrun() {
                     }
                 </div>
             </div>
-            
-            {
-                /*
-                    <button 
-                        onClick={handleMoveToNextGame}
-                        className="absolute top-0 right-0 bg-[#eec245] w-28 border-[1px] border-black rounded-xl text-2xl"
-                    >
-                        NEXT
-                    </button>
-                */
-            }
+
                 
             <div className="absolute top-[45%] right-0 cursor-pointer bg-[#eec245] p-2 rounded-l-full z-10 flex items-center justify-center" onClick={() => setRulesModalIsOpened(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-12">

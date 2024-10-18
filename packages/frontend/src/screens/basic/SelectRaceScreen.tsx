@@ -54,6 +54,7 @@ function SelectRaceScreen() {
     return;
     */
     
+    
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {

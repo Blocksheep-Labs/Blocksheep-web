@@ -53,7 +53,6 @@ function RabbitHoleGame() {
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
   const [maxFuel, setMaxFuel] = useState(10);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
   const [isRolling, setIsRolling] = useState(false);
   const [amountOfPending, setAmountOfPending] = useState(0);
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
@@ -68,6 +67,7 @@ function RabbitHoleGame() {
   const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
+  
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -83,46 +83,48 @@ function RabbitHoleGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    //console.log({amountOfConnected, start, modalIsOpen, isRolling, raceId, raceData})
-    if (!gameStarted && raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted)) {
+    //console.log({amountOfConnected, start, modalIsOpen, isRolling, raceId, location.state})
+    if (!gameStarted && location.state && (amountOfConnected >= location.state.amountOfRegisteredUsers - amountOfComplteted)) {
       setGameStarted(true);
       //console.log("STARTING THE GAME...")
-      if (raceData && (amountOfConnected >= raceData.numberOfPlayersRequired - amountOfComplteted) && start) {
+      if (location.state && (amountOfConnected >= location.state.amountOfRegisteredUsers - amountOfComplteted) && start) {
         socket.emit("get-all-fuel-tunnel", { raceId });
         //closeWaitingModal();
+        console.log(">>>> STARTING... <<<<")
         !isRolling && start();
       } else {
         pause();
         !modalIsOpen && openWaitingModal();
       }
     }
-  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, raceData]);
+  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, location.state]);
 
   // handle socket eventsd
   useEffect(() => {
-    if (smartAccountAddress && raceData) {
+    if (smartAccountAddress && location.state) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         //console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount >= raceData.numberOfPlayersRequired - amountOfComplteted) {
+          if (amount >= location.state.amountOfRegisteredUsers - amountOfComplteted) {
             setIsOpen(false);
             setModalType(undefined);
+
+            socket.emit("get-all-fuel-tunnel", { raceId });
           }
         }
       });
 
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
+        console.log("JOINED", raceIdSocket, raceId, userAddress);
+
         if (raceId == raceIdSocket && part == "RABBIT_HOLE") {
+          console.log("JOINED++")
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected == raceData.numberOfPlayersRequired - amountOfComplteted) {
+          if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
             setIsOpen(false);
             setModalType(undefined);
-            // reset timer
-            //console.log("UPDATE TIMER")
-            time.setSeconds(time.getSeconds() + 10);
-            restart(time);
           }
           socket.emit("get-connected", { raceId });
         }
@@ -159,10 +161,10 @@ function RabbitHoleGame() {
 
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
-
         const usersData = progress.progresses;
 
-        //console.log("FUEL TUNNEL DATA", usersData);
+        console.log("FUEL TUNNEL DATA", usersData);
+        if (usersData.length < 2) return;
 
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
@@ -208,7 +210,7 @@ function RabbitHoleGame() {
               console.log(
                 "IS PENDING PROP:", 
                 { 
-                  max: raceData.numberOfPlayersRequired - amountOfComplteted,
+                  max: location.state.amountOfRegisteredUsers - amountOfComplteted,
                   amountOfPending: amountOfPending + 1,
                 }
               );
@@ -219,7 +221,7 @@ function RabbitHoleGame() {
             else {
               /*
               console.log("TX WAS SENT:", { 
-                max: raceData.numberOfPlayersRequired - amountOfComplteted,
+                max: location.state.amountOfRegisteredUsers - amountOfComplteted,
                 amountOfPending: amountOfPending - 1,
               })
               */
@@ -229,7 +231,7 @@ function RabbitHoleGame() {
         }
 
         if (progress.property === "game2-complete") {
-          if (raceData.numberOfPlayersRequired - (amountOfComplteted + 1) === -1) {
+          if (location.state.amountOfRegisteredUsers - (amountOfComplteted + 1) === -1) {
             //console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon: true, smartAccountClient, amountOfAllocatedPoints});
             await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
               await waitForTransactionReceipt(config, {
@@ -246,15 +248,15 @@ function RabbitHoleGame() {
         if (progress.property === "game2-wait-to-finish") {
           // set amount of next clicked
           setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
-          if (amountOfPlayersnextClicked + 1 >= raceData.numberOfPlayersRequired ) {
+          if (amountOfPlayersnextClicked + 1 >= location.state.amountOfRegisteredUsers) {
             closeLoadingModal();
             let redirectLink = "/";
 
             switch (version) {
               case "v1":
-                redirectLink = generateLink("STORY_PART_2", Number(raceId)); break;
+                redirectLink = generateLink("RACE_UPDATE_2", Number(raceId)); break;
               case "v2":
-                redirectLink = generateLink("STORY_PART_4", Number(raceId)); break;
+                redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
               default:
                 break;
             }
@@ -282,7 +284,7 @@ function RabbitHoleGame() {
     amountOfConnected, 
     smartAccountAddress, 
     amountOfComplteted, 
-    raceData, 
+    location.state, 
     amountOfPlayersnextClicked, 
     gameOver, 
     amountOfPending, 
@@ -292,29 +294,29 @@ function RabbitHoleGame() {
 
   // fetch required amount of users to wait
   useEffect(() => {
-    if (smartAccountAddress && raceData) {
+    if (smartAccountAddress && location.state) {
       socket.emit("game2-reach", { raceId, userAddress: smartAccountAddress })
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-all-fuel-tunnel", { raceId });
     }
-  }, [socket, smartAccountAddress, raceData]); 
+  }, [socket, smartAccountAddress, location.state]); 
 
   useEffect(() => {
-    if(smartAccountAddress && String(raceId).length && raceData) {
+    if(smartAccountAddress && String(raceId).length && location.state) {
         if (!socket.connected) {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE" });
     }
-  }, [smartAccountAddress, socket, raceId, raceData]);
+  }, [smartAccountAddress, socket, raceId, location.state]);
   
 
   useEffect(() => {
-    if (raceData && !isRolling) {
+    if (location.state && !isRolling) {
       //console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<<")
       closeWaitingModal();
     }
-  }, [raceData, isRolling]);
+  }, [location.state, isRolling]);
 
   /*
   useEffect(() => {
@@ -389,7 +391,7 @@ function RabbitHoleGame() {
     } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();
     }
-  }, [isRolling, raceData, socket, raceId, amountOfPending]);
+  }, [isRolling, socket, raceId, amountOfPending]);
 
 
   const handleFuelUpdate = (fuel: number) => {
@@ -656,6 +658,7 @@ function RabbitHoleGame() {
 
   function onNextGameClicked() {
     // openLoadingModal();
+    openWaitingModal();
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
@@ -695,9 +698,10 @@ function RabbitHoleGame() {
   function closeWinLoseModal() {
     setIsOpen(false);
     setModalType(undefined);
-    openRaceModal();
+    // openRaceModal();
     setLoseModalPermanentlyOpened(false);
     setWinModalPermanentlyOpened(false);
+    onNextGameClicked();
   }
 
   function closeWaitingModal() {
@@ -705,37 +709,6 @@ function RabbitHoleGame() {
     setModalType(undefined);
   }
 
-  function openRaceModal() {
-    console.log("open race modal");
-    fetchRaceData();
-    setIsOpen(true);
-    setModalType("race");
-  }
-
-  function closeRaceModal() {
-    //setIsOpen(false);
-    //setModalType(undefined);
-    onNextGameClicked();
-  }
-
-  const fetchRaceData = () => {
-    Promise.all([
-      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
-      httpGetRaceDataById(`race-${raceId}`)
-    ]).then(data => {
-      return {
-        contractData: data[0],
-        serverData: data[1].data,
-      }
-    }).then(data => {
-      if (data.contractData) {
-        let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
-          return { curr: Number(i.progress), delta: 0, address: i.user };
-        });
-        setProgress(newProgress);
-      }
-    });
-  }
 
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-tunnel_bg bg-cover bg-bottom relative">
@@ -763,12 +736,12 @@ function RabbitHoleGame() {
         {modalIsOpen && (
           <>
             {
-            modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
+            modalType === "waiting" && 
+            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted} replacedText="..."/> 
             }
             {
             //modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
             }
-            {modalType === "race"    && <RaceModal raceId={Number(raceId)} progress={progress} handleClose={closeRaceModal} disableBtn={false}/>}
           </>
         )}
         {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}

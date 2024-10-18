@@ -42,7 +42,6 @@ function SelectRaceScreen() {
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
-
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       console.log(generateStateObjectForGame(data, progress))
@@ -331,9 +330,9 @@ function SelectRaceScreen() {
         }
       });
 
-      socket.on('leaved', ({ raceId: raceIdSocket, part }) => {
-        console.log("LEAVED", { raceId: raceIdSocket, part })
-        if (raceId == raceIdSocket && part == 'RACE_SELECTION') {
+      socket.on('leaved', ({ raceId: raceIdSocket, part, movedToNext }) => {
+        console.log("LEAVED", { raceId: raceIdSocket, part, movedToNext })
+        if (raceId == raceIdSocket && part == 'RACE_SELECTION' && !movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
 
           if (!modalIsOpen) {

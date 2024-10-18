@@ -40,6 +40,7 @@ export const httpRaceInsertUser = async(raceId: string, userId: string) => {
     });
 }
 
+
 export const httpCreateRace = async(raceId: string, storyKey: number) => {
     return await axios.post(`${SERVER_BASE}/races/create`, {
         raceId, storyKey

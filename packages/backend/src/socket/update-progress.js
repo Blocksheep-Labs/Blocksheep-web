@@ -3,13 +3,13 @@ const { triggers: rabbitHoleTriggers, updateRabbitHoleProgress } = require("./up
 const { triggres: underdogTriggers, updateUnderdogProgress } = require("./update-progress-by-games/underdog");
 
 
-module.exports = (property, value, rProgress) => {
+module.exports = (property, value, rProgress, version) => {
     if (underdogTriggers.includes(property)) {
         return updateUnderdogProgress(property, value, rProgress);
     }
 
     if (rabbitHoleTriggers.includes(property)) {
-        return updateRabbitHoleProgress(property, value, rProgress);
+        return updateRabbitHoleProgress(property, value, rProgress, version);
     }
 
     if (triggers.includes(property)) {

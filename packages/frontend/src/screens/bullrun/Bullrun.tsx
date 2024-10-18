@@ -13,7 +13,6 @@ import RightCurtain from "../../assets/bullrun/bullrun-next-round-bg-right.png";
 import { useEffect, useRef, useState } from "react";
 import { useTimer } from "react-timer-hook";
 import BullrunRulesModal from "../../components/BullrunRulesModal";
-import RaceModal from "../../components/modals/RaceModal";
 import { BULLRUN_distribute, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndexes, BULLRUN_getWinnersPerGame, BULLRUN_makeChoice, getRaceById } from "../../utils/contract-functions";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import shortenAddress from "../../utils/shortenAddress";
@@ -180,7 +179,6 @@ export default function Bullrun() {
     const handleMoveToNextGame = () => {
         setRulesModalIsOpened(false);
         setWinModalIsOpened(false);
-
         socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
@@ -470,7 +468,6 @@ export default function Bullrun() {
                     }
                 </div>
             </div>
-
                 
             <div className="absolute top-[45%] right-0 cursor-pointer bg-[#eec245] p-2 rounded-l-full z-10 flex items-center justify-center" onClick={() => setRulesModalIsOpened(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-12">

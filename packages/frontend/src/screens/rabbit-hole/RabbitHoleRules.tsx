@@ -29,11 +29,13 @@ export default function RabbitHoleRules() {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "game2-rules-complete",
+                version
             });
             socket.emit('update-progress', {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "game2-rules-complete",
+                version
             });
 
             let redirectLink = '/';
@@ -58,12 +60,10 @@ export default function RabbitHoleRules() {
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
-          
+        if (location.state && amountOfConnected == location.state.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
-          
         } else {
             pause();
         }
@@ -73,11 +73,11 @@ export default function RabbitHoleRules() {
     useEffect(() => {
         if (smartAccountAddress && location.state) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
-                console.log({amount})
+                console.log({amount, rquiredByState: location.state.amountOfRegisteredUsers})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -159,7 +159,7 @@ export default function RabbitHoleRules() {
             </div>
 
             {
-                modalIsOpen && modalType === "waiting" && 
+                modalIsOpen && modalType === "waiting" && location?.state?.amountOfRegisteredUsers != amountOfConnected &&
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}

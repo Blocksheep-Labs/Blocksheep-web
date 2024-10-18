@@ -17,7 +17,7 @@ const racesSchema = new mongoose.Schema({
             ref: 'User',
             autopopulate: true
         }],
-    }
+    },
 }, { timestamps: true });
 
 racesSchema.plugin(require("mongoose-autopopulate"));

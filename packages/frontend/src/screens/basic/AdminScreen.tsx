@@ -48,6 +48,7 @@ export default function AdminScreen() {
 
         // Log the values
         console.log({
+            raceId: `race-${rID}`,
             title,
             duration,
             playersRequired,

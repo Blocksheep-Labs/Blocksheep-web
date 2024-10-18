@@ -1,4 +1,3 @@
-import { usePrivy } from "@privy-io/react-auth";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {useEffect, useState} from "react";
 import {getRaceById} from "../../utils/contract-functions";
@@ -8,14 +7,12 @@ import StatsImage from "../../assets/stats/podium.png";
 import WhiteSheepImage from "../../assets/rabbit-hole/sheeepy.png";
 import BlackSheepImage from "../../assets/rabbit-hole/blacksheep.png";
 import NextFlag from "../../assets/common/flag.png";
-import { socket } from "../../utils/socketio";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 
 export default function StatsScreen() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
     const [stats, setStats] = useState<{curr: number; address: string}[] | undefined>(undefined);
     const [users, setUsers] = useState<any[]>([]);
     

@@ -21,6 +21,7 @@ export type TFlowPhases =
     "RABBIT_HOLE_V2_PREVIEW" |
     "RABBIT_HOLE_V2_RULES" |
     "RABBIT_HOLE_V2" | 
+    "RACE_UPDATE_4" |
     "STORY_PART_4" | 
     "STORY_CONCLUSION" |
     "RATE" | 
@@ -60,6 +61,7 @@ export default function generateLink(phase: TFlowPhases, raceId: number) {
         case "RABBIT_HOLE_V2_RULES": return `/race/${raceId}/rabbit-hole/v2/rules`
         case "RABBIT_HOLE_V2": return `/race/${raceId}/rabbit-hole/v2`
 
+        case "RACE_UPDATE_4": return `/race/${raceId}/race-update/board4`
         case "STORY_PART_4": return `/race/${raceId}/story/part4`
         case "STORY_CONCLUSION": return `/race/${raceId}/story/conclusion`
         case "RATE": return `/race/${raceId}/rate`

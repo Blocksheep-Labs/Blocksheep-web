@@ -228,25 +228,23 @@ function RabbitHoleGame() {
       socket.on("progress-updated", async(progress) => {
         if (progress.property === "game2-set-fuel") {
           if (progress.value.isPending) {
+            // add to pending transactions
             setPendingTransactions(prev => new Set(prev).add(progress.userAddress));
           } else {
-            setPendingTransactions(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(progress.userAddress);
-              return newSet;
-            });
-          }
+            // remove from pending transactions
+            const newSet = new Set(pendingTransactions);
+            newSet.delete(progress.userAddress);
+            setPendingTransactions(newSet);
 
-          const pendingCount = pendingTransactions.size;
-          console.log("Pending transactions:", pendingCount);
+            // check if all transactions are processed
+            const pendingCount = newSet.size;
+            console.log("Pending transactions:", pendingCount);
 
-          if (pendingCount === 0) {
-            console.log("All transactions processed. Starting the tunnel...");
-            socket.emit("get-all-fuel-tunnel", { raceId });
-            //closeLoadingModal();
-            triggerAnimations();
-          } else {
-            //openLoadingModal();
+            if (pendingCount === 0) {
+              console.log("All transactions processed. Starting the tunnel...");
+              socket.emit("get-all-fuel-tunnel", { raceId });
+              triggerAnimations();
+            }
           }
         }
 

@@ -251,9 +251,17 @@ function RabbitHoleGame() {
               
               if (amountOfPending - 1 >= 0) {
                 setAmountOfPending(amountOfPending - 1);
+
+                if (amountOfPending - 1 == 0) {
+                  console.log("STARTING THE TUNNEL...");
+                  socket.emit("get-all-fuel-tunnel", { raceId });
+                  closeLoadingModal();
+                  triggerAnimations();
+                } else {
+                  openLoadingModal();
+                }
               }
             }
-          
         }
 
         if (progress.property === "game2-complete") {
@@ -382,17 +390,6 @@ function RabbitHoleGame() {
     }
   }, [raceId, smartAccountAddress, socket]);
 
-  // START THE TUNNEL IF ALL USERS ARE DONE WITH TX-s
-  useEffect(() => {
-    if (amountOfPending == 0 && raceId?.toString().length) {
-      console.log("STARTING THE TUNNEL...");
-      socket.emit("get-all-fuel-tunnel", { raceId });
-      closeLoadingModal();
-      triggerAnimations();
-    } else if (amountOfPending > 0 && raceId?.toString().length) {
-      openLoadingModal();
-    }
-  }, [socket, raceId, amountOfPending]);
 
   const triggerAnimations = () => {
     // Close tunnel: Head moves to swallow everything.

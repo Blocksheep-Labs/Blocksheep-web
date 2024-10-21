@@ -432,7 +432,7 @@ function RabbitHoleGame() {
         },
         version,
       });
-
+      /*
       try {
         await txAttempts(
           10,
@@ -461,6 +461,23 @@ function RabbitHoleGame() {
           version
         });
       }
+
+      */
+
+      setTimeout(() => {
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: "game2-set-fuel",
+          value: {
+            fuel: displayNumber,
+            maxAvailableFuel: maxFuel - displayNumber,
+            isPending: false,
+          },
+          version,
+        });
+      }, 3000)
+      
     }
   };
 

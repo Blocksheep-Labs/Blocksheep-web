@@ -243,10 +243,10 @@ function RabbitHoleGame() {
           if (pendingCount === 0) {
             console.log("All transactions processed. Starting the tunnel...");
             socket.emit("get-all-fuel-tunnel", { raceId });
-            closeLoadingModal();
+            //closeLoadingModal();
             triggerAnimations();
           } else {
-            openLoadingModal();
+            //openLoadingModal();
           }
         }
 
@@ -269,7 +269,7 @@ function RabbitHoleGame() {
           // set amount of next clicked
           setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
           if (amountOfPlayersnextClicked + 1 >= location.state.amountOfRegisteredUsers) {
-            closeLoadingModal();
+            //closeLoadingModal();
             let redirectLink = "/";
 
             switch (version) {
@@ -435,22 +435,6 @@ function RabbitHoleGame() {
         version,
       });
 
-      setTimeout(() => {
-        socket.emit("update-progress", {
-          raceId,
-          userAddress: smartAccountAddress,
-          property: "game2-set-fuel",
-          value: {
-            fuel: displayNumber,
-            maxAvailableFuel: maxFuel - displayNumber,
-            isPending: false,
-          },
-          version
-        });
-        setIsRolling(true);
-      }, 3000);
-
-      /*
       try {
         await txAttempts(
           10,
@@ -478,9 +462,7 @@ function RabbitHoleGame() {
           },
           version
         });
-        
       }
-      */
     }
   };
 
@@ -555,7 +537,7 @@ function RabbitHoleGame() {
 
     if (playersLeft === 1 || finishPermanently) {
       setGameCompleted(true);
-      openLoadingModal();
+      //openLoadingModal();
       console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
 
       // try to recall tx sending on error
@@ -573,7 +555,7 @@ function RabbitHoleGame() {
       )
       .catch(console.log)
       .finally(() => {
-        closeLoadingModal();
+        //closeLoadingModal();
         if (isWon) {
           setModalType(undefined);
           openWinModal();
@@ -784,7 +766,7 @@ function RabbitHoleGame() {
               <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted} replacedText="..."/> 
             }
             {
-            modalType === "loading" && <WaitingForPlayersModal replacedText={`${amountOfPending} pending...`} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
+            //modalType === "loading" && <WaitingForPlayersModal replacedText={`${amountOfPending} pending...`} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
             }
           </>
         )}

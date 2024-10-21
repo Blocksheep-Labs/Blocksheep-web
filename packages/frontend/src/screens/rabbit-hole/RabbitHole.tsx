@@ -449,6 +449,22 @@ function RabbitHoleGame() {
         version,
       });
 
+      setTimeout(() => {
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: "game2-set-fuel",
+          value: {
+            fuel: displayNumber,
+            maxAvailableFuel: maxFuel - displayNumber,
+            isPending: false,
+          },
+          version
+        });
+        setIsRolling(true);
+      }, 3000);
+
+      /*
       try {
         await txAttempts(
           10,
@@ -476,8 +492,9 @@ function RabbitHoleGame() {
           },
           version
         });
-        setIsRolling(true);
+        
       }
+      */
     } else {
       socket.emit("update-progress", {
         raceId,

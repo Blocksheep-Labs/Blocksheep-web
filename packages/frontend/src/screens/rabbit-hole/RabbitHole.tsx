@@ -228,11 +228,11 @@ function RabbitHoleGame() {
       socket.on("progress-updated", async(progress) => {
         if (progress.property === "game2-set-fuel") {
           if (progress.value.isPending) {
-            setPendingTransactions(prev => new Set(prev).add(progress.value.userAddress));
+            setPendingTransactions(prev => new Set(prev).add(progress.userAddress));
           } else {
             setPendingTransactions(prev => {
               const newSet = new Set(prev);
-              newSet.delete(progress.value.userAddress);
+              newSet.delete(progress.userAddress);
               return newSet;
             });
           }

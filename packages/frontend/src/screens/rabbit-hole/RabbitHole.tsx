@@ -68,6 +68,7 @@ function RabbitHoleGame() {
   const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
+  const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
   
 
   const time = new Date();
@@ -226,42 +227,27 @@ function RabbitHoleGame() {
 
       socket.on("progress-updated", async(progress) => {
         if (progress.property === "game2-set-fuel") {
-          // if the user is sending the TX or finished sending TX
-          
-            // sending...
-            if (progress.value.isPending) {
-              console.log(
-                "IS PENDING:", 
-                { 
-                  max: location.state.amountOfRegisteredUsers - amountOfComplteted,
-                  amountOfPending: amountOfPending + 1,
-                }
-              );
-              
-              if (amountOfPending + 1 <= location.state.amountOfRegisteredUsers - amountOfComplteted) {
-                setAmountOfPending(amountOfPending + 1);
-              }
-            }
-            // sent 
-            else {
-              console.log("TX WAS SENT:", { 
-                max: location.state.amountOfRegisteredUsers - amountOfComplteted,
-                amountOfPending: amountOfPending - 1,
-              })
-              
-              if (amountOfPending - 1 >= 0) {
-                setAmountOfPending(amountOfPending - 1);
+          if (progress.value.isPending) {
+            setPendingTransactions(prev => new Set(prev).add(progress.value.userAddress));
+          } else {
+            setPendingTransactions(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(progress.value.userAddress);
+              return newSet;
+            });
+          }
 
-                if (amountOfPending - 1 == 0) {
-                  console.log("STARTING THE TUNNEL...");
-                  socket.emit("get-all-fuel-tunnel", { raceId });
-                  closeLoadingModal();
-                  triggerAnimations();
-                } else {
-                  openLoadingModal();
-                }
-              }
-            }
+          const pendingCount = pendingTransactions.size;
+          console.log("Pending transactions:", pendingCount);
+
+          if (pendingCount === 0) {
+            console.log("All transactions processed. Starting the tunnel...");
+            socket.emit("get-all-fuel-tunnel", { raceId });
+            closeLoadingModal();
+            triggerAnimations();
+          } else {
+            openLoadingModal();
+          }
         }
 
         if (progress.property === "game2-complete") {
@@ -324,6 +310,7 @@ function RabbitHoleGame() {
     amountOfPending, 
     gameCompleted,
     isRolling,
+    pendingTransactions
   ]);
 
   // fetch required amount of users to wait

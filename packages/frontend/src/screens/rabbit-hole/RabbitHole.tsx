@@ -817,7 +817,7 @@ function RabbitHoleGame() {
               <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted} replacedText="..."/> 
             }
             {
-            //modalType === "loading" && <WaitingForPlayersModal replacedText="Pending..." numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
+            modalType === "loading" && <WaitingForPlayersModal replacedText={`Pending... ${amountOfPending}`} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
             }
           </>
         )}

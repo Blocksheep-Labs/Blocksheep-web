@@ -383,30 +383,33 @@ function RabbitHoleGame() {
   // START THE TUNNEL IF ALL USERS ARE DONE WITH TX-s
   useEffect(() => {
     if (isRolling && amountOfPending === 0 && raceId?.toString().length) {
-      //console.log("TUNNEL CHANGE", {displayNumber, maxFuel});
+      console.log("STARTING THE TUNNEL...");
       socket.emit("get-all-fuel-tunnel", { raceId });
       closeLoadingModal();
-
-      // Close tunnel: Head moves to swallow everything.
-      setPhase("CloseTunnel"); 
-
-      // Open tunnel: cars get out
-      setTimeout(() => setPhase("OpenTunnel"), 10000);
-
-      // reset and make calculations
-      setTimeout(() => {
-        setPhase("Reset");
-        setRoundIsFinsihed(true);
-        setIsRolling(false);
-
-        setTimeout(() => {
-          setPhase("Default");
-        }, 9000);
-      }, 16000);
+      triggerAnimations();
     } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();
     }
   }, [isRolling, socket, raceId, amountOfPending]);
+
+  const triggerAnimations = () => {
+    // Close tunnel: Head moves to swallow everything.
+    setPhase("CloseTunnel"); 
+
+    // Open tunnel: cars get out
+    setTimeout(() => setPhase("OpenTunnel"), 10000);
+
+    // reset and make calculations
+    setTimeout(() => {
+      setPhase("Reset");
+      setRoundIsFinsihed(true);
+      setIsRolling(false);
+
+      setTimeout(() => {
+        setPhase("Default");
+      }, 9000);
+    }, 16000);
+  };
 
 
   const handleFuelUpdate = (fuel: number) => {
@@ -446,51 +449,54 @@ function RabbitHoleGame() {
         version,
       });
 
-      console.log({
-        fuel: displayNumber,
-        maxAvailableFuel: maxFuel - displayNumber,
-        isPending: true
-      });
-  
-      setTimeout(async() => {
-        setIsRolling(true);
-
-        txAttempts(
+      try {
+        await txAttempts(
           10,
           async () => {
-            return await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient).then(async data => {
-              await waitForTransactionReceipt(config, {
-                hash: data,
-                confirmations: 2,
-              });
+            const data = await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient);
+            await waitForTransactionReceipt(config, {
+              hash: data,
+              confirmations: 2,
             });
           },
           3000
-        )
-        .catch(console.log)
-        .finally(() => {
-          socket.emit("update-progress", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "game2-set-fuel",
-            value: {
-              fuel: displayNumber,
-              maxAvailableFuel: maxFuel - displayNumber,
-              isPending: false,
-            },
-            version
-          });
-          console.log({
+        );
+      } catch (error) {
+        console.error("Transaction failed:", error);
+        setIsRolling(false); // Reset if transaction fails
+      } finally {
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: "game2-set-fuel",
+          value: {
             fuel: displayNumber,
             maxAvailableFuel: maxFuel - displayNumber,
-            isPending: false
-          });
-        })
-      }, 1000);
-    } else {
-      setTimeout(() => {
+            isPending: false,
+          },
+          version
+        });
         setIsRolling(true);
-      }, 1000);
+      }
+    } else {
+      socket.emit("update-progress", {
+        raceId,
+        userAddress: smartAccountAddress,
+        property: "game2-set-fuel",
+        value: { fuel: 0, maxAvailableFuel: 0, isPending: true },
+        version
+      });
+
+      setTimeout(() => {
+        socket.emit("update-progress", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: "game2-set-fuel",
+          value: { fuel: 0, maxAvailableFuel: 0, isPending: false },
+          version
+        });
+        setIsRolling(true);
+      }, 3000);
     }
   };
 

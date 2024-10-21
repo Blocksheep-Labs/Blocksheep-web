@@ -14,7 +14,7 @@ import RegisteredModal from "../../components/modals/RegisteredModal";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
-import generateLink from "../../utils/linkGetter";
+import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 
 
 function SelectRaceScreen() {
@@ -42,10 +42,11 @@ function SelectRaceScreen() {
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
+    
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       console.log(generateStateObjectForGame(data, progress))
-      navigate(`/race/${raceId}/rabbit-hole/v1/rules`, {
+      navigate(`/race/${raceId}/rabbit-hole/v1/preview`, {
         state: generateStateObjectForGame(data, progress),
         replace: true,
       });
@@ -58,201 +59,41 @@ function SelectRaceScreen() {
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
 
-      if (!progress?.story?.intro) {
-          navigate(generateLink("STORY_INTRO", rIdNumber), {
-            state: generateStateObjectForGame(data, progress, "start"),
+      const navigationSteps: { check: boolean, link: TFlowPhases, step?: "questions" | "board" | "start" }[] = [
+        { check: !progress?.story?.intro, link: "STORY_INTRO", step: "start" },
+        { check: !progress?.countdown, link: "RACE_START", step: "start" },
+        { check: !progress?.game1_preview, link: "UNDERDOG_PREVIEW", step: "questions" },
+        { check: !progress?.game1_rules, link: "UNDERDOG_RULES", step: "questions" },
+        { check: !progress?.game1?.isDistributed, link: "UNDERDOG", step: "questions" },
+        { check: !progress?.board1, link: "UNDERDOG", step: "board" },
+        { check: !progress?.nicknameSet, link: "ADD_NAME", step: "board" },
+        { check: !progress?.story?.part1, link: "STORY_PART_1" },
+        { check: !progress?.game2_preview, link: "RABBIT_HOLE_PREVIEW" },
+        { check: !progress?.game2_rules, link: "RABBIT_HOLE_RULES" },
+        { check: !progress?.game2.waitingToFinish, link: "RABBIT_HOLE" },
+        { check: !progress?.story?.part2, link: "STORY_PART_2" },
+        { check: !progress?.game3_preview, link: "BULL_RUN_PREVIEW" },
+        { check: !progress?.game3_rules, link: "BULL_RUN_RULES" },
+        { check: !progress?.game3.isCompleted, link: "BULL_RUN" },
+        { check: !progress?.story?.part3, link: "STORY_PART_3" },
+        { check: !progress?.story?.game2_v2_preview, link: "RABBIT_HOLE_V2_PREVIEW" },
+        { check: !progress?.story?.game2_v2_rules, link: "RABBIT_HOLE_V2_RULES" },
+        { check: !progress?.game2.waitingToFinish, link: "RABBIT_HOLE_V2" },
+        { check: !progress?.story?.conclusion, link: "STORY_CONCLUSION" },
+        { check: !progress?.rate, link: "RATE" },
+      ];
+  
+      for (const step of navigationSteps) {
+        if (step.check) {
+          navigate(generateLink(step.link, rIdNumber), {
+            state: generateStateObjectForGame(data, progress, step?.step),
             replace: true,
           });
-        return;
+          return;
+        }
       }
-      
-
-      if (!progress?.countdown) {
-        console.log("COUNTDOWN")
-        navigate(generateLink("RACE_START", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "start"),
-          replace: true,
-        });
-        return;
-      }
-
-      // preview underdog game, passing the game state
-      if (!progress?.game1_preview) {
-        console.log("UNDERDOG PREVIEW");
-        navigate(generateLink("UNDERDOG_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "questions"),
-          replace: true,
-        });
-        return;
-      }
-
-      // rules underdog game, passing the game state
-      if (!progress?.game1_rules) {
-        console.log("UNDERDOG RULES");
-        navigate(generateLink("UNDERDOG_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "questions"),
-          replace: true,
-        });
-        return;
-      }
-
-      // game 1 was not passed
-      if (!progress?.game1?.isDistributed) {
-        console.log("UNDERDOG")
-        navigate(generateLink("UNDERDOG", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "questions"),
-          replace: true,
-        });
-        return;
-      }
-
-      // countdown 2 (before the first game) was not passed
-      if (!progress?.board1) {
-        console.log("BOARD-1")
-        navigate(generateLink("UNDERDOG", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "board"),
-          replace: true,
-        });
-        return;
-      }
-
-      if (!progress?.nicknameSet) {
-        console.log("SET_NICKNAME")
-        navigate(generateLink("ADD_NAME", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, "board"),
-          replace: true,
-        });
-        return;
-      }
-
-      if (!progress?.story?.part1) {
-        navigate(generateLink("STORY_PART_1", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-      
-
-      // preview rabbit hole game, passing the game state
-      if (!progress?.game2_preview) {
-        console.log("RABBIT-HOLE PREVIEW");
-        navigate(generateLink("RABBIT_HOLE_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      // rules rabbit hole game, passing the game state
-      if (!progress?.game2_rules) {
-        console.log("RABBIT-HOLE RULES");
-        navigate(generateLink("RABBIT_HOLE_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        })
-        return;
-      }
-
-      // user not clicked the 'next' button on win/lose modal of the 2nd game
-      if (!progress?.game2.waitingToFinish) {
-        console.log("RABBIT-HOLE");
-        navigate(generateLink("RABBIT_HOLE", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      
-      if (!progress?.story?.part2) {
-        navigate(generateLink("STORY_PART_2", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-      
-
-      if (!progress?.game3_preview) {
-        console.log("BULLRUN PREVIEW");
-        navigate(generateLink("BULL_RUN_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      if (!progress?.game3_rules) {
-        console.log("BULLRUN RULES");
-        navigate(generateLink("BULL_RUN_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      if (!progress?.game3.isCompleted) {
-        console.log("BULLRUN");
-        navigate(generateLink("BULL_RUN", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }  
-
-      
-      if (!progress?.story?.part3) {
-        navigate(generateLink("STORY_PART_3", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-      
-      if (!progress?.story?.game2_v2_preview) {
-        navigate(generateLink("RABBIT_HOLE_V2_PREVIEW", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      if (!progress?.story?.game2_v2_rules) {
-        navigate(generateLink("RABBIT_HOLE_V2_RULES", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      // user not clicked the 'next' button on win/lose modal of the 2nd game v2
-      if (!progress?.game2.waitingToFinish) {
-        console.log("RABBIT-HOLE");
-        navigate(generateLink("RABBIT_HOLE_V2", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      
-      if (!progress?.story?.conclusion) {
-        navigate(generateLink("STORY_CONCLUSION", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
-      if (!progress?.rate) {
-        navigate(generateLink("RATE", rIdNumber), {
-          state: generateStateObjectForGame(data, progress, undefined),
-          replace: true,
-        });
-        return;
-      }
-
+  
+      // If no conditions met, navigate to PODIUM
       navigate(generateLink("PODIUM", rIdNumber), {
         state: generateStateObjectForGame(data, progress, undefined),
         replace: true,

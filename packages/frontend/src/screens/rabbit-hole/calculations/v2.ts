@@ -26,9 +26,13 @@ export default function calculatePlayersV2(players: ConnectedUser[]) {
       } else {
         newListOfPlayers = sorted.slice(1, actualListOfPlayers.length);
       }
+      // second-to-last one doesn’t consume fuel.
+      bonuses.push({ address: sorted[1].address, amount: sorted[1].Fuel });
+
     } else {
       newListOfPlayers = actualListOfPlayers;
     }
+
 
     return { newListOfPlayers, bonuses };
 }

@@ -227,7 +227,7 @@ function RabbitHoleGame() {
       socket.on("progress-updated", async(progress) => {
         if (progress.property === "game2-set-fuel") {
           // if the user is sending the TX or finished sending TX
-          if (progress.value?.isPending != undefined) {
+          
             // sending...
             if (progress.value.isPending) {
               
@@ -251,7 +251,7 @@ function RabbitHoleGame() {
               
               setAmountOfPending(amountOfPending - 1);
             }
-          }
+          
         }
 
         if (progress.property === "game2-complete") {

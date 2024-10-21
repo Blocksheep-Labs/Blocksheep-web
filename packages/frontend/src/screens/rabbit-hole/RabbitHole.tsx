@@ -230,7 +230,6 @@ function RabbitHoleGame() {
           
             // sending...
             if (progress.value.isPending) {
-              
               console.log(
                 "IS PENDING:", 
                 { 
@@ -239,17 +238,20 @@ function RabbitHoleGame() {
                 }
               );
               
-              setAmountOfPending(amountOfPending + 1);
+              if (amountOfPending + 1 <= location.state.amountOfRegisteredUsers - amountOfComplteted) {
+                setAmountOfPending(amountOfPending + 1);
+              }
             }
             // sent 
             else {
-              
               console.log("TX WAS SENT:", { 
                 max: location.state.amountOfRegisteredUsers - amountOfComplteted,
                 amountOfPending: amountOfPending - 1,
               })
               
-              setAmountOfPending(amountOfPending - 1);
+              if (amountOfPending - 1 >= 0) {
+                setAmountOfPending(amountOfPending - 1);
+              }
             }
           
         }
@@ -382,15 +384,15 @@ function RabbitHoleGame() {
 
   // START THE TUNNEL IF ALL USERS ARE DONE WITH TX-s
   useEffect(() => {
-    if (isRolling && amountOfPending == 0 && raceId?.toString().length) {
+    if (amountOfPending == 0 && raceId?.toString().length) {
       console.log("STARTING THE TUNNEL...");
       socket.emit("get-all-fuel-tunnel", { raceId });
       closeLoadingModal();
       triggerAnimations();
-    } else if (isRolling && amountOfPending > 0 && raceId?.toString().length) {
+    } else if (amountOfPending > 0 && raceId?.toString().length) {
       openLoadingModal();
     }
-  }, [isRolling, socket, raceId, amountOfPending]);
+  }, [socket, raceId, amountOfPending]);
 
   const triggerAnimations = () => {
     // Close tunnel: Head moves to swallow everything.
@@ -495,25 +497,6 @@ function RabbitHoleGame() {
         
       }
       */
-    } else {
-      socket.emit("update-progress", {
-        raceId,
-        userAddress: smartAccountAddress,
-        property: "game2-set-fuel",
-        value: { fuel: 0, maxAvailableFuel: 0, isPending: true },
-        version
-      });
-
-      setTimeout(() => {
-        socket.emit("update-progress", {
-          raceId,
-          userAddress: smartAccountAddress,
-          property: "game2-set-fuel",
-          value: { fuel: 0, maxAvailableFuel: 0, isPending: false },
-          version
-        });
-        setIsRolling(true);
-      }, 3000);
     }
   };
 

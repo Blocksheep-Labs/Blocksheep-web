@@ -230,25 +230,25 @@ function RabbitHoleGame() {
           if (progress.value?.isPending != undefined) {
             // sending...
             if (progress.value.isPending) {
-              /*
+              
               console.log(
-                "IS PENDING PROP:", 
+                "IS PENDING:", 
                 { 
                   max: location.state.amountOfRegisteredUsers - amountOfComplteted,
                   amountOfPending: amountOfPending + 1,
                 }
               );
-              */
+              
               setAmountOfPending(amountOfPending + 1);
             }
             // sent 
             else {
-              /*
+              
               console.log("TX WAS SENT:", { 
                 max: location.state.amountOfRegisteredUsers - amountOfComplteted,
                 amountOfPending: amountOfPending - 1,
               })
-              */
+              
               setAmountOfPending(amountOfPending - 1);
             }
           }
@@ -382,7 +382,7 @@ function RabbitHoleGame() {
 
   // START THE TUNNEL IF ALL USERS ARE DONE WITH TX-s
   useEffect(() => {
-    if (isRolling && amountOfPending === 0 && raceId?.toString().length) {
+    if (isRolling && amountOfPending == 0 && raceId?.toString().length) {
       console.log("STARTING THE TUNNEL...");
       socket.emit("get-all-fuel-tunnel", { raceId });
       closeLoadingModal();
@@ -817,7 +817,7 @@ function RabbitHoleGame() {
               <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted} replacedText="..."/> 
             }
             {
-            modalType === "loading" && <WaitingForPlayersModal replacedText={`Pending... ${amountOfPending}`} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
+            modalType === "loading" && <WaitingForPlayersModal replacedText={`${amountOfPending} pending...`} numberOfPlayers={amountOfConnected} numberOfPlayersRequired={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/> 
             }
           </>
         )}

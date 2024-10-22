@@ -231,9 +231,10 @@ function RabbitHoleGame() {
             const pendingCount = newSet.size;
             console.log("Pending transactions:", pendingCount);
 
-            if (pendingCount === 0) {
+            if (pendingCount === 0 && phase !== "CloseTunnel") {
               console.log("All transactions processed. Starting the tunnel...");
               socket.emit("get-all-fuel-tunnel", { raceId });
+              socket.emit("tunnel-started", { raceId });
               triggerAnimations();
             }
           }
@@ -277,6 +278,17 @@ function RabbitHoleGame() {
           }
         }
       });
+
+
+      socket.on('tunnel-started-on-client', ({ socketId, raceid: raceIdSocket }) => {
+        console.log(`event: tunnel-started-on-client`, { raceIdSocket, socketId, isCurrentGame: raceIdSocket == raceId, phaseCheck: phase !== "CloseTunnel" });
+        if (phase !== "CloseTunnel" && raceId == raceIdSocket) {
+          console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)
+          socket.emit("get-all-fuel-tunnel", { raceId });
+          setAmountOfPending(0);
+          triggerAnimations();
+        }
+      });
   
       return () => {
         socket.off('joined');
@@ -285,6 +297,7 @@ function RabbitHoleGame() {
         socket.off('race-progress');
         socket.off('race-fuel-all-tunnel');
         socket.off('progress-updated');
+        socket.off('tunnel-started-on-client');
       }
     }
   }, [
@@ -297,7 +310,8 @@ function RabbitHoleGame() {
     amountOfPending, 
     gameCompleted,
     isRolling,
-    pendingTransactions
+    pendingTransactions,
+    phase,
   ]);
 
   // fetch required amount of users to wait

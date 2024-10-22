@@ -285,7 +285,7 @@ function RabbitHoleGame() {
         if (phase !== "CloseTunnel" && raceId == raceIdSocket) {
           console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)
           socket.emit("get-all-fuel-tunnel", { raceId });
-          setAmountOfPending(0);
+          setPendingTransactions(new Set());
           triggerAnimations();
         }
       });

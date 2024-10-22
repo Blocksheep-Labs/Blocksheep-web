@@ -43,7 +43,7 @@ function SelectRaceScreen() {
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
-    
+    /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       console.log(generateStateObjectForGame(data, progress))
       navigate(`/race/${raceId}/rabbit-hole/v1/preview`, {
@@ -52,7 +52,7 @@ function SelectRaceScreen() {
       });
     });
     return;
-    
+    */
     
     
     const rIdNumber = Number(raceId);

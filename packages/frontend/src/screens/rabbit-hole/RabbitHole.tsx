@@ -280,7 +280,7 @@ function RabbitHoleGame() {
       });
 
 
-      socket.on('tunnel-started-on-client', ({ socketId, raceid: raceIdSocket }) => {
+      socket.on('tunnel-started-on-client', ({ socketId, raceId: raceIdSocket }) => {
         console.log(`event: tunnel-started-on-client`, { raceIdSocket, socketId, isCurrentGame: raceIdSocket == raceId, phaseCheck: phase !== "CloseTunnel" });
         if (phase !== "CloseTunnel" && raceId == raceIdSocket) {
           console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)

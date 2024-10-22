@@ -76,8 +76,11 @@ function UnderdogGame() {
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
-      setFlipState(!flipState);
-      flipState ? onClickLike(currentGameIndex, false) : onClickDislike(currentGameIndex, false);
+      if (!submittingAnswer) {
+        console.log("TIME EXPIRED!")
+        setFlipState(!flipState);
+        flipState ? onClickLike(currentGameIndex) : onClickDislike(currentGameIndex);
+      }
     },
   });
 
@@ -138,7 +141,6 @@ function UnderdogGame() {
       console.log("Answer can not be submitted, probably answered already");
     }).finally(() => {
       setSubmittingAnswer(false);
-      resume();
       
       ref.current?.swipeLeft();
   
@@ -201,14 +203,14 @@ function UnderdogGame() {
       console.log("Answer can not be submitted, probably answered already");
     }).finally(() => {
       setSubmittingAnswer(false);
-      resume();
+      
+      ref.current?.swipeRight();
 
       // reset time
       const time = new Date();
       time.setSeconds(time.getSeconds() + 10);
       restart(time);
-      
-      ref.current?.swipeRight();
+
       if (currentQuestionIndex !== questions.length - 1)
         setCurrentQuestionIndex(currentQuestionIndex + 1);
     });

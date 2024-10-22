@@ -60,7 +60,6 @@ const PlayerMovement = ({
         
         // Animation logic for different phases
         if (phase === 'Default') {
-          console.log({leftPosition, topPosition})
           setTimeout(() => {
             loopExecuted = false;
             execOnce = false;

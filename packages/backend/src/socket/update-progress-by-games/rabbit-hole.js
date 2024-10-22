@@ -30,7 +30,7 @@ const updateRabbitHoleProgress = (property, value, rProgress, version) => {
             rProgress.progress.game2[version].game.isEliminated = true;
             break;
         case "game2-set-fuel":
-            console.log("UPDATE FUEL", { ...value }, rProgress.userAddress);
+            //console.log("UPDATE FUEL", { ...value }, rProgress.userAddress);
             
             rProgress.progress.game2[version] = {
                 ...rProgress.progress.game2[version],
@@ -42,7 +42,7 @@ const updateRabbitHoleProgress = (property, value, rProgress, version) => {
                 }
             };
 
-            console.log("UPDATE FUEL", rProgress.progress.game2[version].game)
+            //console.log("UPDATE FUEL", rProgress.progress.game2[version].game)
 
             break;
         case "game2-complete": 

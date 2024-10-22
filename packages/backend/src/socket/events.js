@@ -134,6 +134,10 @@ module.exports = (io) => {
             const index = racesProgresses.findIndex(i => i?.room === roomName && i?.userAddress === userAddress);
             racesProgresses[index] = updatedProgress;
 
+            if (property == "game2-set-fuel") {
+                console.log("FUEL UPDATED", { raceId, value, userAddress });
+            }
+
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
 
@@ -159,12 +163,14 @@ module.exports = (io) => {
             const roomName = `race-${raceId}`;
             const progresses = racesProgresses.filter(i => i.room === roomName);
 
+            /*
             console.log("PROGRESSES", progresses.map(i => {
                 return {
                     userAddress: i.userAddress,
                     game2: {...i.progress.game2.v1.game}
                 }
             }));
+            */
             
             io.to(socket.id).emit(`race-fuel-all-tunnel`, {
                 progresses: progresses.map(i => {

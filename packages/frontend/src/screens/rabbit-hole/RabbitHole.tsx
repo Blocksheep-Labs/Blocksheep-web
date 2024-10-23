@@ -590,6 +590,7 @@ function RabbitHoleGame() {
     }
     
     console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
+    console.log("BONUSES", {bonuses});
 
     // get bonus for current user
     const currentUserBonus = bonuses.find(i => i.address == smartAccountAddress)?.amount || 0;
@@ -606,6 +607,8 @@ function RabbitHoleGame() {
       return i;
     });
 
+    console.log("AFTER APPLYING BONUSES", newListOfPlayers)
+
     const remainingPlayersCount = newListOfPlayers.length;
 
       // if user was playing with himself
@@ -616,52 +619,57 @@ function RabbitHoleGame() {
         return;
       }
 
-      // if user lost the game
-      if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
-        console.log("YOU LOSE :(")
-        socket.emit("update-progress", {
-          raceId,
-          userAddress: smartAccountAddress,
-          property: "game2-eliminate",
-          version,
-        });
-
-        if (!isGameOver) {
-          const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
-          setAmountOfAllocatedPoints(amountOfPointsToAllocate);
-          handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
-        } else {
-          handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints);
+      // if only one user got bonus (second-to-last one doesn’t consume fuel)
+      if (bonuses.length <= 1) {
+        // if user has lost the game
+        if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
+          console.log("YOU LOSE :(")
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-eliminate",
+            version,
+          });
+  
+          if (!isGameOver) {
+            const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
+            setAmountOfAllocatedPoints(amountOfPointsToAllocate);
+            handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
+          } else {
+            handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints);
+          }
+  
+          setIsRolling(false);
+          return;
         }
-
-        setIsRolling(false);
-        return;
-      }
-
-      // if the user is one in players array -> he won
-      if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
-        console.log("YOU WIN!");
-        setAmountOfAllocatedPoints(3);
-        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
-        setIsRolling(false);
-        return;
-      }
-
-      // if all the remaining players sit with 0 avgailable fuel
-      if (newListOfPlayers.map(i => i.maxAvailableFuel).every(i => i == 0)) {
-        console.log("YOU LOSE :( (all 0)")
-        socket.emit("update-progress", {
-          raceId,
-          userAddress: smartAccountAddress,
-          property: "game2-eliminate",
-          version
-        });
-        handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints, true);
-        return;
+  
+        // if the user is one in players array -> he won
+        if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
+          console.log("YOU WIN!");
+          setAmountOfAllocatedPoints(3);
+          handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
+          setIsRolling(false);
+          return;
+        }
+  
+        // if all the remaining players are sitting with 0 available fuel
+        if (newListOfPlayers.map(i => i.maxAvailableFuel).every(i => i == 0)) {
+          console.log("YOU LOSE :( (all 0)")
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-eliminate",
+            version
+          });
+          handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints, true);
+          return;
+        }
       }
 
       setTimeout(() => {
-        setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
+        //setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
+        console.log("SETTING MAX FUEL:", newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0)
+        setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
         setDisplayNumber(0);
   
         // refetch users data
@@ -728,7 +736,13 @@ function RabbitHoleGame() {
       <div className="app-container">
         <FuelBar players={players} />
         <div className="tunnel">
-          <PlayerMovement phase={phase} players={players} isRolling={isRolling} amountOfComplteted={amountOfComplteted}/>
+          <PlayerMovement 
+            phase={phase} 
+            players={players} 
+            isRolling={isRolling} 
+            amountOfComplteted={amountOfComplteted}
+            version={version as string}
+          />
           <RabbitHead phase={phase} />
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />

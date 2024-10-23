@@ -1,17 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ConnectedUser, RabbitHolePhases } from "../../screens/rabbit-hole/RabbitHole";
+import calculatePlayersV1 from "../../screens/rabbit-hole/calculations/v1";
+import calculatePlayersV2 from "../../screens/rabbit-hole/calculations/v2";
 
 
 const PlayerMovement = ({ 
   phase, 
   players, 
   isRolling, 
-  amountOfComplteted
+  amountOfComplteted,
+  version
 }: {
   phase: RabbitHolePhases; 
   players: ConnectedUser[];
   isRolling: boolean;
   amountOfComplteted: number;
+  version: string;
 }) => {
   const [prevStage, setPrevStage] = useState<RabbitHolePhases | undefined>(undefined);
   const [sortedPlayers, setSortedPlayers] = useState<ConnectedUser[]>([]);
@@ -107,8 +111,13 @@ const PlayerMovement = ({
             }
   
             setTimeout(() => {
-              // get players who is not eleiminated
+              // get players who is not eliminated
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
+
+              // if we have some bonuses to apply (at the 2nd version of the game) - nobody should fall
+              if (version == "v2" && calculatePlayersV2(activePlayers).bonuses.length <= 1) {
+                return;
+              }
 
               // get minimal fuel in the list
               const minFuel = activePlayers[sortedPlayers.length - 1 - amountOfComplteted].Fuel;

@@ -128,10 +128,10 @@ export default function StoryScreen() {
                     redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
                     break;
                 case "part4":
-                    redirectLink = generateLink("STORY_CONCLUSION", Number(raceId)); 
+                    redirectLink = generateLink("RATE", Number(raceId));
                     break;
                 case "conclusion":
-                    redirectLink = generateLink("RATE", Number(raceId));
+                    redirectLink = generateLink("PODIUM", Number(raceId));
                     break;
                 default:
                     break;

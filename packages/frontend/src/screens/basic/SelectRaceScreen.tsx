@@ -60,27 +60,112 @@ function SelectRaceScreen() {
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
 
       const navigationSteps: { check: boolean, link: TFlowPhases, step?: "questions" | "board" | "start" }[] = [
-        { check: !progress?.story?.intro, link: "STORY_INTRO", step: "start" },
-        { check: !progress?.countdown, link: "RACE_START", step: "start" },
-        { check: !progress?.game1_preview, link: "UNDERDOG_PREVIEW", step: "questions" },
-        { check: !progress?.game1_rules, link: "UNDERDOG_RULES", step: "questions" },
-        { check: !progress?.game1?.isDistributed, link: "UNDERDOG", step: "questions" },
-        { check: !progress?.board1, link: "UNDERDOG", step: "board" },
-        { check: !progress?.nicknameSet, link: "ADD_NAME", step: "board" },
-        { check: !progress?.story?.part1, link: "STORY_PART_1" },
-        { check: !progress?.game2_preview, link: "RABBIT_HOLE_PREVIEW" },
-        { check: !progress?.game2_rules, link: "RABBIT_HOLE_RULES" },
-        { check: !progress?.game2.waitingToFinish, link: "RABBIT_HOLE" },
-        { check: !progress?.story?.part2, link: "STORY_PART_2" },
-        { check: !progress?.game3_preview, link: "BULL_RUN_PREVIEW" },
-        { check: !progress?.game3_rules, link: "BULL_RUN_RULES" },
-        { check: !progress?.game3.isCompleted, link: "BULL_RUN" },
-        { check: !progress?.story?.part3, link: "STORY_PART_3" },
-        { check: !progress?.story?.game2_v2_preview, link: "RABBIT_HOLE_V2_PREVIEW" },
-        { check: !progress?.story?.game2_v2_rules, link: "RABBIT_HOLE_V2_RULES" },
-        { check: !progress?.game2.waitingToFinish, link: "RABBIT_HOLE_V2" },
-        { check: !progress?.story?.conclusion, link: "STORY_CONCLUSION" },
-        { check: !progress?.rate, link: "RATE" },
+        { 
+          check: !progress?.story?.intro, 
+          link: "STORY_INTRO", 
+          step: "start" 
+        },
+        { 
+          check: !progress?.countdown, 
+          link: "RACE_START", 
+          step: "start" 
+        },
+        { 
+          check: !progress?.game1_preview, 
+          link: "UNDERDOG_PREVIEW", 
+          step: "questions" 
+        },
+        { 
+          check: !progress?.game1_rules, 
+          link: "UNDERDOG_RULES", 
+          step: "questions" 
+        },
+        { 
+          check: !progress?.game1?.isDistributed, 
+          link: "UNDERDOG", 
+          step: "questions" 
+        },
+        { 
+          check: !progress?.nicknameSet, 
+          link: "ADD_NAME", 
+          step: "board" 
+        },
+        { 
+          check: !progress?.board1, 
+          link: "RACE_UPDATE_1", 
+        },
+        { 
+          check: !progress?.story?.part1, 
+          link: "STORY_PART_1" 
+        },
+        { 
+          check: !progress?.game2_preview, 
+          link: "RABBIT_HOLE_PREVIEW" 
+        },
+        { 
+          check: !progress?.game2_rules, 
+          link: "RABBIT_HOLE_RULES" 
+        },
+        { 
+          check: !progress?.game2.waitingToFinish, 
+          link: "RABBIT_HOLE" 
+        },
+        { 
+          check: !progress?.board2, 
+          link: "RACE_UPDATE_2",
+        },
+        { 
+          check: !progress?.story?.part2, 
+          link: "STORY_PART_2" 
+        },
+        { 
+          check: !progress?.game3_preview, 
+          link: "BULL_RUN_PREVIEW" 
+        },
+        { 
+          check: !progress?.game3_rules, 
+          link: "BULL_RUN_RULES" 
+        },
+        { 
+          check: !progress?.game3.isCompleted, 
+          link: "BULL_RUN" 
+        },
+        { 
+          check: !progress?.board3, 
+          link: "RACE_UPDATE_3",
+        },
+        { 
+          check: !progress?.story?.part3, 
+          link: "STORY_PART_3" 
+        },
+        { 
+          check: !progress?.story?.game2_v2_preview, 
+          link: "RABBIT_HOLE_V2_PREVIEW" 
+        },
+        { 
+          check: !progress?.story?.game2_v2_rules, 
+          link: "RABBIT_HOLE_V2_RULES" 
+        },
+        { 
+          check: !progress?.game2.waitingToFinish, 
+          link: "RABBIT_HOLE_V2" 
+        },
+        { 
+          check: !progress?.board4, 
+          link: "RACE_UPDATE_4",
+        },
+        { 
+          check: !progress?.story?.part4, 
+          link: "STORY_PART_4"
+        },
+        { 
+          check: !progress?.rate, 
+          link: "RATE" 
+        },
+        { 
+          check: !progress?.story?.conclusion, 
+          link: "STORY_CONCLUSION" 
+        },
       ];
   
       for (const step of navigationSteps) {

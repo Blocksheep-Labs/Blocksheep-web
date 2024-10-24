@@ -114,8 +114,8 @@ const PlayerMovement = ({
               // get players who is not eliminated
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
 
-              // if we have some bonuses to apply (at the 2nd version of the game) - nobody should fall
-              if (version == "v2" && calculatePlayersV2(activePlayers).bonuses.length <= 1) {
+              // if we have some bonuses to apply (> 1 - because of more than one rule passed) (at the 2nd version of the game) - nobody should fall
+              if (version == "v2" && calculatePlayersV2(activePlayers).bonuses.length > 1) {
                 return;
               }
 

@@ -185,7 +185,7 @@ export default function SetNicknameScreen() {
             </div>
             {
                 
-                modalIsOpen && ["waiting", "nickname-set"].includes(modalType as string) && 
+                modalIsOpen && ["nickname-set"].includes(modalType as string) && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}

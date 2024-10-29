@@ -46,7 +46,7 @@ function SelectRaceScreen() {
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       console.log(generateStateObjectForGame(data, progress))
-      navigate(`/race/${raceId}/rabbit-hole/v2/preview`, {
+      navigate(`/race/${raceId}/rabbit-hole/v2/rules`, {
         state: generateStateObjectForGame(data, progress),
         replace: true,
       });

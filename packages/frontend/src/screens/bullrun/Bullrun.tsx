@@ -491,17 +491,17 @@ export default function Bullrun() {
                 <img 
                     src={Swords} alt="swords" 
                     className={`w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
-                    onClick={() => handlePerkChange(0)}
+                    onClick={!perksLocked ? () => handlePerkChange(0) : undefined}
                 />
                 <img 
                     src={Shield} alt="shield" 
                     className={`w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
-                    onClick={() => handlePerkChange(1)}
+                    onClick={!perksLocked ? () => handlePerkChange(1) : undefined}
                 />
                 <img 
                     src={BullHead} alt="run"  
                     className={`w-16 h-16 ${selectedPerk === 2 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
-                    onClick={() => handlePerkChange(2)}
+                    onClick={!perksLocked ? () => handlePerkChange(2) : undefined}
                 />
             </div>
         </div>

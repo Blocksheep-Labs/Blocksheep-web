@@ -134,11 +134,13 @@ export default function BullrunCover() {
                 <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 33.33}%`}}></div>
             </div>
             {
+                /*
                 modalIsOpen && modalType === "waiting" && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
                 />
+                */
             }
         </div>
     );

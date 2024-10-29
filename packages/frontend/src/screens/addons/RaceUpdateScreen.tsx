@@ -222,11 +222,13 @@ function RaceUpdateScreen() {
         </div>
       </div>
       {
+        /*
         modalIsOpen && modalType === "waiting" && 
           <WaitingForPlayersModal 
             numberOfPlayers={amountOfConnected} 
             numberOfPlayersRequired={data?.numberOfPlayersRequired || 9}
           />
+        */
       }
     </>
   );

@@ -151,11 +151,13 @@ export default function BullrunRules() {
             </div>
             <BullrunRulesGrid pointsMatrix={pointsMatrix}/>
             {
+                /*
                 modalIsOpen && modalType === "waiting" && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
                 />
+                */
             }
         </div>
     );

@@ -142,11 +142,13 @@ export default function UnderdogRules() {
                 <Rule text="IS IT BETTER TO HAVE NICE OR SMART KIDS?" showExample/>
             </div>
             {
+                /*
                 modalIsOpen && modalType === "waiting" && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
                 />
+                */
             }
         </div>
     );

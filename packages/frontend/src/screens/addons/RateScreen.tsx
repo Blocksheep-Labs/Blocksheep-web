@@ -176,11 +176,13 @@ export default function RateScreen() {
             </div>
 
             {
+                /*
                 location.state.amountOfRegisteredUsers > amountOfConnected && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
                     numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
                 />
+                */
             }
         </div>
     );

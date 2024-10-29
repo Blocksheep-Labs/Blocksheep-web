@@ -52,7 +52,7 @@ function RabbitHoleGame() {
   const navigate = useNavigate();
   const {raceId, version} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
-  const [maxFuel, setMaxFuel] = useState(10);
+  const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 50);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [amountOfPending, setAmountOfPending] = useState(0);
@@ -484,6 +484,7 @@ function RabbitHoleGame() {
       // @ts-ignore
       const game2state = location.state.progress.game2[version].game;
       console.log(">>>>>>>>>>> INIT AFTER LEAVE <<<<<<<<<<<", {game2state});
+
       /*
         fuel: 0
         gameReached: false
@@ -749,7 +750,7 @@ function RabbitHoleGame() {
         </div>
         <div className="control-panels mb-10">
           <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={totalSeconds === 0 || userIsLost}/>
-          <GasolineGauge fuel={(maxFuel - displayNumber) * 8.8} maxFuel={maxFuel - displayNumber}/>
+          <GasolineGauge fuel={maxFuel - displayNumber} maxFuel={maxFuel - displayNumber}/>
         </div>
 
       </div>

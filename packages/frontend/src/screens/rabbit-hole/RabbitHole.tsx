@@ -25,6 +25,7 @@ import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
 import calculatePlayersV1 from "./calculations/v1";
 import calculatePlayersV2 from "./calculations/v2";
+import BG_Carrots from "../../assets/rabbit-hole/backgroundcarrot.jpg";
 
 export type ConnectedUser = {
     id: number;
@@ -152,7 +153,7 @@ function RabbitHoleGame() {
         // @ts-ignore
         setDisplayNumber(progress?.game2?.[version]?.game?.fuel || 0);
         // @ts-ignore
-        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || 10);
+        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 50));
       });
 
       
@@ -600,8 +601,8 @@ function RabbitHoleGame() {
     newListOfPlayers = newListOfPlayers.map(i => {
       if (i.address == smartAccountAddress) {
         i.maxAvailableFuel += currentUserBonus;
-        if (i.maxAvailableFuel > 10) {
-          i.maxAvailableFuel = 10;
+        if (i.maxAvailableFuel > (version == "v1" ? 10 : 50)) {
+          i.maxAvailableFuel = (version == "v1" ? 10 : 50);
         }
       }
 
@@ -728,12 +729,15 @@ function RabbitHoleGame() {
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-tunnel_bg bg-cover bg-bottom relative">
       <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Player eliminated, pls wait for the next game" : displayNumber}</p>
-      <div className="relative my-4">
+      
+      <div className="relative z-50 py-6 bg-black">
         <Timer seconds={totalSeconds} />
-        <div className="absolute right-4 top-0">
+        <div className="absolute right-4 top-6">
           <UserCount currentAmount={amountOfConnected} requiredAmount={(raceData?.numberOfPlayersRequired || 9) - amountOfComplteted}/>
         </div>
       </div>
+      <img src={BG_Carrots} className="scale-[140%] absolute -top-2"/>
+
       <div className="app-container">
         <FuelBar players={players} />
         <div className="tunnel">
@@ -748,9 +752,9 @@ function RabbitHoleGame() {
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />
         </div>
-        <div className="control-panels mb-10">
+        <div className="control-panels mb-5">
           <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={totalSeconds === 0 || userIsLost}/>
-          <GasolineGauge fuel={maxFuel - displayNumber} maxFuel={maxFuel - displayNumber}/>
+          <GasolineGauge fuel={maxFuel - displayNumber} version={version as string}/>
         </div>
 
       </div>

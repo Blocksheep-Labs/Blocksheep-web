@@ -60,13 +60,13 @@ export default function RabbitHoleRules() {
                     break;
             }
 
-            /*
+            
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_RULES', raceId });
             navigate(redirectLink, {
                 state: location.state,
                 replace: true,
             });
-            */
+            
         },
         autoStart: true
     });
@@ -157,7 +157,9 @@ export default function RabbitHoleRules() {
 
     return (
         <div className="mx-auto justify-start h-screen w-full bg-tunnel_bg bg-cover bg-bottom relative">
-           
+            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700 absolute top-0 z-50">
+                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * (version == "v1" ? 11.1 : 6.25)}%`}}></div>
+            </div>
             <div className="absolute w-full py-6 z-10 bg-black">
                 <Timer seconds={10} />
                 <div className="absolute right-4 top-6">
@@ -172,9 +174,10 @@ export default function RabbitHoleRules() {
                         // first rule
                         if (timeRemaining - seconds <= 4) {
                             return (
-                                <div className="z-20 relative mt-10">
-                                    <img src={BG_Tunnel_light} className="z-30"/>
-                                    <img src={Rabbit_Head} className="z-30 -right-48 absolute -top-28 w-80"/>
+                                <div className="z-30 relative flex flex-col justify-center items-center">
+                                    <img src={BG_Tunnel_light} className="z-30 opacity-30"/>
+                                    <img src={Rabbit_Head} className="z-30 -right-48 absolute -top-28 w-80 opacity-30"/>
+                                    <img src={AnimatedLever} alt="lever" className="w-80 z-50 -mt-20"/>
                                 </div>
                             );
                         }
@@ -182,8 +185,9 @@ export default function RabbitHoleRules() {
                         // second rule
                         if (timeRemaining - seconds <= 4 + 5) {
                             return (
-                                <div className="z-30 relative">
+                                <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={InstructionsOne} className="z-30"/>
+                                    <img src={AnimatedLever} alt="lever" className="w-80 z-30 opacity-50 -mt-10"/>
                                 </div>
                             );
                         }
@@ -191,8 +195,9 @@ export default function RabbitHoleRules() {
                         // third rule (on rh-v2)
                         if (timeRemaining - seconds <= 4 + 5 + 7) {
                             return ( 
-                                <div className="z-30 relative">
+                                <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={InstructionsTwo} className="z-30"/>
+                                    <img src={AnimatedLever} alt="lever" className="w-80 z-30 opacity-50 -mt-10"/>
                                 </div>
                             );
                         }
@@ -205,11 +210,20 @@ export default function RabbitHoleRules() {
 
 
                 <div style={{
-                    fontFamily: "'Montserrat', sans-serif",
+                    fontFamily: "Arial, sans-serif",
                     fontWeight: 700,
-                    WebkitTextStroke: '1px white',
-                    color: '#8e4522',
-                
+                    fontSize: '32px',
+                    WebkitTextStroke: '1.1px white',
+                    color: 'transparent',
+                    textAlign: 'center',
+                    lineHeight: 1,
+                    textShadow: `
+                        3px 3px 3px #8B5E3C,
+                        -3px 3px 3px #8B5E3C,
+                        3px -3px 3px #8B5E3C,
+                        -3px -3px 3px #8B5E3C
+                    `,
+                    fontStretch: 'condensed',
                 }} className="w-full flex flex-col absolute h-screen top-0">
                     {
                         
@@ -220,11 +234,9 @@ export default function RabbitHoleRules() {
                                     <div className="relative w-full h-screen flex flex-col items-center mt-44 z-30">
                                         <div className="relative flex items-center justify-center">
                                             <img src={BigDesk} alt="desk"/>
-                                            <span className="absolute max-w-72 text-center text-3xl self-center">SETUP YOUR SPEED</span>
-                                            <p className="absolute max-w-64 text-center text-xl mt-36">MORE SPEED = MORE FUEL CONSUMED</p>
+                                            <span className="absolute max-w-72 text-center self-center text-[40px]">SETUP YOUR SPEED</span>
+                                            <p className="absolute max-w-64 text-center text-lg mt-40">MORE SPEED = MORE FUEL CONSUMED</p>
                                         </div>
-                                        
-                                        <img src={AnimatedLever} alt="lever" className="w-72 absolute bottom-0"/>
                                     </div>
                                 );
                             }
@@ -237,14 +249,14 @@ export default function RabbitHoleRules() {
                                             <img src={BigDesk} alt="desk"/>
                                             <span className="-mt-20 absolute max-w-72 text-center text-3xl self-center">SURVIVE!</span>
                                             <span className="mt-6 absolute max-w-72 text-center text-3xl self-center">YOU ARE ELIMINATED IF...</span>
-                                            <p className="absolute max-w-64 text-center text-xl mt-40">1) YOU ARE ON THE LAST ONE (SPEED TOO LOW)</p>
+                                            <p className="absolute max-w-64 text-center text-xl mt-40">1) YOU ARE THE LAST ONE (SPEED TOO LOW)</p>
                                         </div>
                                         
                                         <div className="absolute bottom-3 flex items-center justify-center">
                                             <img src={SmallDesk} alt="lever" className="w-72 z-20"/>
-                                            <p className="absolute max-w-56 text-center text-xl z-20">2) YOU RUN OUT OF FUEL</p>
+                                            <p className="absolute max-w-56 text-center text-lg z-20 mt-2">2) YOU RUN OUT OF FUEL</p>
                                         </div>
-                                        <img src={AnimatedLever} alt="lever" className="w-72 absolute bottom-0 opacity-50"/>
+                                       
                                     </div>
                                 );
                             }
@@ -256,17 +268,17 @@ export default function RabbitHoleRules() {
                                         <div className="relative flex items-center justify-center">
                                             <img src={NewLabel} className="absolute right-0 top-5 z-20 w-12" />
                                             <img src={BigDesk} alt="desk"/>
-                                            <span className="-mt-20 absolute max-w-72 text-center text-xl self-center">IF YOU'RE LAST AND</span>
-                                            <span className="mt-6 absolute max-w-72 text-center text-xl self-center">YOUR SPEED IS 4+ POINTS SLOWER THAN THE SECOND-TO-LAST PLAYER:</span>
-                                            <p className="absolute max-w-64 text-center text-xl mt-40">YOU SURVIVED AND GAIN +3 FUEL</p>
+                                            <span className="-mt-28 absolute max-w-56 text-center text-lg self-center">IF YOU'RE LAST AND</span>
+                                            <span className="mt-6 absolute max-w-56 text-center text-lg self-center">YOUR SPEED IS 4+ POINTS SLOWER THAN THE SECOND-TO-LAST PLAYER:</span>
+                                            <p className="absolute max-w-48 text-center text-lg mt-48">YOU SURVIVE AND GAIN +3 FUEL</p>
                                         </div>
                                         
                                         <div className="absolute bottom-3 flex items-center justify-center">
                                             <img src={NewLabel} className="absolute right-0 -top-3 z-30 w-12" />
                                             <img src={SmallDesk} alt="lever" className="w-72 z-20"/>
-                                            <p className="absolute max-w-56 text-center text-xl z-20">SECOND TO LAST ONE DOESN'T CONSUME FUEL</p>
+                                            <p className="absolute max-w-56 text-center text-lg z-20 mt-2">SECOND TO LAST ONE DOESN'T CONSUME FUEL</p>
                                         </div>
-                                        <img src={AnimatedLever} alt="lever" className="w-72 absolute bottom-0 opacity-50"/>
+                                    
                                     </div>
                                 );
                             }

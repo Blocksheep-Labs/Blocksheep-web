@@ -3,7 +3,6 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { socket } from "../../utils/socketio";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { useTimer } from "react-timer-hook";
-import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import generateLink from "../../utils/linkGetter";
 import StoryVideo from "../../assets/stories/sh.mp4";
 import { httpGetRaceDataById } from "../../utils/http-requests";
@@ -139,7 +138,7 @@ export default function StoryScreen() {
                     break;
             }
        
-        
+            
             socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
             navigate(redirectLink, {
                 state: location.state,

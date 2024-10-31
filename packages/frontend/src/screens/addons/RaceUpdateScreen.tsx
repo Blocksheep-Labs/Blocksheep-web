@@ -7,6 +7,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 const getPart = (board: string) => {
   let selectedPart = "";
@@ -38,7 +39,7 @@ function RaceUpdateScreen() {
   const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [users, setUsers] = useState<any[]>([]);
-
+  const [secondsVisual, setSecondsVisual] = useState(1000);
   
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
@@ -115,6 +116,7 @@ function RaceUpdateScreen() {
 
   useEffect(() => {
     if (data && amountOfConnected === data.numberOfPlayersRequired) {
+      setSecondsVisual(10);
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
       }, 1000);
@@ -162,6 +164,7 @@ function RaceUpdateScreen() {
           if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
+            setSecondsVisual(10);
           }
 
           socket.emit("get-connected", { raceId });
@@ -214,9 +217,7 @@ function RaceUpdateScreen() {
   return (
     <>
       <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
-        <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700 absolute top-0 z-20">
-            <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${seconds * 10}%`}}></div>
-        </div>
+        <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
         </div>

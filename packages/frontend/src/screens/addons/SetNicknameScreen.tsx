@@ -10,6 +10,7 @@ import ChooseNameSheep from "../../assets/common/choosename.png";
 import { httpGetUserDataByAddress, httpRaceInsertUser, httpSetNameByAddress } from "../../utils/http-requests";
 import Rule from "../../components/Rule";
 import generateLink from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 
 export default function SetNicknameScreen() {
@@ -22,6 +23,7 @@ export default function SetNicknameScreen() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | "nickname-set" | undefined>(undefined);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const [secondsVisual, setSecondsVisual] = useState(15);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 15);
@@ -99,6 +101,7 @@ export default function SetNicknameScreen() {
                         const time = new Date();
                         time.setSeconds(time.getSeconds() + 15);
                         restart(time);
+                        setSecondsVisual(15);
                     }
 
                     socket.emit("get-connected", { raceId });
@@ -162,9 +165,7 @@ export default function SetNicknameScreen() {
 
     return (
         <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 6.66}%`}}></div>
-            </div>
+            <TopPageTimer duration={secondsVisual * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="CHOOSE NAME"/>
             </div>

@@ -6,6 +6,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useTimer } from "react-timer-hook";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 const Rating = ({
     handleChange,
@@ -46,7 +47,7 @@ export default function RateScreen() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
-
+    const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -81,7 +82,7 @@ export default function RateScreen() {
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
-          
+            setSecondsVisual(10);
         } else {
             pause();
         }
@@ -151,9 +152,7 @@ export default function RateScreen() {
 
     return (
         <div className="relative mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom items-center">
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 10}%`}}></div>
-            </div>
+            <TopPageTimer duration={secondsVisual * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="RATE THE FUN" smallerText/>
             </div>

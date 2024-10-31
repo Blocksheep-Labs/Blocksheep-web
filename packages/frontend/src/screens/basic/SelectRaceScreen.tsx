@@ -15,6 +15,7 @@ import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink, { TFlowPhases } from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 
 function SelectRaceScreen() {

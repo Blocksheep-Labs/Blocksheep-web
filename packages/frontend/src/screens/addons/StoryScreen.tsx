@@ -7,6 +7,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import generateLink from "../../utils/linkGetter";
 import StoryVideo from "../../assets/stories/sh.mp4";
 import { httpGetRaceDataById } from "../../utils/http-requests";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 
 const videos = [
@@ -94,6 +95,7 @@ export default function StoryScreen() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [storyKey, setStoryKey] = useState<number | undefined>(undefined);
+    const [seconds, setSeconds] = useState(1000);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 6);
@@ -151,6 +153,7 @@ export default function StoryScreen() {
         if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 6);
+            setSeconds(6);
             restart(time);
         } else {
             pause();
@@ -221,9 +224,7 @@ export default function StoryScreen() {
 
     return (
         <div className="bg-white h-full relative">
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 16.66}%`}}></div>
-            </div>
+            <TopPageTimer duration={seconds * 1000} />
             {
                 storyKey != undefined &&
                 <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>

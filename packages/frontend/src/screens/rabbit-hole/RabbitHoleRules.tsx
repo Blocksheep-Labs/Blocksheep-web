@@ -19,6 +19,7 @@ import InstructionsOne from "../../assets/rabbit-hole/screen-instructions1.png";
 import InstructionsTwo from "../../assets/rabbit-hole/screen-instructions2.png";
 import SmallDesk from "../../assets/rabbit-hole/signage-instructions-small.png";
 import NewLabel from "../../assets/rabbit-hole/new.png";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 export default function RabbitHoleRules() {
     const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function RabbitHoleRules() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const timeRemaining = version == "v1" ? (4 + 5) : (4 + 5 + 7)
     const time = new Date();
@@ -77,6 +79,7 @@ export default function RabbitHoleRules() {
             const time = new Date();
             time.setSeconds(time.getSeconds() + timeRemaining);
             restart(time);
+            setSecondsVisual(timeRemaining);
         } else {
             pause();
         }
@@ -157,9 +160,7 @@ export default function RabbitHoleRules() {
 
     return (
         <div className="mx-auto justify-start h-screen w-full bg-tunnel_bg bg-cover bg-bottom relative">
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700 absolute top-0 z-50">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * (version == "v1" ? 11.1 : 6.25)}%`}}></div>
-            </div>
+            <TopPageTimer duration={secondsVisual * 1000} />
             <div className="absolute w-full py-6 z-10 bg-black">
                 <Timer seconds={10} />
                 <div className="absolute right-4 top-6">

@@ -7,6 +7,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 
 export default function UnderdogRules() {
@@ -17,6 +18,7 @@ export default function UnderdogRules() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [seconds, setSeconds] = useState(1000);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -46,9 +48,9 @@ export default function UnderdogRules() {
 
     useEffect(() => {
         if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
-          
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
+            setSeconds(10);
             restart(time);
           
         } else {
@@ -130,9 +132,7 @@ export default function UnderdogRules() {
 
     return (
         <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 10}%`}}></div>
-            </div>
+            <TopPageTimer duration={seconds * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="HOW TO PLAY"/>
             </div>

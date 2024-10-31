@@ -9,6 +9,7 @@ import Rule from "../../components/Rule";
 import BullrunRulesGrid from "../../components/BullrunRulesGrid";
 import { BULLRUN_getPerksMatrix } from "../../utils/contract-functions";
 import generateLink from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 
 export default function BullrunRules() {
@@ -20,6 +21,7 @@ export default function BullrunRules() {
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
+    const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -52,6 +54,7 @@ export default function BullrunRules() {
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
+            setSecondsVisual(10);
         } else {
             pause();
         }
@@ -139,9 +142,7 @@ export default function BullrunRules() {
 
     return (
         <div className="mx-auto flex h-screen w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center">
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 10}%`}}></div>
-            </div>
+            <TopPageTimer duration={secondsVisual * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="HOW TO PLAY"/>
             </div>

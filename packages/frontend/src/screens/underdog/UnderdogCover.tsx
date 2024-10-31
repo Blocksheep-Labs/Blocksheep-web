@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 export default function UnderdogCover() {
     const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function UnderdogCover() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [seconds, setSeconds] = useState(1000);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 3);
@@ -48,6 +50,7 @@ export default function UnderdogCover() {
           
             const time = new Date();
             time.setSeconds(time.getSeconds() + 3);
+            setSeconds(3);
             restart(time);
           
         } else {
@@ -130,9 +133,7 @@ export default function UnderdogCover() {
 
     return (
         <>
-            <div className="w-full bg-gray-200 h-2.5 dark:bg-gray-700">
-                <div className="bg-yellow-500 h-2.5 transition-all duration-300" style={{width: `${totalSeconds * 33.33}%`}}></div>
-            </div>
+            <TopPageTimer duration={seconds * 1000} />
             <div className="mx-auto flex h-screen w-full flex-col bg-underdog_cover_bg bg-cover bg-top">
                 {
                     /*

@@ -345,7 +345,6 @@ function SelectRaceScreen() {
 
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
-      <TopPageTimer duration={5000}/>
       <div className="mt-16 flex w-full justify-center">
         <RibbonLabel text="Races"/>
       </div>

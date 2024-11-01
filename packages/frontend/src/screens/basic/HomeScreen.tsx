@@ -57,46 +57,8 @@ function HomeScreen() {
 
 
   useEffect(() => {
-    /*
-    // @ts-ignore
-    if (window.Telegram.WebApp) {
-      const interval = setInterval(() => {
-        // @ts-ignore
-        if ('virtualKeyboard' in navigator && navigator.virtualKeyboard.boundingRect) {
-          const modalContentNode = document.querySelector("#privy-modal-content") as HTMLElement | null;
-          // @ts-ignore
-          const keyboardRect = navigator.virtualKeyboard.boundingRect;
-          console.log("Virtual Keyboard Position and Size:", keyboardRect);
-      
-          if (modalContentNode) {
-            modalContentNode.style.borderRadius = '18px';
-            if (keyboardRect.height > 0) {
-              modalContentNode.style.marginBottom = `${keyboardRect.height}px`;
-            } else {
-              modalContentNode.style.marginBottom = "0px";
-            }
-          }
-        }
-      }, 1000);
-  
-      return () => {
-        clearInterval(interval);
-      }
-    }
-    */
-
-    function adjustModalForKeyboard() {
-      //const vh = window.innerHeight * 0.01;
-      //document.documentElement.style.setProperty('--vh', `${vh}px`);
-      const modalContentNode = document.querySelector("#privy-modal-content") as HTMLElement | null;
-      modalContentNode && (modalContentNode.style.marginBottom = `1200px`);
-    }
-    
-    window.addEventListener("resize", adjustModalForKeyboard);
-    
-    return () => {
-      window.removeEventListener("resize", adjustModalForKeyboard);
-    }
+    var viewport = document.querySelector("meta[name=viewport]") as any;
+    viewport && viewport.setAttribute("content", viewport.content + ", height=" + window.innerHeight);
   }, []);
 
 

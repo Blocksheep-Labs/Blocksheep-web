@@ -63,14 +63,8 @@ function HomeScreen() {
 
     setTimeout(() => {
       alert("Timeout!");
-      const adjustForKeyboard = () => {
-        document.body.style.paddingBottom = `${window.innerHeight - document.documentElement.clientHeight}px`;
-      };
-    
-      document.querySelectorAll('input, textarea').forEach(input => {
-        input.addEventListener('focus', adjustForKeyboard);
-        input.addEventListener('blur', () => document.body.style.paddingBottom = '0');
-      });
+      const el = document.querySelector("#privy-modal-content") as HTMLDivElement | null;
+      el && (el.style.marginBottom = '200px');
     }, 1500);
   }
 

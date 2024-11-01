@@ -61,7 +61,7 @@ function HomeScreen() {
     setTimeout(() => {
       const el = document.querySelector("#privy-modal-content") as HTMLDivElement | null;
       if (el && window.innerWidth <= 440) {
-        el.style.marginBottom = '200px';
+        el.style.marginBottom = '180px';
         el.style.borderRadius = '18px';
       };
     }, 1500);

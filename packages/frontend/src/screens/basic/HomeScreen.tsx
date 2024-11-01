@@ -25,6 +25,9 @@ function HomeScreen() {
   });
   const { logout } = usePrivy();
 
+  const scrollableRef = useRef<HTMLDivElement>(null);
+  useTelegramViewportHack(scrollableRef);
+
   useEffect(() => {
     const linkAccount = async() => {
       console.log(smartAccountAddress, smartAccountClient)
@@ -57,17 +60,8 @@ function HomeScreen() {
 
 
 
-  useEffect(() => {
-    var viewport = document.querySelector("meta[name=viewport]") as any;
-    viewport && viewport.setAttribute("content", viewport.content + ", height=" + window.innerHeight);
-  }, []);
-
-  const scrollableRef = useRef<HTMLDivElement>(null);
-  useTelegramViewportHack(scrollableRef);
-
-
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom relative" ref={scrollableRef}>
+    <div className="mx-auto flex w-full h-full flex-col bg-race_bg bg-cover bg-bottom relative" ref={scrollableRef}>
       <div className="flex items-center justify-center h-52">
         <img src={BlockSheepLogo} alt="blocksheep" className="w-60"/>
       </div>

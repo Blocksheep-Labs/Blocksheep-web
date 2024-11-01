@@ -6,11 +6,12 @@ import Sheep from "../../assets/home/sheep itself.png";
 import SheepShadow from "../../assets/home/sheep shadow.png";
 import FlagYellow from "../../assets/home/Layer 8.png";
 import FlagGreen from "../../assets/home/Layer 12.png";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { SELECTED_NETWORK } from "../../config/constants";
 import { useNavigate } from "react-router-dom";
+import { useTelegramViewportHack } from "../../hooks/useTelegramViewPortHack";
 
 
 function HomeScreen() {
@@ -61,9 +62,12 @@ function HomeScreen() {
     viewport && viewport.setAttribute("content", viewport.content + ", height=" + window.innerHeight);
   }, []);
 
+  const scrollableRef = useRef<HTMLDivElement>(null);
+  useTelegramViewportHack(scrollableRef);
+
 
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom relative">
+    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom relative" ref={scrollableRef}>
       <div className="flex items-center justify-center h-52">
         <img src={BlockSheepLogo} alt="blocksheep" className="w-60"/>
       </div>

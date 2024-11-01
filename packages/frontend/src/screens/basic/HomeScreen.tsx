@@ -58,8 +58,11 @@ function HomeScreen() {
   const handleLoginClick = () => {
     login();
     setTimeout(() => {
+      const wrapper = document.querySelector('[id^="headlessui-dialog-panel-"]') as HTMLDivElement | null;
       const el = document.querySelector("#privy-modal-content") as HTMLDivElement | null;
-      if (el && window.innerWidth <= 440) {
+      if (el && wrapper && window.innerWidth <= 440) {
+        wrapper.style.transition = 'all 0.5s';
+        wrapper.style.padding = '15px';
         el.style.transition = 'all 0.5s';
         el.style.marginBottom = '185px';
         el.style.borderRadius = '18px';

@@ -57,27 +57,17 @@ function HomeScreen() {
 
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      // @ts-ignore
-      if ('virtualKeyboard' in navigator && navigator.virtualKeyboard.boundingRect) {
-        const modalContentNode = document.querySelector("#privy-modal-content") as HTMLElement | null;
-        // @ts-ignore
-        const keyboardRect = navigator.virtualKeyboard.boundingRect;
-        console.log("Virtual Keyboard Position and Size:", keyboardRect);
+    function adjustModalForKeyboard() {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      const modalContentNode = document.querySelector("#privy-modal-content") as HTMLElement | null;
+      modalContentNode && (modalContentNode.style.bottom = `calc(var(--vh, 1vh) * 10)`);
+    }
     
-        if (modalContentNode) {
-          modalContentNode.style.borderRadius = '18px';
-          if (keyboardRect.height > 0) {
-            modalContentNode.style.marginBottom = `${keyboardRect.height}px`;
-          } else {
-            modalContentNode.style.marginBottom = "0px";
-          }
-        }
-      }
-    }, 1000);
-
+    window.addEventListener("resize", adjustModalForKeyboard);
+    
     return () => {
-      clearInterval(interval);
+      window.removeEventListener("resize", adjustModalForKeyboard);
     }
   }, []);
 

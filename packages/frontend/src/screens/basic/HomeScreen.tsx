@@ -11,7 +11,6 @@ import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { SELECTED_NETWORK } from "../../config/constants";
 import { useNavigate } from "react-router-dom";
-import { useTelegramViewportHack } from "../../hooks/useTelegramViewPortHack";
 
 
 function HomeScreen() {
@@ -25,8 +24,6 @@ function HomeScreen() {
   });
   const { logout } = usePrivy();
 
-  const scrollableRef = useRef<HTMLDivElement>(null);
-  useTelegramViewportHack(scrollableRef);
 
   useEffect(() => {
     const linkAccount = async() => {
@@ -66,14 +63,13 @@ function HomeScreen() {
       if (el && window.innerWidth <= 440) {
         el.style.marginBottom = '200px';
         el.style.borderRadius = '18px';
-        el.style.marginLeft = el.style.marginRight = '7px';
       };
     }, 1500);
   }
 
 
   return (
-    <div className="mx-auto flex w-full h-full flex-col bg-race_bg bg-cover bg-bottom relative" ref={scrollableRef}>
+    <div className="mx-auto flex w-full h-full flex-col bg-race_bg bg-cover bg-bottom relative">
       <div className="flex items-center justify-center h-52">
         <img src={BlockSheepLogo} alt="blocksheep" className="w-60"/>
       </div>

@@ -18,32 +18,32 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 const queryClient = new QueryClient()
 
 root.render(
-    
-        <PrivyProvider 
-          appId={PRIVY_APP_ID || ""}
-          config={{
-            loginMethods: ["email", "wallet"],
-            appearance: {
-              theme: 'light'
-            },
-            embeddedWallets: {
-              createOnLogin: "all-users",
-              noPromptOnSignature: true,
-            },
-            defaultChain: SELECTED_NETWORK,
-            supportedChains: [SELECTED_NETWORK]
-          }}
-        >
-          <SmartAccountProvider>
-            <QueryClientProvider client={queryClient}>
-              <WagmiProvider config={config}>
-                <BrowserRouter>
-                  <App />
-                </BrowserRouter>
-              </WagmiProvider>
-            </QueryClientProvider>
-          </SmartAccountProvider>
-        </PrivyProvider>
+  <PrivyProvider 
+    appId={PRIVY_APP_ID || ""}
+    config={{
+      loginMethods: ["email", "wallet"],
+      appearance: {
+        theme: 'light',
+        
+      },
+      embeddedWallets: {
+        createOnLogin: "all-users",
+        noPromptOnSignature: true,
+      },
+      defaultChain: SELECTED_NETWORK,
+      supportedChains: [SELECTED_NETWORK]
+    }}
+  >
+    <SmartAccountProvider>
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </WagmiProvider>
+      </QueryClientProvider>
+    </SmartAccountProvider>
+  </PrivyProvider>
 );
 
 Modal.setAppElement("#root");

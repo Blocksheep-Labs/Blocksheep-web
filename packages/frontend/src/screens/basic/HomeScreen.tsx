@@ -56,6 +56,31 @@ function HomeScreen() {
 
 
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // @ts-ignore
+      if ('virtualKeyboard' in navigator && navigator.virtualKeyboard.boundingRect) {
+        const modalContentNode = document.querySelector("#privy-modal-content") as HTMLElement | null;
+        // @ts-ignore
+        const keyboardRect = navigator.virtualKeyboard.boundingRect;
+        console.log("Virtual Keyboard Position and Size:", keyboardRect);
+    
+        if (modalContentNode) {
+          modalContentNode.style.borderRadius = '18px';
+          if (keyboardRect.height > 0) {
+            modalContentNode.style.marginBottom = `${keyboardRect.height}px`;
+          } else {
+            modalContentNode.style.marginBottom = "0px";
+          }
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    }
+  }, []);
+
 
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom relative">

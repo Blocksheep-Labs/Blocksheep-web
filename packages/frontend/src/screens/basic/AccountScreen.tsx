@@ -40,6 +40,7 @@ function AccountScreen() {
   console.log({userBalance})
 
   const openDepositModal = () => {
+    handleDeposit(30);
     setModalType("deposit");
     setModalsOpen(true);
   }
@@ -50,8 +51,10 @@ function AccountScreen() {
   }
 
   const handleDeposit = (amount: number) => {
-    console.log(smartAccountAddress, user)
-    buyTokens(amount, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted)).then(console.log).catch(console.error)
+    console.log(smartAccountAddress, user);
+    buyTokens(amount, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted))
+      .then(console.log)
+      .catch(console.error)
   }
 
   const handleWithdraw = (amount: number) => {
@@ -73,7 +76,6 @@ function AccountScreen() {
 
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
-      <button className="bg-black p-2 text-white" onClick={() => handleDeposit(30)}>Test deposit for 1 game</button>
       <div className="mt-10 flex flex-col gap-5 cursor-pointer">
         <ProfileButton 
           text={`Address: ${smartAccountAddress && shortenAddress(smartAccountAddress as string)}`}
@@ -155,8 +157,6 @@ function AccountScreen() {
         modalIsOpen 
         && 
         <SelectAmountModal 
-          handleDeposit={handleDeposit} 
-          handleWithdraw={handleWithdraw}
           handleClose={() => setModalsOpen(false)}
           type={modalType}
         /> 

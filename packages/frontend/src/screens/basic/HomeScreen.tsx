@@ -58,6 +58,21 @@ function HomeScreen() {
     linkAccount();
   }, [smartAccountClient, smartAccountAddress]);
 
+  const handleLoginClick = () => {
+    login();
+
+    setTimeout(() => {
+      alert("Timeout!");
+      const adjustForKeyboard = () => {
+        document.body.style.paddingBottom = `${window.innerHeight - document.documentElement.clientHeight}px`;
+      };
+    
+      document.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('focus', adjustForKeyboard);
+        input.addEventListener('blur', () => document.body.style.paddingBottom = '0');
+      });
+    }, 1500);
+  }
 
 
   return (
@@ -74,7 +89,7 @@ function HomeScreen() {
           <img src={FlagYellow} alt="start" className="absolute left-[88%] scale-150 bottom-10 z-10"/>
           <img src={FlagGreen} alt="start" className="absolute left-[105%] scale-110 bottom-28"/>
           <button 
-            onClick={login}
+            onClick={handleLoginClick}
             className="w-full z-10 rotate-2 absolute left-[100%] bottom-[175px] text-center font-[Berlin-Bold] text-[35px] text-[#18243F] hover:text-white disabled:text-gray-500 disabled:hover:text-gray-500 disabled:mt-5">
             Play
           </button>

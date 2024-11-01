@@ -86,10 +86,10 @@ function HomeScreen() {
     */
 
     function adjustModalForKeyboard() {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      //const vh = window.innerHeight * 0.01;
+      //document.documentElement.style.setProperty('--vh', `${vh}px`);
       const modalContentNode = document.querySelector("#privy-modal-content") as HTMLElement | null;
-      modalContentNode && (modalContentNode.style.marginBottom = `calc(var(--vh, 1vh) * 10)`);
+      modalContentNode && (modalContentNode.style.marginBottom = `500px`);
     }
     
     window.addEventListener("resize", adjustModalForKeyboard);

@@ -57,11 +57,14 @@ function HomeScreen() {
 
   const handleLoginClick = () => {
     login();
-    const el = document.querySelector("#privy-modal-content") as HTMLDivElement | null;
-    if (el && window.innerWidth <= 440) {
-      el.style.transition = 'all 0.5s';
-      el.style.marginBottom = '200px';
-    };
+    setTimeout(() => {
+      const el = document.querySelector("#privy-modal-content") as HTMLDivElement | null;
+      if (el && window.innerWidth <= 440) {
+        el.style.transition = 'all 0.5s';
+        el.style.marginBottom = '185px';
+        el.style.borderRadius = '18px';
+      };
+    }, 500);
   }
 
 

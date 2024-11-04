@@ -1,4 +1,4 @@
-import RegisteringBackground from "../../assets/loading/registering-bg.png";
+import RegisteringBackground from "../../assets/loading/registering-bg.jpg";
 
 
 function RegisteringModal() {

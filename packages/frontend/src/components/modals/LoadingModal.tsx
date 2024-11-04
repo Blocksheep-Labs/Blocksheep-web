@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import LoadingBackground from "../../assets/loading/loading-bg.png";
+import LoadingBackground from "../../assets/loading/loading-bg.jpg";
 import { distributeRewardOfTheGame } from "../../utils/contract-functions";
 import { config } from "../../config/wagmi";
 import { waitForTransactionReceipt  } from '@wagmi/core';

@@ -16,6 +16,8 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import LazyImage from "../../components/image-loading/lazy-image";
+import TinderCard from "react-tinder-card";
 
 
 function SelectRaceScreen() {

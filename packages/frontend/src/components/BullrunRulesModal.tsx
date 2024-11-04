@@ -1,5 +1,4 @@
 import NextFlag from "../assets/common/flag.png";
-import RegisteredBackground from "../assets/loading/registered-bg.png";
 import BullrunRulesGrid from "./BullrunRulesGrid";
 
 

@@ -1,5 +1,4 @@
 import NextFlag from "../assets/common/flag.png";
-import LoadingBackground from "../assets/loading/loading-bg.png";
 import DepositingModalBackground from "../assets/tokens-modals/depositing.png";
 
 export type SelectAmountModalProps = {

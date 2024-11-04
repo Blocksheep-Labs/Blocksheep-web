@@ -64,7 +64,7 @@ function HomeScreen() {
         wrapper.style.transition = 'all 0.5s';
         wrapper.style.padding = '15px';
         el.style.transition = 'all 0.5s';
-        el.style.marginBottom = '185px';
+        el.style.marginBottom = '200px';
         el.style.borderRadius = '18px';
       };
     }, 500);

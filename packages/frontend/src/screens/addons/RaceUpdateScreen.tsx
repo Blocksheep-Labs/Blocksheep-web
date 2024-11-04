@@ -216,7 +216,7 @@ function RaceUpdateScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
+      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg_track bg-cover bg-bottom">
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>

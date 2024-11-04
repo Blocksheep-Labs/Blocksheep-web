@@ -4,6 +4,7 @@ import BottomYellowBg from "../assets/gameplay/bottom-yellow-top.svg";
 import { RefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import React from "react";
 import SelectionBtnBox from "./SelectionBtnBox";
+import LazyImage from "./image-loading/lazy-image";
 
 type Direction = "left" | "right" | "up" | "down";
 
@@ -91,7 +92,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     return (
       <>
         <div className="relative py-2">
-          <div className={`bg-tunnel_bg cardContainer ${disabled && 'opacity-70'}`}>
+          <div className={`cardContainer ${disabled && 'opacity-70'}`}>
             {questions.toReversed().map(({ id, info }, index) => (
                 <TinderCard
                   ref={childRefs[index]}
@@ -103,15 +104,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
                   preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
                 >
                   <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
-                    <div className="relative">
-                      <img src={`/questions/question1.png`} alt="play-card" />
-                      <img
-                        //src="https://gateway.pinata.cloud/ipfs/bafkreicgp24henidhmn7pbghwjkkgdzd2cvmcj2tmpbp3zlbrczwvijq44"
-                        src={info.imgUrl}
-                        alt="bottom-yellow-top"
-                        className="absolute inset-x-0 bottom-0"
-                      />
-                    </div>
+                    <LazyImage src={info.imgUrl}/>
                     <Content question={info.content} />
                   </div>
                 </TinderCard>

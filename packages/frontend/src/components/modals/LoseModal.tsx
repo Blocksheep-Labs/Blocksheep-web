@@ -1,5 +1,5 @@
 "use client"
-import LoseMain from "../../assets/lose/lose-main.png";
+import LoseMain from "../../assets/lose/lose-main.webp";
 import NextFlag from "../../assets/common/flag.png";
 
 export type WinModalProps = {

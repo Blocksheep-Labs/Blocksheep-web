@@ -159,7 +159,7 @@ export default function RabbitHoleRules() {
 
 
     return (
-        <div className="mx-auto justify-start h-screen w-full bg-tunnel_bg bg-cover bg-bottom relative">
+        <div className="mx-auto justify-start h-screen w-full bg-cover bg-bottom relative">
             <TopPageTimer duration={secondsVisual * 1000} />
             <div className="absolute w-full py-6 z-10 bg-black">
                 <Timer seconds={10} />

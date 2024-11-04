@@ -1,4 +1,4 @@
-import WaitingBackground from "../../assets/loading/waiting-players-bg.png";
+import WaitingBackground from "../../assets/loading/waiting-players-bg.jpg";
 
 function WaitingForPlayersModal({
     numberOfPlayersRequired,

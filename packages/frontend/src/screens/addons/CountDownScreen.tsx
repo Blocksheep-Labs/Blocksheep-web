@@ -44,7 +44,7 @@ function CountDownScreen() {
     //return;
 
     socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
-    navigate(generateLink("UNDERDOG_PREVIEW", Number(raceId)), {
+    navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)), {
       state: location.state,
       replace: true,
     });

@@ -17,6 +17,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
+import DogLoaderImage from "../../assets/underdog/background_head.png";
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
@@ -57,6 +58,8 @@ function UnderdogGame() {
   // this would be an array of arrays of answers [[0,1], [1,0], [1,1]]
   const [usersAnswers, setUserAnswers] = useState<any[]>([]);
 
+  const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | null>(null);
+
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -94,6 +97,7 @@ function UnderdogGame() {
   };
   
   const onClickLike = async(qIndex: number, sendTx=true) => {
+    setSelectedAnswer("left");
     setSubmittingAnswer(true);
     pause();
 
@@ -148,6 +152,7 @@ function UnderdogGame() {
       const time = new Date();
       time.setSeconds(time.getSeconds() + 10);
       restart(time);
+      setSelectedAnswer(null);
   
       if (currentQuestionIndex !== questions.length - 1)
         setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -156,6 +161,7 @@ function UnderdogGame() {
 
 
   const onClickDislike = async(qIndex: number, sendTx=true) => {
+    setSelectedAnswer("right");
     setSubmittingAnswer(true);
     pause();
 
@@ -210,6 +216,7 @@ function UnderdogGame() {
       const time = new Date();
       time.setSeconds(time.getSeconds() + 10);
       restart(time);
+      setSelectedAnswer(null);
 
       if (currentQuestionIndex !== questions.length - 1)
         setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -485,11 +492,22 @@ function UnderdogGame() {
   }, []);
 
 
-  //console.log({questions})
-
 
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-bottom">
+    <div className="relative mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-center">
+      {(selectedAnswer) && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
+      )}
+
+      {(selectedAnswer) && (
+        <img 
+          src={DogLoaderImage} 
+          alt="pulse-bg" 
+          className="absolute inset-0 z-50 w-full h-full object-cover animate-pulse"
+        />
+      )}
+      
+
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
@@ -522,12 +540,12 @@ function UnderdogGame() {
           rightAction={onClickDislike}
           disabled={modalIsOpen || submittingAnswer}
           currentQuestionIndex={currentQuestionIndex}
+          selectedAnswer={selectedAnswer}
         />
       </div>
-        
-      <div className="self-end">
-        <img src={BottomTab} alt="" className="w-full" />
-      </div>
+
+
+      
 
       {modalIsOpen && (
         <>

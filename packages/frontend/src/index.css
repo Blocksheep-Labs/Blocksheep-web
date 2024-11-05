@@ -14,17 +14,18 @@
 
 .swipe {
   position: absolute;
-  background-size: cover;
-  left: 20px;
-  right: 20px;
 }
 
-.cardContainer {
-  /* width: 90vw;
-  max-width: 260px;
-  height: 300px; */
-  
+.relative-container {
+  position: relative;
+  width: 100%;
+  height: 60vh; /* Adjust based on your requirements */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+
 
 .card {
   position: relative;

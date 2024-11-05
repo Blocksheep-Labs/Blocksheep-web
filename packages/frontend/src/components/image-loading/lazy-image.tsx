@@ -9,7 +9,7 @@ export default function LazyImage({src, width}: {src: string, width?: string | n
 
             width: width ? width : "100%",
             height: "100%",
-            minHeight: '307px'
+            minHeight: '228px'
         }}>
             <img 
                 src={src} 

@@ -90,29 +90,26 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     };
 
     return (
-      <>
-        <div className="relative py-2">
-          <div className={`cardContainer ${disabled && 'opacity-70'}`}>
-            {questions.toReversed().map(({ id, info }, index) => (
-                <TinderCard
-                  ref={childRefs[index]}
-                  className="swipe scale-50"
-                  key={index}
-                  onSwipe={!disabled ? (dir) => swiped(dir, info, index + completedCount) : undefined}
-                  onCardLeftScreen={() => outOfFrame(info, index + completedCount)}
-                  swipeRequirementType="position"
-                  preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
-                >
-                  <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
-                    <LazyImage src={info.imgUrl}/>
-                    <Content question={info.content} />
-                  </div>
-                </TinderCard>
-            ))}
-          </div>
+
+        <div className={`${disabled && 'opacity-0'} relative py-2 relative-container transition-all`}>
+          {questions.toReversed().map(({ id, info }, index) => (
+            <TinderCard
+              ref={childRefs[index]}
+              className="swipe w-64"
+              key={index}
+              onSwipe={!disabled ? (dir) => swiped(dir, info, index + completedCount) : undefined}
+              onCardLeftScreen={() => outOfFrame(info, index + completedCount)}
+              swipeRequirementType="position"
+              preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
+            >
+              <div className="rounded-xl bg-[#3d4c6f] p-[14px]" id="tinderCardContainer">
+                <LazyImage src={info.imgUrl}/>
+                <Content question={info.content} />
+              </div>
+            </TinderCard>
+          ))}
         </div>
-        
-      </>
+ 
     );
   },
 );

@@ -444,7 +444,7 @@ function UnderdogGame() {
 
   function nextClicked() {
     socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-    navigate(generateLink("ADD_NAME", Number(raceId)), {
+    navigate(generateLink("RACE_UPDATE_2", Number(raceId)), {
       state: location.state
     });
   }

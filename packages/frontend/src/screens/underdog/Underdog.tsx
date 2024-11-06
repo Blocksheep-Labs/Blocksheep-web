@@ -5,7 +5,6 @@ import UserCount from "../../components/UserCount";
 import { RefObject, useEffect, useRef, useState } from "react";
 import LoadingModal from "../../components/modals/LoadingModal";
 import WinModal from "../../components/modals/WinModal";
-import RaceModal from "../../components/modals/RaceModal";
 import Timer from "../../components/Timer";
 import { useTimer } from "react-timer-hook";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -17,7 +16,8 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
-import DogLoaderImage from "../../assets/underdog/background_head.png";
+import DogLoaderImage from "../../assets/underdog/background_head.webp";
+import Firework from "../../components/firework/firework";
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
@@ -51,14 +51,13 @@ function UnderdogGame() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
-  const [amountOfPlayersWaitingToFinish, setAmountOfPlayersWaitingToFinish] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
   const { smartAccountClient } = useSmartAccount();
   const [raceData, setRaceData] = useState<any>(undefined);
-  // this would be an array of arrays of answers [[0,1], [1,0], [1,1]]
-  const [usersAnswers, setUserAnswers] = useState<any[]>([]);
 
   const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | null>(null);
+  const [amountOfAnswersLeft, setAmountOfAnswersLeft] = useState(0);
+  const [amountOfAnswersRight, setAmountOfAnswersRight] = useState(0);
 
 
   const time = new Date();
@@ -111,17 +110,6 @@ function UnderdogGame() {
         answer: 1,
       }
     });
-
-    socket.emit('update-progress', {
-      raceId,
-      userAddress: smartAccountAddress,
-      property: "game1++",
-      value: {
-        completed: currentQuestionIndex + 1,
-        of: Number(questions.length),
-        answer: 1,
-      }
-    });
     
     sendTx && txAttempts(
       5,
@@ -141,22 +129,20 @@ function UnderdogGame() {
       },
       3000
     ).catch(err => {
-      console.log(err);
+      //console.log(err);
       console.log("Answer can not be submitted, probably answered already");
     }).finally(() => {
-      setSubmittingAnswer(false);
-      
-      ref.current?.swipeLeft();
-  
-      // reset time
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + 10);
-      restart(time);
-      setSelectedAnswer(null);
-  
-      if (currentQuestionIndex !== questions.length - 1)
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-    })
+      socket.emit('update-progress', {
+        raceId,
+        userAddress: smartAccountAddress,
+        property: "game1++",
+        value: {
+          completed: currentQuestionIndex + 1,
+          of: Number(questions.length),
+          answer: 1,
+        }
+      });
+    });
   };
 
 
@@ -166,17 +152,6 @@ function UnderdogGame() {
     pause();
 
     console.log("UPDATE PROGRESS", {
-      raceId,
-      userAddress: smartAccountAddress,
-      property: "game1++",
-      value: {
-        completed: currentQuestionIndex + 1,
-        of: Number(questions.length),
-        answer: 0,
-      }
-    });
-
-    socket.emit('update-progress', {
       raceId,
       userAddress: smartAccountAddress,
       property: "game1++",
@@ -205,21 +180,19 @@ function UnderdogGame() {
       },
       3000,
     ).catch(err => {
-      console.log(err);
+      //console.log(err);
       console.log("Answer can not be submitted, probably answered already");
     }).finally(() => {
-      setSubmittingAnswer(false);
-      
-      ref.current?.swipeRight();
-
-      // reset time
-      const time = new Date();
-      time.setSeconds(time.getSeconds() + 10);
-      restart(time);
-      setSelectedAnswer(null);
-
-      if (currentQuestionIndex !== questions.length - 1)
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      socket.emit('update-progress', {
+        raceId,
+        userAddress: smartAccountAddress,
+        property: "game1++",
+        value: {
+          completed: currentQuestionIndex + 1,
+          of: Number(questions.length),
+          answer: 0,
+        }
+      });
     });
   };
 
@@ -295,6 +268,8 @@ function UnderdogGame() {
 
   function onFinish() {
     setInterval(pause, 1000);
+
+    /*
     console.log("FINISH, waiting for players...");
     socket.emit("update-progress", {
       raceId,
@@ -302,6 +277,8 @@ function UnderdogGame() {
       property: "game1-wait-to-finish",
     });
     openWaitingBeforeFinishModal();
+    */
+    openLoadingModal();
   }
   
   // handle socket events
@@ -354,8 +331,48 @@ function UnderdogGame() {
       socket.on("progress-updated", async(progress) => {
         console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
 
-        if (progress.property === "game1-distribute") {
+        if (progress.property == "game1++") {
+          console.log("Submitted answer", progress.value.answer);
+                
+          // if we have questions amount in sum of answers count
+          if (amountOfAnswersLeft + amountOfAnswersRight + 1 == raceData.numberOfPlayersRequired) {
+            console.log("Setting timeout...");
+            setTimeout(() => {
+              console.log("Timeout, next question >>>")
+              setSubmittingAnswer(false);
+              
+              if (selectedAnswer == "right") {
+                ref.current?.swipeRight();
+              } else {
+                ref.current?.swipeLeft();
+              }
+              
+              // reset time
+              const time = new Date();
+              time.setSeconds(time.getSeconds() + 10);
+              restart(time);
+              setSelectedAnswer(null);
+              setAmountOfAnswersLeft(0);
+              setAmountOfAnswersRight(0);
+  
+              if (currentQuestionIndex !== questions.length - 1)
+                setCurrentQuestionIndex(currentQuestionIndex + 1);
+            }, 7000);
+          }
 
+          switch (progress.value.answer) {
+            case 0:
+              setAmountOfAnswersRight(prev => prev + 1);
+              break;
+            case 1:
+              setAmountOfAnswersLeft(prev => prev + 1);
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (progress.property === "game1-distribute") {
           setAmountOfPlayersCompleted(prev => prev + 1);
           
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
@@ -366,19 +383,13 @@ function UnderdogGame() {
           }
         }
 
+        /*
         if (progress.property === "game1-wait-to-finish") {
-          setAmountOfPlayersWaitingToFinish(amountOfPlayersWaitingToFinish + 1);
-          // track users answers (to reduce amount of txs in loadingModal on distribute reward step)
-          console.log("SET USER ANSWERS:", [...usersAnswers, progress.rProgress.progress.game1.answers]);
-
-          setUserAnswers([...usersAnswers, progress.rProgress.progress.game1.answers]);
-          console.log("WAITING TO FINISH++", amountOfPlayersWaitingToFinish + 1);
-          if (raceData.numberOfPlayersRequired <= amountOfPlayersWaitingToFinish + 1) {
-            console.log("DISTRIBUTING REWARD...");
-            closeWaitingBeforeFinishModal();
-            openLoadingModal();
-          }
+          console.log("DISTRIBUTING REWARD...");
+          closeWaitingBeforeFinishModal();
+          openLoadingModal();
         }
+        */
 
         if (progress.property === "game1-wait-after-finish") {
           console.log("NEXT_CLICKED++")
@@ -414,8 +425,6 @@ function UnderdogGame() {
         console.log({isDistributedAmount, waitingAfterFinishAmount, waitingToFinishAmount});
         setAmountOfPlayersCompleted(isDistributedAmount);
         setWaitingAfterFinishPlayersCount(waitingAfterFinishAmount);
-        setAmountOfPlayersWaitingToFinish(waitingToFinishAmount);
-        setUserAnswers(answers);
       });
   
       return () => {
@@ -427,7 +436,7 @@ function UnderdogGame() {
         socket.off('race-progress-questions');
       }
     }
-  }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, amountOfPlayersWaitingToFinish, waitingAfterFinishPlayersCount]);
+  }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, waitingAfterFinishPlayersCount, amountOfAnswersLeft, amountOfAnswersRight]);
 
   // fetch server-side data
   useEffect(() => {
@@ -451,7 +460,7 @@ function UnderdogGame() {
 
   function nextClicked() {
     socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-    navigate(generateLink("ADD_NAME", Number(raceId)), {
+    navigate(generateLink("RACE_UPDATE_2", Number(raceId)), {
       state: location.state
     });
   }
@@ -495,6 +504,16 @@ function UnderdogGame() {
 
   return (
     <div className="relative mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-center">
+      { 
+        (
+          (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
+          (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
+        ) 
+        &&
+        (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+        &&
+        <Firework/>
+      }
       {(selectedAnswer) && (
         <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
       )}
@@ -507,7 +526,6 @@ function UnderdogGame() {
         />
       )}
       
-
       <div className="relative my-4">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-0">
@@ -541,6 +559,10 @@ function UnderdogGame() {
           disabled={modalIsOpen || submittingAnswer}
           currentQuestionIndex={currentQuestionIndex}
           selectedAnswer={selectedAnswer}
+
+          amountOfQuestions={questions.length}
+          leftCount={amountOfAnswersLeft}
+          rightCount={amountOfAnswersRight}
         />
       </div>
 
@@ -551,7 +573,7 @@ function UnderdogGame() {
         <>
           {
             modalType === "loading" && 
-            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={usersAnswers}/>
+            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={[]}/>
           }
           {
             modalType === "waiting" && 
@@ -566,7 +588,7 @@ function UnderdogGame() {
 
       {
         distributePermanentlyOpened && 
-        <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={usersAnswers}/>
+        <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={[]}/>
       }
       {
         waitingToFinishModalPermanentlyOpened &&

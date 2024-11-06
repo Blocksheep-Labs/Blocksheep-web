@@ -331,6 +331,9 @@ function SelectRaceScreen() {
       setRaceId(id);
       setIsOpen(true);
       setModalType("registered");
+
+      // TODO: If we want to join at the same time, we have to call the 'onClickJoin' function !!!
+      
     }).catch(err => {
       setModalType(undefined);
       setIsOpen(false);

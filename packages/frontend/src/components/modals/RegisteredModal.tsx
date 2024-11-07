@@ -20,7 +20,7 @@ function RegisteredModal({ handleClose, timeToStart }: RaceModalProps) {
                     handleClose();
                 }}
             >
-                Ok
+                Join
             </button>
             <img src={NextFlag} alt="next-flag" />
         </div>

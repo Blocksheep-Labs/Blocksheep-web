@@ -8,6 +8,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import Countdown321 from "../../components/3-2-1-go/3-2-1-go";
 
 
 function CountDownScreen() {
@@ -45,7 +46,16 @@ function CountDownScreen() {
 
     socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
     navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)), {
-      state: location.state,
+      state: { 
+        ...location.state, 
+        raceProgressVisual: data.progress.map((i: { user: string, progress: number }) => {
+          return { 
+            curr: 0, 
+            delta: 0, 
+            address: i.user 
+          };
+        }) 
+      },
       replace: true,
     });
   };
@@ -73,7 +83,11 @@ function CountDownScreen() {
           setData(data.contractData);
 
           let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
-            return { curr: Number(i.progress), delta: 0, address: i.user };
+            return { 
+              curr: -1, 
+              delta: 1, 
+              address: i.user 
+            };
           });
           setProgress(newProgress);
 
@@ -179,9 +193,7 @@ function CountDownScreen() {
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">
-            <div className="flex size-36 items-center justify-center rounded-3xl bg-yellow-500">
-              <p className="font-[Berlin] text-[70px]">{seconds === 0 ? "GO" : seconds}</p>
-            </div>
+            { seconds <= 4 && <Countdown321/> }
           </div>
         </div>
       </div>

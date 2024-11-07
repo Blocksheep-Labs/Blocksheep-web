@@ -18,6 +18,7 @@ import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import LazyImage from "../../components/image-loading/lazy-image";
 import TinderCard from "react-tinder-card";
+import TopScreenMessage from "../../components/top-screen-message/top-screen-message";
 
 
 function SelectRaceScreen() {
@@ -38,6 +39,7 @@ function SelectRaceScreen() {
       amountOfRegisteredUsers: data.registeredUsers.length, 
       progress,
       step,
+      raceProgressVisual: [],
     }
   }
 
@@ -49,7 +51,7 @@ function SelectRaceScreen() {
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       console.log(generateStateObjectForGame(data, progress))
-      navigate(`/race/${raceId}/underdog/rules`, {
+      navigate(`/race/${raceId}/race-update/board1`, {
         state: generateStateObjectForGame(data, progress),
         replace: true,
       });
@@ -332,7 +334,8 @@ function SelectRaceScreen() {
       setIsOpen(true);
       setModalType("registered");
 
-      // TODO: If we want to join at the same time, we have to call the 'onClickJoin' function !!!
+      // If we want to join at the same time, we have to call the 'onClickJoin' function
+      
       
     }).catch(err => {
       setModalType(undefined);
@@ -342,14 +345,16 @@ function SelectRaceScreen() {
   }, [smartAccountAddress]);
 
   function closeModal() {
-    setIsOpen(false);
-    setRaceId(null);
+    onClickJoin(raceId as number);
   }
 
   //console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
     <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
+      {
+        // <TopScreenMessage/>
+      }
       <div className="mt-16 flex w-full justify-center">
         <RibbonLabel text="Races"/>
       </div>

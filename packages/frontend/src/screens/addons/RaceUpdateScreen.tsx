@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RaceBoard from "../../components/RaceBoard";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../../utils/contract-functions";
@@ -27,13 +27,15 @@ const getPart = (board: string) => {
   return selectedPart;
 }
 
+type TProgress = { curr: number; delta: number; address: string };
+
 function RaceUpdateScreen() {
   const location = useLocation();
   const { smartAccountAddress } = useSmartAccount();
   const [seconds, setSeconds] = useState(10);
   const navigate = useNavigate();
   const {raceId, board} = useParams();
-  const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
+  const [progress, setProgress] = useState<TProgress[]>([]);
   const [data, setData] = useState<any>(undefined);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -72,12 +74,46 @@ function RaceUpdateScreen() {
         break;
     }
 
+    console.log("REDIRECT:", {progressData: await getNewProgress()})
     socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
     navigate(redirectLink, {
-      state: location.state,
+      state: {...location.state, raceProgressVisual: await getNewProgress(true)},
       replace: true,
     });
   };
+
+  const getNewProgress = async(redirecting=false) => {
+    let usedValueForData = undefined;
+    if (!data) {
+      usedValueForData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
+    } else {
+      usedValueForData = data;
+    }
+
+    let currentProgressVisual: TProgress[] = location.state.raceProgressVisual;
+          
+    let newProgress: TProgress[] = usedValueForData.progress.map((i: { user: string, progress: number }) => {
+      const current = (() => {
+        const playerPrevData = currentProgressVisual.find(j => j.address == i.user);
+        return playerPrevData ? playerPrevData.curr : 0;
+      })();
+      const delta = Number(i.progress) - current;
+
+      console.log({ 
+        curr: redirecting ? delta : current,
+        delta: redirecting ? current : delta, 
+        address: i.user 
+      });
+
+      return { 
+        curr: redirecting ? delta : current,
+        delta: redirecting ? current : delta, 
+        address: i.user 
+      };
+    });
+
+    return newProgress;
+  }
 
   useEffect(() => {
     if (raceId?.length && smartAccountAddress) {
@@ -89,7 +125,7 @@ function RaceUpdateScreen() {
           contractData: data[0],
           serverData: data[1].data,
         }
-      }).then(data => {
+      }).then(async data => {
         if (data.contractData && data.serverData) {
           // CONTRACT DATA
           console.log({data});
@@ -100,11 +136,8 @@ function RaceUpdateScreen() {
           } 
 
           setData(data.contractData);
-
-          let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
-            return { curr: Number(i.progress), delta: 0, address: i.user };
-          });
-          setProgress(newProgress);
+          
+          setProgress(await getNewProgress());
 
           // SERVER DATA
           setUsers(data?.serverData?.race?.users || []);
@@ -219,7 +252,9 @@ function RaceUpdateScreen() {
       <div className="mx-auto flex h-screen w-full flex-col bg-race_bg_track bg-cover bg-bottom">
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
-          <RaceBoard progress={progress} users={users}/>
+          { 
+            <RaceBoard progress={progress} users={users}/> 
+          }
         </div>
       </div>
       {

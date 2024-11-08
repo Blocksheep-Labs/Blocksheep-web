@@ -192,7 +192,7 @@ module.exports = (io) => {
             io.to(roomName).emit('rabbit-hole-results-shown-on-client', { socketId: socket.id, raceId });
         });
     
-        // get users amount connected to the game 
+        // get users amount connected to the game
         socket.on('get-connected', async({ raceId }) => {
             const roomName = `race-${raceId}`;
             const sockets = await io.in(roomName).fetchSockets();

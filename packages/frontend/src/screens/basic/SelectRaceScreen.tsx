@@ -331,17 +331,23 @@ function SelectRaceScreen() {
       console.log("REGISTERED, fetching list of races...");
 
       setTimeout(async() => {
-        const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
-        
-        fetchAndSetRaces();
-  
-        if (!raceData.registeredUsers.includes(smartAccountAddress)) {
-          throw new Error("Registration error, user is not in a list of registered users")
-        };
-  
-        setRaceId(id);
-        setIsOpen(true);
-        setModalType("registered");
+        try {
+          const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
+          
+          fetchAndSetRaces();
+    
+          if (!raceData.registeredUsers.includes(smartAccountAddress)) {
+            throw new Error("Registration error, user is not in a list of registered users")
+          };
+    
+          setRaceId(id);
+          setIsOpen(true);
+          setModalType("registered");
+        } catch (error) {
+          setModalType(undefined);
+          setIsOpen(false);
+          console.log(error);
+        }
       }, 5000);
     }).catch(err => {
       setModalType(undefined);

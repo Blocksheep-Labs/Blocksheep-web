@@ -40,7 +40,7 @@ function SelectionBtnBox({
               <>
                 { leftCount < rightCount && <img src={Crown} alt="" className="absolute -top-8 pr-2 left-20 w-10 z-10 -rotate-45"/> }
                 <span className="absolute -top-2 left-24 w-20 z-10 text-center font-[Berlin] text-xl text-[#18243F]">
-                  {String((leftCount / (leftCount + rightCount)) * 100).substring(0,4)}%
+                  {String((leftCount / ((leftCount + rightCount) || 1)) * 100).substring(0,4)}%
                 </span>
                 <img src={Sign} alt="" className="w-20 absolute -top-5 left-24"/>
               </>
@@ -63,7 +63,7 @@ function SelectionBtnBox({
               <>
                 { rightCount < leftCount && <img src={Crown} alt="" className="absolute -top-8 pl-2 right-20 w-10 z-10 rotate-45"/>}
                 <span className="absolute -top-2 right-24 w-20 z-10 text-center font-[Berlin] text-xl text-[#18243F]">
-                  {String((rightCount / (rightCount + leftCount)) * 100).substring(0,4)}%
+                  {String((rightCount / ((leftCount + rightCount) || 1)) * 100).substring(0,4)}%
                 </span>
                 <img src={Sign} alt="" className="w-20 absolute -top-5 right-24"/>
               </>

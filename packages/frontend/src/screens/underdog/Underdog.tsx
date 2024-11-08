@@ -329,7 +329,7 @@ function UnderdogGame() {
       });
 
       socket.on('rabbit-hole-results-shown-on-client', ({ raceId: raceIdSocket }) => {
-        console.log("results shown on client")
+        console.log("results shown on client", { raceIdSocket, resultsTimeoutStarted, raceIdCheck: raceId == raceIdSocket });
         if (raceId == raceIdSocket && !resultsTimeoutStarted) {
           console.log("Setting timeout...");
           setResultsTimeoutStarted(true);

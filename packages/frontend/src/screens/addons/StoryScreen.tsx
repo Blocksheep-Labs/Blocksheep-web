@@ -99,54 +99,57 @@ export default function StoryScreen() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + 6);
 
+    const handleExpire = () => {
+        console.log("UPDATE PROGRESS", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: `story-${part}`,
+        });
+        socket.emit('update-progress', {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: `story-${part}`,
+        });
+
+        let redirectLink = "/";
+     
+        switch (part) {
+            case "intro":
+                redirectLink = generateLink("RACE_START", Number(raceId)); 
+                break;
+            case "part1": 
+                redirectLink = generateLink("UNDERDOG_PREVIEW", Number(raceId)); 
+                break;
+            case "part2": 
+                redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
+                break;
+            case "part3": 
+                redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                break;
+            case "part4":
+                redirectLink = generateLink("RATE", Number(raceId));
+                break;
+            case "conclusion":
+                redirectLink = generateLink("PODIUM", Number(raceId));
+                break;
+            default:
+                break;
+        }
+   
+        
+        socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
+        navigate(redirectLink, {
+            state: location.state,
+            replace: true,
+        });
+    }
+
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
-        onExpire: () => {
-            console.log("UPDATE PROGRESS", {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: `story-${part}`,
-            });
-            socket.emit('update-progress', {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: `story-${part}`,
-            });
-
-            let redirectLink = "/";
-         
-            switch (part) {
-                case "intro":
-                    redirectLink = generateLink("RACE_START", Number(raceId)); 
-                    break;
-                case "part1": 
-                    redirectLink = generateLink("UNDERDOG_PREVIEW", Number(raceId)); 
-                    break;
-                case "part2": 
-                    redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
-                    break;
-                case "part3": 
-                    redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
-                    break;
-                case "part4":
-                    redirectLink = generateLink("RATE", Number(raceId));
-                    break;
-                case "conclusion":
-                    redirectLink = generateLink("PODIUM", Number(raceId));
-                    break;
-                default:
-                    break;
-            }
-       
-            
-            socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
-            navigate(redirectLink, {
-                state: location.state,
-                replace: true,
-            });
-        },
+        onExpire: handleExpire,
         autoStart: true
     });
+
 
     useEffect(() => {
         if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
@@ -188,13 +191,17 @@ export default function StoryScreen() {
             });
 
             socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
-                if (partSocket == getStoryPart(part) && raceId == raceIdSocket && !movedToNext) {
-                    console.log("LEAVED")
-                    setAmountOfConnected(amountOfConnected - 1);
-                    if (!modalIsOpen) {
-                        setModalIsOpen(true);
+                if (partSocket == getStoryPart(part) && raceId == raceIdSocket) {
+                    if (!movedToNext) {
+                        console.log("LEAVED")
+                        setAmountOfConnected(amountOfConnected - 1);
+                        if (!modalIsOpen) {
+                            setModalIsOpen(true);
+                        }
+                        setModalType("waiting");
+                    } else {
+                        setTimeout(handleExpire, 2000);
                     }
-                    setModalType("waiting");
                 }
             });
         

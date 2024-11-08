@@ -363,7 +363,7 @@ function SelectRaceScreen() {
   //console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
-    <div className="mx-auto flex h-full w-full flex-col bg-race_bg bg-cover bg-bottom">
+    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
       {
         // <TopScreenMessage/>
       }

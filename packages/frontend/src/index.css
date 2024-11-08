@@ -58,6 +58,19 @@
       /*top internal highlight*/
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
 
 body{
   margin:0;

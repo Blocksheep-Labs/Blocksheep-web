@@ -58,7 +58,7 @@ function UnderdogGame() {
   const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | null>(null);
   const [amountOfAnswersLeft, setAmountOfAnswersLeft] = useState(0);
   const [amountOfAnswersRight, setAmountOfAnswersRight] = useState(0);
-
+  const [resultsTimeoutStarted, setResultsTimeoutStarted] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -328,15 +328,52 @@ function UnderdogGame() {
         }
       });
 
+      socket.on('rabbit-hole-results-shown-on-client', ({ raceId: raceIdSocket }) => {
+        console.log("results shown on client")
+        if (raceId == raceIdSocket && !resultsTimeoutStarted) {
+          console.log("Setting timeout...");
+          setResultsTimeoutStarted(true);
+          setTimeout(() => {
+            console.log("Timeout, next question >>>")
+            setSubmittingAnswer(false);
+            
+            if (selectedAnswer == "right") {
+              ref.current?.swipeRight();
+            } else {
+              ref.current?.swipeLeft();
+            }
+            
+            // reset time
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
+            setSelectedAnswer(null);
+            setAmountOfAnswersLeft(0);
+            setAmountOfAnswersRight(0);
+
+            if (currentQuestionIndex !== questions.length - 1)
+              setCurrentQuestionIndex(currentQuestionIndex + 1);
+
+            setResultsTimeoutStarted(false);
+          }, 7000);
+        }
+      });
+
       socket.on("progress-updated", async(progress) => {
+        if (progress.raceId != raceId) {
+          return;
+        }
         console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
 
         if (progress.property == "game1++") {
           console.log("Submitted answer", progress.value.answer);
                 
           // if we have questions amount in sum of answers count
+          // TODO: HANDLE SOCKET EVENT (SETTING TIMEOUT)
           if (amountOfAnswersLeft + amountOfAnswersRight + 1 == raceData.numberOfPlayersRequired) {
+            socket.emit('rabbit-hole-results-shown', { raceId });
             console.log("Setting timeout...");
+            setResultsTimeoutStarted(true);
             setTimeout(() => {
               console.log("Timeout, next question >>>")
               setSubmittingAnswer(false);
@@ -357,6 +394,8 @@ function UnderdogGame() {
   
               if (currentQuestionIndex !== questions.length - 1)
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
+
+              setResultsTimeoutStarted(false);
             }, 7000);
           }
 
@@ -434,6 +473,7 @@ function UnderdogGame() {
         socket.off('race-progress');
         socket.off('progress-updated');
         socket.off('race-progress-questions');
+        socket.off('rabbit-hole-results-shown-on-client');
       }
     }
   }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, waitingAfterFinishPlayersCount, amountOfAnswersLeft, amountOfAnswersRight]);

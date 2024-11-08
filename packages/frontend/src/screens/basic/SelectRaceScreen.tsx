@@ -327,16 +327,22 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
     setModalType("registering");
-    await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(_ => {
+    await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(async _ => {
       console.log("REGISTERED, fetching list of races...");
-      fetchAndSetRaces();
-      setRaceId(id);
-      setIsOpen(true);
-      setModalType("registered");
 
-      // If we want to join at the same time, we have to call the 'onClickJoin' function
-      
-      
+      setTimeout(async() => {
+        const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
+        
+        fetchAndSetRaces();
+  
+        if (!raceData.registeredUsers.includes(smartAccountAddress)) {
+          throw new Error("Registration error, user is not in a list of registered users")
+        };
+  
+        setRaceId(id);
+        setIsOpen(true);
+        setModalType("registered");
+      }, 5000);
     }).catch(err => {
       setModalType(undefined);
       setIsOpen(false);

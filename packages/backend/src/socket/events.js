@@ -186,6 +186,11 @@ module.exports = (io) => {
             const roomName = `race-${raceId}`;
             io.to(roomName).emit('tunnel-started-on-client', { socketId: socket.id, raceId });
         });
+
+        socket.on('rabbit-hole-results-shown', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            io.to(roomName).emit('rabbit-hole-results-shown-on-client', { socketId: socket.id, raceId });
+        });
     
         // get users amount connected to the game 
         socket.on('get-connected', async({ raceId }) => {

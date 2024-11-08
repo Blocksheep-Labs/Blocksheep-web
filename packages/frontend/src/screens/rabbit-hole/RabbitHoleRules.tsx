@@ -75,7 +75,7 @@ export default function RabbitHoleRules() {
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected == location.state.amountOfRegisteredUsers) {    
+        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + timeRemaining);
             restart(time);

@@ -164,7 +164,7 @@ function RaceUpdateScreen() {
   useEffect(() => {
     // eslint-disable-next-line no-undef
     let timer: NodeJS.Timeout;
-    if (seconds === 0 && data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (seconds === 0 && data && amountOfConnected >= data.numberOfPlayersRequired) {
       timer = setTimeout(handleClose, 1000);
       handleClose();
     }

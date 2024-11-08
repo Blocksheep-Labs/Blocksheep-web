@@ -100,7 +100,7 @@ function CountDownScreen() {
   }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
-    if (data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (data && amountOfConnected >= data.numberOfPlayersRequired) {
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
       }, 1000);

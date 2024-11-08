@@ -50,7 +50,7 @@ export default function BullrunRules() {
     });
 
     useEffect(() => {
-        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
+        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);

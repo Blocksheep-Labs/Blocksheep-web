@@ -52,32 +52,34 @@ export default function RateScreen() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
 
+    const handleExpire = () => {
+        console.log("UPDATE PROGRESS", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: `rate`,
+        });
+        socket.emit('update-progress', {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: `rate`,
+        });
+
+        socket.emit('minimize-live-game', { part: "RATE", raceId });
+        navigate(generateLink("STORY_CONCLUSION", Number(raceId)), {
+            state: location.state,
+            replace: true,
+        });
+    }
+
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
-        onExpire: () => {
-            console.log("UPDATE PROGRESS", {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: `rate`,
-            });
-            socket.emit('update-progress', {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: `rate`,
-            });
-
-            socket.emit('minimize-live-game', { part: "RATE", raceId });
-            navigate(generateLink("STORY_CONCLUSION", Number(raceId)), {
-                state: location.state,
-                replace: true,
-            });
-        },
+        onExpire: handleExpire,
         autoStart: true
     });
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
+        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
           
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
@@ -119,13 +121,17 @@ export default function RateScreen() {
 
             socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
                 console.log({ part: partSocket, raceId: raceIdSocket, movedToNext });
-                if (partSocket == "RATE" && raceId == raceIdSocket && !movedToNext) {
-                    console.log("LEAVED")
-                    setAmountOfConnected(amountOfConnected - 1);
-                    if (!modalIsOpen) {
-                        setModalIsOpen(true);
+                if (partSocket == "RATE" && raceId == raceIdSocket) {
+                    if (!movedToNext) {
+                        console.log("LEAVED")
+                        setAmountOfConnected(amountOfConnected - 1);
+                        if (!modalIsOpen) {
+                            setModalIsOpen(true);
+                        }
+                        setModalType("waiting");
+                    } else {
+                        setTimeout(handleExpire, 2000);
                     }
-                    setModalType("waiting");
                 }
             });
         

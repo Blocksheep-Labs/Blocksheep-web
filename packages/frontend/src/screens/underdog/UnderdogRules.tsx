@@ -47,7 +47,7 @@ export default function UnderdogRules() {
     });
 
     useEffect(() => {
-        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
+        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             setSeconds(10);

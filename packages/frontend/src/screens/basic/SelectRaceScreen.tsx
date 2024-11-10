@@ -233,13 +233,14 @@ function SelectRaceScreen() {
         if (data.raceId == raceId) {
           const race = races.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
-          console.log("CONNECTED:", data);
+          console.log("Got amount of connected:", data);
           setIsOpen(true);
           setModalType("waiting");
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
           console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
 
           if (data.amount === race.numOfPlayersRequired) {
+            console.log("Ready to navigate!")
             setIsOpen(false);
             setModalType(undefined);
             handleNavigate(progress);
@@ -248,9 +249,9 @@ function SelectRaceScreen() {
       });
       
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
-        console.log(raceIdSocket, raceId)
         const race = races.find((r: any) => r.id === raceId);
-        console.log(race);
+        console.log("Player joined:", {raceIdSocket, raceId, race})
+
         if (raceIdSocket == raceId) {
           console.log("JOINED++", raceIdSocket, userAddress);
           /*
@@ -286,11 +287,14 @@ function SelectRaceScreen() {
   }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
 
   const onClickJoin = useCallback((id: number) => {
+    console.log("Joining...", id);
     socket.connect();
     
     if (smartAccountAddress) {
+      console.log("Smart account is connected, requesting progress", {raceId: id, userAddress: smartAccountAddress});
       socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
       setTimeout(() => {
+        console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
         socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
         // socket.emit("get-connected", { raceId: id });
       }, 500);

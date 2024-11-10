@@ -244,6 +244,8 @@ function SelectRaceScreen() {
             setIsOpen(false);
             setModalType(undefined);
             handleNavigate(progress);
+          } else {
+            alert(`received: ${data.amount} required: ${race.numOfPlayersRequired}`);
           }
         }
       });
@@ -298,10 +300,10 @@ function SelectRaceScreen() {
         socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
         // socket.emit("get-connected", { raceId: id });
       }, 500);
+      setRaceId(id);
+      setIsOpen(true);
+      setModalType("waiting");
     } 
-    setRaceId(id);
-    setIsOpen(true);
-    setModalType("waiting");
   }, [smartAccountAddress, socket]);
 
   useEffect(() => {
@@ -343,7 +345,7 @@ function SelectRaceScreen() {
           
           fetchAndSetRaces();
     
-          if (!raceData.registeredUsers.includes(smartAccountAddress)) {
+          if (!raceData.registeredUsers.map((i: string) => i.toLowerCase()).includes(smartAccountAddress?.toLowerCase())) {
             throw new Error("Registration error, user is not in a list of registered users")
           };
     

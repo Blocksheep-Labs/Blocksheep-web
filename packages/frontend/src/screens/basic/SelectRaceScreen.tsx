@@ -54,7 +54,7 @@ function SelectRaceScreen() {
       console.log(generateStateObjectForGame(data, progress))
       navigate(`/race/${raceId}/race-update/board1`, {
         state: generateStateObjectForGame(data, progress),
-        replace: true,
+        
       });
     });
     return;
@@ -180,7 +180,7 @@ function SelectRaceScreen() {
           alert('Navigating...');
           navigate(generateLink(step.link, rIdNumber), {
             state: generateStateObjectForGame(data, progress, step?.step),
-            //replace: true,
+            //
           });
           return;
         }
@@ -190,7 +190,7 @@ function SelectRaceScreen() {
       // If no conditions met, navigate to PODIUM
       navigate(generateLink("PODIUM", rIdNumber), {
         state: generateStateObjectForGame(data, progress, undefined),
-        replace: true,
+        
       });
     });
   }, [raceId]);

@@ -38,7 +38,7 @@ export default function UnderdogCover() {
             socket.emit('minimize-live-game', { part: 'UNDERDOG_PREVIEW', raceId });
             navigate(generateLink("UNDERDOG_RULES", Number(raceId)), {
                 state: location.state,
-                replace: true,
+                
             });
         },
         autoStart: true

@@ -43,7 +43,7 @@ export default function BullrunRules() {
             socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
             navigate(generateLink("BULL_RUN", Number(raceId)), {
                 state: location.state,
-                replace: true,
+                
             });
         },
         autoStart: true

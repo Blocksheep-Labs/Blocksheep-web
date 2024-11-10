@@ -137,7 +137,7 @@ export default function SetNicknameScreen() {
                         socket.emit('minimize-live-game', { part: 'ADD_NAME', raceId });
                         navigate(generateLink("RACE_UPDATE_1", Number(raceId)), {
                             state: location.state,
-                            replace: true,
+                            
                         });
                     }
                 }

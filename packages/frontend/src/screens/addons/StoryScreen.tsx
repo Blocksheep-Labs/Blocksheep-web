@@ -140,7 +140,7 @@ export default function StoryScreen() {
         socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
         navigate(redirectLink, {
             state: location.state,
-            replace: true,
+            
         });
     }
 
@@ -233,11 +233,13 @@ export default function StoryScreen() {
         <div className="bg-white h-full relative">
             <TopPageTimer duration={seconds * 1000} />
             {
+                /*
                 storyKey != undefined &&
                 <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
                     <source src={videos[storyKey]} type="video/mp4" />
                     Your browser does not support the video tag.
                 </video>
+                */
             }
 
             <div className="absolute bottom-5 bg-black bg-opacity-50 p-5">

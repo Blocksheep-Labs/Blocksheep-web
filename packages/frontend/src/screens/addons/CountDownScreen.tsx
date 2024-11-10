@@ -56,7 +56,7 @@ function CountDownScreen() {
           };
         }) 
       },
-      replace: true,
+      
     });
   };
 

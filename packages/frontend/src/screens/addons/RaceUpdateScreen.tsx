@@ -78,7 +78,7 @@ function RaceUpdateScreen() {
     socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
     navigate(redirectLink, {
       state: {...location.state, raceProgressVisual: await getNewProgress(true)},
-      replace: true,
+      
     });
   };
 
@@ -132,7 +132,7 @@ function RaceUpdateScreen() {
           // validate user for being registered
           if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
             // console.log("USER IS NOT LOGGED IN")
-            navigate('/', { replace: true, });
+            navigate('/', {  });
           } 
 
           setData(data.contractData);

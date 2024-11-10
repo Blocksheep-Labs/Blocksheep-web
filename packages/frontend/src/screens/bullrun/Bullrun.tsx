@@ -307,7 +307,7 @@ export default function Bullrun() {
                     
                     navigate(generateLink("RACE_UPDATE_3", Number(raceId)), {
                         state: location.state,
-                        replace: true,
+                        
                     });
                   }
                 }

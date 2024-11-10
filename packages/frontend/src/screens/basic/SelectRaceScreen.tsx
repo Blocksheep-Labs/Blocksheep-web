@@ -44,6 +44,7 @@ function SelectRaceScreen() {
   }
 
   const handleNavigate = useCallback((progress: any) => {
+    alert('Handle Navigate has been called');
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
@@ -174,7 +175,9 @@ function SelectRaceScreen() {
       ];
   
       for (const step of navigationSteps) {
+        console.log({step});
         if (step.check) {
+          alert('Navigating...');
           navigate(generateLink(step.link, rIdNumber), {
             state: generateStateObjectForGame(data, progress, step?.step),
             replace: true,
@@ -182,7 +185,8 @@ function SelectRaceScreen() {
           return;
         }
       }
-  
+      
+      alert('No conditions met! Navigation to the podium');
       // If no conditions met, navigate to PODIUM
       navigate(generateLink("PODIUM", rIdNumber), {
         state: generateStateObjectForGame(data, progress, undefined),

@@ -180,7 +180,7 @@ function SelectRaceScreen() {
           alert('Navigating...');
           navigate(generateLink(step.link, rIdNumber), {
             state: generateStateObjectForGame(data, progress, step?.step),
-            replace: true,
+            //replace: true,
           });
           return;
         }

@@ -223,9 +223,13 @@ export default function StoryScreen() {
             setModalIsOpen(true);
             setModalType("waiting");
             if (!socket.connected) {
+                console.log("Not conencted, trying to reconnect")
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
+            setTimeout(() => {
+                console.log("Emitting connect live game event...");
+                socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
+            }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);
 

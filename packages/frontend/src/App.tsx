@@ -26,6 +26,9 @@ import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
 
 
 function App() {
+  import('eruda').then(eruda => eruda.default.init());
+
+  
   useEffect(() => {
     socket.connect();
   }, [socket]);

@@ -42,9 +42,9 @@
     "workbox-streams": "^6.6.0"
   },
   "scripts": {
-    "start": "npx http-server ./build",
+    "start": "vite start",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint --fix",

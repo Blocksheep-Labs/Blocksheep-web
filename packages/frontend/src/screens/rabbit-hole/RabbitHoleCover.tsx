@@ -89,11 +89,13 @@ export default function RabbitHoleCover() {
 
                 if (raceId == raceIdSocket && part == "RABBIT_HOLE_PREVIEW") {
                     console.log("JOINED++")
+                    /*
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                     socket.emit("get-connected", { raceId });
                 }
             });

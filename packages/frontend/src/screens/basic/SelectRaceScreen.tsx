@@ -76,19 +76,16 @@ function SelectRaceScreen() {
           step: "start" 
         },
         { 
-          check: !progress?.game1_preview, 
-          link: "UNDERDOG_PREVIEW", 
-          step: "questions" 
+          check: !progress?.game2_preview, 
+          link: "RABBIT_HOLE_PREVIEW" 
         },
         { 
-          check: !progress?.game1_rules, 
-          link: "UNDERDOG_RULES", 
-          step: "questions" 
+          check: !progress?.game2_rules, 
+          link: "RABBIT_HOLE_RULES" 
         },
         { 
-          check: !progress?.game1?.isDistributed, 
-          link: "UNDERDOG", 
-          step: "questions" 
+          check: !progress?.game2.waitingToFinish, 
+          link: "RABBIT_HOLE" 
         },
         { 
           check: !progress?.nicknameSet, 
@@ -104,16 +101,19 @@ function SelectRaceScreen() {
           link: "STORY_PART_1" 
         },
         { 
-          check: !progress?.game2_preview, 
-          link: "RABBIT_HOLE_PREVIEW" 
+          check: !progress?.game1_preview, 
+          link: "UNDERDOG_PREVIEW", 
+          step: "questions" 
         },
         { 
-          check: !progress?.game2_rules, 
-          link: "RABBIT_HOLE_RULES" 
+          check: !progress?.game1_rules, 
+          link: "UNDERDOG_RULES", 
+          step: "questions" 
         },
         { 
-          check: !progress?.game2.waitingToFinish, 
-          link: "RABBIT_HOLE" 
+          check: !progress?.game1?.isDistributed, 
+          link: "UNDERDOG", 
+          step: "questions" 
         },
         { 
           check: !progress?.board2, 
@@ -238,6 +238,7 @@ function SelectRaceScreen() {
           setModalType("waiting");
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
           console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
+
           if (data.amount === race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
@@ -252,11 +253,13 @@ function SelectRaceScreen() {
         console.log(race);
         if (raceIdSocket == raceId) {
           console.log("JOINED++", raceIdSocket, userAddress);
+          /*
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
           }
+          */
           socket.emit("get-connected", { raceId });
         }
       });
@@ -289,7 +292,7 @@ function SelectRaceScreen() {
       socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
       setTimeout(() => {
         socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
-        socket.emit("get-connected", { raceId: id });
+        // socket.emit("get-connected", { raceId: id });
       }, 500);
     } 
     setRaceId(id);

@@ -89,11 +89,13 @@ export default function BullrunRules() {
 
                 if (raceId == raceIdSocket && part == "BULL_RUN_RULES") {
                     console.log("JOINED++")
+                    /*
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                     socket.emit("get-connected", { raceId });
                 }
             });

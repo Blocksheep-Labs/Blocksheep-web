@@ -78,11 +78,13 @@ export default function UnderdogCover() {
 
                 if (raceId == raceIdSocket && part == "UNDERDOG_PREVIEW") {
                     console.log("JOINED++")
+                    /*
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                     socket.emit("get-connected", { raceId });
                 }
             });

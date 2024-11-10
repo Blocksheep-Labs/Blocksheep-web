@@ -184,6 +184,7 @@ function RaceUpdateScreen() {
           if (amount === data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
+            setSecondsVisual(10);
           }
         }
       });
@@ -193,12 +194,14 @@ function RaceUpdateScreen() {
 
         if (raceId == raceIdSocket && socketPart == getPart(board)) {
           console.log("JOINED++")
+          /*
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
             setSecondsVisual(10);
           }
+          */
 
           socket.emit("get-connected", { raceId });
         }

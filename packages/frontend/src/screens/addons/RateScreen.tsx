@@ -110,11 +110,13 @@ export default function RateScreen() {
                 console.log("JOINED", raceIdSocket, raceId);
                 if (raceId == raceIdSocket && socketPart == "RATE" ) {
                     console.log("JOINED++")
+                    /*
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                     socket.emit("get-connected", { raceId });
                 }
             });

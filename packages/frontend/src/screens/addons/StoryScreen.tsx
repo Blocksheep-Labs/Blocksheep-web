@@ -163,6 +163,7 @@ export default function StoryScreen() {
 
     // handle socket events
     useEffect(() => {
+        console.log("EFFECT >>>>", {smartAccountAddress});
         if (smartAccountAddress && location.state && part) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})

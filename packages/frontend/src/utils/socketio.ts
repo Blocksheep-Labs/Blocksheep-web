@@ -8,6 +8,7 @@ export const socket = io(SERVER_BASE, {
 });
 
 socket.on("disconnect", (reason, details) => {
+    console.log("disconnect event got:")
     // the reason of the disconnection, for example "transport error"
     console.log(reason);
   
@@ -22,6 +23,7 @@ socket.on("disconnect", (reason, details) => {
 });
 
 socket.on("connect_error", (err) => {
+    console.log("connect_error event got:")
     // the reason of the error, for example "xhr poll error"
     console.log(err.message);
   

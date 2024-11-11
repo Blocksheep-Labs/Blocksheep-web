@@ -40,12 +40,13 @@ function SelectRaceScreen() {
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
+    /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(data, progress, undefined);
       navigate(`/race/${raceId}/set-nickname`);
     });
     return;
-    
+    */
     
     const rIdNumber = Number(raceId);
     

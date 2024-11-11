@@ -635,7 +635,7 @@ function UnderdogGame() {
       }
       {
         winModalPermanentlyOpened && 
-        <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
+        <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex} gameName="underdog"/>
       }
     </div>
   );

@@ -393,7 +393,7 @@ export default function Bullrun() {
             }
             {
                 winModalIsOpened && 
-                <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore}/>
+                <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore} gameName="bullrun"/>
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">

@@ -53,7 +53,7 @@ function RabbitHoleGame() {
   const navigate = useNavigate();
   const {raceId, version} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
-  const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 50);
+  const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 20);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [amountOfPending, setAmountOfPending] = useState(0);
@@ -153,7 +153,7 @@ function RabbitHoleGame() {
         // @ts-ignore
         setDisplayNumber(progress?.game2?.[version]?.game?.fuel || 0);
         // @ts-ignore
-        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 50));
+        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
       });
 
       
@@ -598,8 +598,8 @@ function RabbitHoleGame() {
     newListOfPlayers = newListOfPlayers.map(i => {
       if (i.address == smartAccountAddress) {
         i.maxAvailableFuel += currentUserBonus;
-        if (i.maxAvailableFuel > (version == "v1" ? 10 : 50)) {
-          i.maxAvailableFuel = (version == "v1" ? 10 : 50);
+        if (i.maxAvailableFuel > (version == "v1" ? 10 : 20)) {
+          i.maxAvailableFuel = (version == "v1" ? 10 : 20);
         }
       }
 

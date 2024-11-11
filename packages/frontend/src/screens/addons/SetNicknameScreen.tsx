@@ -66,6 +66,7 @@ export default function SetNicknameScreen() {
     // fetch nickname from server
     useEffect(() => {
         if (smartAccountAddress && inputRef.current) {
+            inputRef.current.focus();
             httpGetUserDataByAddress(smartAccountAddress).then(({data}) => {
                 console.log("USER", data.user)
                 if (data.user) {
@@ -177,7 +178,13 @@ export default function SetNicknameScreen() {
             </div>
             <div className="h-full w-screen flex flex-col gap-3 px-10 mt-4 relative">
                 <Rule text="NICKNAME MAXIMUM LENGTH MUST BE 10"/>
-                <input ref={inputRef} type="text" className="z-20 p-2 rounded-xl border-0 text-center font-[Berlin-Bold] bg-transparent text-[16px] absolute bottom-44 left-12 w-[90px]"></input>
+                <input 
+                    ref={inputRef} 
+                    type="text" 
+                    autoFocus={true}
+                    className="z-50 p-2 rounded-xl border-0 text-center font-[Berlin-Bold] bg-transparent text-[16px] absolute bottom-44 left-12 w-[90px]"
+                >
+                </input>
                 <img src={ChooseNameSheep} alt="name-sheep" className="absolute bottom-20 w-[280px] left-[-50px]"/>
             </div>
             

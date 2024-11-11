@@ -36,26 +36,21 @@ function SelectRaceScreen() {
 
 
   const handleNavigate = useCallback((progress: any) => {
-    alert('Handle Navigate has been called');
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
-    /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      console.log(generateStateObjectForGame(data, progress))
-      navigate(`/race/${raceId}/race-update/board1`, {
-        state: generateStateObjectForGame(data, progress),
-        
-      });
+      updateGameState(data, progress, undefined);
+      navigate(`/race/${raceId}/set-nickname`);
     });
     return;
-    */
     
     
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+      
 
       const navigationSteps: { check: boolean, link: TFlowPhases, step?: "questions" | "board" | "start" }[] = [
         { 
@@ -170,13 +165,11 @@ function SelectRaceScreen() {
         console.log({step});
         if (step.check) {
           updateGameState(data, progress, step?.step);
-          alert('Navigating...');
           navigate(generateLink(step.link, rIdNumber));
           return;
         }
       }
       
-      alert('No conditions met! Navigation to the podium');
       // If no conditions met, navigate to PODIUM
       updateGameState(data, progress, undefined);
       navigate(generateLink("PODIUM", rIdNumber));
@@ -236,8 +229,6 @@ function SelectRaceScreen() {
             setIsOpen(false);
             setModalType(undefined);
             handleNavigate(progress);
-          } else {
-            alert(`received: ${data.amount} required: ${race.numOfPlayersRequired}`);
           }
         }
       });

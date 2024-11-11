@@ -32,7 +32,7 @@ export default function RabbitHoleRules() {
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [secondsVisual, setSecondsVisual] = useState(1000);
 
-    const timeRemaining = version == "v1" ? (4 + 5) : (4 + 5 + 7)
+    const timeRemaining = version == "v1" ? (6 + 7) : (6 + 7 + 9)
     const time = new Date();
     time.setSeconds(time.getSeconds() + timeRemaining);
 
@@ -173,7 +173,7 @@ export default function RabbitHoleRules() {
                 {
                     (() => {
                         // first rule
-                        if (timeRemaining - seconds <= 4) {
+                        if (timeRemaining - seconds <= 6) {
                             return (
                                 <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={BG_Tunnel_light} className="z-30 opacity-30"/>
@@ -184,7 +184,7 @@ export default function RabbitHoleRules() {
                         }
 
                         // second rule
-                        if (timeRemaining - seconds <= 4 + 5) {
+                        if (timeRemaining - seconds <= 6 + 7) {
                             return (
                                 <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={InstructionsOne} className="z-30"/>
@@ -194,7 +194,7 @@ export default function RabbitHoleRules() {
                         }
 
                         // third rule (on rh-v2)
-                        if (timeRemaining - seconds <= 4 + 5 + 7) {
+                        if (timeRemaining - seconds <= 6 + 7 + 9) {
                             return ( 
                                 <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={InstructionsTwo} className="z-30"/>
@@ -230,7 +230,7 @@ export default function RabbitHoleRules() {
                         
                         (() => {
                             // first rule overlay
-                            if (timeRemaining - seconds <= 4) {
+                            if (timeRemaining - seconds <= 6) {
                                 return (
                                     <div className="relative w-full h-screen flex flex-col items-center mt-44 z-30">
                                         <div className="relative flex items-center justify-center">
@@ -243,7 +243,7 @@ export default function RabbitHoleRules() {
                             }
 
                             // second rule overlay
-                            if (timeRemaining - seconds <= 4 + 5) {
+                            if (timeRemaining - seconds <= 6 + 7) {
                                 return (
                                     <div className="relative w-full h-screen flex flex-col items-center mt-16 z-30">
                                         <div className="relative flex items-center justify-center">
@@ -263,7 +263,7 @@ export default function RabbitHoleRules() {
                             }
 
                             // third rule overlay (on rh-v2)
-                            if (timeRemaining - seconds <= 4 + 5 + 7) {
+                            if (timeRemaining - seconds <= 6 + 7 + 9) {
                                 return (
                                     <div className="relative w-full h-screen flex flex-col items-center mt-16 z-30">
                                         <div className="relative flex items-center justify-center">

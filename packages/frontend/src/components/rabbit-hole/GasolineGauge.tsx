@@ -6,7 +6,7 @@ const GasolineGauge = (props: {
   version: string;
 }) => {
   const maxHeight = 88;
-  const scalingFactor = maxHeight / (props.version == "v1" ? 10 : 50);
+  const scalingFactor = maxHeight / (props.version == "v1" ? 10 : 20);
   const fuelHeight = props.fuel * scalingFactor;
 
   console.log({maxHeight, scalingFactor, fuelHeight});

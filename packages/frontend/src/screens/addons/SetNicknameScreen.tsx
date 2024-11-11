@@ -11,13 +11,14 @@ import { httpGetUserDataByAddress, httpRaceInsertUser, httpSetNameByAddress } fr
 import Rule from "../../components/Rule";
 import generateLink from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 
 export default function SetNicknameScreen() {
     const navigate = useNavigate();
     const {raceId} = useParams();
+    const {gameState} = useGameContext();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [amountOfNextClicked, setAmountOfNextClicked] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -77,13 +78,13 @@ export default function SetNicknameScreen() {
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
 
@@ -133,12 +134,9 @@ export default function SetNicknameScreen() {
                     console.log("SET-NICKNAME++")
                     setAmountOfNextClicked(prev => prev + 1);
 
-                    if (amountOfNextClicked + 1 == location.state.amountOfRegisteredUsers) {
+                    if (amountOfNextClicked + 1 == gameState.amountOfRegisteredUsers) {
                         socket.emit('minimize-live-game', { part: 'ADD_NAME', raceId });
-                        navigate(generateLink("RACE_UPDATE_1", Number(raceId)), {
-                            state: location.state,
-                            
-                        });
+                        navigate(generateLink("RACE_UPDATE_1", Number(raceId)));
                     }
                 }
             });
@@ -150,15 +148,15 @@ export default function SetNicknameScreen() {
                 socket.off('progress-updated');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, amountOfNextClicked, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, amountOfNextClicked, gameState]);
 
     useEffect(() => {
         setModalIsOpen(true);
         setModalType("waiting");
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
-    }, [socket, raceId, smartAccountAddress, location.state]);
+    }, [socket, raceId, smartAccountAddress, gameState]);
 
 
     useEffect(() => {
@@ -197,7 +195,7 @@ export default function SetNicknameScreen() {
                 modalIsOpen && ["nickname-set"].includes(modalType as string) && 
                 <WaitingForPlayersModal 
                     numberOfPlayers={amountOfConnected} 
-                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
+                    numberOfPlayersRequired={gameState?.amountOfRegisteredUsers || 9}
                     replacedText="..."
                 />
             }

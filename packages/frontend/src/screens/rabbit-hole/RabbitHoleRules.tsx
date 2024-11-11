@@ -20,12 +20,13 @@ import InstructionsTwo from "../../assets/rabbit-hole/screen-instructions2.png";
 import SmallDesk from "../../assets/rabbit-hole/signage-instructions-small.png";
 import NewLabel from "../../assets/rabbit-hole/new.png";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 export default function RabbitHoleRules() {
     const navigate = useNavigate();
     const {raceId, version} = useParams();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
+    const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -64,10 +65,7 @@ export default function RabbitHoleRules() {
 
             
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_RULES', raceId });
-            navigate(redirectLink, {
-                state: location.state,
-                
-            });
+            navigate(redirectLink);
             
         },
         autoStart: true
@@ -75,7 +73,7 @@ export default function RabbitHoleRules() {
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
+        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + timeRemaining);
             restart(time);
@@ -83,17 +81,17 @@ export default function RabbitHoleRules() {
         } else {
             pause();
         }
-    }, [amountOfConnected, location.state]);
+    }, [amountOfConnected, gameState]);
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
-                console.log({amount, rquiredByState: location.state.amountOfRegisteredUsers})
+                console.log({amount, rquiredByState: gameState.amountOfRegisteredUsers})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount >= location.state.amountOfRegisteredUsers) {
+                    if (amount >= gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -139,15 +137,15 @@ export default function RabbitHoleRules() {
                 socket.off('race-progress');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
         setModalIsOpen(true);
         setModalType("waiting");
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
-    }, [socket, raceId, smartAccountAddress, location.state]);
+    }, [socket, raceId, smartAccountAddress, gameState]);
 
 
     useEffect(() => {

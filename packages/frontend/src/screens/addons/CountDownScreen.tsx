@@ -9,10 +9,11 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 import Countdown321 from "../../components/3-2-1-go/3-2-1-go";
+import { useGameContext } from "../../utils/game-context";
 
 
 function CountDownScreen() {
-  const location = useLocation();
+  const { gameState, setGameStateObject } = useGameContext();
   const { smartAccountAddress } = useSmartAccount();
   const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
@@ -45,19 +46,15 @@ function CountDownScreen() {
     //return;
 
     socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
-    navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)), {
-      state: { 
-        ...location.state, 
-        raceProgressVisual: data.progress.map((i: { user: string, progress: number }) => {
-          return { 
-            curr: 0, 
-            delta: 0, 
-            address: i.user 
-          };
-        }) 
-      },
-      
-    });
+    gameState && setGameStateObject({ ...gameState, raceProgressVisual: data.progress.map((i: { user: string, progress: number }) => {
+        return { 
+          curr: 0, 
+          delta: 0, 
+          address: i.user 
+        };
+      })  
+    })
+    navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)));
   };
 
   useEffect(() => {
@@ -121,13 +118,13 @@ function CountDownScreen() {
 
   // handle socket events
   useEffect(() => {
-    if (smartAccountAddress && location.state) {
+    if (smartAccountAddress && gameState) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === location.state.amountOfRegisteredUsers) {
+          if (amount === gameState.amountOfRegisteredUsers) {
             setModalIsOpen(false);
             setModalType(undefined);
           }
@@ -173,7 +170,7 @@ function CountDownScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
 
 

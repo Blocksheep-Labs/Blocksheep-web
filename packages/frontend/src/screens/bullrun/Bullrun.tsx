@@ -20,6 +20,7 @@ import WinModal from "../../components/modals/WinModal";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
+import { useGameContext } from "../../utils/game-context";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -27,7 +28,7 @@ export type BullrunPerks = "shield" | "swords" | "run";
 export default function Bullrun() {
     const {smartAccountAddress, smartAccountClient} = useSmartAccount();
     const navigate = useNavigate();
-    const location = useLocation();
+    const { gameState } = useGameContext();
     const {raceId} = useParams();
     const [selectedPerk, setSelectedPerk] = useState<undefined | number>(-1);
 
@@ -305,10 +306,7 @@ export default function Bullrun() {
                   setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                   if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
                     
-                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)), {
-                        state: location.state,
-                        
-                    });
+                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                   }
                 }
             });
@@ -390,7 +388,7 @@ export default function Bullrun() {
                 <WaitingForPlayersModal 
                     replacedText="..."
                     numberOfPlayers={0} 
-                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
+                    numberOfPlayersRequired={gameState?.amountOfRegisteredUsers || 9}
                 />
             }
             {

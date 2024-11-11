@@ -10,13 +10,14 @@ import BullrunRulesGrid from "../../components/BullrunRulesGrid";
 import { BULLRUN_getPerksMatrix } from "../../utils/contract-functions";
 import generateLink from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 
 export default function BullrunRules() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
+    const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -41,16 +42,13 @@ export default function BullrunRules() {
             });
             
             socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
-            navigate(generateLink("BULL_RUN", Number(raceId)), {
-                state: location.state,
-                
-            });
+            navigate(generateLink("BULL_RUN", Number(raceId)));
         },
         autoStart: true
     });
 
     useEffect(() => {
-        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
+        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
@@ -58,7 +56,7 @@ export default function BullrunRules() {
         } else {
             pause();
         }
-    }, [amountOfConnected, location.state]);
+    }, [amountOfConnected, gameState]);
 
     // fetch points matrix
     useEffect(() => {
@@ -71,13 +69,13 @@ export default function BullrunRules() {
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -123,15 +121,15 @@ export default function BullrunRules() {
                 socket.off('race-progress');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
         setModalIsOpen(true);
         setModalType("waiting");
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
-    }, [socket, raceId, smartAccountAddress, location.state]);
+    }, [socket, raceId, smartAccountAddress, gameState]);
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length) {

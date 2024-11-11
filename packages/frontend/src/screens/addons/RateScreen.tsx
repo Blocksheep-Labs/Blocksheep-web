@@ -7,6 +7,7 @@ import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useTimer } from "react-timer-hook";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 const Rating = ({
     handleChange,
@@ -41,8 +42,8 @@ export default function RateScreen() {
     const [rabbitHoleRate, setRabbitHoleRate] = useState(3);
     const [bullRunRate, setBullruneRate] = useState(3);
     const navigate = useNavigate();
+    const {gameState} = useGameContext();
     const {raceId} = useParams();
-    const location = useLocation();
     const {smartAccountAddress} = useSmartAccount();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -65,10 +66,7 @@ export default function RateScreen() {
         });
 
         socket.emit('minimize-live-game', { part: "RATE", raceId });
-        navigate(generateLink("STORY_CONCLUSION", Number(raceId)), {
-            state: location.state,
-            
-        });
+        navigate(generateLink("STORY_CONCLUSION", Number(raceId)));
     }
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -79,7 +77,7 @@ export default function RateScreen() {
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
+        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
           
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
@@ -88,18 +86,18 @@ export default function RateScreen() {
         } else {
             pause();
         }
-    }, [amountOfConnected, location.state]);
+    }, [amountOfConnected, gameState]);
 
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -143,7 +141,7 @@ export default function RateScreen() {
                 socket.off('leaved');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length) {

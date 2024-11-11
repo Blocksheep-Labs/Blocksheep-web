@@ -19,12 +19,13 @@ import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import LazyImage from "../../components/image-loading/lazy-image";
 import TinderCard from "react-tinder-card";
 import TopScreenMessage from "../../components/top-screen-message/top-screen-message";
+import { useGameContext } from "../../utils/game-context";
 
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
   const navigate = useNavigate();
-
+  const { updateGameState, gameState } = useGameContext();
   const [races, setRaces] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
@@ -33,15 +34,6 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-  const generateStateObjectForGame = (data: any, progress: any, step?: "questions" | "board" | "start") => {
-    return {
-      questionsByGames: data.questionsByGames, 
-      amountOfRegisteredUsers: data.registeredUsers.length, 
-      progress,
-      step,
-      raceProgressVisual: [],
-    }
-  }
 
   const handleNavigate = useCallback((progress: any) => {
     alert('Handle Navigate has been called');
@@ -177,21 +169,17 @@ function SelectRaceScreen() {
       for (const step of navigationSteps) {
         console.log({step});
         if (step.check) {
+          updateGameState(data, progress, step?.step);
           alert('Navigating...');
-          navigate(generateLink(step.link, rIdNumber), {
-            state: generateStateObjectForGame(data, progress, step?.step),
-            //
-          });
+          navigate(generateLink(step.link, rIdNumber));
           return;
         }
       }
       
       alert('No conditions met! Navigation to the podium');
       // If no conditions met, navigate to PODIUM
-      navigate(generateLink("PODIUM", rIdNumber), {
-        state: generateStateObjectForGame(data, progress, undefined),
-        
-      });
+      updateGameState(data, progress, undefined);
+      navigate(generateLink("PODIUM", rIdNumber));
     });
   }, [raceId]);
 

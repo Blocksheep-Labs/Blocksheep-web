@@ -7,6 +7,7 @@ import generateLink from "../../utils/linkGetter";
 import StoryVideo from "../../assets/stories/sh.mp4";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 
 const videos = [
@@ -88,8 +89,8 @@ const getStoryPart = (part: string) => {
 export default function StoryScreen() {
     const navigate = useNavigate();
     const {raceId, part} = useParams();
+    const { gameState } = useGameContext();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -138,10 +139,7 @@ export default function StoryScreen() {
    
         
         socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
-        navigate(redirectLink, {
-            state: location.state,
-            
-        });
+        navigate(redirectLink);
     }
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -151,7 +149,7 @@ export default function StoryScreen() {
     });
 
     useEffect(() => {
-        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
+        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 6);
             setSeconds(6);
@@ -159,18 +157,18 @@ export default function StoryScreen() {
         } else {
             pause();
         }
-    }, [amountOfConnected, location.state]);
+    }, [amountOfConnected, gameState]);
 
     // handle socket events
     useEffect(() => {
-        console.log("EFFECT >>>>", {smartAccountAddress});
-        if (smartAccountAddress && location.state && part) {
+        console.log("EFFECT >>>>", {smartAccountAddress, gameState, part});
+        if (smartAccountAddress && gameState && part) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -213,7 +211,7 @@ export default function StoryScreen() {
                 socket.off('leaved');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state, part]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState, part]);
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {
@@ -238,13 +236,11 @@ export default function StoryScreen() {
         <div className="bg-white h-full relative">
             <TopPageTimer duration={seconds * 1000} />
             {
-                /*
                 storyKey != undefined &&
                 <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
                     <source src={videos[storyKey]} type="video/mp4" />
                     Your browser does not support the video tag.
                 </video>
-                */
             }
 
             <div className="absolute bottom-5 bg-black bg-opacity-50 p-5">

@@ -216,7 +216,7 @@ function App() {
 function Layout() {
   const { pathname } = useLocation();
   return (
-    <div className="relative m-auto h-screen w-full overflow-hidden bg-black sm:max-w-sm">
+    <div className={`relative m-auto w-full bg-black sm:max-w-sm`} style={{ height: `${window.innerHeight}px` }}>
       {["/select"].includes(pathname) && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}

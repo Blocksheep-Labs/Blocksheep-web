@@ -157,7 +157,7 @@ export default function RateScreen() {
 
 
     return (
-        <div className="relative mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom items-center">
+        <div className="relative mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom items-center" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={secondsVisual * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="RATE THE FUN" smallerText/>

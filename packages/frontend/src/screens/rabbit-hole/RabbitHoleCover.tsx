@@ -144,7 +144,7 @@ export default function RabbitHoleCover() {
     return (
         <>
             <TopPageTimer duration={secondsVisual * 1000} />
-            <div className="mx-auto rounded-none flex h-screen w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top">
+            <div className="mx-auto rounded-none flex w-full flex-col bg-rabbit_hole_cover_bg bg-cover bg-top" style={{ height: `${window.innerHeight}px` }}>
                 {
                     /*
                     modalIsOpen && modalType === "waiting" && 

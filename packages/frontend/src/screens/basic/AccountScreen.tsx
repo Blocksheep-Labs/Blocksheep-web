@@ -75,7 +75,7 @@ function AccountScreen() {
   console.log(smartAccountAddress, `Balance: ${Number(ETHBalance?.formatted)}`)
 
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
+    <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom`} style={{ height: `${window.innerHeight}px` }}>
       <div className="mt-10 flex flex-col gap-5 cursor-pointer">
         <ProfileButton 
           text={`Address: ${smartAccountAddress && shortenAddress(smartAccountAddress as string)}`}

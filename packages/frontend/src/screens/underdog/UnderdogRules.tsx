@@ -131,7 +131,7 @@ export default function UnderdogRules() {
 
 
     return (
-        <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
+        <div className="mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={seconds * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="HOW TO PLAY"/>

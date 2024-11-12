@@ -233,7 +233,7 @@ export default function StoryScreen() {
     }, [smartAccountAddress, socket, raceId, part]);
 
     return (
-        <div className="bg-white h-full relative">
+        <div className="bg-white relative" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={seconds * 1000} />
             {
                 storyKey != undefined &&

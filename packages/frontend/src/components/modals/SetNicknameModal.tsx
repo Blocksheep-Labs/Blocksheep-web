@@ -13,8 +13,11 @@ function SetNicknameModal({ handleClose }: RaceModalProps) {
 
     return (
         <div className="loading-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
-            <div className="mx-[10%] mb-[40%] mt-[30%]">
+            <div className="mx-[10%] mb-[40%] mt-[16%]">
                 <img src={RegisteredBackground} alt="registering-bg" />
+                <div className="mt-5 w-full">
+                    <input ref={ref} placeholder="Nickname" className="w-full p-2"/>
+                </div>
                 <div className="absolute bottom-0 right-0 w-2/5">
                     <button
                         className="absolute mt-[10%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[24px] text-[#18243F] hover:text-white"
@@ -23,9 +26,6 @@ function SetNicknameModal({ handleClose }: RaceModalProps) {
                         Continue
                     </button>
                     <img src={NextFlag} alt="next-flag" />
-                </div>
-                <div className="mt-5">
-                    <input ref={ref} placeholder="Nickname"/>
                 </div>
             </div>
         </div>

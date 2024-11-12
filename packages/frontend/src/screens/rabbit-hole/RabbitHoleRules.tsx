@@ -158,7 +158,7 @@ export default function RabbitHoleRules() {
 
 
     return (
-        <div className="mx-auto justify-start h-screen w-full bg-cover bg-bullrun_rules_bg bg-bottom relative">
+        <div className="mx-auto justify-start w-full bg-cover bg-bullrun_rules_bg bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={secondsVisual * 1000} />
 
                 <div className="flex w-full justify-center z-50 absolute top-16">

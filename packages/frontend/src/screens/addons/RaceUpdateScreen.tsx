@@ -251,7 +251,7 @@ function RaceUpdateScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg_track bg-cover bg-bottom">
+      <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           { 

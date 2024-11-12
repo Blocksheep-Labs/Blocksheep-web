@@ -542,7 +542,7 @@ function UnderdogGame() {
 
 
   return (
-    <div className="relative mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-center">
+    <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
       { 
         (
           (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||

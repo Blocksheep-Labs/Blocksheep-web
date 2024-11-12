@@ -134,7 +134,7 @@ export default function UnderdogCover() {
     return (
         <>
             <TopPageTimer duration={seconds * 1000} />
-            <div className="mx-auto flex h-screen w-full flex-col bg-underdog_cover_bg bg-cover bg-top">
+            <div className="mx-auto flex w-full flex-col bg-underdog_cover_bg bg-cover bg-top" style={{ height: `${window.innerHeight}px` }}>
                 {
                     /*
                     modalIsOpen && modalType === "waiting" && 

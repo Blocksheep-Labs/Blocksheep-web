@@ -141,7 +141,7 @@ export default function BullrunRules() {
     }, [smartAccountAddress, socket, raceId]);
 
     return (
-        <div className="mx-auto flex h-screen w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center">
+        <div className="mx-auto flex w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={secondsVisual * 1000} />
             <div className="mt-7 flex w-full justify-center">
                 <RibbonLabel text="HOW TO PLAY"/>

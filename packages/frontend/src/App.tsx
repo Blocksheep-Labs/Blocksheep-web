@@ -21,7 +21,6 @@ import BullrunCover from "./screens/bullrun/BullrunCover";
 import BullrunRules from "./screens/bullrun/BullrunRules";
 import Bullrun from "./screens/bullrun/Bullrun";
 import StoryScreen from "./screens/addons/StoryScreen";
-import SetNicknameScreen from "./screens/addons/SetNicknameScreen";
 import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
 
 
@@ -69,15 +68,6 @@ function App() {
           element={
             <ProtectedRoute>
               <StoryScreen/>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route 
-          path="race/:raceId/set-nickname"
-          element={
-            <ProtectedRoute>
-              <SetNicknameScreen/>
             </ProtectedRoute>
           }
         />

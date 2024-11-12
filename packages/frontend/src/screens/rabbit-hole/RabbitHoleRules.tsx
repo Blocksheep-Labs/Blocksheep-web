@@ -167,34 +167,6 @@ export default function RabbitHoleRules() {
             
                 <img src={BG_Rules_Slide} className="w-72 absolute z-10 left-[50%]" style={{ transform: 'translate(-50%, 25%)' }}/>
 
-                
-                {
-                    /*
-                    (() => {
-
-                        // second rule
-                        if (timeRemaining - seconds <= 5 + 7) {
-                            return (
-                                <div className="z-30 relative flex flex-col justify-center items-center">
-                                    <img src={InstructionsOne} className="z-30"/>
-                                </div>
-                            );
-                        }
-
-                        // third rule (on rh-v2)
-                        if (timeRemaining - seconds <= 5 + 7 + 10) {
-                            return ( 
-                                <div className="z-30 relative flex flex-col justify-center items-center">
-                                    <img src={InstructionsTwo} className="z-30"/>
-                                </div>
-                            );
-                        }
-
-                    })()
-                        */
-                }
-
-
                 <div style={{
                     fontWeight: 700,
                     fontSize: '32px',

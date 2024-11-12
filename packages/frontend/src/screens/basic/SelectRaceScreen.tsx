@@ -78,11 +78,6 @@ function SelectRaceScreen() {
           link: "RABBIT_HOLE" 
         },
         { 
-          check: !progress?.nicknameSet, 
-          link: "ADD_NAME", 
-          step: "board" 
-        },
-        { 
           check: !progress?.board1, 
           link: "RACE_UPDATE_1", 
         },

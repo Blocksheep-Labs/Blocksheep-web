@@ -1,0 +1,43 @@
+@keyframes shrinkMore {
+    0% {
+      transform: scale(2.0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.5);
+      opacity: 0.9;
+    }
+  }
+  
+@keyframes growAndFadeOut {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(3.0);
+        opacity: 0;
+    }
+}
+  
+.count-style {
+    font-size: 25vw;
+    font-weight: 1000; /* Thicker font for a stronger impact */
+    color: #ffd700;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-shadow: 8px 8px 0px #ff6347, 10px 10px 0px #000;
+    animation: shrinkMore 1s ease forwards;
+    position: relative;
+    transform-origin: center;
+}
+
+.go-style {
+    font-size: 25vw;
+    font-weight: 1000; /* Thicker font for more emphasis */
+    color: #ffd700; /* Keeping consistent color */
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-shadow: 8px 8px 0px #ff4500, 10px 10px 0px #000;
+    animation: growAndFadeOut 2s ease forwards;
+    transform-origin: center;
+}
+  

@@ -8,10 +8,12 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
+import Countdown321 from "../../components/3-2-1-go/3-2-1-go";
+import { useGameContext } from "../../utils/game-context";
 
 
 function CountDownScreen() {
-  const location = useLocation();
+  const { gameState, setGameStateObject } = useGameContext();
   const { smartAccountAddress } = useSmartAccount();
   const [seconds, setSeconds] = useState(5);
   const navigate = useNavigate();
@@ -44,10 +46,15 @@ function CountDownScreen() {
     //return;
 
     socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
-    navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)), {
-      state: location.state,
-      replace: true,
-    });
+    gameState && setGameStateObject({ ...gameState, raceProgressVisual: data.progress.map((i: { user: string, progress: number }) => {
+        return { 
+          curr: 0, 
+          delta: 0, 
+          address: i.user 
+        };
+      })  
+    })
+    navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)));
   };
 
   useEffect(() => {
@@ -73,7 +80,11 @@ function CountDownScreen() {
           setData(data.contractData);
 
           let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
-            return { curr: Number(i.progress), delta: 0, address: i.user };
+            return { 
+              curr: -1, 
+              delta: 1, 
+              address: i.user 
+            };
           });
           setProgress(newProgress);
 
@@ -86,7 +97,7 @@ function CountDownScreen() {
   }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
-    if (data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (data && amountOfConnected >= data.numberOfPlayersRequired) {
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
       }, 1000);
@@ -107,13 +118,13 @@ function CountDownScreen() {
 
   // handle socket events
   useEffect(() => {
-    if (smartAccountAddress && location.state) {
+    if (smartAccountAddress && gameState) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount === location.state.amountOfRegisteredUsers) {
+          if (amount === gameState.amountOfRegisteredUsers) {
             setModalIsOpen(false);
             setModalType(undefined);
           }
@@ -125,11 +136,13 @@ function CountDownScreen() {
   
           if (raceId == raceIdSocket && part == "RACE_START") {
             console.log("JOINED++")
+            /*
             setAmountOfConnected(amountOfConnected + 1);
             if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
               setModalIsOpen(false);
               setModalType(undefined);
             }
+            */
             socket.emit("get-connected", { raceId });
           }
       });
@@ -157,7 +170,7 @@ function CountDownScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
 
 
@@ -175,13 +188,11 @@ function CountDownScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg_track bg-cover bg-bottom">
+      <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">
-            <div className="flex size-36 items-center justify-center rounded-3xl bg-yellow-500">
-              <p className="font-[Berlin] text-[70px]">{seconds === 0 ? "GO" : seconds}</p>
-            </div>
+            { seconds <= 4 && <Countdown321/> }
           </div>
         </div>
       </div>

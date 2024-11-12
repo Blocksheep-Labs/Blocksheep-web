@@ -7,6 +7,7 @@ import generateLink from "../../utils/linkGetter";
 import StoryVideo from "../../assets/stories/sh.mp4";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 
 const videos = [
@@ -88,8 +89,8 @@ const getStoryPart = (part: string) => {
 export default function StoryScreen() {
     const navigate = useNavigate();
     const {raceId, part} = useParams();
+    const { gameState } = useGameContext();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -138,10 +139,7 @@ export default function StoryScreen() {
    
         
         socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
-        navigate(redirectLink, {
-            state: location.state,
-            replace: true,
-        });
+        navigate(redirectLink);
     }
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -152,7 +150,7 @@ export default function StoryScreen() {
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected === location.state.amountOfRegisteredUsers) {    
+        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 6);
             setSeconds(6);
@@ -160,17 +158,18 @@ export default function StoryScreen() {
         } else {
             pause();
         }
-    }, [amountOfConnected, location.state]);
+    }, [amountOfConnected, gameState]);
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state && part) {
+        console.log("EFFECT >>>>", {smartAccountAddress, gameState, part});
+        if (smartAccountAddress && gameState && part) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -181,11 +180,13 @@ export default function StoryScreen() {
                 console.log("JOINED", raceIdSocket, raceId);
                 if (raceId == raceIdSocket && socketPart == getStoryPart(part) ) {
                     console.log("JOINED++")
+                    /*
                     setAmountOfConnected(amountOfConnected + 1);
                     if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                     socket.emit("get-connected", { raceId });
                 }
             });
@@ -211,7 +212,7 @@ export default function StoryScreen() {
                 socket.off('leaved');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state, part]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState, part]);
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {
@@ -222,14 +223,18 @@ export default function StoryScreen() {
             setModalIsOpen(true);
             setModalType("waiting");
             if (!socket.connected) {
+                console.log("Not conencted, trying to reconnect")
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
+            setTimeout(() => {
+                console.log("Emitting connect live game event...");
+                socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
+            }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);
 
     return (
-        <div className="bg-white h-full relative">
+        <div className="bg-white relative" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={seconds * 1000} />
             {
                 storyKey != undefined &&

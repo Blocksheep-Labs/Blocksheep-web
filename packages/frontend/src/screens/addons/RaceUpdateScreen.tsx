@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RaceBoard from "../../components/RaceBoard";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../../utils/contract-functions";
@@ -8,6 +8,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 const getPart = (board: string) => {
   let selectedPart = "";
@@ -27,13 +28,15 @@ const getPart = (board: string) => {
   return selectedPart;
 }
 
+type TProgress = { curr: number; delta: number; address: string };
+
 function RaceUpdateScreen() {
-  const location = useLocation();
+  const {gameState, setGameStateObject} = useGameContext();
   const { smartAccountAddress } = useSmartAccount();
   const [seconds, setSeconds] = useState(10);
   const navigate = useNavigate();
   const {raceId, board} = useParams();
-  const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
+  const [progress, setProgress] = useState<TProgress[]>([]);
   const [data, setData] = useState<any>(undefined);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -72,12 +75,44 @@ function RaceUpdateScreen() {
         break;
     }
 
+    console.log("REDIRECT:", {progressData: await getNewProgress()})
     socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
-    navigate(redirectLink, {
-      state: location.state,
-      replace: true,
-    });
+    gameState && setGameStateObject({ ...gameState, raceProgressVisual: await getNewProgress(true) })
+    navigate(redirectLink);
   };
+
+  const getNewProgress = async(redirecting=false) => {
+    let usedValueForData = undefined;
+    if (!data) {
+      usedValueForData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
+    } else {
+      usedValueForData = data;
+    }
+
+    let currentProgressVisual: TProgress[] = gameState?.raceProgressVisual || [];
+          
+    let newProgress: TProgress[] = usedValueForData.progress.map((i: { user: string, progress: number }) => {
+      const current = (() => {
+        const playerPrevData = currentProgressVisual.find(j => j.address == i.user);
+        return playerPrevData ? playerPrevData.curr : 0;
+      })();
+      const delta = Number(i.progress) - current;
+
+      console.log({ 
+        curr: redirecting ? delta : current,
+        delta: redirecting ? current : delta, 
+        address: i.user 
+      });
+
+      return { 
+        curr: redirecting ? delta : current,
+        delta: redirecting ? current : delta, 
+        address: i.user 
+      };
+    });
+
+    return newProgress;
+  }
 
   useEffect(() => {
     if (raceId?.length && smartAccountAddress) {
@@ -89,22 +124,19 @@ function RaceUpdateScreen() {
           contractData: data[0],
           serverData: data[1].data,
         }
-      }).then(data => {
+      }).then(async data => {
         if (data.contractData && data.serverData) {
           // CONTRACT DATA
           console.log({data});
           // validate user for being registered
           if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
             // console.log("USER IS NOT LOGGED IN")
-            navigate('/', { replace: true, });
+            navigate('/', {  });
           } 
 
           setData(data.contractData);
-
-          let newProgress: { curr: number; delta: number; address: string }[] = data.contractData.progress.map(i => {
-            return { curr: Number(i.progress), delta: 0, address: i.user };
-          });
-          setProgress(newProgress);
+          
+          setProgress(await getNewProgress());
 
           // SERVER DATA
           setUsers(data?.serverData?.race?.users || []);
@@ -131,7 +163,7 @@ function RaceUpdateScreen() {
   useEffect(() => {
     // eslint-disable-next-line no-undef
     let timer: NodeJS.Timeout;
-    if (seconds === 0 && data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (seconds === 0 && data && amountOfConnected >= data.numberOfPlayersRequired) {
       timer = setTimeout(handleClose, 1000);
       handleClose();
     }
@@ -151,6 +183,7 @@ function RaceUpdateScreen() {
           if (amount === data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
+            setSecondsVisual(10);
           }
         }
       });
@@ -160,12 +193,14 @@ function RaceUpdateScreen() {
 
         if (raceId == raceIdSocket && socketPart == getPart(board)) {
           console.log("JOINED++")
+          /*
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= data.numberOfPlayersRequired) {
             setModalIsOpen(false);
             setModalType(undefined);
             setSecondsVisual(10);
           }
+          */
 
           socket.emit("get-connected", { raceId });
         }
@@ -216,10 +251,12 @@ function RaceUpdateScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg_track bg-cover bg-bottom">
+      <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
-          <RaceBoard progress={progress} users={users}/>
+          { 
+            <RaceBoard progress={progress} users={users}/> 
+          }
         </div>
       </div>
       {

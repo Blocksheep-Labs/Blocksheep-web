@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from '@privy-io/wagmi';
 import { SmartAccountProvider } from "./hooks/smartAccountProvider";
 import { PRIVY_APP_ID, SELECTED_NETWORK } from "./config/constants";
+import { GameProvider } from "./utils/game-context";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
@@ -37,9 +38,11 @@ root.render(
     <SmartAccountProvider>
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={config}>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <GameProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </GameProvider>
         </WagmiProvider>
       </QueryClientProvider>
     </SmartAccountProvider>

@@ -5,7 +5,7 @@ module.exports = (httpServer) => {
     const options = {
         cors: {
             origin: [process.env.CLIENT_BASE, process.env.CLIENT_BASE_HTTP],
-        }
+        },
     };
     
     const io = require("socket.io")(httpServer, options);

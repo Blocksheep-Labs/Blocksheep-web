@@ -17,7 +17,7 @@ function LoadingModal({
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
 
   useEffect(() => {
-    if (raceId.toString() && gameIndex.toString() && questionIndexes && answers.length) {
+    if (raceId.toString() && gameIndex.toString() && questionIndexes) {
       console.log("ANSWERS", { answers, answersAreSimilar: new Set(answers).size === 1 });
       distributeRewardOfTheGame(
         raceId, 

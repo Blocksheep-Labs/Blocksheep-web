@@ -18,12 +18,15 @@ import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import LazyImage from "../../components/image-loading/lazy-image";
 import TinderCard from "react-tinder-card";
+import TopScreenMessage from "../../components/top-screen-message/top-screen-message";
+import { useGameContext } from "../../utils/game-context";
+import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
   const navigate = useNavigate();
-
+  const { updateGameState, gameState } = useGameContext();
   const [races, setRaces] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
@@ -32,14 +35,6 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-  const generateStateObjectForGame = (data: any, progress: any, step?: "questions" | "board" | "start") => {
-    return {
-      questionsByGames: data.questionsByGames, 
-      amountOfRegisteredUsers: data.registeredUsers.length, 
-      progress,
-      step,
-    }
-  }
 
   const handleNavigate = useCallback((progress: any) => {
     console.log("NAVIGATE", amountOfConnected);
@@ -48,19 +43,16 @@ function SelectRaceScreen() {
     
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      console.log(generateStateObjectForGame(data, progress))
-      navigate(`/race/${raceId}/underdog/rules`, {
-        state: generateStateObjectForGame(data, progress),
-        replace: true,
-      });
+      updateGameState(data, progress, undefined);
+      navigate(`/race/${raceId}/rabbit-hole/v2/rules`);
     });
     return;
     */
     
-    
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+      
 
       const navigationSteps: { check: boolean, link: TFlowPhases, step?: "questions" | "board" | "start" }[] = [
         { 
@@ -74,19 +66,16 @@ function SelectRaceScreen() {
           step: "start" 
         },
         { 
-          check: !progress?.game1_preview, 
-          link: "UNDERDOG_PREVIEW", 
-          step: "questions" 
+          check: !progress?.game2_preview, 
+          link: "RABBIT_HOLE_PREVIEW" 
         },
         { 
-          check: !progress?.game1_rules, 
-          link: "UNDERDOG_RULES", 
-          step: "questions" 
+          check: !progress?.game2_rules, 
+          link: "RABBIT_HOLE_RULES" 
         },
         { 
-          check: !progress?.game1?.isDistributed, 
-          link: "UNDERDOG", 
-          step: "questions" 
+          check: !progress?.game2.waitingToFinish, 
+          link: "RABBIT_HOLE" 
         },
         { 
           check: !progress?.nicknameSet, 
@@ -102,16 +91,19 @@ function SelectRaceScreen() {
           link: "STORY_PART_1" 
         },
         { 
-          check: !progress?.game2_preview, 
-          link: "RABBIT_HOLE_PREVIEW" 
+          check: !progress?.game1_preview, 
+          link: "UNDERDOG_PREVIEW", 
+          step: "questions" 
         },
         { 
-          check: !progress?.game2_rules, 
-          link: "RABBIT_HOLE_RULES" 
+          check: !progress?.game1_rules, 
+          link: "UNDERDOG_RULES", 
+          step: "questions" 
         },
         { 
-          check: !progress?.game2.waitingToFinish, 
-          link: "RABBIT_HOLE" 
+          check: !progress?.game1?.isDistributed, 
+          link: "UNDERDOG", 
+          step: "questions" 
         },
         { 
           check: !progress?.board2, 
@@ -172,20 +164,17 @@ function SelectRaceScreen() {
       ];
   
       for (const step of navigationSteps) {
+        console.log({step});
         if (step.check) {
-          navigate(generateLink(step.link, rIdNumber), {
-            state: generateStateObjectForGame(data, progress, step?.step),
-            replace: true,
-          });
+          updateGameState(data, progress, step?.step);
+          navigate(generateLink(step.link, rIdNumber));
           return;
         }
       }
-  
+      
       // If no conditions met, navigate to PODIUM
-      navigate(generateLink("PODIUM", rIdNumber), {
-        state: generateStateObjectForGame(data, progress, undefined),
-        replace: true,
-      });
+      updateGameState(data, progress, undefined);
+      navigate(generateLink("PODIUM", rIdNumber));
     });
   }, [raceId]);
 
@@ -231,12 +220,14 @@ function SelectRaceScreen() {
         if (data.raceId == raceId) {
           const race = races.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
-          console.log("CONNECTED:", data);
+          console.log("Got amount of connected:", data);
           setIsOpen(true);
           setModalType("waiting");
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
           console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
+
           if (data.amount === race.numOfPlayersRequired) {
+            console.log("Ready to navigate!")
             setIsOpen(false);
             setModalType(undefined);
             handleNavigate(progress);
@@ -245,16 +236,18 @@ function SelectRaceScreen() {
       });
       
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
-        console.log(raceIdSocket, raceId)
         const race = races.find((r: any) => r.id === raceId);
-        console.log(race);
+        console.log("Player joined:", {raceIdSocket, raceId, race})
+
         if (raceIdSocket == raceId) {
           console.log("JOINED++", raceIdSocket, userAddress);
+          /*
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= race.numOfPlayersRequired) {
             setIsOpen(false);
             setModalType(undefined);
           }
+          */
           socket.emit("get-connected", { raceId });
         }
       });
@@ -281,18 +274,27 @@ function SelectRaceScreen() {
   }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
 
   const onClickJoin = useCallback((id: number) => {
+    console.log("Joining...", id);
     socket.connect();
     
     if (smartAccountAddress) {
-      socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
-      setTimeout(() => {
-        socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
-        socket.emit("get-connected", { raceId: id });
-      }, 500);
+      console.log("Smart account is connected, requesting progress", {raceId: id, userAddress: smartAccountAddress});
+      // get user by wallet address
+      httpGetUserDataByAddress(smartAccountAddress).then(({ data }) => {
+        // update race by inserting a user into race
+        httpRaceInsertUser(`race-${id}`, data.user._id).then(() => {
+          socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
+          setTimeout(() => {
+            console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
+            socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
+            // socket.emit("get-connected", { raceId: id });
+          }, 500);
+          setRaceId(id);
+          setIsOpen(true);
+          setModalType("waiting");
+        });
+      });
     } 
-    setRaceId(id);
-    setIsOpen(true);
-    setModalType("waiting");
   }, [smartAccountAddress, socket]);
 
   useEffect(() => {
@@ -325,12 +327,28 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
     setModalType("registering");
-    await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(_ => {
+    await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(async _ => {
       console.log("REGISTERED, fetching list of races...");
-      fetchAndSetRaces();
-      setRaceId(id);
-      setIsOpen(true);
-      setModalType("registered");
+
+      setTimeout(async() => {
+        try {
+          const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
+          
+          fetchAndSetRaces();
+    
+          if (!raceData.registeredUsers.map((i: string) => i.toLowerCase()).includes(smartAccountAddress?.toLowerCase())) {
+            throw new Error("Registration error, user is not in a list of registered users")
+          };
+    
+          setRaceId(id);
+          setIsOpen(true);
+          setModalType("registered");
+        } catch (error) {
+          setModalType(undefined);
+          setIsOpen(false);
+          console.log(error);
+        }
+      }, 5000);
     }).catch(err => {
       setModalType(undefined);
       setIsOpen(false);
@@ -339,14 +357,16 @@ function SelectRaceScreen() {
   }, [smartAccountAddress]);
 
   function closeModal() {
-    setIsOpen(false);
-    setRaceId(null);
+    onClickJoin(raceId as number);
   }
 
   //console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
+    <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom`} style={{ height: `${window.innerHeight}px` }}>
+      {
+        // <TopScreenMessage/>
+      }
       <div className="mt-16 flex w-full justify-center">
         <RibbonLabel text="Races"/>
       </div>

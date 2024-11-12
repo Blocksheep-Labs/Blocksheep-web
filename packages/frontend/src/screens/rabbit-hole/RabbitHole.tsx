@@ -26,6 +26,7 @@ import { txAttempts } from "../../utils/txAttempts";
 import calculatePlayersV1 from "./calculations/v1";
 import calculatePlayersV2 from "./calculations/v2";
 import BG_Carrots from "../../assets/rabbit-hole/backgroundcarrot.jpg";
+import { useGameContext } from "../../utils/game-context";
 
 export type ConnectedUser = {
     id: number;
@@ -46,14 +47,13 @@ function RabbitHoleGame() {
   const {smartAccountAddress} = useSmartAccount();
   const [phase, setPhase] = useState<RabbitHolePhases>("Default");
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
-
-  const location = useLocation();
+  const {gameState} = useGameContext();
   const [modalType, setModalType] = useState<string | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const {raceId, version} = useParams();
   const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
-  const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 50);
+  const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 20);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
   const [amountOfPending, setAmountOfPending] = useState(0);
@@ -85,9 +85,9 @@ function RabbitHoleGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if (!gameStarted && location.state && (amountOfConnected >= location.state.amountOfRegisteredUsers - amountOfComplteted)) {
+    if (!gameStarted && gameState && (amountOfConnected >= gameState.amountOfRegisteredUsers - amountOfComplteted)) {
       setGameStarted(true);
-      if (location.state && (amountOfConnected >= location.state.amountOfRegisteredUsers - amountOfComplteted) && start) {
+      if (gameState && (amountOfConnected >= gameState.amountOfRegisteredUsers - amountOfComplteted) && start) {
         socket.emit("get-all-fuel-tunnel", { raceId });
         //closeWaitingModal();
         console.log(">>>> STARTING... <<<<")
@@ -97,16 +97,16 @@ function RabbitHoleGame() {
         !modalIsOpen && openWaitingModal();
       }
     }
-  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, location.state]);
+  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, gameState]);
 
   // handle socket eventsd
   useEffect(() => {
-    if (smartAccountAddress && location.state) {
+    if (smartAccountAddress && gameState) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount >= location.state.amountOfRegisteredUsers - amountOfComplteted) {
+          if (amount >= gameState.amountOfRegisteredUsers - amountOfComplteted) {
             setIsOpen(false);
             setModalType(undefined);
             socket.emit("get-all-fuel-tunnel", { raceId });
@@ -118,7 +118,7 @@ function RabbitHoleGame() {
         if (raceId == raceIdSocket && part == "RABBIT_HOLE") {
           console.log("JOINED++")
           setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
+          if (amountOfConnected + 1 >= gameState.amountOfRegisteredUsers) {
             setIsOpen(false);
             setModalType(undefined);
           }
@@ -153,7 +153,7 @@ function RabbitHoleGame() {
         // @ts-ignore
         setDisplayNumber(progress?.game2?.[version]?.game?.fuel || 0);
         // @ts-ignore
-        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 50));
+        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
       });
 
       
@@ -242,7 +242,7 @@ function RabbitHoleGame() {
         }
 
         if (progress.property === "game2-complete") {
-          if (location.state.amountOfRegisteredUsers - (amountOfComplteted + 1) === -1) {
+          if (gameState.amountOfRegisteredUsers - (amountOfComplteted + 1) === -1) {
             await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
@@ -258,7 +258,7 @@ function RabbitHoleGame() {
         if (progress.property === "game2-wait-to-finish") {
           // set amount of next clicked
           setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
-          if (amountOfPlayersnextClicked + 1 >= location.state.amountOfRegisteredUsers) {
+          if (amountOfPlayersnextClicked + 1 >= gameState.amountOfRegisteredUsers) {
             //closeLoadingModal();
             let redirectLink = "/";
 
@@ -272,10 +272,7 @@ function RabbitHoleGame() {
             }
 
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE', raceId });
-            navigate(redirectLink, {
-              state: location.state,
-              replace: true,
-            });
+            navigate(redirectLink);
           }
         }
       });
@@ -306,7 +303,7 @@ function RabbitHoleGame() {
     amountOfConnected, 
     smartAccountAddress, 
     amountOfComplteted, 
-    location.state, 
+    gameState, 
     amountOfPlayersnextClicked, 
     amountOfPending, 
     gameCompleted,
@@ -317,28 +314,28 @@ function RabbitHoleGame() {
 
   // fetch required amount of users to wait
   useEffect(() => {
-    if (smartAccountAddress && location.state) {
+    if (smartAccountAddress && gameState) {
       socket.emit("game2-reach", { raceId, userAddress: smartAccountAddress })
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-all-fuel-tunnel", { raceId });
     }
-  }, [socket, smartAccountAddress, location.state]); 
+  }, [socket, smartAccountAddress, gameState]); 
 
   useEffect(() => {
-    if(smartAccountAddress && String(raceId).length && location.state) {
+    if(smartAccountAddress && String(raceId).length && gameState) {
         if (!socket.connected) {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE" });
     }
-  }, [smartAccountAddress, socket, raceId, location.state]);
+  }, [smartAccountAddress, socket, raceId, gameState]);
   
 
   useEffect(() => {
-    if (location.state && !isRolling) {
+    if (gameState && !isRolling) {
       closeWaitingModal();
     }
-  }, [location.state, isRolling]);
+  }, [gameState, isRolling]);
 
   // kick player if page chnages (closes)
   useEffect(() => {
@@ -481,9 +478,9 @@ function RabbitHoleGame() {
 
   // INITIAL USE EFFECT
   useEffect(() => {
-    if (smartAccountAddress && location.state.progress && String(raceId).length) {
+    if (smartAccountAddress && gameState?.progress && String(raceId).length) {
       // @ts-ignore
-      const game2state = location.state.progress.game2[version].game;
+      const game2state = gameState.progress.game2[version].game;
       console.log(">>>>>>>>>>> INIT AFTER LEAVE <<<<<<<<<<<", {game2state});
 
       /*
@@ -601,8 +598,8 @@ function RabbitHoleGame() {
     newListOfPlayers = newListOfPlayers.map(i => {
       if (i.address == smartAccountAddress) {
         i.maxAvailableFuel += currentUserBonus;
-        if (i.maxAvailableFuel > (version == "v1" ? 10 : 50)) {
-          i.maxAvailableFuel = (version == "v1" ? 10 : 50);
+        if (i.maxAvailableFuel > (version == "v1" ? 10 : 20)) {
+          i.maxAvailableFuel = (version == "v1" ? 10 : 20);
         }
       }
 
@@ -727,8 +724,8 @@ function RabbitHoleGame() {
   }
 
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-cover bg-bottom relative">
-      <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Player eliminated, pls wait for the next game" : displayNumber}</p>
+    <div className="mx-auto flex w-full flex-col bg-cover bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
+      <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Eliminated ☠️. Wait for next game!" : displayNumber}</p>
       
       <div className="relative z-50 py-6 bg-black">
         <Timer seconds={totalSeconds} />
@@ -770,7 +767,7 @@ function RabbitHoleGame() {
           </>
         )}
         {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
-        {winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
+        {winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints} gameName="rabbit-hole"/>}
     </div>
   );
 }

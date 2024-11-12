@@ -18,6 +18,13 @@ let gameCompletesAmount = {};
 
 
 module.exports = (io) => {
+    io.engine.on("connection_error", (err) => {
+        console.log(err.req);      // the request object
+        console.log(err.code);     // the error code, for example 1
+        console.log(err.message);  // the error message, for example "Session ID unknown"
+        console.log(err.context);  // some additional error context
+    });
+
     io.on("connection", socket => { 
         // when user disconnects
          // when user disconnects
@@ -186,8 +193,13 @@ module.exports = (io) => {
             const roomName = `race-${raceId}`;
             io.to(roomName).emit('tunnel-started-on-client', { socketId: socket.id, raceId });
         });
+
+        socket.on('rabbit-hole-results-shown', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            io.to(roomName).emit('rabbit-hole-results-shown-on-client', { socketId: socket.id, raceId });
+        });
     
-        // get users amount connected to the game 
+        // get users amount connected to the game
         socket.on('get-connected', async({ raceId }) => {
             const roomName = `race-${raceId}`;
             const sockets = await io.in(roomName).fetchSockets();

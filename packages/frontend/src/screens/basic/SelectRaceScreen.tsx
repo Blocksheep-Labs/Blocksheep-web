@@ -20,6 +20,7 @@ import LazyImage from "../../components/image-loading/lazy-image";
 import TinderCard from "react-tinder-card";
 import TopScreenMessage from "../../components/top-screen-message/top-screen-message";
 import { useGameContext } from "../../utils/game-context";
+import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 
 
 function SelectRaceScreen() {
@@ -40,13 +41,13 @@ function SelectRaceScreen() {
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
-    /*
+    
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(data, progress, undefined);
-      navigate(`/race/${raceId}/set-nickname`);
+      navigate(`/race/${raceId}/rabbit-hole/v2/rules`);
     });
     return;
-    */
+    
     
     const rIdNumber = Number(raceId);
     
@@ -278,15 +279,21 @@ function SelectRaceScreen() {
     
     if (smartAccountAddress) {
       console.log("Smart account is connected, requesting progress", {raceId: id, userAddress: smartAccountAddress});
-      socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
-      setTimeout(() => {
-        console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
-        socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
-        // socket.emit("get-connected", { raceId: id });
-      }, 500);
-      setRaceId(id);
-      setIsOpen(true);
-      setModalType("waiting");
+      // get user by wallet address
+      httpGetUserDataByAddress(smartAccountAddress).then(({ data }) => {
+        // update race by inserting a user into race
+        httpRaceInsertUser(`race-${id}`, data.user._id).then(() => {
+          socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
+          setTimeout(() => {
+            console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
+            socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
+            // socket.emit("get-connected", { raceId: id });
+          }, 500);
+          setRaceId(id);
+          setIsOpen(true);
+          setModalType("waiting");
+        });
+      });
     } 
   }, [smartAccountAddress, socket]);
 

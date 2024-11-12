@@ -12,7 +12,7 @@ import Timer from "../../components/Timer";
 import UserCount from "../../components/UserCount";
 import BigDesk from "../../assets/rabbit-hole/signage-instructions.png";
 import AnimatedLever from "../../assets/rabbit-hole/level-rules.gif";
-import BG_Carrots from "../../assets/rabbit-hole/backgroundcarrot.jpg";
+import BG_Rules_Slide from "../../assets/rabbit-hole/rules-slide.png";
 import BG_Tunnel_light from "../../assets/rabbit-hole/tunnel-light.png";
 import Rabbit_Head from "../../assets/rabbit-hole/rabbit.png";
 import InstructionsOne from "../../assets/rabbit-hole/screen-instructions1.png";
@@ -21,6 +21,7 @@ import SmallDesk from "../../assets/rabbit-hole/signage-instructions-small.png";
 import NewLabel from "../../assets/rabbit-hole/new.png";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import { useGameContext } from "../../utils/game-context";
+import RibbonLabel from "../../components/RibbonLabel";
 
 export default function RabbitHoleRules() {
     const navigate = useNavigate();
@@ -63,10 +64,8 @@ export default function RabbitHoleRules() {
                     break;
             }
 
-            
             socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_RULES', raceId });
             navigate(redirectLink);
-            
         },
         autoStart: true
     });
@@ -159,127 +158,97 @@ export default function RabbitHoleRules() {
 
 
     return (
-        <div className="mx-auto justify-start h-screen w-full bg-cover bg-bottom relative">
+        <div className="mx-auto justify-start h-screen w-full bg-cover bg-bullrun_rules_bg bg-bottom relative">
             <TopPageTimer duration={secondsVisual * 1000} />
-            <div className="absolute w-full py-6 z-10 bg-black">
-                <Timer seconds={10} />
-                <div className="absolute right-4 top-6">
-                    <UserCount currentAmount={9} requiredAmount={9}/>
-                </div>
-            </div>
-            
-                <img src={BG_Carrots} className="scale-[140%]"/>
 
+                <div className="flex w-full justify-center z-50 absolute top-16">
+                    <RibbonLabel text="HOW TO PLAY"/>
+                </div>
+            
+                <img src={BG_Rules_Slide} className="w-72 absolute z-10 left-[50%]" style={{ transform: 'translate(-50%, 25%)' }}/>
+
+                
                 {
+                    /*
                     (() => {
-                        // first rule
-                        if (timeRemaining - seconds <= 6) {
-                            return (
-                                <div className="z-30 relative flex flex-col justify-center items-center">
-                                    <img src={BG_Tunnel_light} className="z-30 opacity-30"/>
-                                    <img src={Rabbit_Head} className="z-30 -right-48 absolute -top-28 w-80 opacity-30"/>
-                                    <img src={AnimatedLever} alt="lever" className="w-80 z-50 -mt-20"/>
-                                </div>
-                            );
-                        }
 
                         // second rule
-                        if (timeRemaining - seconds <= 6 + 7) {
+                        if (timeRemaining - seconds <= 5 + 7) {
                             return (
                                 <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={InstructionsOne} className="z-30"/>
-                                    <img src={AnimatedLever} alt="lever" className="w-80 z-30 opacity-50 -mt-10"/>
                                 </div>
                             );
                         }
 
                         // third rule (on rh-v2)
-                        if (timeRemaining - seconds <= 6 + 7 + 9) {
+                        if (timeRemaining - seconds <= 5 + 7 + 10) {
                             return ( 
                                 <div className="z-30 relative flex flex-col justify-center items-center">
                                     <img src={InstructionsTwo} className="z-30"/>
-                                    <img src={AnimatedLever} alt="lever" className="w-80 z-30 opacity-50 -mt-10"/>
                                 </div>
                             );
                         }
 
                     })()
+                        */
                 }
-                
-
-                <div className="absolute top-0 z-20 w-screen h-screen bg-black bg-opacity-70"></div>
 
 
                 <div style={{
-                    fontFamily: "Arial, sans-serif",
                     fontWeight: 700,
                     fontSize: '32px',
-                    WebkitTextStroke: '1.1px white',
-                    color: 'transparent',
                     textAlign: 'center',
                     lineHeight: 1,
-                    textShadow: `
-                        3px 3px 3px #8B5E3C,
-                        -3px 3px 3px #8B5E3C,
-                        3px -3px 3px #8B5E3C,
-                        -3px -3px 3px #8B5E3C
-                    `,
-                    fontStretch: 'condensed',
                 }} className="w-full flex flex-col absolute h-screen top-0">
                     {
                         
                         (() => {
                             // first rule overlay
-                            if (timeRemaining - seconds <= 6) {
+                            if (timeRemaining - seconds <= 5) {
                                 return (
-                                    <div className="relative w-full h-screen flex flex-col items-center mt-44 z-30">
+                                    <div className="relative w-full h-screen flex flex-col items-center mt-64 z-30">
                                         <div className="relative flex items-center justify-center">
-                                            <img src={BigDesk} alt="desk"/>
                                             <span className="absolute max-w-72 text-center self-center text-[40px]">SETUP YOUR SPEED</span>
-                                            <p className="absolute max-w-64 text-center text-lg mt-40">MORE SPEED = MORE FUEL CONSUMED</p>
+                                            <p className="absolute w-56 text-center text-[20px] mt-72">MORE SPEED = MORE FUEL CONSUMED</p>
+                                            <div className="absolute w-56">
+                                                <img src={AnimatedLever} alt="lever" className="w-56 mt-[500px]"/>
+                                            </div>
                                         </div>
                                     </div>
                                 );
                             }
 
                             // second rule overlay
-                            if (timeRemaining - seconds <= 6 + 7) {
+                            if (timeRemaining - seconds <= 5 + 7) {
                                 return (
-                                    <div className="relative w-full h-screen flex flex-col items-center mt-16 z-30">
+                                    <div className="relative w-full h-screen flex flex-col items-center mt-64 z-30">
                                         <div className="relative flex items-center justify-center">
-                                            <img src={BigDesk} alt="desk"/>
-                                            <span className="-mt-20 absolute max-w-72 text-center text-3xl self-center">SURVIVE!</span>
-                                            <span className="mt-6 absolute max-w-72 text-center text-3xl self-center">YOU ARE ELIMINATED IF...</span>
-                                            <p className="absolute max-w-64 text-center text-xl mt-40">1) YOU ARE THE LAST ONE (SPEED TOO LOW)</p>
+                                            <span className="absolute max-w-72 text-center self-center text-[40px]">SURVIVE!</span>
+                                            <p className="absolute w-56 text-center text-[18px] mt-32">YOU ARE ELIMINATED IF...</p>
+                                            <p className="absolute w-56 text-center text-[18px] mt-52">1) YOU ARE THE LAST ONE (SPEED TOO LOW)</p>
+                                            <p className="absolute w-56 text-center text-[18px] mt-72">2) YOU RUN OUT OF FUEL</p>
+                                            <div className="absolute w-56">
+                                                <img src={InstructionsOne} alt="lever" className="w-56 mt-[500px]"/>
+                                            </div>
                                         </div>
-                                        
-                                        <div className="absolute bottom-3 flex items-center justify-center">
-                                            <img src={SmallDesk} alt="lever" className="w-72 z-20"/>
-                                            <p className="absolute max-w-56 text-center text-lg z-20 mt-2">2) YOU RUN OUT OF FUEL</p>
-                                        </div>
-                                       
                                     </div>
                                 );
                             }
 
                             // third rule overlay (on rh-v2)
-                            if (timeRemaining - seconds <= 6 + 7 + 9) {
+                            if (timeRemaining - seconds <= 5 + 7 + 10) {
                                 return (
-                                    <div className="relative w-full h-screen flex flex-col items-center mt-16 z-30">
+                                    <div className="relative w-full h-screen flex flex-col items-center mt-64 z-30">
                                         <div className="relative flex items-center justify-center">
-                                            <img src={NewLabel} className="absolute right-0 top-5 z-20 w-12" />
-                                            <img src={BigDesk} alt="desk"/>
-                                            <span className="-mt-28 absolute max-w-56 text-center text-lg self-center">IF YOU'RE LAST AND</span>
-                                            <span className="mt-6 absolute max-w-56 text-center text-lg self-center">YOUR SPEED IS 4+ POINTS SLOWER THAN THE SECOND-TO-LAST PLAYER:</span>
-                                            <p className="absolute max-w-48 text-center text-lg mt-48">YOU SURVIVE AND GAIN +3 FUEL</p>
+                                            <span className="absolute w-56 text-center self-center text-[30px] -mt-7">IF YOU'RE LAST AND</span>
+                                            <p className="absolute w-56 text-center text-[16px] mt-32">YOUR SPEED IS 4+ POINTS SLOWER THAN THE SECOND-TO-LAST PLAYER:</p>
+                                            <p className="absolute w-56 text-center text-[16px] mt-56">YOU SURVIVE AND GAIN +3 FUEL</p>
+                                            <p className="absolute w-56 text-center text-[16px] mt-[300px]">SECOND TO LAST ONE DOESN'T CONSUME FUEL</p>
+                                            <div className="absolute w-56">
+                                                <img src={InstructionsTwo} alt="lever" className="w-56 mt-[500px]"/>
+                                            </div>
                                         </div>
-                                        
-                                        <div className="absolute bottom-3 flex items-center justify-center">
-                                            <img src={NewLabel} className="absolute right-0 -top-3 z-30 w-12" />
-                                            <img src={SmallDesk} alt="lever" className="w-72 z-20"/>
-                                            <p className="absolute max-w-56 text-center text-lg z-20 mt-2">SECOND TO LAST ONE DOESN'T CONSUME FUEL</p>
-                                        </div>
-                                    
                                     </div>
                                 );
                             }

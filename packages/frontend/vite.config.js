@@ -24,4 +24,7 @@ export default defineConfig({
     target: ['esnext'],
     outDir: "./build",
   },
+  server: {
+    host: true
+  }
 });

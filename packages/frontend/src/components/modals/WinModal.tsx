@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import WinMain from "../../assets/win/win-main.webp";
 import NextFlag from "../../assets/common/flag.png";
-import { getScoreAtRaceOfUser } from "../../utils/contract-functions";
+import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../../utils/contract-functions";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 
 export type WinModalProps = {
@@ -10,15 +10,16 @@ export type WinModalProps = {
   raceId?: number;
   gameIndex?: number;
   preloadedScore?: number;
+  gameName: string;
 };
 
-function WinModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalProps) {
+function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName }: WinModalProps) {
   const { smartAccountAddress } = useSmartAccount();
   const [score, setScore] = useState<null | number>(null);
 
   useEffect(() => {
     if (raceId?.toString() && gameIndex?.toString() && smartAccountAddress && !preloadedScore) {
-      getScoreAtRaceOfUser(raceId, smartAccountAddress as `0x${string}`)
+      getScoreAtGameOfUser(raceId, gameIndex, smartAccountAddress as `0x${string}`, gameName)
         .then(data => {
           console.log("Get score:", data);
           // wait for tx to finish

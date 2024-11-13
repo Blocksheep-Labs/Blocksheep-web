@@ -19,12 +19,14 @@ import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import LazyImage from "../../components/image-loading/lazy-image";
 import TinderCard from "react-tinder-card";
 import TopScreenMessage from "../../components/top-screen-message/top-screen-message";
+import { useGameContext } from "../../utils/game-context";
+import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
   const navigate = useNavigate();
-
+  const { updateGameState, gameState } = useGameContext();
   const [races, setRaces] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
@@ -33,37 +35,24 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-  const generateStateObjectForGame = (data: any, progress: any, step?: "questions" | "board" | "start") => {
-    return {
-      questionsByGames: data.questionsByGames, 
-      amountOfRegisteredUsers: data.registeredUsers.length, 
-      progress,
-      step,
-      raceProgressVisual: [],
-    }
-  }
 
   const handleNavigate = useCallback((progress: any) => {
-    alert('Handle Navigate has been called');
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      console.log(generateStateObjectForGame(data, progress))
-      navigate(`/race/${raceId}/race-update/board1`, {
-        state: generateStateObjectForGame(data, progress),
-        replace: true,
-      });
+      updateGameState(data, progress, undefined);
+      navigate(`/race/${raceId}/rabbit-hole/v2/rules`);
     });
     return;
     */
     
-    
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+      
 
       const navigationSteps: { check: boolean, link: TFlowPhases, step?: "questions" | "board" | "start" }[] = [
         { 
@@ -87,11 +76,6 @@ function SelectRaceScreen() {
         { 
           check: !progress?.game2.waitingToFinish, 
           link: "RABBIT_HOLE" 
-        },
-        { 
-          check: !progress?.nicknameSet, 
-          link: "ADD_NAME", 
-          step: "board" 
         },
         { 
           check: !progress?.board1, 
@@ -177,21 +161,15 @@ function SelectRaceScreen() {
       for (const step of navigationSteps) {
         console.log({step});
         if (step.check) {
-          alert('Navigating...');
-          navigate(generateLink(step.link, rIdNumber), {
-            state: generateStateObjectForGame(data, progress, step?.step),
-            //replace: true,
-          });
+          updateGameState(data, progress, step?.step);
+          navigate(generateLink(step.link, rIdNumber));
           return;
         }
       }
       
-      alert('No conditions met! Navigation to the podium');
       // If no conditions met, navigate to PODIUM
-      navigate(generateLink("PODIUM", rIdNumber), {
-        state: generateStateObjectForGame(data, progress, undefined),
-        replace: true,
-      });
+      updateGameState(data, progress, undefined);
+      navigate(generateLink("PODIUM", rIdNumber));
     });
   }, [raceId]);
 
@@ -248,8 +226,6 @@ function SelectRaceScreen() {
             setIsOpen(false);
             setModalType(undefined);
             handleNavigate(progress);
-          } else {
-            alert(`received: ${data.amount} required: ${race.numOfPlayersRequired}`);
           }
         }
       });
@@ -298,15 +274,21 @@ function SelectRaceScreen() {
     
     if (smartAccountAddress) {
       console.log("Smart account is connected, requesting progress", {raceId: id, userAddress: smartAccountAddress});
-      socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
-      setTimeout(() => {
-        console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
-        socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
-        // socket.emit("get-connected", { raceId: id });
-      }, 500);
-      setRaceId(id);
-      setIsOpen(true);
-      setModalType("waiting");
+      // get user by wallet address
+      httpGetUserDataByAddress(smartAccountAddress).then(({ data }) => {
+        // update race by inserting a user into race
+        httpRaceInsertUser(`race-${id}`, data.user._id).then(() => {
+          socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
+          setTimeout(() => {
+            console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
+            socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
+            // socket.emit("get-connected", { raceId: id });
+          }, 500);
+          setRaceId(id);
+          setIsOpen(true);
+          setModalType("waiting");
+        });
+      });
     } 
   }, [smartAccountAddress, socket]);
 
@@ -376,7 +358,7 @@ function SelectRaceScreen() {
   //console.log(races, races.find((r: any) => r.id === raceId))
 
   return (
-    <div className="mx-auto flex h-screen w-full flex-col bg-race_bg bg-cover bg-bottom">
+    <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom`} style={{ height: `${window.innerHeight}px` }}>
       {
         // <TopScreenMessage/>
       }

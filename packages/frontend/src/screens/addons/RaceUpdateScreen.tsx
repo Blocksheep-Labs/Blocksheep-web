@@ -8,6 +8,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 const getPart = (board: string) => {
   let selectedPart = "";
@@ -30,7 +31,7 @@ const getPart = (board: string) => {
 type TProgress = { curr: number; delta: number; address: string };
 
 function RaceUpdateScreen() {
-  const location = useLocation();
+  const {gameState, setGameStateObject} = useGameContext();
   const { smartAccountAddress } = useSmartAccount();
   const [seconds, setSeconds] = useState(10);
   const navigate = useNavigate();
@@ -76,10 +77,8 @@ function RaceUpdateScreen() {
 
     console.log("REDIRECT:", {progressData: await getNewProgress()})
     socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
-    navigate(redirectLink, {
-      state: {...location.state, raceProgressVisual: await getNewProgress(true)},
-      replace: true,
-    });
+    gameState && setGameStateObject({ ...gameState, raceProgressVisual: await getNewProgress(true) })
+    navigate(redirectLink);
   };
 
   const getNewProgress = async(redirecting=false) => {
@@ -90,7 +89,7 @@ function RaceUpdateScreen() {
       usedValueForData = data;
     }
 
-    let currentProgressVisual: TProgress[] = location.state.raceProgressVisual;
+    let currentProgressVisual: TProgress[] = gameState?.raceProgressVisual || [];
           
     let newProgress: TProgress[] = usedValueForData.progress.map((i: { user: string, progress: number }) => {
       const current = (() => {
@@ -132,7 +131,7 @@ function RaceUpdateScreen() {
           // validate user for being registered
           if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
             // console.log("USER IS NOT LOGGED IN")
-            navigate('/', { replace: true, });
+            navigate('/', {  });
           } 
 
           setData(data.contractData);
@@ -252,7 +251,7 @@ function RaceUpdateScreen() {
 
   return (
     <>
-      <div className="mx-auto flex h-screen w-full flex-col bg-race_bg_track bg-cover bg-bottom">
+      <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           { 

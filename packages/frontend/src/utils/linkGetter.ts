@@ -5,7 +5,6 @@ export type TFlowPhases =
     "UNDERDOG_PREVIEW" |
     "UNDERDOG_RULES" |  
     "UNDERDOG" | 
-    "ADD_NAME" | 
     "RACE_UPDATE_1" |
     "STORY_PART_1" |
     "RABBIT_HOLE_PREVIEW" |  
@@ -38,8 +37,6 @@ export default function generateLink(phase: TFlowPhases, raceId: number) {
         case "UNDERDOG_RULES": return `/race/${raceId}/underdog/rules`
         case "UNDERDOG": return `/race/${raceId}/underdog`
 
-        
-        case "ADD_NAME": return `/race/${raceId}/set-nickname`
         case "RACE_UPDATE_1": return `/race/${raceId}/race-update/board1`
         case "STORY_PART_1": return `/race/${raceId}/story/part1`
 

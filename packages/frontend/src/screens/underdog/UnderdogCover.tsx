@@ -7,12 +7,13 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import { useGameContext } from "../../utils/game-context";
 
 export default function UnderdogCover() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
-    const location = useLocation();
+    const { gameState } = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
@@ -36,17 +37,14 @@ export default function UnderdogCover() {
             });
 
             socket.emit('minimize-live-game', { part: 'UNDERDOG_PREVIEW', raceId });
-            navigate(generateLink("UNDERDOG_RULES", Number(raceId)), {
-                state: location.state,
-                replace: true,
-            });
+            navigate(generateLink("UNDERDOG_RULES", Number(raceId)));
         },
         autoStart: true
     });
 
 
     useEffect(() => {
-        if (location.state && amountOfConnected >= location.state.amountOfRegisteredUsers) {    
+        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
           
             const time = new Date();
             time.setSeconds(time.getSeconds() + 3);
@@ -56,17 +54,17 @@ export default function UnderdogCover() {
         } else {
             pause();
         }
-    }, [amountOfConnected, location.state]);
+    }, [amountOfConnected, gameState]);
 
     // handle socket events
     useEffect(() => {
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === location.state.amountOfRegisteredUsers) {
+                    if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -112,15 +110,15 @@ export default function UnderdogCover() {
                 socket.off('race-progress');
             }
         }
-    }, [socket, raceId, smartAccountAddress, amountOfConnected, location.state]);
+    }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
         setModalIsOpen(true);
         setModalType("waiting");
-        if (smartAccountAddress && location.state) {
+        if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
-    }, [socket, raceId, smartAccountAddress, location.state]);
+    }, [socket, raceId, smartAccountAddress, gameState]);
 
 
     useEffect(() => {
@@ -136,7 +134,7 @@ export default function UnderdogCover() {
     return (
         <>
             <TopPageTimer duration={seconds * 1000} />
-            <div className="mx-auto flex h-screen w-full flex-col bg-underdog_cover_bg bg-cover bg-top">
+            <div className="mx-auto flex w-full flex-col bg-underdog_cover_bg bg-cover bg-top" style={{ height: `${window.innerHeight}px` }}>
                 {
                     /*
                     modalIsOpen && modalType === "waiting" && 

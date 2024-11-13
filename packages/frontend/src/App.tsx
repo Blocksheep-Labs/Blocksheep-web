@@ -21,11 +21,13 @@ import BullrunCover from "./screens/bullrun/BullrunCover";
 import BullrunRules from "./screens/bullrun/BullrunRules";
 import Bullrun from "./screens/bullrun/Bullrun";
 import StoryScreen from "./screens/addons/StoryScreen";
-import SetNicknameScreen from "./screens/addons/SetNicknameScreen";
 import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
 
 
 function App() {
+  import('eruda').then(eruda => eruda.default.init());
+
+  
   useEffect(() => {
     socket.connect();
   }, [socket]);
@@ -66,15 +68,6 @@ function App() {
           element={
             <ProtectedRoute>
               <StoryScreen/>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route 
-          path="race/:raceId/set-nickname"
-          element={
-            <ProtectedRoute>
-              <SetNicknameScreen/>
             </ProtectedRoute>
           }
         />
@@ -213,7 +206,7 @@ function App() {
 function Layout() {
   const { pathname } = useLocation();
   return (
-    <div className="relative m-auto h-screen w-full overflow-hidden bg-black sm:max-w-sm">
+    <div className={`relative m-auto w-full bg-black sm:max-w-sm`} style={{ height: `${window.innerHeight}px` }}>
       {["/select"].includes(pathname) && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}

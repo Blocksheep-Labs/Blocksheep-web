@@ -18,6 +18,7 @@ import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
 import DogLoaderImage from "../../assets/underdog/background_head.webp";
 import Firework from "../../components/firework/firework";
+import { GameState, useGameContext } from "../../utils/game-context";
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
@@ -36,7 +37,7 @@ function UnderdogGame() {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [flipState, setFlipState] = useState(true);
   const {raceId} = useParams();
-  const location = useLocation();
+  const {gameState} = useGameContext();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
@@ -45,9 +46,9 @@ function UnderdogGame() {
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
 
   const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
-  const questions = location.state?.questionsByGames[currentGameIndex];
-  const { questionsByGames, progress } = location.state;
-  //const amountOfRegisteredUsers = location.state?.amountOfRegisteredUsers;
+  const questions = gameState?.questionsByGames[currentGameIndex];
+  const { questionsByGames, progress } = gameState as GameState;
+
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
@@ -500,9 +501,7 @@ function UnderdogGame() {
 
   function nextClicked() {
     socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-    navigate(generateLink("RACE_UPDATE_2", Number(raceId)), {
-      state: location.state
-    });
+    navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
   }
 
   // INITIAL USE EFFECT
@@ -543,7 +542,7 @@ function UnderdogGame() {
 
 
   return (
-    <div className="relative mx-auto flex h-screen w-full flex-col bg-underdog_bg bg-cover bg-center">
+    <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
       { 
         (
           (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
@@ -636,7 +635,7 @@ function UnderdogGame() {
       }
       {
         winModalPermanentlyOpened && 
-        <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex}/>
+        <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex} gameName="underdog"/>
       }
     </div>
   );

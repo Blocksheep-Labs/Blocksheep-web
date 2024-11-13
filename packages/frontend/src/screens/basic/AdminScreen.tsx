@@ -76,7 +76,7 @@ export default function AdminScreen() {
     }
 
     return (
-        <div className="bg-white p-10">
+        <div className="bg-white p-10" style={{ height: `${window.innerHeight}px` }}>
             <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
                 <h2>Create Race</h2>
                 <input type="text" placeholder="Title" name="title"></input>

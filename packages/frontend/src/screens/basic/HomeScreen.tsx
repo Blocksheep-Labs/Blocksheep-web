@@ -6,15 +6,18 @@ import Sheep from "../../assets/home/sheep itself.png";
 import SheepShadow from "../../assets/home/sheep shadow.png";
 import FlagYellow from "../../assets/home/Layer 8.png";
 import FlagGreen from "../../assets/home/Layer 12.png";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { SELECTED_NETWORK } from "../../config/constants";
 import { useNavigate } from "react-router-dom";
+import SetNicknameModal from "../../components/modals/SetNicknameModal";
+import { httpSetNameByAddress } from "../../utils/http-requests";
 
 
 function HomeScreen() {
   const navigate = useNavigate();
+  const [nicknameModalIsOpen, setNicknameModalIsOpen] = useState(false);
   const { smartAccountAddress, smartAccountClient } = useSmartAccount();
   const { generateSiweMessage, linkWithSiwe } = useLinkWithSiwe();
   const { login } = useLogin({
@@ -46,14 +49,21 @@ function HomeScreen() {
           connectorType: 'safe'
         });
       } catch (error) {
-        
+        setNicknameModalIsOpen(false);
       } finally {
-        navigate('/select', { replace: true });
+        setNicknameModalIsOpen(true);
       }
     }
 
     linkAccount();
   }, [smartAccountClient, smartAccountAddress]);
+
+  const handleCloseNicknameModal = (nickname: string) => {
+    setNicknameModalIsOpen(false);
+    httpSetNameByAddress(nickname, smartAccountAddress as `0x${string}`).finally(() => {
+      navigate('/select');
+    });
+  }
 
   const handleLoginClick = () => {
     login();
@@ -72,7 +82,8 @@ function HomeScreen() {
 
 
   return (
-    <div className="mx-auto flex w-full h-screen flex-col bg-race_bg bg-cover bg-bottom relative">
+    <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom relative`} style={{ height: `${window.innerHeight}px` }}>
+      { nicknameModalIsOpen && <SetNicknameModal handleClose={handleCloseNicknameModal}/> }
       <div className="flex items-center justify-center h-52">
         <img src={BlockSheepLogo} alt="blocksheep" className="w-60"/>
       </div>

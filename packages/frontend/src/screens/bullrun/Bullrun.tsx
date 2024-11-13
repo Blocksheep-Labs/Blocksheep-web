@@ -20,6 +20,7 @@ import WinModal from "../../components/modals/WinModal";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
+import { useGameContext } from "../../utils/game-context";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -27,7 +28,7 @@ export type BullrunPerks = "shield" | "swords" | "run";
 export default function Bullrun() {
     const {smartAccountAddress, smartAccountClient} = useSmartAccount();
     const navigate = useNavigate();
-    const location = useLocation();
+    const { gameState } = useGameContext();
     const {raceId} = useParams();
     const [selectedPerk, setSelectedPerk] = useState<undefined | number>(-1);
 
@@ -305,10 +306,7 @@ export default function Bullrun() {
                   setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                   if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
                     
-                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)), {
-                        state: location.state,
-                        replace: true,
-                    });
+                    navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
                   }
                 }
             });
@@ -375,7 +373,7 @@ export default function Bullrun() {
     }
 
     return (
-        <div className="mx-auto flex h-screen w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative">
+        <div className="mx-auto flex w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative" style={{ height: `${window.innerHeight}px` }}>
             { 
                 rulesModalIsOpened 
                 && 
@@ -390,12 +388,12 @@ export default function Bullrun() {
                 <WaitingForPlayersModal 
                     replacedText="..."
                     numberOfPlayers={0} 
-                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
+                    numberOfPlayersRequired={gameState?.amountOfRegisteredUsers || 9}
                 />
             }
             {
                 winModalIsOpened && 
-                <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore}/>
+                <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore} gameName="bullrun"/>
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">

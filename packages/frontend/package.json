@@ -42,10 +42,11 @@
     "workbox-streams": "^6.6.0"
   },
   "scripts": {
-    "start": "npx http-server ./build",
+    "start": "vite start",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
+    "host": "vite --host",
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"

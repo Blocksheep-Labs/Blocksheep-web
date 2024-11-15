@@ -13,7 +13,7 @@ console.log('[APP] Launching...');
   const app = express();
 
   // cors
-  const whitelist = [CLIENT_BASE];
+  const whitelist = CLIENT_BASE.split(',');
   console.log(`[CORS] Origins in whitelist: `, whitelist)
   
   app.use(cors({

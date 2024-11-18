@@ -264,7 +264,7 @@ function RabbitHoleGame() {
 
             switch (version) {
               case "v1":
-                redirectLink = generateLink("ADD_NAME", Number(raceId)); break;
+                redirectLink = generateLink("RACE_UPDATE_1", Number(raceId)); break;
               case "v2":
                 redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
               default:

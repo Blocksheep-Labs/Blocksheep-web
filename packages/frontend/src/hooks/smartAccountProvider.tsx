@@ -89,7 +89,7 @@ export const SmartAccountProvider = ({
 
       const publicClient = createPublicClient({
         chain: SELECTED_NETWORK, // Replace this with the chain of your app
-        transport: http(),
+        transport: http("https://base-sepolia.g.alchemy.com/v2/3lza1eXPYoI1FWp2SR0u43i1RZxh-LwZ"),
       });
 
       const safeAccount = await signerToSafeSmartAccount(
@@ -115,7 +115,7 @@ export const SmartAccountProvider = ({
       const smartAccountClient = createSmartAccountClient({
         account: safeAccount,
         entryPoint: ENTRYPOINT_ADDRESS_V07,
-        chain: SELECTED_NETWORK, // Replace this with the chain for your app
+        chain: SELECTED_NETWORK,
         bundlerTransport: http(PIMLICO_BUNDLER_URL),
         middleware: {
           sponsorUserOperation: pimlicoPaymaster.sponsorUserOperation, 

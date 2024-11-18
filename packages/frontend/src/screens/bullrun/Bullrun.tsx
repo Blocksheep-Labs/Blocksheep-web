@@ -306,7 +306,7 @@ export default function Bullrun() {
                   setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                   if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
                     
-                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
+                    navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
                   }
                 }
             });

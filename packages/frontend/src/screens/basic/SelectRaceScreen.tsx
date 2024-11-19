@@ -159,9 +159,9 @@ function SelectRaceScreen() {
       ];
   
       for (const step of navigationSteps) {
-        console.log({step});
         if (step.check) {
           updateGameState(data, progress, step?.step);
+          //alert(step.link);
           navigate(generateLink(step.link, rIdNumber));
           return;
         }

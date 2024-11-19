@@ -89,7 +89,7 @@ export const SmartAccountProvider = ({
 
       const publicClient = createPublicClient({
         chain: SELECTED_NETWORK, // Replace this with the chain of your app
-        transport: http("https://base-sepolia.g.alchemy.com/v2/3lza1eXPYoI1FWp2SR0u43i1RZxh-LwZ"),
+        transport: http(),
       });
 
       const safeAccount = await signerToSafeSmartAccount(

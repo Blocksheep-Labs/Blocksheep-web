@@ -127,6 +127,7 @@ export default function UnderdogCover() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_PREVIEW" });
+            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_PREVIEW" });
         }
     }, [smartAccountAddress, socket, raceId]);
 

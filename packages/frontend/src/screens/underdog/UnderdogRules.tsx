@@ -126,6 +126,7 @@ export default function UnderdogRules() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_RULES" });
+            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_RULES" });
         }
     }, [smartAccountAddress, socket, raceId]);
 

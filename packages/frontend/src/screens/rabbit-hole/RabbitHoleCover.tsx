@@ -137,6 +137,7 @@ export default function RabbitHoleCover() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE_PREVIEW" });
+            socket.emit("get-latest-screen", { raceId, part: "RABBIT_HOLE_PREVIEW" });
         }
     }, [smartAccountAddress, socket, raceId]);
 

@@ -229,6 +229,7 @@ export default function StoryScreen() {
             setTimeout(() => {
                 console.log("Emitting connect live game event...");
                 socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
+                socket.emit("get-latest-screen", { raceId, part: getStoryPart(part) });
             }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);

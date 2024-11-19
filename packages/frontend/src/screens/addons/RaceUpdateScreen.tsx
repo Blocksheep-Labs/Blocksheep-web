@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import RaceBoard from "../../components/RaceBoard";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../../utils/contract-functions";
 import { socket } from "../../utils/socketio";
-import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
@@ -245,6 +244,7 @@ function RaceUpdateScreen() {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getPart(board) });
+        socket.emit("get-latest-screen", { raceId, part: getPart(board) });
     }
   }, [smartAccountAddress, socket, raceId, board, data]);
 

@@ -137,6 +137,7 @@ export default function BullrunRules() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN_RULES" });
+            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_RULES" });
         }
     }, [smartAccountAddress, socket, raceId]);
 

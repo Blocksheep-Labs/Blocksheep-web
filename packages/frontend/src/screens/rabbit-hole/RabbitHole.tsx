@@ -327,6 +327,7 @@ function RabbitHoleGame() {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE" });
+        socket.emit("get-latest-screen", { raceId, part: "RABBIT_HOLE" });
     }
   }, [smartAccountAddress, socket, raceId, gameState]);
   
@@ -381,7 +382,7 @@ function RabbitHoleGame() {
     setPhase("CloseTunnel"); 
 
     // Open tunnel: cars get out
-    setTimeout(() => setPhase("OpenTunnel"), 10000);
+    setTimeout(() => setPhase("OpenTunnel"), 3000);
 
     // reset and make calculations
     setTimeout(() => {
@@ -392,7 +393,7 @@ function RabbitHoleGame() {
       setTimeout(() => {
         setPhase("Default");
       }, 9000);
-    }, 16000);
+    }, 9000);
   };
 
 

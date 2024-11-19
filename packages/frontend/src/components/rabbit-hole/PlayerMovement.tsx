@@ -93,9 +93,9 @@ const PlayerMovement = ({
             fuelElement.style.transition = 'all 0.5s ease-out';
             fuelElement.style.left = '-100%';
             fuelElement.style.opacity = '0';
-          }, 3000);
+          }, 1500);
         } else if (phase === 'OpenTunnel') {
-          const delay = index * 1000;
+          const delay = index * 500;
           setTimeout(() => {
             console.log("OPEN")
             playerElement.style.top = topPosition;
@@ -140,8 +140,9 @@ const PlayerMovement = ({
                 const playerData = activePlayers[i];
                 if (playerData.address == player.address && playerData.Fuel == minFuel) {
                   console.log("DOWN");
-                  //playerElement.style.transition = 'all 2s ease-out';
-                  //fuelElement.style.transition = 'all 2s ease-out';
+                  playerElement.style.transition = 'all 1.5s ease-out';
+                  fuelElement.style.transition = 'all 1.5s ease-out';
+
                   fuelElement.style.top = '600px';
                   fuelElement.style.opacity = "0";
 
@@ -153,7 +154,7 @@ const PlayerMovement = ({
                   }
                 }
               }
-            }, 4000);
+            }, 4500);
           }, 1000 + delay);
         }
       });

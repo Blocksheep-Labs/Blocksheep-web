@@ -12,7 +12,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { SELECTED_NETWORK } from "../../config/constants";
 import { useNavigate } from "react-router-dom";
 import SetNicknameModal from "../../components/modals/SetNicknameModal";
-import { httpSetNameByAddress } from "../../utils/http-requests";
+import { httpGetUserDataByAddress, httpSetNameByAddress } from "../../utils/http-requests";
 
 
 function HomeScreen() {
@@ -51,7 +51,14 @@ function HomeScreen() {
       } catch (error) {
         setNicknameModalIsOpen(false);
       } finally {
-        setNicknameModalIsOpen(true);
+
+        await httpGetUserDataByAddress(smartAccountAddress).then(({data}) => {
+          if (!data?.user?.name) {
+            setNicknameModalIsOpen(true);
+          } else {
+            navigate('/select');
+          }
+        });
       }
     }
 

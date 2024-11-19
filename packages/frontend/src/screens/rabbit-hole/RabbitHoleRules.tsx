@@ -153,6 +153,7 @@ export default function RabbitHoleRules() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE_RULES" });
+            socket.emit("get-latest-screen", { raceId, part: "RABBIT_HOLE_RULES" });
         }
     }, [smartAccountAddress, socket, raceId]);
 

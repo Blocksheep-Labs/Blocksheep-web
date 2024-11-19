@@ -495,6 +495,7 @@ function UnderdogGame() {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
+        socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
     }
   }, [smartAccountAddress, socket, raceId, raceData]);
 

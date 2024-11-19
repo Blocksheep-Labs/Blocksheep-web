@@ -8,12 +8,26 @@ let connectedUsers = [];
 // { room: string, userAddress: string, progress: ("countdown": number, "game-1": number, "board-1": number, "game-2": number) }
 let racesProgresses = [];
 
+// { raceId: string, screen: string }
+let screens = [
+    "STORY_INTRO", "RACE_START", 
+    "RABBIT_HOLE_PREVIEW", "RABBIT_HOLE_RULES", "RABBIT_HOLE",
+    "RACE_UPDATE_1", "STORY_PART_1",
+    "UNDERDOG_PREVIEW", "UNDERDOG_RULES", "UNDERDOG",
+    "RACE_UPDATE_2", "STORY_PART_2",
+    "BULL_RUN_PREVIEW", "BULL_RUN_RULES", "BULL_RUN",
+    "RACE_UPDATE_3", "STORY_PART_3",
+    "RABBIT_HOLE_V2_PREVIEW", "RABBIT_HOLE_V2_RULES", "RABBIT_HOLE_V2",
+    "RACE_UPDATE_4", "STORY_PART_4", 
+    "RATE", "STORY_CONCLUSION", "PODIUM"
+];
+let roomsLatestScreen = [];
+
 let activePlayers = {};
 let waitingPlayers = {};
 let matchesPlayed = {};  // matches between players (e.g., { 'player1_id': ['player2_id', ...] })
 let gameCounts = {};     // number of games each player has played (e.g., { 'player1_id': 3, ... })
 let gamesRequired = {};  // number of games per player required to move to next game  { 'player1_id': 3, ... }
-let gameCompletes = {};
 let gameCompletesAmount = {};
 
 
@@ -48,7 +62,7 @@ module.exports = (io) => {
                 }
             });
     
-            console.log({roomsToEmitDisconnectEvent})
+            //console.log({roomsToEmitDisconnectEvent})
     
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {
@@ -76,16 +90,34 @@ module.exports = (io) => {
                     return i;
                 });
             }
+
+            // set latest creen
+            const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
+            if (roomScreenData && (screens.indexOf(roomScreenData.screen) < screens.indexOf(part))) {
+                console.log({part});
+                roomScreenData.screen = part;
+            } else {
+                roomsLatestScreen.push({ raceId, screen: part });
+            }
     
             socket.join(roomName);
             // send the socket event
-            console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName, part})
+            //console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName, part})
             io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId, part});
+        });
+
+        socket.on('get-latest-screen', ({ raceId }) => {
+            const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
+            let latestScreen = screens[0];
+            if (roomScreenData?.screen) {
+                latestScreen = roomScreenData.screen;
+            }
+            io.to(socket.id).emit('latest-screen', { raceId, screen: latestScreen });
         });
     
         // minimize race (game)
         socket.on('minimize-live-game', ({ part, raceId }) => {
-            console.log('mimized', { part, raceId })
+            //console.log('mimized', { part, raceId })
             const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
             // rm user
             connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
@@ -142,7 +174,7 @@ module.exports = (io) => {
             racesProgresses[index] = updatedProgress;
 
             if (property == "game2-set-fuel") {
-                console.log("FUEL UPDATED", { raceId, value, userAddress });
+                //console.log("FUEL UPDATED", { raceId, value, userAddress });
             }
 
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
@@ -252,7 +284,7 @@ module.exports = (io) => {
         
             // Pair players and start the game
             function pairPlayers() {
-                console.log("LIST OF ACTIVE PLAYERS...", activePlayers[raceId].map(i => i.id));
+                //console.log("LIST OF ACTIVE PLAYERS...", activePlayers[raceId].map(i => i.id));
             
                 let maxRetries = activePlayers[raceId].length * 2; // Limit retries to prevent infinite loops
                 let retries = 0;
@@ -261,11 +293,11 @@ module.exports = (io) => {
                 while (activePlayers[raceId].length >= 2 && retries < maxRetries) {
                     const player1 = activePlayers[raceId].shift();
                     const player2 = activePlayers[raceId].shift();
-                    console.log("TRYING TO PAIR...", player1.id, player2.id);
+                    //console.log("TRYING TO PAIR...", player1.id, player2.id);
             
                     // Ensure player1 and player2 are not the same person
                     if (player1.id === player2.id) {
-                        console.log("ERROR: Trying to pair player with themselves!", player1.id);
+                        //console.log("ERROR: Trying to pair player with themselves!", player1.id);
                         waitingPlayers[raceId].push(player1, player2); // Put both players back in waiting queue
                         retries++;
                         continue;
@@ -287,7 +319,7 @@ module.exports = (io) => {
                         io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
                         io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
             
-                        console.log(`Pairing players: ${player1.id} vs ${player2.id}`);
+                        //console.log(`Pairing players: ${player1.id} vs ${player2.id}`);
             
                         // Track matches played
                         matchesPlayed[raceId][player1.id].push(player2.id);
@@ -296,7 +328,7 @@ module.exports = (io) => {
                         // Increment their game counts
                         incrementGameCount(player1, player2);
                     } else {
-                        console.log("TRYING TO PAIR...", player1.id, player2.id, "FAILED!");
+                        //console.log("TRYING TO PAIR...", player1.id, player2.id, "FAILED!");
                         // If pairing fails, put players back in the queue but rotate them
                         waitingPlayers[raceId].push(player1);
                         activePlayers[raceId].push(player2);
@@ -313,7 +345,7 @@ module.exports = (io) => {
                 }
             
                 if (retries >= maxRetries) {
-                    console.log('Max retries reached, ending pairing attempts for now.');
+                    //console.log('Max retries reached, ending pairing attempts for now.');
                 }
             }
             
@@ -322,7 +354,7 @@ module.exports = (io) => {
             function incrementGameCount(player1, player2) {
                 gameCounts[raceId][player1.id]++;
                 gameCounts[raceId][player2.id]++;
-                console.log(`Incremented gameCounts for players: ${player1.id} (${gameCounts[raceId][player1.id]}) and ${player2.id} (${gameCounts[raceId][player2.id]})`);
+                //console.log(`Incremented gameCounts for players: ${player1.id} (${gameCounts[raceId][player1.id]}) and ${player2.id} (${gameCounts[raceId][player2.id]})`);
             }
         
             pairPlayers();

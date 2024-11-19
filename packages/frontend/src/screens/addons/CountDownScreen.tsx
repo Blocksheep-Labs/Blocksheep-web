@@ -182,6 +182,7 @@ function CountDownScreen() {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RACE_START" });
+        socket.emit("get-latest-screen", { raceId, part: "RACE_START" });
     }
   }, [smartAccountAddress, socket, raceId]);
 

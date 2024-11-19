@@ -1,12 +1,6 @@
-
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../components/RibbonLabel";
 import RaceItem from "../../components/race-item/RaceItem";
-// import { useAddress, useContract, useContractRead } from "@thirdweb-dev/react";
-// import { BLOCK_SHEEP_CONTRACT } from "../constants";
-// import BlockSheep from "../contracts/BlockSheep";
-// import { Race } from "../types";
 import { useNavigate } from "react-router-dom";
 import { getRaceById, getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../../utils/contract-functions";
 import RegisteringModal from "../../components/modals/RegisteringModal";
@@ -15,10 +9,6 @@ import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink, { TFlowPhases } from "../../utils/linkGetter";
-import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
-import LazyImage from "../../components/image-loading/lazy-image";
-import TinderCard from "react-tinder-card";
-import TopScreenMessage from "../../components/top-screen-message/top-screen-message";
 import { useGameContext } from "../../utils/game-context";
 import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 
@@ -35,8 +25,7 @@ function SelectRaceScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
-
-  const handleNavigate = useCallback((progress: any) => {
+  const handleNavigate = useCallback((progress: any, screen: TFlowPhases) => {
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
@@ -44,7 +33,7 @@ function SelectRaceScreen() {
     /*
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(data, progress, undefined);
-      navigate(`/race/${raceId}/rabbit-hole/v2/rules`);
+      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
     });
     return;
     */
@@ -52,124 +41,9 @@ function SelectRaceScreen() {
     const rIdNumber = Number(raceId);
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      
-
-      const navigationSteps: { check: boolean, link: TFlowPhases, step?: "questions" | "board" | "start" }[] = [
-        { 
-          check: !progress?.story?.intro, 
-          link: "STORY_INTRO", 
-          step: "start" 
-        },
-        { 
-          check: !progress?.countdown, 
-          link: "RACE_START", 
-          step: "start" 
-        },
-        { 
-          check: !progress?.game2_preview, 
-          link: "RABBIT_HOLE_PREVIEW" 
-        },
-        { 
-          check: !progress?.game2_rules, 
-          link: "RABBIT_HOLE_RULES" 
-        },
-        { 
-          check: !progress?.game2.waitingToFinish, 
-          link: "RABBIT_HOLE" 
-        },
-        { 
-          check: !progress?.board1, 
-          link: "RACE_UPDATE_1", 
-        },
-        { 
-          check: !progress?.story?.part1, 
-          link: "STORY_PART_1" 
-        },
-        { 
-          check: !progress?.game1_preview, 
-          link: "UNDERDOG_PREVIEW", 
-          step: "questions" 
-        },
-        { 
-          check: !progress?.game1_rules, 
-          link: "UNDERDOG_RULES", 
-          step: "questions" 
-        },
-        { 
-          check: !progress?.game1?.isDistributed, 
-          link: "UNDERDOG", 
-          step: "questions" 
-        },
-        { 
-          check: !progress?.board2, 
-          link: "RACE_UPDATE_2",
-        },
-        { 
-          check: !progress?.story?.part2, 
-          link: "STORY_PART_2" 
-        },
-        { 
-          check: !progress?.game3_preview, 
-          link: "BULL_RUN_PREVIEW" 
-        },
-        { 
-          check: !progress?.game3_rules, 
-          link: "BULL_RUN_RULES" 
-        },
-        { 
-          check: !progress?.game3.isCompleted, 
-          link: "BULL_RUN" 
-        },
-        { 
-          check: !progress?.board3, 
-          link: "RACE_UPDATE_3",
-        },
-        { 
-          check: !progress?.story?.part3, 
-          link: "STORY_PART_3" 
-        },
-        { 
-          check: !progress?.story?.game2_v2_preview, 
-          link: "RABBIT_HOLE_V2_PREVIEW" 
-        },
-        { 
-          check: !progress?.story?.game2_v2_rules, 
-          link: "RABBIT_HOLE_V2_RULES" 
-        },
-        { 
-          check: !progress?.game2.waitingToFinish, 
-          link: "RABBIT_HOLE_V2" 
-        },
-        { 
-          check: !progress?.board4, 
-          link: "RACE_UPDATE_4",
-        },
-        { 
-          check: !progress?.story?.part4, 
-          link: "STORY_PART_4"
-        },
-        { 
-          check: !progress?.rate, 
-          link: "RATE" 
-        },
-        { 
-          check: !progress?.story?.conclusion, 
-          link: "STORY_CONCLUSION" 
-        },
-      ];
-  
-      for (const step of navigationSteps) {
-        if (step.check) {
-          updateGameState(data, progress, step?.step);
-          //alert(step.link);
-          navigate(generateLink(step.link, rIdNumber));
-          return;
-        }
-      }
-      
       // If no conditions met, navigate to PODIUM
       updateGameState(data, progress, undefined);
-      navigate(generateLink("PODIUM", rIdNumber));
+      navigate(generateLink(screen, rIdNumber));
     });
   }, [raceId]);
 
@@ -222,11 +96,18 @@ function SelectRaceScreen() {
           console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
 
           if (data.amount === race.numOfPlayersRequired) {
-            console.log("Ready to navigate!")
-            setIsOpen(false);
-            setModalType(undefined);
-            handleNavigate(progress);
+            console.log("Ready to navigate!");
+            socket.emit('get-latest-screen', { raceId });
           }
+        }
+      });
+
+      socket.on('latest-screen', ({raceId: raceIdSocket, screen}) => {
+        console.log({screen});
+        if (raceIdSocket == raceId) {
+          setIsOpen(false);
+          setModalType(undefined);
+          handleNavigate(progress, screen);
         }
       });
       
@@ -264,6 +145,7 @@ function SelectRaceScreen() {
         socket.off('amount-of-connected');
         socket.off('leaved');
         socket.off('race-progress');
+        socket.off('latest-screen');
       }
     }
   }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
@@ -282,7 +164,6 @@ function SelectRaceScreen() {
           setTimeout(() => {
             console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
             socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
-            // socket.emit("get-connected", { raceId: id });
           }, 500);
           setRaceId(id);
           setIsOpen(true);

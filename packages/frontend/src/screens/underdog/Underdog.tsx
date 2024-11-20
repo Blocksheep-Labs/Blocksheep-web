@@ -32,7 +32,6 @@ function UnderdogGame() {
   const {smartAccountAddress} = useSmartAccount();
   const navigate = useNavigate();
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
-  const [roundId, setRoundId] = useState(0);
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [flipState, setFlipState] = useState(true);
@@ -50,7 +49,7 @@ function UnderdogGame() {
   const { questionsByGames, progress } = gameState as GameState;
 
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
+  //const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
   const { smartAccountClient } = useSmartAccount();
@@ -85,6 +84,7 @@ function UnderdogGame() {
         flipState ? onClickLike(currentGameIndex) : onClickDislike(currentGameIndex);
       }
     },
+
   });
 
   const updateProgress = () => {
@@ -230,7 +230,7 @@ function UnderdogGame() {
     setDistributePermanentlyOpened(false);
 
     setWinModalPermanentlyOpened(true);
-    setFinished(true);
+    //setFinished(true);
     pause();
   }
 
@@ -254,18 +254,6 @@ function UnderdogGame() {
     pause();
   }
 
-  function closeWaitingBeforeFinishModal() {
-    setIsOpen(false);
-    setModalType(undefined);
-    setWaitingToFinishModalPermanentlyOpened(false);
-    pause();
-  }
-
-  function openWaitingBeforeFinishModal() {
-    setIsOpen(true);
-    setModalType("waiting-before-finish");
-  }
-
 
   function onFinish() {
     setInterval(pause, 1000);
@@ -285,6 +273,40 @@ function UnderdogGame() {
   // handle socket events
   useEffect(() => {
     if (smartAccountAddress && raceData) {
+      const setupTimeout = () => {
+        console.log("Setting timeout...");
+        setResultsTimeoutStarted(true);
+        setTimeout(() => {
+          console.log("Timeout, next question >>>")
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game1-confirm-last-answer",
+          });
+          setSubmittingAnswer(false);
+          
+          if (selectedAnswer == "right") {
+            ref?.current?.swipeRight();
+          } else {
+            ref?.current?.swipeLeft();
+          }
+          
+          // reset time
+          const time = new Date();
+          time.setSeconds(time.getSeconds() + 10);
+          restart(time);
+          setSelectedAnswer(null);
+          setAmountOfAnswersLeft(0);
+          setAmountOfAnswersRight(0);
+
+          if (currentQuestionIndex !== questions.length - 1)
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+
+          setResultsTimeoutStarted(false);
+        }, 7000);
+      }
+
+
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log("AMOUNT OF CONNECTED:", amount, raceIdSocket, raceId)
         if (raceId == raceIdSocket) {
@@ -300,17 +322,15 @@ function UnderdogGame() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
         if (raceId == raceIdSocket && part == "UNDERDOG") {
           setAmountOfConnected(amountOfConnected + 1);
+
+          const time = new Date();
+          time.setSeconds(time.getSeconds() + 10);
+          restart(time);
+          
           if (amountOfConnected + 1 >= raceData.numberOfPlayersRequired) {
-            if (modalType === "waiting" && !finished) {
-              updateProgress();
-              setIsOpen(false);
-              setModalType(undefined);
-            }
-            // unpause timer
-            if (!finished) {
-              setSubmittingAnswer(false);
-              resume();
-            }
+            //updateProgress();
+            setIsOpen(false);
+            setModalType(undefined);
           }
           socket.emit("get-connected", { raceId });
         }
@@ -319,44 +339,20 @@ function UnderdogGame() {
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == "UNDERDOG" && raceId == raceIdSocket && !movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
-          if (!modalIsOpen && !finished) {
-            setIsOpen(true);
-            setModalType("waiting");
-          }
+          
+          setIsOpen(true);
+          setModalType("waiting");
+          
           // pause timer
-          setSubmittingAnswer(true);
+          //setSubmittingAnswer(true);
           pause();
         }
       });
 
-      socket.on('rabbit-hole-results-shown-on-client', ({ raceId: raceIdSocket }) => {
+      socket.on('underdog-results-shown-on-client', ({ raceId: raceIdSocket }) => {
         console.log("results shown on client", { raceIdSocket, resultsTimeoutStarted, raceIdCheck: raceId == raceIdSocket });
         if (raceId == raceIdSocket && !resultsTimeoutStarted) {
-          console.log("Setting timeout...");
-          setResultsTimeoutStarted(true);
-          setTimeout(() => {
-            console.log("Timeout, next question >>>")
-            setSubmittingAnswer(false);
-            
-            if (selectedAnswer == "right") {
-              ref.current?.swipeRight();
-            } else {
-              ref.current?.swipeLeft();
-            }
-            
-            // reset time
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
-            restart(time);
-            setSelectedAnswer(null);
-            setAmountOfAnswersLeft(0);
-            setAmountOfAnswersRight(0);
-
-            if (currentQuestionIndex !== questions.length - 1)
-              setCurrentQuestionIndex(currentQuestionIndex + 1);
-
-            setResultsTimeoutStarted(false);
-          }, 7000);
+          setupTimeout();
         }
       });
 
@@ -372,32 +368,8 @@ function UnderdogGame() {
           // if we have questions amount in sum of answers count
           // TODO: HANDLE SOCKET EVENT (SETTING TIMEOUT)
           if (amountOfAnswersLeft + amountOfAnswersRight + 1 == raceData.numberOfPlayersRequired) {
-            socket.emit('rabbit-hole-results-shown', { raceId });
-            console.log("Setting timeout...");
-            setResultsTimeoutStarted(true);
-            setTimeout(() => {
-              console.log("Timeout, next question >>>")
-              setSubmittingAnswer(false);
-              
-              if (selectedAnswer == "right") {
-                ref.current?.swipeRight();
-              } else {
-                ref.current?.swipeLeft();
-              }
-              
-              // reset time
-              const time = new Date();
-              time.setSeconds(time.getSeconds() + 10);
-              restart(time);
-              setSelectedAnswer(null);
-              setAmountOfAnswersLeft(0);
-              setAmountOfAnswersRight(0);
-  
-              if (currentQuestionIndex !== questions.length - 1)
-                setCurrentQuestionIndex(currentQuestionIndex + 1);
-
-              setResultsTimeoutStarted(false);
-            }, 7000);
+            socket.emit('underdog-results-shown', { raceId });
+            setupTimeout();
           }
 
           switch (progress.value.answer) {
@@ -415,21 +387,12 @@ function UnderdogGame() {
         if (progress.property === "game1-distribute") {
           setAmountOfPlayersCompleted(prev => prev + 1);
           
-          console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1, finished);
+          console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1);
           if ((amountOfConnected <= amountOfPlayersCompleted + 1)) {
-            // alert(amountOfPlayersCompleted)
             console.log("CLOSING MODAL..., openning win modal")
             openWinModal();
           }
         }
-
-        /*
-        if (progress.property === "game1-wait-to-finish") {
-          console.log("DISTRIBUTING REWARD...");
-          closeWaitingBeforeFinishModal();
-          openLoadingModal();
-        }
-        */
 
         if (progress.property === "game1-wait-after-finish") {
           console.log("NEXT_CLICKED++")
@@ -447,6 +410,10 @@ function UnderdogGame() {
         let waitingAfterFinishAmount = 0;
         let waitingToFinishAmount = 0;
         let answers: any[] = [];
+
+        let amountOfAnswersLeftServer = 0;
+        let amountOfAnswersRightServer = 0;
+
         progress.forEach((i: any) => {
           if (i.progress.game1.isDistributed) {
             isDistributedAmount++;
@@ -460,7 +427,33 @@ function UnderdogGame() {
             waitingToFinishAmount++;
             answers.push(i.progress.game1.answers);
           }
+
+          if (!i.progress.game1.lastAnswerIsConfirmed) {
+            const answers = i.progress.game1.answers;
+            if (answers.length) {
+              const lastAnswer = Number(answers[answers.length - 1]);
+
+              if (lastAnswer == 1) {
+                amountOfAnswersLeftServer++;
+              } else {
+                amountOfAnswersRightServer++;
+              }
+
+              if (i.userAddress == smartAccountAddress) {
+                setSelectedAnswer(lastAnswer == 1 ? "left" : "right");
+              }
+            }
+          }
         });
+
+        setAmountOfAnswersLeft(amountOfAnswersLeftServer);
+        setAmountOfAnswersRight(amountOfAnswersRightServer);
+
+        if (amountOfAnswersLeftServer + amountOfAnswersRightServer == raceData.numberOfPlayersRequired) {
+          console.log({amountOfAnswersLeftServer, amountOfAnswersRightServer})
+          socket.emit('underdog-results-shown', { raceId });
+          setupTimeout();
+        }
 
         console.log({isDistributedAmount, waitingAfterFinishAmount, waitingToFinishAmount});
         setAmountOfPlayersCompleted(isDistributedAmount);
@@ -474,10 +467,10 @@ function UnderdogGame() {
         socket.off('race-progress');
         socket.off('progress-updated');
         socket.off('race-progress-questions');
-        socket.off('rabbit-hole-results-shown-on-client');
+        socket.off('underdog-results-shown-on-client');
       }
     }
-  }, [socket, amountOfConnected, smartAccountAddress, finished, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, waitingAfterFinishPlayersCount, amountOfAnswersLeft, amountOfAnswersRight]);
+  }, [socket, amountOfConnected, smartAccountAddress, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, waitingAfterFinishPlayersCount, amountOfAnswersLeft, amountOfAnswersRight]);
 
   // fetch server-side data
   useEffect(() => {
@@ -509,14 +502,24 @@ function UnderdogGame() {
   useEffect(() => {
     if (smartAccountAddress && progress?.game1 && raceData) {
 
-      const {isDistributed, of, completed, waitingToFinish} = progress.game1;
+      const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, answers} = progress.game1;
+
+      // means that the player leaved on pulsating dog screen
+      if (!lastAnswerIsConfirmed) {
+        setSubmittingAnswer(true);
+        setCurrentQuestionIndex(completed - 1);
+        
+        return;
+      }
       
+
       // continue answering questions
       if (completed != of && completed < of) {
         console.log("CONTINUE FROM", completed);
         setCurrentQuestionIndex(completed);
         return;
       }
+
 
       // start waiting other players to finish answering
       if (waitingToFinish) {
@@ -567,7 +570,7 @@ function UnderdogGame() {
       )}
       
       <div className="relative my-4">
-        <Timer seconds={totalSeconds} />
+        {!submittingAnswer && <Timer seconds={totalSeconds} />}
         <div className="absolute right-4 top-0">
           <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numberOfPlayersRequired || 9}/>
         </div>
@@ -578,7 +581,6 @@ function UnderdogGame() {
         <SwipeSelection 
           leftAction={onClickLike}
           rightAction={onClickDislike}
-          key={roundId.toString()} 
           ref={ref} 
           onFinish={onFinish} 
           questions={questions.slice(progress?.game1 ? progress.game1.completed : 0, questions.length) || []}

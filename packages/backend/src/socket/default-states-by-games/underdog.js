@@ -8,5 +8,6 @@ module.exports = {
         completed: 0,
         of: 0,
         answers: "",
+        lastAnswerIsConfirmed: true,
     },
 }

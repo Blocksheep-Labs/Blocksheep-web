@@ -30,13 +30,14 @@ function SelectRaceScreen() {
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
-    /*
-    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      updateGameState(data, progress, undefined);
-      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
-    });
-    return;
-    */
+    if (screen !== "UNDERDOG") {
+      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+        updateGameState(data, progress, undefined);
+        navigate(`/race/${raceId}/underdog/rules`);
+      });
+      return;
+    }
+    
     
     const rIdNumber = Number(raceId);
     

@@ -67,6 +67,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
 
     const outOfFrame = (name: string, idx: number) => {
       console.log({idx})
+      // TODO: validate index (if the idx is the last one, we shouldn't call the onFinish when was manually swiped)
 
       // Ensure this card is only swiped once
       if (swipedFlags.current[idx]) return;

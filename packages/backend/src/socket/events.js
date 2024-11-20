@@ -173,10 +173,6 @@ module.exports = (io) => {
             const index = racesProgresses.findIndex(i => i?.room === roomName && i?.userAddress === userAddress);
             racesProgresses[index] = updatedProgress;
 
-            if (property == "game2-set-fuel") {
-                //console.log("FUEL UPDATED", { raceId, value, userAddress });
-            }
-
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
 
@@ -196,6 +192,7 @@ module.exports = (io) => {
             const progress = racesProgresses.filter(i => i?.room === roomName);
             io.to(socket.id).emit('race-progress-questions', { progress });
         });
+
     
         // get all progresses for tunnel game
         socket.on('get-all-fuel-tunnel', ({ raceId }) => {
@@ -229,6 +226,11 @@ module.exports = (io) => {
         socket.on('rabbit-hole-results-shown', ({ raceId }) => {
             const roomName = `race-${raceId}`;
             io.to(roomName).emit('rabbit-hole-results-shown-on-client', { socketId: socket.id, raceId });
+        });
+
+        socket.on('underdog-results-shown', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            io.to(roomName).emit('underdog-results-shown-on-client', { socketId: socket.id, raceId });
         });
     
         // get users amount connected to the game

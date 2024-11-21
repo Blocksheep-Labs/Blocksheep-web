@@ -75,12 +75,12 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
       // Mark this card as swiped
       swipedFlags.current[idx] = true;
 
-      if (currentQuestionIndex == 2) {
-        console.log(">>>>>>>>>>>>>> FINISH OUT OF FRAME <<<<<<<<<<<<<")
-        onFinish();
-      } else {
+      //if (currentQuestionIndex == 2) {
+      //  console.log(">>>>>>>>>>>>>> FINISH OUT OF FRAME <<<<<<<<<<<<<")
+      //  onFinish();
+      //} else {
         onSwipe && onSwipe();
-      }
+      //}
     };
 
     const swipe = async (dir: Direction) => {
@@ -99,7 +99,7 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
               className="swipe w-64"
               key={index}
               onSwipe={!disabled ? (dir) => swiped(dir, info, index + completedCount) : undefined}
-              onCardLeftScreen={() => outOfFrame(info, index + completedCount)}
+              //onCardLeftScreen={() => outOfFrame(info, index + completedCount)}
               swipeRequirementType="position"
               preventSwipe={!disabled ? ["up", "down"] : ["up", "down", "left", "right"]}
             >

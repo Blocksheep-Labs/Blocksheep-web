@@ -291,18 +291,21 @@ function UnderdogGame() {
             ref?.current?.swipeLeft();
           }
           
-          // reset time
-          const time = new Date();
-          time.setSeconds(time.getSeconds() + 10);
-          restart(time);
+          setResultsTimeoutStarted(false);
           setSelectedAnswer(null);
           setAmountOfAnswersLeft(0);
           setAmountOfAnswersRight(0);
-
-          if (currentQuestionIndex !== questions.length - 1)
+          
+          if (currentQuestionIndex !== questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
+            // reset time
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
+          } else {
+            onFinish();
+          }
 
-          setResultsTimeoutStarted(false);
         }, 7000);
       }
 

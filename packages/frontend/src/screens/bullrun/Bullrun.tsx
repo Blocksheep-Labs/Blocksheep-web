@@ -105,7 +105,7 @@ export default function Bullrun() {
         if (amountOfPending == 0 && roundStarted) {
             setRoundStarted(false);
             setWaitingModalIsOpened(true);
-            console.log("ITS TIME TO FETCH DATA FROM THE CONTRACT!!!")
+            //console.log("ITS TIME TO FETCH DATA FROM THE CONTRACT!!!")
 
             txAttempts(
                 10,
@@ -194,7 +194,7 @@ export default function Bullrun() {
                 setUsers(data?.race?.users || []);
             });
         }
-        start();
+        //start();
     }, [smartAccountAddress, raceId]);
 
     useEffect(() => {
@@ -210,7 +210,7 @@ export default function Bullrun() {
                 socket.emit('bullrun-join-game', { 
                     raceId, 
                     userAddress: smartAccountAddress, 
-                    amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 
+                    amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 + 1
                 });
         
                 socket.on('bullrun-game-start', ({ opponent }) => {                    
@@ -346,6 +346,7 @@ export default function Bullrun() {
                 socket.off('bullrun-pending');
                 socket.off('leaved');
                 socket.off('bullrun-amount-of-completed-games');
+                socket.off('joined');
             }
         }
     }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, amountOfPlayersCompleted]);

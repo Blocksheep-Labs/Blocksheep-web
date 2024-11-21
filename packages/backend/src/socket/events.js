@@ -266,12 +266,12 @@ module.exports = (io) => {
             }
         
             // Initialize game data for the player
-            function initializePlayer(playerId, socket) {
-                if (!matchesPlayed[raceId][playerId]) matchesPlayed[raceId][playerId] = [];
-                if (!gameCounts[raceId][playerId]) gameCounts[raceId][playerId] = 0;
-                if (!gamesRequired[raceId][playerId]) gamesRequired[raceId][playerId] = amountOfGamesRequired;
+            function initializePlayer(playerAddress, socket) {
+                if (!matchesPlayed[raceId][playerAddress]) matchesPlayed[raceId][playerAddress] = [];
+                if (!gameCounts[raceId][playerAddress]) gameCounts[raceId][playerAddress] = 0;
+                if (!gamesRequired[raceId][playerAddress]) gamesRequired[raceId][playerAddress] = amountOfGamesRequired;
             }
-            initializePlayer(socket.id, socket);
+            initializePlayer(userAddress, socket);
             socket.userAddress = userAddress;
             // get players from waiting queue
             activePlayers[raceId] = [...activePlayers[raceId], ...waitingPlayers[raceId]];
@@ -298,7 +298,7 @@ module.exports = (io) => {
                     //console.log("TRYING TO PAIR...", player1.id, player2.id);
             
                     // Ensure player1 and player2 are not the same person
-                    if (player1.id === player2.id) {
+                    if (player1.userAddress === player2.userAddress) {
                         //console.log("ERROR: Trying to pair player with themselves!", player1.id);
                         waitingPlayers[raceId].push(player1, player2); // Put both players back in waiting queue
                         retries++;
@@ -307,10 +307,10 @@ module.exports = (io) => {
             
                     // Ensure players can still play more games and haven't played each other yet
                     if (
-                        gameCounts[raceId][player1.id] < gamesRequired[raceId][player1.id] &&
-                        gameCounts[raceId][player2.id] < gamesRequired[raceId][player2.id] &&
-                        !matchesPlayed[raceId][player1.id].includes(player2.id) &&
-                        !matchesPlayed[raceId][player2.id].includes(player1.id)
+                        gameCounts[raceId][player1.userAddress] < gamesRequired[raceId][player1.userAddress] &&
+                        gameCounts[raceId][player2.userAddress] < gamesRequired[raceId][player2.userAddress] &&
+                        !matchesPlayed[raceId][player1.userAddress].includes(player2.userAddress) &&
+                        !matchesPlayed[raceId][player2.userAddress].includes(player1.userAddress)
                     ) {
                         // Set up a room for this 1v1 match
                         const roomName = `1v1-${player1.id}-${player2.id}`;
@@ -324,8 +324,8 @@ module.exports = (io) => {
                         //console.log(`Pairing players: ${player1.id} vs ${player2.id}`);
             
                         // Track matches played
-                        matchesPlayed[raceId][player1.id].push(player2.id);
-                        matchesPlayed[raceId][player2.id].push(player1.id);
+                        matchesPlayed[raceId][player1.userAddress].push(player2.userAddress);
+                        matchesPlayed[raceId][player2.userAddress].push(player1.userAddress);
             
                         // Increment their game counts
                         incrementGameCount(player1, player2);
@@ -343,7 +343,9 @@ module.exports = (io) => {
                 if (activePlayers[raceId].length === 1) {
                     const remainingPlayer = activePlayers[raceId].shift();
                     waitingPlayers[raceId].push(remainingPlayer);
-                    io.to(remainingPlayer.id).emit('bullrun-waiting', { message: 'Waiting for an opponent', raceId });
+                    
+                    const gamesPlayed = gameCounts[raceId][remainingPlayer.userAddress];
+                    io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
                 }
             
                 if (retries >= maxRetries) {
@@ -354,9 +356,9 @@ module.exports = (io) => {
 
             // Increment game count and handle completion checks
             function incrementGameCount(player1, player2) {
-                gameCounts[raceId][player1.id]++;
-                gameCounts[raceId][player2.id]++;
-                //console.log(`Incremented gameCounts for players: ${player1.id} (${gameCounts[raceId][player1.id]}) and ${player2.id} (${gameCounts[raceId][player2.id]})`);
+                gameCounts[raceId][player1.userAddress]++;
+                gameCounts[raceId][player2.userAddress]++;
+                console.log(`Incremented gameCounts for players: ${player1.userAddress} (${gameCounts[raceId][player1.userAddress]}) and ${player2.userAddress} (${gameCounts[raceId][player2.userAddress]})`);
             }
         
             pairPlayers();
@@ -364,7 +366,7 @@ module.exports = (io) => {
         
         socket.on('bullrun-game-end', ({raceId}) => {
             // Check if player completed all games
-            if (gameCounts[raceId][socket.id] >= gamesRequired[raceId][socket.id]) {
+            if (gameCounts[raceId][socket.userAddress] >= gamesRequired[raceId][socket.userAddress]) {
                 // gameCompletes[raceId][socket.id] = true;
                 gameCompletesAmount[raceId]++;
                 io.to(socket.id).emit('bullrun-game-complete', { 
@@ -373,7 +375,7 @@ module.exports = (io) => {
                 });
             } else {
                 io.to(socket.id).emit('bullrun-game-continue', { 
-                    message: `You can contInue playing ${gameCounts[raceId][socket.id]}/${gamesRequired[raceId][socket.id]}`, 
+                    message: `You can contInue playing ${gameCounts[raceId][socket.userAddress]}/${gamesRequired[raceId][socket.userAddress]}`, 
                     raceId 
                 });
             }

@@ -326,6 +326,16 @@ function UnderdogGame() {
         if (raceId == raceIdSocket && part == "UNDERDOG") {
           setAmountOfConnected(amountOfConnected + 1);
 
+          // handle player join on distribute part
+          if (distributePermanentlyOpened) {
+            return;
+          }
+
+          // handle player join on win part
+          if (winModalPermanentlyOpened) {
+            return;
+          }
+
           const time = new Date();
           time.setSeconds(time.getSeconds() + 10);
           restart(time);
@@ -544,6 +554,7 @@ function UnderdogGame() {
 
 
       // start waiting other players to finish answering
+      /*
       if (waitingToFinish) {
         console.log("<<<<<<< INIT <<<<<<<")
         pause();
@@ -551,6 +562,7 @@ function UnderdogGame() {
         setWaitingToFinishModalPermanentlyOpened(true);
         return;
       }
+      */
       
       // user answered all questions but score was not calculated
       if (completed >= of && completed > 0 && of > 0 && !isDistributed) {
@@ -558,6 +570,9 @@ function UnderdogGame() {
         openLoadingModal();
         return;
       }
+
+      pause();
+      openWinModal();
     }
   }, [progress?.game1, questionsByGames, smartAccountAddress, raceData]);
 

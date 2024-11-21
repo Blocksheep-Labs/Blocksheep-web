@@ -295,7 +295,7 @@ function UnderdogGame() {
           setSelectedAnswer(null);
           setAmountOfAnswersLeft(0);
           setAmountOfAnswersRight(0);
-          
+
           if (currentQuestionIndex !== questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
             // reset time
@@ -342,13 +342,20 @@ function UnderdogGame() {
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == "UNDERDOG" && raceId == raceIdSocket && !movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
-          
+          pause();
+
+          // handle player leave on distribute part
+          if (distributePermanentlyOpened) {
+            return;
+          }
+
+          // handle player leave on win part
+          if (winModalPermanentlyOpened) {
+            return;
+          }
+
           setIsOpen(true);
           setModalType("waiting");
-          
-          // pause timer
-          //setSubmittingAnswer(true);
-          pause();
         }
       });
 
@@ -473,7 +480,19 @@ function UnderdogGame() {
         socket.off('underdog-results-shown-on-client');
       }
     }
-  }, [socket, amountOfConnected, smartAccountAddress, amountOfPlayersCompleted, amountOfPlayersRaceboardNextClicked, raceData, waitingAfterFinishPlayersCount, amountOfAnswersLeft, amountOfAnswersRight]);
+  }, [
+    socket, 
+    amountOfConnected, 
+    smartAccountAddress, 
+    amountOfPlayersCompleted, 
+    amountOfPlayersRaceboardNextClicked, 
+    raceData, 
+    waitingAfterFinishPlayersCount, 
+    amountOfAnswersLeft, 
+    amountOfAnswersRight, 
+    distributePermanentlyOpened, 
+    winModalPermanentlyOpened
+  ]);
 
   // fetch server-side data
   useEffect(() => {
@@ -534,9 +553,9 @@ function UnderdogGame() {
       }
       
       // user answered all questions but score was not calculated
-      if (!waitingToFinish && completed >= of && completed > 0 && of > 0 && !isDistributed) {
+      if (completed >= of && completed > 0 && of > 0 && !isDistributed) {
         pause();
-        setDistributePermanentlyOpened(true);
+        openLoadingModal();
         return;
       }
     }

@@ -424,7 +424,7 @@ function UnderdogGame() {
         }
       });
 
-      socket.on('race-progress-questions', ({progress}) => {
+      socket.on('race-progress-all', ({progress}) => {
         console.log("RACE PROGRESS QUESTIONS:", progress);
         let isDistributedAmount = 0;
         let waitingAfterFinishAmount = 0;
@@ -479,6 +479,10 @@ function UnderdogGame() {
         setAmountOfPlayersCompleted(isDistributedAmount);
         setWaitingAfterFinishPlayersCount(waitingAfterFinishAmount);
       });
+
+      socket.on("screen-changed", ({ screen }) => {
+        navigate(generateLink(screen, Number(raceId)));
+      });
   
       return () => {
         socket.off('joined');
@@ -486,8 +490,9 @@ function UnderdogGame() {
         socket.off('leaved');
         socket.off('race-progress');
         socket.off('progress-updated');
-        socket.off('race-progress-questions');
+        socket.off('race-progress-all');
         socket.off('underdog-results-shown-on-client');
+        socket.off('screen-changed');
       }
     }
   }, [
@@ -509,7 +514,7 @@ function UnderdogGame() {
     if (smartAccountAddress && raceData) {
       console.log(">>>>>>>>>>>>>> EFFECT <<<<<<<<<<<<<<<")
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
-      socket.emit("get-progress-questions", { raceId });
+      socket.emit("get-progress-all", { raceId });
     }
   }, [socket, smartAccountAddress, raceData]); 
 

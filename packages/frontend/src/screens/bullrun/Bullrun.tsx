@@ -210,7 +210,7 @@ export default function Bullrun() {
                 socket.emit('bullrun-join-game', { 
                     raceId, 
                     userAddress: smartAccountAddress, 
-                    amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 + 1
+                    amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1
                 });
         
                 socket.on('bullrun-game-start', ({ opponent }) => {                    
@@ -300,17 +300,6 @@ export default function Bullrun() {
                 }
             });
 
-            socket.on("progress-updated", async(progress) => {
-                console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
-                if (progress.property === "game3-complete") {
-                  setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
-                  if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
-                    
-                    navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
-                  }
-                }
-            });
-
             socket.on('bullrun-amount-of-completed-games', ({ gameCompletesAmount }) => {
                 console.log({gameCompletesAmount})
                 // check if all users completed all the games  [required amount of games per user] * [players amount]
@@ -352,12 +341,86 @@ export default function Bullrun() {
     }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, amountOfPlayersCompleted]);
 
     useEffect(() => {
+        if (String(raceId).length && smartAccountAddress && raceData) {
+            socket.on('bullrun-game-counts', ({ gameCounts, raceId: raceIdSocket, gameCompletesAmount }) => {
+                console.log({ gameCounts, raceIdSocket, gameCompletesAmount });
+
+                if (raceIdSocket == raceId) {
+                    gameCounts >= 1 && setGamesPlayed(gameCounts);
+                }
+
+                if (gameCompletesAmount >= Number(raceData?.numberOfPlayersRequired)) {
+                    BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
+                        console.log("Winners data:", data)
+
+                        if (data.firstPlaceUser == smartAccountAddress) {
+                            setPreloadedScore(3);
+                        }
+
+                        if (data.secondPlaceUser == smartAccountAddress) {
+                            setPreloadedScore(2);
+                        }
+
+                        if (data.thirdPlaceUser == smartAccountAddress) {
+                            setPreloadedScore(1);
+                        }
+
+                        setWinModalIsOpened(true);
+                    });
+                }
+            });
+
+
+            socket.on("progress-updated", async(progress) => {
+                console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
+                if (progress.property === "game3-complete") {
+                    console.log( "game3-complete", raceData.numberOfPlayersRequired, amountOfPlayersCompleted + 1)
+                    setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
+                    if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
+                        navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
+                    }
+                }
+            });
+
+            socket.on("screen-changed", ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+
+            socket.on('race-progress-all', ({progress}) => {
+                console.log("RACE PROGRESS BULLRUN:", progress);
+
+                let completedAmount = 0;
+        
+                progress.forEach((i: any) => {
+                  if (i.progress.game3.isCompleted) {
+                    completedAmount++;
+                  }
+                });
+
+                setAmountOfPlayersCompleted(completedAmount);
+
+                if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted) {
+                    navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
+                }
+            });
+
+            return () => {
+                socket.off('bullrun-game-counts');
+                socket.off('progress-updated');
+                socket.off('screen-changed');
+                socket.off('race-progress-all');
+            }
+        }
+    }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted]);
+
+    useEffect(() => {
         if(smartAccountAddress && String(raceId).length && raceData) {
             if (!socket.connected) {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN" });
             socket.emit("get-latest-screen", { raceId, part: "BULL_RUN" });
+            socket.emit("bullrun-get-game-counts", { raceId, userAddress: smartAccountAddress });
         }
     }, [smartAccountAddress, socket, raceId, raceData]);
 

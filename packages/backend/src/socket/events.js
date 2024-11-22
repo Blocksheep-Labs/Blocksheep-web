@@ -29,6 +29,7 @@ let matchesPlayed = {};  // matches between players (e.g., { 'player1_id': ['pla
 let gameCounts = {};     // number of games each player has played (e.g., { 'player1_id': 3, ... })
 let gamesRequired = {};  // number of games per player required to move to next game  { 'player1_id': 3, ... }
 let gameCompletesAmount = {};
+let gameCompletes = {};
 
 
 module.exports = (io) => {
@@ -61,8 +62,27 @@ module.exports = (io) => {
                     return false;
                 }
             });
-    
-            //console.log({roomsToEmitDisconnectEvent})
+
+            // handling bullrun
+            if (userAddress && raceId) {
+                activePlayers[raceId]  = activePlayers[raceId].filter(i => i.userAddress != userAddress);
+                waitingPlayers[raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userAddress);
+
+                if (!gameCompletes[raceId]) {
+                    gameCompletes[raceId] = {};
+                }
+
+                if (
+                    !gameCompletes[raceId][userAddress] &&
+                    gameCounts[raceId][userAddress] && 
+                    gamesRequired[raceId][userAddress] &&
+                    gameCounts[raceId][userAddress] >= gamesRequired[raceId][userAddress]
+                ) {
+                    // gameCompletes[raceId][socket.id] = true;
+                    gameCompletesAmount[raceId]++;
+                    gameCompletes[raceId][userAddress] = true;
+                }
+            }
     
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {
@@ -91,11 +111,12 @@ module.exports = (io) => {
                 });
             }
 
-            // set latest creen
+            // set latest screen
             const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
             if (roomScreenData && (screens.indexOf(roomScreenData.screen) < screens.indexOf(part))) {
                 console.log({part});
                 roomScreenData.screen = part;
+                io.to(roomName).emit('screen-changed', { screen: part });
             } else {
                 roomsLatestScreen.push({ raceId, screen: part });
             }
@@ -176,8 +197,6 @@ module.exports = (io) => {
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
 
-
-
     
         // get amount completed by raceId game gameId
         socket.on('get-progress', ({ raceId, userAddress }) => {
@@ -187,10 +206,10 @@ module.exports = (io) => {
         });
     
         // get amount completed by raceId game gameId
-        socket.on('get-progress-questions', ({ raceId }) => {
+        socket.on('get-progress-all', ({ raceId }) => {
             const roomName = `race-${raceId}`;
             const progress = racesProgresses.filter(i => i?.room === roomName);
-            io.to(socket.id).emit('race-progress-questions', { progress });
+            io.to(socket.id).emit('race-progress-all', { progress });
         });
 
     
@@ -263,6 +282,7 @@ module.exports = (io) => {
                 gameCompletesAmount[raceId] = 0; // Initialize completed games counter for race
                 activePlayers[raceId] = [];      // Track active players in the race
                 waitingPlayers[raceId] = [];     // Track players waiting for a match
+                gameCompletes[raceId] = {};      // Treack game completes by player web3 address
             }
         
             // Initialize game data for the player
@@ -342,8 +362,16 @@ module.exports = (io) => {
                 // If only one player is left unpaired, move them to the waiting list
                 if (activePlayers[raceId].length === 1) {
                     const remainingPlayer = activePlayers[raceId].shift();
+
+                    if (gameCounts[raceId][remainingPlayer.userAddress] >= gamesRequired[raceId][remainingPlayer.userAddress]) {
+                        io.to(remainingPlayer.id).emit('bullrun-game-complete', { 
+                            message: 'You have completed all your games', 
+                            raceId 
+                        });
+                        return;
+                    }
+
                     waitingPlayers[raceId].push(remainingPlayer);
-                    
                     const gamesPlayed = gameCounts[raceId][remainingPlayer.userAddress];
                     io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
                 }
@@ -363,11 +391,20 @@ module.exports = (io) => {
         
             pairPlayers();
         });
+
+        socket.on('bullrun-get-game-counts', ({ raceId, userAddress }) => {
+            io.to(socket.id).emit('bullrun-game-counts', {
+                raceId,
+                userAddress,
+                gameCounts: gameCounts[raceId][userAddress],
+                gameCompletesAmount: gameCompletesAmount[raceId],
+            });
+        });
         
         socket.on('bullrun-game-end', ({raceId}) => {
             // Check if player completed all games
             if (gameCounts[raceId][socket.userAddress] >= gamesRequired[raceId][socket.userAddress]) {
-                // gameCompletes[raceId][socket.id] = true;
+                gameCompletes[raceId][socket.userAddress] = true;
                 gameCompletesAmount[raceId]++;
                 io.to(socket.id).emit('bullrun-game-complete', { 
                     message: 'You have completed all your games', 
@@ -383,7 +420,6 @@ module.exports = (io) => {
             // Emit the updated amount of completed games to the room
             io.to(`race-${raceId}`).emit('bullrun-amount-of-completed-games', { gameCompletesAmount: gameCompletesAmount[raceId] });
         });
-
     });
 
     console.log("[SOCKET] Events applied.");

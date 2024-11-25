@@ -64,7 +64,12 @@ module.exports = (io) => {
             });
 
             // handling bullrun
-            if (userAddress && raceId) {
+            if (
+                userAddress && 
+                raceId && 
+                activePlayers[raceId] && 
+                waitingPlayers[raceId]
+            ) {
                 activePlayers[raceId]  = activePlayers[raceId].filter(i => i.userAddress != userAddress);
                 waitingPlayers[raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userAddress);
 

@@ -52,6 +52,7 @@ export default function Bullrun() {
     const [preloadedScore, setPreloadedScore] = useState(0);
     const [users, setUsers] = useState<any[]>([]);
     const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
+    const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
     //const [players, setPlayers] = useState([]);
 
 
@@ -178,6 +179,7 @@ export default function Bullrun() {
     }
 
     const handleMoveToNextGame = () => {
+        setAddressesCompleted([...addressesCompleted, smartAccountAddress as string]);
         setRulesModalIsOpened(false);
         setWinModalIsOpened(false);
         socket.emit("update-progress", {
@@ -390,13 +392,18 @@ export default function Bullrun() {
                 console.log("RACE PROGRESS BULLRUN:", progress);
 
                 let completedAmount = 0;
+                const completedAddrs: string[] = [];
         
                 progress.forEach((i: any) => {
-                  if (i.progress.game3.isCompleted) {
-                    completedAmount++;
-                  }
+                    //console.log("progress:", i.progress.game3, i.userAddress)
+                    if (i.progress.game3.isCompleted) {
+                        // track by addresses to block click next btn
+                        completedAddrs.push(i.userAddress);
+                        completedAmount++;
+                    }
                 });
 
+                setAddressesCompleted(completedAddrs);
                 setAmountOfPlayersCompleted(completedAmount);
 
                 if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted) {
@@ -421,6 +428,7 @@ export default function Bullrun() {
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN" });
             socket.emit("get-latest-screen", { raceId, part: "BULL_RUN" });
             socket.emit("bullrun-get-game-counts", { raceId, userAddress: smartAccountAddress });
+            socket.emit("get-progress-all", { raceId });
         }
     }, [smartAccountAddress, socket, raceId, raceData]);
 
@@ -457,7 +465,7 @@ export default function Bullrun() {
                 />
             }
             {
-                winModalIsOpened && 
+                winModalIsOpened && !addressesCompleted.includes(smartAccountAddress as string) &&
                 <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore} gameName="bullrun"/>
             }
 

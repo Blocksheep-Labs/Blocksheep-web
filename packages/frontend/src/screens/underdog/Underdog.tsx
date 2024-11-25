@@ -51,7 +51,6 @@ function UnderdogGame() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   //const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
-  const [amountOfPlayersRaceboardNextClicked, setAmountOfPlayersRaceboardNextClicked] = useState(0);
   const { smartAccountClient } = useSmartAccount();
   const [raceData, setRaceData] = useState<any>(undefined);
 
@@ -59,6 +58,7 @@ function UnderdogGame() {
   const [amountOfAnswersLeft, setAmountOfAnswersLeft] = useState(0);
   const [amountOfAnswersRight, setAmountOfAnswersRight] = useState(0);
   const [resultsTimeoutStarted, setResultsTimeoutStarted] = useState(false);
+  const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -416,6 +416,7 @@ function UnderdogGame() {
 
         if (progress.property === "game1-wait-after-finish") {
           console.log("NEXT_CLICKED++")
+          setAddressesCompleted([...addressesCompleted, progress.userAddress]);
           setWaitingAfterFinishPlayersCount(prev => prev + 1);
           if (raceData.numberOfPlayersRequired <= waitingAfterFinishPlayersCount + 1) {
             console.log("MOVE FORWARD")
@@ -433,6 +434,7 @@ function UnderdogGame() {
 
         let amountOfAnswersLeftServer = 0;
         let amountOfAnswersRightServer = 0;
+        const playersClickedNextAddrs: string[] = [];
 
         progress.forEach((i: any) => {
           if (i.progress.game1.isDistributed) {
@@ -440,6 +442,8 @@ function UnderdogGame() {
           }
 
           if (i.progress.waitingAfterFinish) {
+            // track by addresses to block click next btn
+            playersClickedNextAddrs.push(i.userAddress);
             waitingAfterFinishAmount++;
           }
 
@@ -466,6 +470,7 @@ function UnderdogGame() {
           }
         });
 
+        setAddressesCompleted(playersClickedNextAddrs);
         setAmountOfAnswersLeft(amountOfAnswersLeftServer);
         setAmountOfAnswersRight(amountOfAnswersRightServer);
 
@@ -500,7 +505,6 @@ function UnderdogGame() {
     amountOfConnected, 
     smartAccountAddress, 
     amountOfPlayersCompleted, 
-    amountOfPlayersRaceboardNextClicked, 
     raceData, 
     waitingAfterFinishPlayersCount, 
     amountOfAnswersLeft, 

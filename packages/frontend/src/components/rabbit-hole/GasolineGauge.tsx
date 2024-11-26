@@ -9,7 +9,7 @@ const GasolineGauge = (props: {
   const scalingFactor = maxHeight / (props.version == "v1" ? 10 : 20);
   const fuelHeight = props.fuel * scalingFactor;
 
-  console.log({maxHeight, scalingFactor, fuelHeight});
+  //console.log({maxHeight, scalingFactor, fuelHeight});
 
   return (
     <div className="panel relative rotate-180">

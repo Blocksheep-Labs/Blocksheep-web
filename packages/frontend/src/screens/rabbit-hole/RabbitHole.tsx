@@ -11,7 +11,7 @@ import Timer from "../../components/Timer";
 import UserCount from "../../components/UserCount";
 import { waitForTransactionReceipt  } from '@wagmi/core';
 import { useTimer } from "react-timer-hook";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "../../utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { finishTunnelGame, getRaceById, submitFuel } from "../../utils/contract-functions";
@@ -75,7 +75,7 @@ function RabbitHoleGame() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
-  const { totalSeconds, restart, start, pause } = useTimer({
+  const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
       handleTunnelChange();
@@ -85,20 +85,28 @@ function RabbitHoleGame() {
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
-    if (!gameStarted && gameState && (amountOfConnected >= gameState.amountOfRegisteredUsers - amountOfComplteted)) {
-      setGameStarted(true);
-      if (gameState && (amountOfConnected >= gameState.amountOfRegisteredUsers - amountOfComplteted) && start) {
+    if (
+      !loseModalPermanentlyOpened && 
+      !winModalPermanentlyOpened && 
+      gameState && 
+      (amountOfConnected >= gameState.amountOfRegisteredUsers - amountOfComplteted)
+    ) {
+      if (!gameStarted && gameState && (amountOfConnected >= gameState.amountOfRegisteredUsers - amountOfComplteted) && start) {
+        setGameStarted(true);
         socket.emit("get-all-fuel-tunnel", { raceId });
         //closeWaitingModal();
-        console.log(">>>> STARTING... <<<<")
+        console.log(">>>> STARTING... <<<<", {timerIsRunning, isRolling})
+
         // @ts-ignore
-        !isRolling && !gameState?.progress?.game2[version]?.game?.waitingToFinish && start();
-      } else {
-        pause();
-        !modalIsOpen && openWaitingModal();
+        // !gameState?.progress?.game2[version]?.game?.waitingToFinish
+        !timerIsRunning && resume();
+        !isRolling && start();
       }
+    } else {
+      console.log("PAUSE!")
+      pause();
     }
-  }, [amountOfConnected, start, modalIsOpen, isRolling, raceId, gameState]);
+  }, [amountOfConnected, start, pause, modalIsOpen, isRolling, raceId, gameState]);
 
   // handle socket eventsd
   useEffect(() => {

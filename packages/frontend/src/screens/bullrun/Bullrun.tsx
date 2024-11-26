@@ -379,7 +379,7 @@ export default function Bullrun() {
                     console.log( "game3-complete", raceData.numberOfPlayersRequired, amountOfPlayersCompleted + 1)
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                     if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
-                        navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
+                        navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                     }
                 }
             });
@@ -407,7 +407,7 @@ export default function Bullrun() {
                 setAmountOfPlayersCompleted(completedAmount);
 
                 if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted) {
-                    navigate(generateLink("RACE_UPDATE_4", Number(raceId)));
+                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                 }
             });
 

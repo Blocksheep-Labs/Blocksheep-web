@@ -190,25 +190,27 @@ export default function Bullrun() {
     }
 
     const bullrunGetWinnerAndSetPoints = () => {
-        BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
-            console.log("Winners data:", data)
-    
-            if (data.firstPlaceUser == smartAccountAddress) {
-                setPreloadedScore(3);
-            }
-    
-            if (data.secondPlaceUser == smartAccountAddress) {
-                setPreloadedScore(2);
-            }
-    
-            if (data.thirdPlaceUser == smartAccountAddress) {
-                setPreloadedScore(1);
-            }
-    
-            setWinModalIsOpened(true);
-    
-            socket.emit("bullrun-win-modal-opened", { raceId });
-        });
+        if (!winModalIsOpened) {
+            BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
+                console.log("Winners data:", data)
+        
+                if (data.firstPlaceUser == smartAccountAddress) {
+                    setPreloadedScore(3);
+                }
+        
+                if (data.secondPlaceUser == smartAccountAddress) {
+                    setPreloadedScore(2);
+                }
+        
+                if (data.thirdPlaceUser == smartAccountAddress) {
+                    setPreloadedScore(1);
+                }
+        
+                setWinModalIsOpened(true);
+        
+                socket.emit("bullrun-win-modal-opened", { raceId });
+            });
+        }
     };
 
     // fetch socket data and start timer
@@ -346,7 +348,7 @@ export default function Bullrun() {
                 socket.off('joined');
             }
         }
-    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData]);
+    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, winModalIsOpened]);
 
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress && raceData) {
@@ -415,7 +417,7 @@ export default function Bullrun() {
                 socket.off('bullrun-win-modal-opened-on-client');
             }
         }
-    }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted]);
+    }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted, winModalIsOpened]);
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && raceData) {

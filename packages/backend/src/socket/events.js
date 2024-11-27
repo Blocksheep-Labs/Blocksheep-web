@@ -73,6 +73,7 @@ module.exports = (io) => {
                 activePlayers[raceId]  = activePlayers[raceId].filter(i => i.userAddress != userAddress);
                 waitingPlayers[raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userAddress);
 
+                /*
                 if (!gameCompletes[raceId]) {
                     gameCompletes[raceId] = {};
                 }
@@ -86,7 +87,14 @@ module.exports = (io) => {
                     // gameCompletes[raceId][socket.id] = true;
                     gameCompletesAmount[raceId]++;
                     gameCompletes[raceId][userAddress] = true;
+
+                    for (key of gameCounts[raceId]) {
+                        if (key != userAddress) {
+                            gameCounts[raceId][key]++;
+                        }
+                    }
                 }
+                */
             }
     
             // send the socket events
@@ -272,6 +280,11 @@ module.exports = (io) => {
                 io.to(playerToEmit.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
                 io.to(socket.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
             }
+        });
+
+        socket.on('bullrun-win-modal-opened', async({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            io.to(roomName).emit('bullrun-win-modal-opened-on-client', { raceId, socketId: socket.id });
         });
 
         socket.on('bullrun-join-game', async({ raceId, userAddress, amountOfGamesRequired }) => {

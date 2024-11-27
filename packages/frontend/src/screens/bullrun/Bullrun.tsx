@@ -189,6 +189,28 @@ export default function Bullrun() {
         });
     }
 
+    const bullrunGetWinnerAndSetPoints = () => {
+        BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
+            console.log("Winners data:", data)
+    
+            if (data.firstPlaceUser == smartAccountAddress) {
+                setPreloadedScore(3);
+            }
+    
+            if (data.secondPlaceUser == smartAccountAddress) {
+                setPreloadedScore(2);
+            }
+    
+            if (data.thirdPlaceUser == smartAccountAddress) {
+                setPreloadedScore(1);
+            }
+    
+            setWinModalIsOpened(true);
+    
+            socket.emit("bullrun-win-modal-opened", { raceId });
+        });
+    };
+
     // fetch socket data and start timer
     useEffect(() => {
         if (smartAccountAddress && String(raceId).length) {
@@ -306,23 +328,7 @@ export default function Bullrun() {
                 console.log({gameCompletesAmount})
                 // check if all users completed all the games  [required amount of games per user] * [players amount]
                 if (gameCompletesAmount >= Number(raceData?.numberOfPlayersRequired)) {
-                    BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
-                        console.log("Winners data:", data)
-
-                        if (data.firstPlaceUser == smartAccountAddress) {
-                            setPreloadedScore(3);
-                        }
-
-                        if (data.secondPlaceUser == smartAccountAddress) {
-                            setPreloadedScore(2);
-                        }
-
-                        if (data.thirdPlaceUser == smartAccountAddress) {
-                            setPreloadedScore(1);
-                        }
-
-                        setWinModalIsOpened(true);
-                    });
+                    bullrunGetWinnerAndSetPoints();
                 }
             });
 
@@ -340,7 +346,7 @@ export default function Bullrun() {
                 socket.off('joined');
             }
         }
-    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, amountOfPlayersCompleted]);
+    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData]);
 
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress && raceData) {
@@ -352,23 +358,13 @@ export default function Bullrun() {
                 }
 
                 if (gameCompletesAmount >= Number(raceData?.numberOfPlayersRequired)) {
-                    BULLRUN_getWinnersPerGame(Number(raceId)).then((data) => {
-                        console.log("Winners data:", data)
+                    bullrunGetWinnerAndSetPoints();
+                }
+            });
 
-                        if (data.firstPlaceUser == smartAccountAddress) {
-                            setPreloadedScore(3);
-                        }
-
-                        if (data.secondPlaceUser == smartAccountAddress) {
-                            setPreloadedScore(2);
-                        }
-
-                        if (data.thirdPlaceUser == smartAccountAddress) {
-                            setPreloadedScore(1);
-                        }
-
-                        setWinModalIsOpened(true);
-                    });
+            socket.on('bullrun-win-modal-opened-on-client', ({ raceId: raceIdSocket }) => {
+                if (!winModalIsOpened && raceId == raceIdSocket) {
+                    bullrunGetWinnerAndSetPoints();
                 }
             });
 
@@ -416,6 +412,7 @@ export default function Bullrun() {
                 socket.off('progress-updated');
                 socket.off('screen-changed');
                 socket.off('race-progress-all');
+                socket.off('bullrun-win-modal-opened-on-client');
             }
         }
     }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted]);

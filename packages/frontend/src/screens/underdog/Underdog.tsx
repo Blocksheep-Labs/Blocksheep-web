@@ -7,7 +7,7 @@ import LoadingModal from "../../components/modals/LoadingModal";
 import WinModal from "../../components/modals/WinModal";
 import Timer from "../../components/Timer";
 import { useTimer } from "react-timer-hook";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getRaceById, submitUserAnswer } from "../../utils/contract-functions";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { config } from "../../config/wagmi";
@@ -257,16 +257,6 @@ function UnderdogGame() {
 
   function onFinish() {
     setInterval(pause, 1000);
-
-    /*
-    console.log("FINISH, waiting for players...");
-    socket.emit("update-progress", {
-      raceId,
-      userAddress: smartAccountAddress,
-      property: "game1-wait-to-finish",
-    });
-    openWaitingBeforeFinishModal();
-    */
     openLoadingModal();
   }
   

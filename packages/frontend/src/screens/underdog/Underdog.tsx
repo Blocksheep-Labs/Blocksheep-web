@@ -543,17 +543,15 @@ function UnderdogGame() {
   useEffect(() => {
     if (smartAccountAddress && progress?.game1 && raceData) {
 
-      const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, answers} = progress.game1;
+      const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, waitingAfterFinish, answers} = progress.game1;
 
       // means that the player leaved on pulsating dog screen
       if (!lastAnswerIsConfirmed) {
         setSubmittingAnswer(true);
         setCurrentQuestionIndex(completed - 1);
-        
         return;
       }
       
-
       // continue answering questions
       if (completed != of && completed < of) {
         console.log("CONTINUE FROM", completed);
@@ -561,17 +559,12 @@ function UnderdogGame() {
         return;
       }
 
-
       // start waiting other players to finish answering
-      /*
-      if (waitingToFinish) {
-        console.log("<<<<<<< INIT <<<<<<<")
+      if (waitingToFinish || waitingAfterFinish) {
         pause();
-        onFinish();
-        setWaitingToFinishModalPermanentlyOpened(true);
+        openWinModal();
         return;
       }
-      */
       
       // user answered all questions but score was not calculated
       if (completed >= of && completed > 0 && of > 0 && !isDistributed) {
@@ -579,9 +572,6 @@ function UnderdogGame() {
         openLoadingModal();
         return;
       }
-
-      pause();
-      openWinModal();
     }
   }, [progress?.game1, questionsByGames, smartAccountAddress, raceData]);
 

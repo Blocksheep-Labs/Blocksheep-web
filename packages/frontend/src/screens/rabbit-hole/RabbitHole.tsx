@@ -314,6 +314,10 @@ function RabbitHoleGame() {
         setAmountOfPlayersNextClicked(amountOfNextClicked);
         setAddressesCompleted(playersClickedNextAddrs);
       });
+
+      socket.on("screen-changed", ({ screen }) => {
+        navigate(generateLink(screen, Number(raceId)));
+      });
   
       return () => {
         socket.off('joined');
@@ -324,6 +328,7 @@ function RabbitHoleGame() {
         socket.off('progress-updated');
         socket.off('tunnel-started-on-client');
         socket.off('race-progress-all');
+        socket.off('screen-changed');
       }
     }
   }, [

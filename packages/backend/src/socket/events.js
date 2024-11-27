@@ -73,28 +73,27 @@ module.exports = (io) => {
                 activePlayers[raceId]  = activePlayers[raceId].filter(i => i.userAddress != userAddress);
                 waitingPlayers[raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userAddress);
 
-                /*
+                
                 if (!gameCompletes[raceId]) {
                     gameCompletes[raceId] = {};
                 }
 
+                if (!gamesRequired[raceId]) {
+                    gamesRequired[raceId] = {};
+                }
+
+                if (!gameCounts[raceId]) {
+                    gameCounts[raceId] = {};
+                }
+
+                // if user is not completed the game but he/she leaves
                 if (
-                    !gameCompletes[raceId][userAddress] &&
-                    gameCounts[raceId][userAddress] && 
-                    gamesRequired[raceId][userAddress] &&
-                    gameCounts[raceId][userAddress] >= gamesRequired[raceId][userAddress]
+                    !gameCompletes[raceId][userAddress] && 
+                    gamesRequired[raceId][userAddress] <= gameCounts[raceId][userAddress]
                 ) {
-                    // gameCompletes[raceId][socket.id] = true;
                     gameCompletesAmount[raceId]++;
                     gameCompletes[raceId][userAddress] = true;
-
-                    for (key of gameCounts[raceId]) {
-                        if (key != userAddress) {
-                            gameCounts[raceId][key]++;
-                        }
-                    }
                 }
-                */
             }
     
             // send the socket events

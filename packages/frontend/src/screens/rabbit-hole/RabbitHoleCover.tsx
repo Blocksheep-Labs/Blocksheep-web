@@ -8,6 +8,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import { useGameContext } from "../../utils/game-context";
+import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "./utils/getGamePart";
 
 export default function RabbitHoleCover() {
     const navigate = useNavigate();
@@ -50,7 +51,7 @@ export default function RabbitHoleCover() {
                     break;
             }
 
-            socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_PREVIEW', raceId });
+            socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview"), raceId });
             navigate(redirectLink);
         },
         autoStart: true
@@ -85,7 +86,7 @@ export default function RabbitHoleCover() {
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "RABBIT_HOLE_PREVIEW") {
+                if (raceId == raceIdSocket && ["RABBIT_HOLE_PREVIEW", "RABBIT_HOLE_V2_PREVIEW"].includes(part)) {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -99,7 +100,7 @@ export default function RabbitHoleCover() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "RABBIT_HOLE_PREVIEW" && raceIdSocket == raceId && !movedToNext) {
+                if (["RABBIT_HOLE_PREVIEW", "RABBIT_HOLE_V2_PREVIEW"].includes(part) && raceIdSocket == raceId && !movedToNext) {
                     console.log("LEAVED")
                     setAmountOfConnected(amountOfConnected - 1);
                     if (!modalIsOpen) {
@@ -136,8 +137,8 @@ export default function RabbitHoleCover() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE_PREVIEW" });
-            socket.emit("get-latest-screen", { raceId, part: "RABBIT_HOLE_PREVIEW" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
+            socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
         }
     }, [smartAccountAddress, socket, raceId]);
 

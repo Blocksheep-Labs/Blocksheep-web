@@ -5,23 +5,16 @@ import { socket } from "../../utils/socketio";
 //import RibbonLabel from "../../components/RibbonLabel";
 //import Rule from "../../components/Rule";
 import { useEffect, useState } from "react";
-import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink from "../../utils/linkGetter";
-import Timer from "../../components/Timer";
-import UserCount from "../../components/UserCount";
-import BigDesk from "../../assets/rabbit-hole/signage-instructions.png";
 import AnimatedLever from "../../assets/rabbit-hole/level-rules.gif";
 import BG_Rules_Slide from "../../assets/rabbit-hole/rules-slide.png";
-import BG_Tunnel_light from "../../assets/rabbit-hole/tunnel-light.png";
-import Rabbit_Head from "../../assets/rabbit-hole/rabbit.png";
 import InstructionsOne from "../../assets/rabbit-hole/screen-instructions1.png";
 import InstructionsTwo from "../../assets/rabbit-hole/screen-instructions2.png";
-import SmallDesk from "../../assets/rabbit-hole/signage-instructions-small.png";
-import NewLabel from "../../assets/rabbit-hole/new.png";
 import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 import { useGameContext } from "../../utils/game-context";
 import RibbonLabel from "../../components/RibbonLabel";
+import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "./utils/getGamePart";
 
 export default function RabbitHoleRules() {
     const navigate = useNavigate();
@@ -64,7 +57,7 @@ export default function RabbitHoleRules() {
                     break;
             }
 
-            socket.emit('minimize-live-game', { part: 'RABBIT_HOLE_RULES', raceId });
+            socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules"), raceId });
             navigate(redirectLink);
         },
         autoStart: true
@@ -100,7 +93,7 @@ export default function RabbitHoleRules() {
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "RABBIT_HOLE_RULES") {
+                if (raceId == raceIdSocket && ["RABBIT_HOLE_RULES", "RABBIT_HOLE_V2_RULES"].includes(part)) {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -114,7 +107,7 @@ export default function RabbitHoleRules() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "RABBIT_HOLE_RULES" && raceIdSocket == raceId && !movedToNext) {
+                if (["RABBIT_HOLE_RULES", "RABBIT_HOLE_V2_RULES"].includes(part) && raceIdSocket == raceId && !movedToNext) {
                     console.log("LEAVED")
                     setAmountOfConnected(amountOfConnected - 1);
                     if (!modalIsOpen) {
@@ -152,8 +145,8 @@ export default function RabbitHoleRules() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE_RULES" });
-            socket.emit("get-latest-screen", { raceId, part: "RABBIT_HOLE_RULES" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules") });
+            socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules") });
         }
     }, [smartAccountAddress, socket, raceId]);
 

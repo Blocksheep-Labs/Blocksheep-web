@@ -27,6 +27,7 @@ import calculatePlayersV1 from "./calculations/v1";
 import calculatePlayersV2 from "./calculations/v2";
 import BG_Carrots from "../../assets/rabbit-hole/backgroundcarrot.jpg";
 import { useGameContext } from "../../utils/game-context";
+import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "./utils/getGamePart";
 
 export type ConnectedUser = {
     id: number;
@@ -41,7 +42,6 @@ export type ConnectedUser = {
 }
 
 export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
-
 
 function RabbitHoleGame() {
   const {smartAccountAddress} = useSmartAccount();
@@ -124,7 +124,7 @@ function RabbitHoleGame() {
       });
 
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
-        if (raceId == raceIdSocket && part == "RABBIT_HOLE") {
+        if (raceId == raceIdSocket && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(part)) {
           console.log("JOINED++")
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= gameState.amountOfRegisteredUsers) {
@@ -137,7 +137,7 @@ function RabbitHoleGame() {
 
       
       socket.on('leaved', (data) => {
-        if (data?.part == "RABBIT_HOLE" && data.raceId == raceId && !data.movedToNext) {
+        if (["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part) && data.raceId == raceId && !data.movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
   
           // if user was sending a TX
@@ -280,7 +280,7 @@ function RabbitHoleGame() {
                 break;
             }
 
-            socket.emit('minimize-live-game', { part: 'RABBIT_HOLE', raceId });
+            socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
             navigate(redirectLink);
           }
         }
@@ -360,8 +360,8 @@ function RabbitHoleGame() {
         if (!socket.connected) {
           socket.connect();
         }
-        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RABBIT_HOLE" });
-        socket.emit("get-latest-screen", { raceId, part: "RABBIT_HOLE" });
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
+        socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
     }
   }, [smartAccountAddress, socket, raceId, gameState]);
   

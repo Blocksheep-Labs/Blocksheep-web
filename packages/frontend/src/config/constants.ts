@@ -2,7 +2,7 @@ import { baseSepolia } from "viem/chains";
 import { addRpcUrlOverrideToChain } from "@privy-io/react-auth";
 
 
-const baseSepoliaOverride = addRpcUrlOverrideToChain(baseSepolia, import.meta.env.VITE_CUSTOM_RPC_PROVIDER);
+const baseSepoliaOverride = addRpcUrlOverrideToChain(baseSepolia, import.meta.env.CUSTOM_RPC_PROVIDER);
 
 export const BLOCK_SHEEP_CONTRACT = import.meta.env.VITE_BLOCKSHEEP_ADDR;
 export const USDC_ADDR = import.meta.env.VITE_MOCK_USDC_ADDR;

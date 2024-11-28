@@ -16,7 +16,7 @@ import { GameProvider } from "./utils/game-context";
 
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 root.render(
   <PrivyProvider 

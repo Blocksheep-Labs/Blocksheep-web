@@ -31,14 +31,15 @@ function SelectRaceScreen() {
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
     /*
-    if (screen !== "BULL_RUN") {
+    if (screen !== "BULL_RUN_RULES") {
       getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
         navigate(`/race/${raceId}/bullrun/rules`);
       });
       return;
     }
-    */
+      */
+    
     
     
     const rIdNumber = Number(raceId);
@@ -120,13 +121,6 @@ function SelectRaceScreen() {
 
         if (raceIdSocket == raceId) {
           console.log("JOINED++", raceIdSocket, userAddress);
-          /*
-          setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= race.numOfPlayersRequired) {
-            setIsOpen(false);
-            setModalType(undefined);
-          }
-          */
           socket.emit("get-connected", { raceId });
         }
       });
@@ -208,26 +202,25 @@ function SelectRaceScreen() {
     setModalType("registering");
     await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(async _ => {
       console.log("REGISTERED, fetching list of races...");
-
-      setTimeout(async() => {
-        try {
-          const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
-          
-          fetchAndSetRaces();
-    
-          if (!raceData.registeredUsers.map((i: string) => i.toLowerCase()).includes(smartAccountAddress?.toLowerCase())) {
-            throw new Error("Registration error, user is not in a list of registered users")
-          };
-    
-          setRaceId(id);
-          setIsOpen(true);
-          setModalType("registered");
-        } catch (error) {
-          setModalType(undefined);
-          setIsOpen(false);
-          console.log(error);
-        }
-      }, 5000);
+      
+      try {
+        const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
+        
+        fetchAndSetRaces();
+  
+        if (!raceData.registeredUsers.map((i: string) => i.toLowerCase()).includes(smartAccountAddress?.toLowerCase())) {
+          throw new Error("Registration error, user is not in a list of registered users")
+        };
+  
+        setRaceId(id);
+        setIsOpen(true);
+        setModalType("registered");
+      } catch (error) {
+        setModalType(undefined);
+        setIsOpen(false);
+        console.log(error);
+      }
+      
     }).catch(err => {
       setModalType(undefined);
       setIsOpen(false);

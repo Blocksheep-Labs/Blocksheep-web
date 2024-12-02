@@ -125,7 +125,8 @@ export default function StoryScreen() {
                 redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
                 break;
             case "part3": 
-                redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                // redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                redirectLink = generateLink("RATE", Number(raceId));
                 break;
             case "part4":
                 redirectLink = generateLink("RATE", Number(raceId));

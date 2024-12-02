@@ -4,7 +4,6 @@ import MockUsdcAbi from "../contracts/MockUSDC.json";
 import { readContract, readContracts } from '@wagmi/core';
 import { config } from "../config/wagmi";
 import { encodeFunctionData } from "viem";
-import { title } from "process";
 
 const SELECTED_CHAIN = SELECTED_NETWORK;
 
@@ -110,7 +109,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     const data = await readContract(config, {
         ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getRaces",
-        args: [BigInt(raceId), userAddr]
+        args: [BigInt(raceId), userAddr],
     });
 
     // @ts-ignore
@@ -171,8 +170,6 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
 // enter the race
 export const registerOnTheRace = async(raceId: number, numberOfQuestions: number, smartAccountClient: any, smartAccountAddress: any) => {
     const COST = await retreiveCOST();
-    const decimals = await getTokenDecimals();
-   
     
     const userBalance = await getUserBalance(smartAccountAddress);
 

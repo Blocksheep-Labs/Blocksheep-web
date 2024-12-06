@@ -13,7 +13,7 @@ function RabbitHead({ phase }) {
        head.style.visibility = 'hidden';
       head.style.transform = 'translateX(50vw)';
 
-    } else if (phase === 'Reset') {
+    } else if (phase === 'Default') {
         head.style.visibility = 'visible';
       head.style.transform = 'translateX(0)'; 
     }

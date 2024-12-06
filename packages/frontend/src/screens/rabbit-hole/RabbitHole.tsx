@@ -168,6 +168,7 @@ function RabbitHoleGame() {
 
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
+        console.log(">>>>>>> UPDATING USERS FUEL DATA")
         const usersData = progress.progresses;
 
         if (usersData.length < 2) return;
@@ -242,11 +243,12 @@ function RabbitHoleGame() {
             const pendingCount = newSet.size;
             console.log("Pending transactions:", pendingCount);
 
-            if (pendingCount === 0 && phase !== "CloseTunnel") {
+            if (pendingCount === 0 && phase !== "Reset") {
               console.log("All transactions processed. Starting the tunnel...");
-              socket.emit("get-all-fuel-tunnel", { raceId });
+              // socket.emit("get-all-fuel-tunnel", { raceId });
               socket.emit("tunnel-started", { raceId });
-              triggerAnimations();
+              //triggerAnimations();
+              triggerAnimationsOpen();
             }
           }
         }
@@ -256,7 +258,8 @@ function RabbitHoleGame() {
             await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
               await waitForTransactionReceipt(config, {
                 hash: data,
-                confirmations: 2,
+                confirmations: 0,
+                pollingInterval: 300,
               });
               openWinModal();
             });
@@ -289,12 +292,13 @@ function RabbitHoleGame() {
 
 
       socket.on('tunnel-started-on-client', ({ socketId, raceId: raceIdSocket }) => {
-        console.log(`event: tunnel-started-on-client`, { raceIdSocket, socketId, isCurrentGame: raceIdSocket == raceId, phaseCheck: phase !== "CloseTunnel" });
-        if (phase !== "CloseTunnel" && raceId == raceIdSocket) {
+        console.log(`event: tunnel-started-on-client`, { raceIdSocket, socketId, isCurrentGame: raceIdSocket == raceId, phaseCheck: phase !== "Reset" });
+        if (phase !== "Reset" && raceId == raceIdSocket) {
           console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)
-          socket.emit("get-all-fuel-tunnel", { raceId });
+          // socket.emit("get-all-fuel-tunnel", { raceId });
           setPendingTransactions(new Set());
-          triggerAnimations();
+          //triggerAnimations();
+          triggerAnimationsOpen();
         }
       });
 
@@ -417,19 +421,22 @@ function RabbitHoleGame() {
     setPhase("CloseTunnel"); 
 
     // Open tunnel: cars get out
-    setTimeout(() => setPhase("OpenTunnel"), 3000);
-
-    // reset and make calculations
     setTimeout(() => {
-      setPhase("Reset");
-      setRoundIsFinsihed(true);
-      setIsRolling(false);
-
-      setTimeout(() => {
-        setPhase("Default");
-      }, 9000);
-    }, 9000);
+      socket.emit("get-all-fuel-tunnel", { raceId });
+      setPhase("OpenTunnel");
+    }, 3000);
   };
+
+  const triggerAnimationsOpen = () => {
+    // reset and make calculations
+    setPhase("Reset");
+    setRoundIsFinsihed(true);
+    setIsRolling(false);
+
+    setTimeout(() => {
+      setPhase("Default");
+    }, 4000);
+  }
 
 
   const handleFuelUpdate = (fuel: number) => {
@@ -452,6 +459,8 @@ function RabbitHoleGame() {
   }
 
   const handleTunnelChange = async() => {
+    triggerAnimations();
+    
     if (gameCompleted) 
       return;
 
@@ -477,7 +486,8 @@ function RabbitHoleGame() {
             const data = await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient);
             await waitForTransactionReceipt(config, {
               hash: data,
-              confirmations: 2,
+              confirmations: 0,
+              pollingInterval: 300,
             });
           },
           3000
@@ -506,6 +516,7 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (players && !isRolling && roundIsFinished) {
+      // console.log({players});
       calculateSubmittedFuelPerPlayers(players, gameOver, amountOfAllocatedPoints);
       setRoundIsFinsihed(false);
     }
@@ -587,7 +598,8 @@ function RabbitHoleGame() {
           return await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
             await waitForTransactionReceipt(config, {
               hash: data,
-              confirmations: 2,
+              confirmations: 0,
+              pollingInterval: 300,
             });
           });
         },

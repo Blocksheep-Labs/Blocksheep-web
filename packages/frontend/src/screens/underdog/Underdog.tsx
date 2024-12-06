@@ -124,7 +124,8 @@ function UnderdogGame() {
         ).then(async hash => {
           await waitForTransactionReceipt(config, {
             hash,
-            confirmations: 2
+            confirmations: 0,
+            pollingInterval: 300,
           });
         })
       },
@@ -175,7 +176,8 @@ function UnderdogGame() {
         ).then(async hash => {
           await waitForTransactionReceipt(config, {
             hash,
-            confirmations: 2
+            confirmations: 0,
+            pollingInterval: 300,
           });
         });
       },

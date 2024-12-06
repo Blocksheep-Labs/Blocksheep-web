@@ -59,7 +59,8 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
     console.log("Withdraw balance hash:", hash);
     await waitForTransactionReceipt(config, {
       hash,
-      confirmations: 2
+      confirmations: 0,
+      pollingInterval: 300,
     });
     setLoading(false);
   }

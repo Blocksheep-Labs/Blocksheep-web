@@ -33,6 +33,8 @@ const PlayerMovement = ({
     fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
   }, [players]);
 
+  console.log({phase})
+
   // Handle animations when the phase changes or players change
   useEffect(() => {
     if (prevStage !== phase || animationTrigger) {
@@ -86,25 +88,25 @@ const PlayerMovement = ({
             playerElement.style.transition = 'all 0s ease-out';
             playerElement.style.left = leftPosition;
             playerElement.style.transition = 'all 0.5s ease-out';
-            playerElement.style.left = '-100%';
+            playerElement.style.left = '-50%';
   
             fuelElement.style.transition = 'all 0s ease-out';
             fuelElement.style.left = leftPosition;
             fuelElement.style.transition = 'all 0.5s ease-out';
-            fuelElement.style.left = '-100%';
+            fuelElement.style.left = '-50%';
             fuelElement.style.opacity = '0';
           }, 1500);
-        } else if (phase === 'OpenTunnel') {
+        } else if (phase === 'Reset') {
           const delay = index * 500;
           setTimeout(() => {
-            console.log("OPEN")
+            console.log("RESET")
             playerElement.style.top = topPosition;
             playerElement.style.left = leftPosition;
-            playerElement.style.transition = 'all 6s ease-out';
+            playerElement.style.transition = 'all 3s ease-out';
             
             fuelElement.style.top = topPosition;
             fuelElement.style.left = leftPosition;
-            fuelElement.style.transition = 'all 6s ease-out';
+            fuelElement.style.transition = 'all 3s ease-out';
             if (!player.isCompleted && !player.isEliminated) {
               playerElement.style.opacity = '1';
               fuelElement.style.opacity = '1';
@@ -154,7 +156,7 @@ const PlayerMovement = ({
                   }
                 }
               }
-            }, 4500);
+            }, 1500);
           }, 1000 + delay);
         }
       });

@@ -32,7 +32,8 @@ function LoadingModal({
           // wait for tx to finish before finalizing scores on next modal (win / lose modal)
           const waitForTx = async(hash: `0x${string}`) => {
             await waitForTransactionReceipt(config, {
-              confirmations: 2,
+              confirmations: 0,
+              pollingInterval: 300,
               hash,
             });
             closeHandler();

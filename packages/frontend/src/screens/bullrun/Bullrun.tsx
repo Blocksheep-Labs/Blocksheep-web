@@ -59,7 +59,7 @@ export default function Bullrun() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
 
-    const { totalSeconds, restart, start, pause, resume } = useTimer({
+    const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
         expiryTimestamp: time,
         onExpire: () => {
             console.log("Time expired.")
@@ -142,6 +142,13 @@ export default function Bullrun() {
     }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent]);
 
     const setPending = (isPending: boolean) => {
+        console.log({
+            id: socket.id,
+            opponentId: opponent?.id,
+            raceId,
+            userAddress: smartAccountAddress,
+            isPending,
+        });
         socket.emit('bullrun-set-pending', {
             id: socket.id,
             opponentId: opponent?.id,
@@ -297,6 +304,7 @@ export default function Bullrun() {
         }
     }, [raceId, smartAccountAddress]);
 
+
     // handle pending events
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress && opponent) {
@@ -311,8 +319,12 @@ export default function Bullrun() {
                     }
 
                     if (amountOfPending - 1 == 0) {
-                        console.log("Round ended!")
+                        console.log("Round ended!");
                         setRoundStarted(false);
+
+                        const time = new Date();
+                        time.setSeconds(time.getSeconds() + 1);
+                        restart(time);
                     }
                 }
             });

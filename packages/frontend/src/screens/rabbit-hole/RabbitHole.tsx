@@ -572,7 +572,9 @@ function RabbitHoleGame() {
     
     if (!gameOver) {
       setGameOver(true);
-      !isWon && setUserIsLost(true);
+      setTimeout(() => {
+        !isWon && setUserIsLost(true);
+      }, 3000);
 
       socket.emit("update-progress", {
         raceId,
@@ -688,7 +690,7 @@ function RabbitHoleGame() {
           }
   
           setIsRolling(false);
-          return;
+
         }
   
         // if the user is one in players array -> he won
@@ -714,20 +716,24 @@ function RabbitHoleGame() {
         }
       }
 
-      setTimeout(() => {
-        //setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
-        console.log("SETTING MAX FUEL:", newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0)
-        setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
-        setDisplayNumber(0);
-  
-        // refetch users data
-        if (newListOfPlayers.length > 1) {
-          console.log("next round... time reset");
-          const time = new Date();
-          time.setSeconds(time.getSeconds() + 10);
-          restart(time);
-        }
-      }, 6000);
+      const restartTimerAfterRound = () => {
+        setTimeout(() => {
+          //setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
+          console.log("SETTING MAX FUEL:", newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0)
+          setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
+          setDisplayNumber(0);
+    
+          // refetch users data
+          if (newListOfPlayers.length > 1) {
+            console.log("next round... time reset");
+            const time = new Date();
+            time.setSeconds(time.getSeconds() + 10);
+            restart(time);
+          }
+        }, 6000);
+      }
+
+      restartTimerAfterRound();
   }
 
   function onNextGameClicked() {

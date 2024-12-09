@@ -273,12 +273,13 @@ module.exports = (io) => {
         
         
         socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId }) => {
-            const playerToEmit = activePlayers[raceId]?.find(i => i.id == opponentId);
+            //console.log({ id, opponentId, userAddress, isPending, raceId })
+            //const playerToEmit = activePlayers[raceId]?.find(i => i.id == opponentId);
 
-            if (playerToEmit) {
-                io.to(playerToEmit.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
+            //if (playerToEmit) {
+                io.to(opponentId).emit('bullrun-pending', { id, userAddress, isPending, raceId });
                 io.to(socket.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
-            }
+            //}
         });
 
         socket.on('bullrun-win-modal-opened', async({ raceId }) => {

@@ -117,9 +117,9 @@ const PlayerMovement = ({
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
 
               // if we have some bonuses to apply (> 1 - because of more than one rule passed) (at the 2nd version of the game) - nobody should fall
-              if (version == "v2" && calculatePlayersV2(activePlayers).bonuses.length > 1) {
-                return;
-              }
+              // if (version == "v2" && calculatePlayersV2(activePlayers).bonuses.length > 1) {
+              //   return;
+              // }
 
               // get minimal fuel in the list
               const minFuel = activePlayers[sortedPlayers.length - 1 - amountOfComplteted].Fuel;
@@ -127,9 +127,9 @@ const PlayerMovement = ({
               // count min fuel players (same fuel)
               const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
   
-              if (listOfMinFuelPlayers.length === activePlayers.length) {
-                return;
-              }
+              // if (listOfMinFuelPlayers.length === activePlayers.length) {
+              //   return;
+              // }
 
               execOnce = listOfMinFuelPlayers.length > 1;
 

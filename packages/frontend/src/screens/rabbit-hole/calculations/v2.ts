@@ -1,21 +1,17 @@
 import { ConnectedUser } from "../RabbitHole";
 
-
-
 // last one doesn’t get eliminated if difference with second-to-last one is > 4. They get +3 fuel bonus.
 // Second-to-last one doesn’t consume fuel. second-to-last one = предпоследний
 
-
-
 export default function calculatePlayersV2(players: ConnectedUser[]) {
     const actualListOfPlayers = players.filter(i => !i.isCompleted && !i.isEliminated);
-    const submittedFuelIsSimilar = actualListOfPlayers.every(i => i.Fuel === actualListOfPlayers[0].Fuel);
-    console.log({submittedFuelIsSimilar});
+    // const submittedFuelIsSimilar = actualListOfPlayers.every(i => i.Fuel === actualListOfPlayers[0].Fuel);
+    // console.log({submittedFuelIsSimilar});
 
     const bonuses: { address: string, amount: number }[] = [];
 
     let newListOfPlayers;
-    if (!submittedFuelIsSimilar) {
+    // if (!submittedFuelIsSimilar) {
       const sorted = actualListOfPlayers.toSorted((a, b) => a.id - b.id).toSorted((a, b) => a.Fuel - b.Fuel);
       console.log({actualListOfPlayers});
         
@@ -29,10 +25,9 @@ export default function calculatePlayersV2(players: ConnectedUser[]) {
       // second-to-last one doesn’t consume fuel.
       bonuses.push({ address: sorted[1].address, amount: sorted[1].Fuel });
 
-    } else {
-      newListOfPlayers = actualListOfPlayers;
-    }
-
+    // } else {
+    //   newListOfPlayers = actualListOfPlayers;
+    // }
 
     return { newListOfPlayers, bonuses };
 }

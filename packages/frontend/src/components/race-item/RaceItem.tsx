@@ -41,10 +41,11 @@ type RaceItemProps = {
   race: Race;
   onClickJoin: (a: number) => void;
   onClickRegister: (id: number , questionsCount: number) => Promise<void>;
-  cost: number
+  cost: number;
+  participatesIn: string[];
 };
 
-function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
+function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: RaceItemProps) {
   const { smartAccountClient } = useSmartAccount();
   // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
@@ -84,6 +85,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
       clearInterval(intId);
     }
   }, []);
+
 
   return (
     <div className="outerLayer BaseLayer">
@@ -174,7 +176,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
                       return (
                         race.registered 
                         ? 
-                        <div className="buttonBox joinButton" onClick={() => onClickJoin(race.id)}>Join</div> 
+                        <div className="buttonBox joinButton" onClick={() => onClickJoin(race.id)}>{participatesIn.map(i => Number(i)).includes(race.id) ? 'Rejoin' : 'Join'}</div> 
                         : 
                         <div className="buttonBox joinButton" onClick={() => handleRegister(race.id)}>Enroll</div>
                       );
@@ -206,8 +208,10 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
           />
         </div>
       </div>
-
-      <button onClick={() => onClickJoin(race.id)}>Force join</button>
+                
+      {
+        // <button onClick={() => onClickJoin(race.id)}>Force join</button>
+      }
     </div>
   );
 }

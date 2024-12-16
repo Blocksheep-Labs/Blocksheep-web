@@ -10,7 +10,7 @@ import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersMod
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import { useGameContext } from "../../utils/game-context";
-import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
+import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 
 
 function SelectRaceScreen() {
@@ -18,6 +18,7 @@ function SelectRaceScreen() {
   const navigate = useNavigate();
   const { updateGameState, gameState } = useGameContext();
   const [races, setRaces] = useState<any[]>([]);
+  const [racesUserParticipatesIn, setRacesUserParticipatesIn] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
   const [cost, setCost] = useState(0);
@@ -30,18 +31,21 @@ function SelectRaceScreen() {
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
-    
+    const rIdNumber = Number(raceId);
+
+    // SAVE USER RACE AFTER JOIN
+    const currentUserActiveGames = JSON.parse(localStorage.getItem("races") as string) || [];
+    localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
+
+    /*
     if (screen !== "RABBIT_HOLE") {
-      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
+      getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
         navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       });
       return;
     }
-    
-    
-    
-    const rIdNumber = Number(raceId);
+    */
     
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
       // If no conditions met, navigate to PODIUM
@@ -55,6 +59,12 @@ function SelectRaceScreen() {
       getRacesWithPagination(smartAccountAddress as `0x${string}`, 0).then(data => {
         setRaces(data as any[]);
       });
+
+      httpGetRacesUserParticipatesIn(smartAccountAddress as `0x${string}`).then(({data}) => {
+        // console.log(data.races)
+        setRacesUserParticipatesIn(data.races);
+      });
+
       setCost(Number(await retreiveCOST()));
     }
   }, [smartAccountAddress]);
@@ -144,7 +154,8 @@ function SelectRaceScreen() {
         socket.off('latest-screen');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, progress])
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, progress]);
+
 
   const onClickJoin = useCallback((id: number) => {
     console.log("Joining...", id);
@@ -162,6 +173,7 @@ function SelectRaceScreen() {
             socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
           }, 500);
           setRaceId(id);
+
           setIsOpen(true);
           setModalType("waiting");
         });
@@ -250,6 +262,7 @@ function SelectRaceScreen() {
               race={r}
               onClickJoin={onClickJoin}
               onClickRegister={onClickRegister}
+              participatesIn={racesUserParticipatesIn}
             />
           ))}
       </div>

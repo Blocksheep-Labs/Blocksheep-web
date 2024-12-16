@@ -139,6 +139,7 @@ function RabbitHoleGame() {
       socket.on('leaved', (data) => {
         if (["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part) && data.raceId == raceId && !data.movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
+          
           setPlayers(players.filter(i => i.address !== data.userAddress));
   
           // if user was sending a TX

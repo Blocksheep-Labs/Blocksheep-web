@@ -49,8 +49,25 @@ const createRace = async(req, res) => {
     }
 }
 
+const getUserParticipatesIn = async(req, res) => {
+    const { address } = req.query;
+
+    try {
+        const races = await racesModel.getUserParticipatesIn(address);
+        return res.status(200).json({
+            ok: true,
+            races
+        })
+    } catch (error) {
+        return res.status(400).json({
+            ok: false
+        });
+    }
+}
+
 module.exports = {
     insertUser,
     getRaceDataById,
-    createRace
+    createRace,
+    getUserParticipatesIn,
 }

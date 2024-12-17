@@ -160,11 +160,11 @@ function RabbitHoleGame() {
         }
       });
 
-      socket.on('race-progress', (progress) => {
+      socket.on('race-progress', ({progress}) => {
         // @ts-ignore
-        setDisplayNumber(progress?.game2?.[version]?.game?.fuel || 0);
+        setDisplayNumber(progress?.progress?.game2?.[version]?.game?.fuel || 0);
         // @ts-ignore
-        setMaxFuel(progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
+        setMaxFuel(progress?.progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
       });
 
       

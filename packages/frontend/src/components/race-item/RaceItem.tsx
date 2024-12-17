@@ -124,13 +124,13 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: 
               </div>
 
               <div className="gridItem">
-                <div className="timerBox">
+                <div className="timerBox max-w-[78px] overflow-hidden">
                   <img
                     src={TimerIcon}
                     alt="Timer Icon"
                     className="timerIcon"
                   />
-                  <span>
+                  <span className="">
                     {
                       timeLeft < 0
                       ?

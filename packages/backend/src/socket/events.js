@@ -23,6 +23,15 @@ let screens = [
 ];
 let roomsLatestScreen = [];
 
+// { 
+// 'room': string, 
+// 'index': number, 
+// 'state': 'answering' | 'submitting',
+// 'secondsLeft': number,
+// }
+let questionsGameStates = ["answering", "submitting"];
+let questionsIndex = [];
+
 let activePlayers = {};
 let waitingPlayers = {};
 let matchesPlayed = {};  // matches between players (e.g., { 'player1_id': ['player2_id', ...] })
@@ -209,12 +218,57 @@ module.exports = (io) => {
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
 
+        socket.on('set-questions-state', ({ raceId, newIndex, state, secondsLeft }) => {
+            const roomName = `race-${raceId}`;
+            const currData = questionsIndex.find(i => i.room == roomName);
+            console.log("Data:", currData)
+            if (!currData) {
+                const newState = {
+                    room: roomName,
+                    index: newIndex,
+                    secondsLeft,
+                    state,
+                };
+                questionsIndex.push(newState);
+                console.log("New data:", newState)
+
+                io.to(roomName).emit('questions-state', { raceId, data: newState });
+                return;
+            }
+
+            currData.index = newIndex;
+            
+            currData.state = state;
+
+            currData.secondsLeft = secondsLeft;
+
+            console.log("Updated data:", currData)
+
+            io.to(roomName).emit('questions-state', { raceId, data: currData })
+        });
+
+        socket.on('get-questions-state', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
+            const currData = questionsIndex.find(i => i.room == roomName);
+
+            if (!currData) {
+                questionsIndex.push({
+                    room: roomName, 
+                    index: 0, 
+                    state: 'answering',
+                    secondsLeft: 10,
+                });
+            }
+            io.to(socket.id).emit('questions-state', { raceId, data: currData })
+        });
+
     
         // get amount completed by raceId game gameId
         socket.on('get-progress', ({ raceId, userAddress }) => {
             const roomName = `race-${raceId}`;
             const progress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
-            io.to(socket.id).emit('race-progress', { progress });
+            const questionsState = questionsIndex.find(i => i?.room == roomName);
+            io.to(socket.id).emit('race-progress', { progress, questionsState });
         });
     
         // get amount completed by raceId game gameId

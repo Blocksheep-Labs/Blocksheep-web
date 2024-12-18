@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../components/RibbonLabel";
 import RaceItem from "../../components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
-import { getRaceById, getRacesWithPagination, registerOnTheRace, retreiveCOST } from "../../utils/contract-functions";
+import { buyTokens, getRaceById, getRacesWithPagination, getTestETH, registerOnTheRace, retreiveCOST } from "../../utils/contract-functions";
 import RegisteringModal from "../../components/modals/RegisteringModal";
 import RegisteredModal from "../../components/modals/RegisteredModal";
 import { socket } from "../../utils/socketio";
@@ -11,6 +11,7 @@ import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import { useGameContext } from "../../utils/game-context";
 import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
+import { useBalance } from "wagmi";
 
 
 function SelectRaceScreen() {
@@ -25,6 +26,10 @@ function SelectRaceScreen() {
   const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
+
+  const { data: ETHBalance } = useBalance({
+    address: smartAccountAddress
+  });
 
   const handleNavigate = useCallback((progress: any, screen: TFlowPhases) => {
     console.log("NAVIGATE", amountOfConnected);
@@ -212,6 +217,12 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
     setModalType("registering");
+    await getTestETH(30, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted))
+        .then(() => {
+          console.log('Got test ETH!')
+        })
+        .catch(console.error);
+
     await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(async _ => {
       console.log("REGISTERED, fetching list of races...");
       
@@ -232,7 +243,6 @@ function SelectRaceScreen() {
         setIsOpen(false);
         console.log(error);
       }
-      
     }).catch(err => {
       setModalType(undefined);
       setIsOpen(false);

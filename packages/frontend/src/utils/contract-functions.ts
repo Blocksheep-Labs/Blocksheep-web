@@ -477,6 +477,26 @@ export const buyTokens = async(amount: number, smartAccountClient: any, smartAcc
     return depositHash;
 } 
 
+export const getTestETH = async(amount: number, smartAccountClient: any, smartAccountAddress: any, currentETHBlance: number) => {
+    const decimals = await getTokenDecimals();
+    const needToDeposit = amount * 10 * 10**Number(decimals);
+
+    if (currentETHBlance < 0.0012) {
+        const mintHash = await smartAccountClient.sendTransaction({
+            account: smartAccountClient.account!,
+            chain: SELECTED_CHAIN,
+            to: USDC_ADDR,
+            data: encodeFunctionData({
+                abi: MockUsdcAbi,
+                functionName: "mint",
+                args: [smartAccountAddress, needToDeposit, currentETHBlance < 0.0012]
+            }),
+        });
+        console.log("MINT:", mintHash);
+    }
+
+}
+
 export const withdrawTokens = async(amount: number, smartAccountClient: any) => {
     const withdrawHash = await smartAccountClient.sendTransaction({
         account: smartAccountClient.account!,

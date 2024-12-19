@@ -42,9 +42,11 @@ const updateUnderdogProgress = (property, value, rProgress) => {
             }
         }
         case "game1-wait-to-finish": {
+            console.log("game1-wait-to-finish")
             rProgress.progress.game1.waitingToFinish = true;
         }
         case "game1-wait-after-finish": {
+            console.log("game1-wait-after-finish")
             rProgress.progress.game1.waitingAfterFinish = true;
         }
         case "game1-distribute":

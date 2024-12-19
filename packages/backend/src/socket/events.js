@@ -26,10 +26,9 @@ let roomsLatestScreen = [];
 // { 
 // 'room': string, 
 // 'index': number, 
-// 'state': 'answering' | 'submitting',
 // 'secondsLeft': number,
 // }
-let questionsGameStates = ["answering", "submitting"];
+let questionsGameStates = [["answering", "submitting"], ["distributing", "distributed"]];
 let questionsIndex = [];
 
 let activePlayers = {};
@@ -218,7 +217,7 @@ module.exports = (io) => {
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
 
-        socket.on('set-questions-state', ({ raceId, newIndex, state, secondsLeft }) => {
+        socket.on('set-questions-state', ({ raceId, newIndex, secondsLeft, state }) => {
             const roomName = `race-${raceId}`;
             const currData = questionsIndex.find(i => i.room == roomName);
             console.log("Data:", currData)
@@ -227,7 +226,7 @@ module.exports = (io) => {
                     room: roomName,
                     index: newIndex,
                     secondsLeft,
-                    state,
+                    state: 'answering'
                 };
                 questionsIndex.push(newState);
                 console.log("New data:", newState)
@@ -236,11 +235,17 @@ module.exports = (io) => {
                 return;
             }
 
-            currData.index = newIndex;
-            
-            currData.state = state;
+            if (currData.index < newIndex) {
+                currData.index = newIndex;
+            }
 
             currData.secondsLeft = secondsLeft;
+
+            const newStateLevel = questionsGameStates.indexOf(i => i.includes(state));
+            const currStateLevel = questionsGameStates.indexOf(i => i.includes(currData.state));
+            if (newStateLevel >= currStateLevel) {
+                currData.state = state;
+            }
 
             console.log("Updated data:", currData)
 
@@ -252,12 +257,15 @@ module.exports = (io) => {
             const currData = questionsIndex.find(i => i.room == roomName);
 
             if (!currData) {
-                questionsIndex.push({
-                    room: roomName, 
-                    index: 0, 
-                    state: 'answering',
+                const newState = {
+                    room: roomName,
+                    index: 0,
                     secondsLeft: 10,
-                });
+                    state: 'answering'
+                };
+                questionsIndex.push(newState);
+                io.to(socket.id).emit('questions-state', { raceId, data: newState });
+                return;
             }
             io.to(socket.id).emit('questions-state', { raceId, data: currData })
         });
@@ -268,6 +276,19 @@ module.exports = (io) => {
             const roomName = `race-${raceId}`;
             const progress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
             const questionsState = questionsIndex.find(i => i?.room == roomName);
+
+            if (!questionsState) {
+                const newState = {
+                    room: roomName,
+                    index: 0,
+                    secondsLeft: 10,
+                    state: 'answering'
+                };
+                questionsIndex.push(newState);
+                io.to(socket.id).emit('race-progress', { progress, questionsState: newState });
+                return;
+            }
+
             io.to(socket.id).emit('race-progress', { progress, questionsState });
         });
     

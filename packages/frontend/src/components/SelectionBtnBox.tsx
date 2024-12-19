@@ -13,8 +13,7 @@ export type SelectionBtnBoxProps = {
   rightAction: (a: number) => Promise<void>;
   disabled: boolean;
   currentQuestionIndex: number;
-  selectedAnswer: "left" | "right" | null;
-  amountOfQuestions: number;
+  selectedAnswer: "left" | "right" | "unknown" | null;
   leftCount: number;
   rightCount: number;
 };
@@ -26,7 +25,6 @@ function SelectionBtnBox({
   disabled,
   currentQuestionIndex,
   selectedAnswer,
-  amountOfQuestions,
   leftCount,
   rightCount,
 }: SelectionBtnBoxProps) {

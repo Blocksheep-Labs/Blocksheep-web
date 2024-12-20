@@ -27,36 +27,36 @@ export default function BullrunRules() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
 
+    const handleExpire = () => {
+        console.log("UPDATE PROGRESS", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game3-rules-complete",
+        });
+        socket.emit('update-progress', {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game3-rules-complete",
+        });
+        
+        socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
+        navigate(generateLink("BULL_RUN", Number(raceId)));
+    };
+
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
-        onExpire: () => {
-            console.log("UPDATE PROGRESS", {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game3-rules-complete",
-            });
-            socket.emit('update-progress', {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game3-rules-complete",
-            });
-            
-            socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
-            navigate(generateLink("BULL_RUN", Number(raceId)));
-        },
+        onExpire: handleExpire,
         autoStart: true
     });
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
             setSecondsVisual(10);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
     // fetch points matrix
     useEffect(() => {
@@ -100,12 +100,18 @@ export default function BullrunRules() {
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
                 if (part == "BULL_RUN_RULES" && raceId == raceIdSocket && !movedToNext) {
-                    console.log("LEAVED")
-                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!movedToNext) {
+                        console.log("LEAVED")
+                        setAmountOfConnected(amountOfConnected - 1);
+                    } else {
+                        handleExpire();
+                    }
+                    /*
                     if (!modalIsOpen) {
                         setModalIsOpen(true);
                     }
                     setModalType("waiting");
+                    */
                 }
             });
 
@@ -140,6 +146,22 @@ export default function BullrunRules() {
             socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_RULES" });
         }
     }, [smartAccountAddress, socket, raceId]);
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
 
     return (
         <div className="mx-auto flex w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center" style={{ height: `${window.innerHeight}px` }}>

@@ -636,6 +636,22 @@ function UnderdogGame() {
     updateProgress();
   }, []);
 
+  useEffect(() => {
+      if (raceId && socket) {
+          if (!socket.connected) {
+              socket.connect();
+          }
+          
+          socket.on('screen-changed', ({ screen }) => {
+              navigate(generateLink(screen, Number(raceId)));
+          });
+  
+          return () => {
+              socket.off('screen-changed');
+          }
+      }
+  }, [raceId, socket]);
+
   return (
     <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
       { 

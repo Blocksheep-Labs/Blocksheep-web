@@ -97,7 +97,7 @@ function CountDownScreen() {
   }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
-    if (data && amountOfConnected >= data.numberOfPlayersRequired) {
+    if (data) {
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
       }, 1000);
@@ -107,14 +107,14 @@ function CountDownScreen() {
         clearInterval(interval);
       };
     }
-  }, [amountOfConnected, data]);
+  }, [data]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
-    if (seconds === 0 && data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (seconds === 0 && data) {
       handleClose();
     }
-  }, [seconds, amountOfConnected, data]);
+  }, [seconds, data]);
 
   // handle socket events
   useEffect(() => {
@@ -136,25 +136,25 @@ function CountDownScreen() {
   
           if (raceId == raceIdSocket && part == "RACE_START") {
             console.log("JOINED++")
-            /*
-            setAmountOfConnected(amountOfConnected + 1);
-            if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
-              setModalIsOpen(false);
-              setModalType(undefined);
-            }
-            */
             socket.emit("get-connected", { raceId });
           }
       });
 
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == "RACE_START" && raceIdSocket == raceId && !movedToNext) {
-          console.log("LEAVED")
-          setAmountOfConnected(amountOfConnected - 1);
+          
+          if (!movedToNext) {
+            console.log("LEAVED")
+            setAmountOfConnected(amountOfConnected - 1);
+          } else {
+            handleClose();
+          }
+          /*
           if (!modalIsOpen) {
             setModalIsOpen(true);
           }
           setModalType("waiting");
+          */
         }
       });
 
@@ -186,6 +186,22 @@ function CountDownScreen() {
     }
   }, [smartAccountAddress, socket, raceId]);
 
+  useEffect(() => {
+      if (raceId && socket) {
+          if (!socket.connected) {
+              socket.connect();
+          }
+          
+          socket.on('screen-changed', ({ screen }) => {
+              navigate(generateLink(screen, Number(raceId)));
+          });
+  
+          return () => {
+              socket.off('screen-changed');
+          }
+      }
+  }, [raceId, socket]);
+
 
   return (
     <>
@@ -198,11 +214,13 @@ function CountDownScreen() {
         </div>
       </div>
       {
+        /*
         modalIsOpen && modalType === "waiting" && 
           <WaitingForPlayersModal 
             numberOfPlayers={amountOfConnected} 
             numberOfPlayersRequired={data?.numberOfPlayersRequired || 9}
           />
+        */
       }
     </>
   );

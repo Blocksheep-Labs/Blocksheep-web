@@ -146,7 +146,7 @@ function RaceUpdateScreen() {
   }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
-    if (data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (data) {
       setSecondsVisual(10);
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
@@ -157,19 +157,19 @@ function RaceUpdateScreen() {
         clearInterval(interval);
       };
     }
-  }, [amountOfConnected, data]);
+  }, [data]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
     let timer: NodeJS.Timeout;
-    if (seconds === 0 && data && amountOfConnected >= data.numberOfPlayersRequired) {
+    if (seconds === 0 && data) {
       timer = setTimeout(handleClose, 1000);
       handleClose();
     }
     return () => {
       clearTimeout(timer);
     };
-  }, [seconds, amountOfConnected, data]);
+  }, [seconds, data]);
 
   // handle socket events
   useEffect(() => {
@@ -207,12 +207,18 @@ function RaceUpdateScreen() {
 
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == getPart(board) && raceId == raceIdSocket && !movedToNext) {
-          console.log("LEAVED")
-          setAmountOfConnected(amountOfConnected - 1);
+          if (!movedToNext) {
+            console.log("LEAVED")
+            setAmountOfConnected(amountOfConnected - 1);
+          } else {
+            handleClose();
+          }
+          /*
           if (!modalIsOpen) {
             setModalIsOpen(true);
           }
           setModalType("waiting");
+          */
         }
       });
 
@@ -249,13 +255,30 @@ function RaceUpdateScreen() {
   }, [smartAccountAddress, socket, raceId, board, data]);
 
 
+  useEffect(() => {
+      if (raceId && socket) {
+          if (!socket.connected) {
+              socket.connect();
+          }
+          
+          socket.on('screen-changed', ({ screen }) => {
+              navigate(generateLink(screen, Number(raceId)));
+          });
+  
+          return () => {
+              socket.off('screen-changed');
+          }
+      }
+  }, [raceId, socket]);
+
+
   return (
     <>
       <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           { 
-            <RaceBoard progress={progress} users={users}/> 
+            <RaceBoard progress={progress} users={users}/>
           }
         </div>
       </div>

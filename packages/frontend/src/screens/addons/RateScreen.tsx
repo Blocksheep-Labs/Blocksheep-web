@@ -77,16 +77,13 @@ export default function RateScreen() {
 
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
-          
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
             setSecondsVisual(10);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
 
     // handle socket events
@@ -97,7 +94,7 @@ export default function RateScreen() {
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === gameState.amountOfRegisteredUsers) {
+                    if (amount) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -125,12 +122,14 @@ export default function RateScreen() {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
+                        /*
                         if (!modalIsOpen) {
                             setModalIsOpen(true);
                         }
                         setModalType("waiting");
+                        */
                     } else {
-                        setTimeout(handleExpire, 2000);
+                        handleExpire();
                     }
                 }
             });
@@ -154,6 +153,22 @@ export default function RateScreen() {
             socket.emit("get-latest-screen", { raceId, part: "RATE" });
         }
     }, [smartAccountAddress, socket, raceId]);
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
 
 
 

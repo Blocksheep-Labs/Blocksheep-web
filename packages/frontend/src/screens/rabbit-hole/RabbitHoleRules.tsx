@@ -30,50 +30,50 @@ export default function RabbitHoleRules() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + timeRemaining);
 
+    const handleExpire = () => {
+        console.log("UPDATE PROGRESS", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-rules-complete",
+            version
+        });
+        socket.emit('update-progress', {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-rules-complete",
+            version
+        });
+
+        let redirectLink = '/';
+
+        switch (version) {
+            case "v1":
+                redirectLink = generateLink("RABBIT_HOLE", Number(raceId)); break;
+            case "v2": 
+                redirectLink = generateLink("RABBIT_HOLE_V2", Number(raceId)); break;
+            default:
+                break;
+        }
+
+        socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules"), raceId });
+        navigate(redirectLink);
+    }
+
     const { totalSeconds, restart, pause, seconds } = useTimer({
         expiryTimestamp: time,
-        onExpire: () => {
-            console.log("UPDATE PROGRESS", {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game2-rules-complete",
-                version
-            });
-            socket.emit('update-progress', {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game2-rules-complete",
-                version
-            });
-
-            let redirectLink = '/';
-
-            switch (version) {
-                case "v1":
-                    redirectLink = generateLink("RABBIT_HOLE", Number(raceId)); break;
-                case "v2": 
-                    redirectLink = generateLink("RABBIT_HOLE_V2", Number(raceId)); break;
-                default:
-                    break;
-            }
-
-            socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules"), raceId });
-            navigate(redirectLink);
-        },
+        onExpire: handleExpire,
         autoStart: true
     });
 
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + timeRemaining);
             restart(time);
             setSecondsVisual(timeRemaining);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
     // handle socket events
     useEffect(() => {
@@ -82,8 +82,7 @@ export default function RabbitHoleRules() {
                 console.log({amount, rquiredByState: gameState.amountOfRegisteredUsers})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
-                    // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount >= gameState.amountOfRegisteredUsers) {
+                    if (amount) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
@@ -108,12 +107,18 @@ export default function RabbitHoleRules() {
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
                 if (["RABBIT_HOLE_RULES", "RABBIT_HOLE_V2_RULES"].includes(part) && raceIdSocket == raceId && !movedToNext) {
-                    console.log("LEAVED")
-                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!movedToNext) {
+                        console.log("LEAVED")
+                        setAmountOfConnected(amountOfConnected - 1);
+                    } else {
+                        handleExpire();
+                    }
+                    /*
                     if (!modalIsOpen) {
                         setModalIsOpen(true);
                     }
                     setModalType("waiting");
+                    */
                 }
             });
 
@@ -149,6 +154,22 @@ export default function RabbitHoleRules() {
             socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules") });
         }
     }, [smartAccountAddress, socket, raceId]);
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
 
 
     return (

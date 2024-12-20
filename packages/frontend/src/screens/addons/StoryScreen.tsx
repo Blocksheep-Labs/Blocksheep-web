@@ -151,15 +151,13 @@ export default function StoryScreen() {
 
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 6);
             setSeconds(6);
             restart(time);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
     // handle socket events
     useEffect(() => {
@@ -197,12 +195,14 @@ export default function StoryScreen() {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
+                        /*
                         if (!modalIsOpen) {
                             setModalIsOpen(true);
                         }
                         setModalType("waiting");
+                        */
                     } else {
-                        setTimeout(handleExpire, 2000);
+                        handleExpire();
                     }
                 }
             });
@@ -234,6 +234,22 @@ export default function StoryScreen() {
             }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
 
     return (
         <div className="bg-white relative" style={{ height: `${window.innerHeight}px` }}>

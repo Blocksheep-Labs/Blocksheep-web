@@ -456,6 +456,22 @@ export default function Bullrun() {
         }
     }
 
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
+
     return (
         <div className="mx-auto flex w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative" style={{ height: `${window.innerHeight}px` }}>
             { 

@@ -18,6 +18,17 @@ import { GameProvider } from "./utils/game-context";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 const queryClient = new QueryClient();
 
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    document.body.style.height = window?.visualViewport?.height + 'px';
+  });
+}
+// This will ensure user never overscroll the page
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 0) window.scrollTo(0, 0);
+});
+
 root.render(
   <PrivyProvider 
     appId={PRIVY_APP_ID || ""}

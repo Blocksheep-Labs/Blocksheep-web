@@ -69,8 +69,14 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
 
     // @ts-ignore
     data = data.filter(r => {
+
         // if not refunced
         if (!r.refunded) {
+            // user not registered and it is 2/2 or 9/9 players in game
+            if (!r.registered && r.registeredUsers.length == r.numOfPlayersRequired) {
+                return false;
+            }
+
             // user was regiistered into the race
             if (r.registered && ([1,2,3,4].includes(Number(r.status)))) {
                 //console.log(r)

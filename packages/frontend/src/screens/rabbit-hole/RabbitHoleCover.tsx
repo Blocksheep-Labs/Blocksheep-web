@@ -23,50 +23,50 @@ export default function RabbitHoleCover() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + 3);
 
+    const handleExpire = () => {
+        console.log("UPDATE PROGRESS", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-preview-complete",
+            version
+        });
+        
+        socket.emit('update-progress', {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game2-preview-complete",
+            version
+        });
+
+        let redirectLink = '/';
+
+        switch (version) {
+            case "v1":
+                redirectLink = generateLink("RABBIT_HOLE_RULES", Number(raceId)); break;
+            case "v2": 
+                redirectLink = generateLink("RABBIT_HOLE_V2_RULES", Number(raceId)); break;
+            default:
+                break;
+        }
+
+        socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview"), raceId });
+        navigate(redirectLink);
+    }
+
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
-        onExpire: () => {
-            console.log("UPDATE PROGRESS", {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game2-preview-complete",
-                version
-            });
-            
-            socket.emit('update-progress', {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game2-preview-complete",
-                version
-            });
-
-            let redirectLink = '/';
-
-            switch (version) {
-                case "v1":
-                    redirectLink = generateLink("RABBIT_HOLE_RULES", Number(raceId)); break;
-                case "v2": 
-                    redirectLink = generateLink("RABBIT_HOLE_V2_RULES", Number(raceId)); break;
-                default:
-                    break;
-            }
-
-            socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview"), raceId });
-            navigate(redirectLink);
-        },
+        onExpire: handleExpire,
         autoStart: true
     });
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 3);
             restart(time);
             setSecondsVisual(3);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
     // handle socket events
     useEffect(() => {
@@ -101,12 +101,18 @@ export default function RabbitHoleCover() {
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
                 if (["RABBIT_HOLE_PREVIEW", "RABBIT_HOLE_V2_PREVIEW"].includes(part) && raceIdSocket == raceId && !movedToNext) {
-                    console.log("LEAVED")
-                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!movedToNext) {
+                        console.log("LEAVED")
+                        setAmountOfConnected(amountOfConnected - 1);
+                    } else {
+                        handleExpire();
+                    }
+                    /*
                     if (!modalIsOpen) {
                         setModalIsOpen(true);
                     }
                     setModalType("waiting");
+                    */
                 }
             });
 
@@ -141,6 +147,22 @@ export default function RabbitHoleCover() {
             socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
         }
     }, [smartAccountAddress, socket, raceId]);
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
 
 
     return (

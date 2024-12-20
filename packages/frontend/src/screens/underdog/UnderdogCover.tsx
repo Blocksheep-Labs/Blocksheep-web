@@ -22,39 +22,37 @@ export default function UnderdogCover() {
     const time = new Date();
     time.setSeconds(time.getSeconds() + 3);
 
+    const handleExpire = () => {
+        console.log("UPDATE PROGRESS", {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game1-preview-complete",
+        });
+        socket.emit('update-progress', {
+            raceId,
+            userAddress: smartAccountAddress,
+            property: "game1-preview-complete",
+        });
+
+        socket.emit('minimize-live-game', { part: 'UNDERDOG_PREVIEW', raceId });
+        navigate(generateLink("UNDERDOG_RULES", Number(raceId)));
+    }
+
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
-        onExpire: () => {
-            console.log("UPDATE PROGRESS", {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game1-preview-complete",
-            });
-            socket.emit('update-progress', {
-                raceId,
-                userAddress: smartAccountAddress,
-                property: "game1-preview-complete",
-            });
-
-            socket.emit('minimize-live-game', { part: 'UNDERDOG_PREVIEW', raceId });
-            navigate(generateLink("UNDERDOG_RULES", Number(raceId)));
-        },
+        onExpire: handleExpire,
         autoStart: true
     });
 
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
-          
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 3);
             setSeconds(3);
             restart(time);
-          
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [ gameState]);
 
     // handle socket events
     useEffect(() => {
@@ -89,12 +87,18 @@ export default function UnderdogCover() {
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
                 if (part == "UNDERDOG_PREVIEW" && raceId == raceIdSocket && !movedToNext) {
-                    console.log("LEAVED")
-                    setAmountOfConnected(amountOfConnected - 1);
+                    if (!movedToNext) {
+                        console.log("LEAVED")
+                        setAmountOfConnected(amountOfConnected - 1);
+                    } else {
+                        handleExpire();
+                    }
+                    /*
                     if (!modalIsOpen) {
                         setModalIsOpen(true);
                     }
                     setModalType("waiting");
+                    */
                 }
             });
 
@@ -130,6 +134,23 @@ export default function UnderdogCover() {
             socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_PREVIEW" });
         }
     }, [smartAccountAddress, socket, raceId]);
+
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+            }
+        }
+    }, [raceId, socket]);
 
 
     return (

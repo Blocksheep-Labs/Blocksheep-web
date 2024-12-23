@@ -22,7 +22,7 @@ function RabbitTail({ phase }) {
     }
   }, [phase]);
 
-  return <img className="rabbit-tail" src={RabbitTailImage} alt="Rabbit Tail" />;
+  return <img className="rabbit-tail absolute" src={RabbitTailImage} alt="Rabbit Tail" />;
 }
 
 export default RabbitTail;

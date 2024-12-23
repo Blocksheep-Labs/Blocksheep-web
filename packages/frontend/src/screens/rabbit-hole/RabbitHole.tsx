@@ -69,7 +69,6 @@ function RabbitHoleGame() {
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
   const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
-  const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -88,20 +87,17 @@ function RabbitHoleGame() {
       !loseModalPermanentlyOpened && 
       !winModalPermanentlyOpened && 
       gameState && 
-      (amountOfConnected >= 1)
+      amountOfConnected
     ) {
-      if (!gameStarted && gameState && (amountOfConnected >= 1) && start) {
+      if (!gameStarted && gameState && amountOfConnected && start) {
         setGameStarted(true);
         socket.emit("get-all-fuel-tunnel", { raceId });
         //closeWaitingModal();
-        console.log(">>>> STARTING... <<<<", {timerIsRunning, isRolling})
+        //(">>>> STARTING... <<<<", {timerIsRunning, isRolling})
 
         !timerIsRunning && resume();
         !isRolling && start();
       }
-    } else {
-      console.log("PAUSE!")
-      pause();
     }
   }, [amountOfConnected, start, pause, modalIsOpen, isRolling, raceId, gameState]);
 
@@ -112,6 +108,7 @@ function RabbitHoleGame() {
         secondsLeft: totalSeconds,
         addRoundsPlayed: 0,
       });
+      socket.emit("get-all-fuel-tunnel", { raceId });
     }
   }, [totalSeconds]);
 
@@ -122,7 +119,7 @@ function RabbitHoleGame() {
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount >= 2) {
+          if (amount) {
             setIsOpen(false);
             setModalType(undefined);
             socket.emit("get-all-fuel-tunnel", { raceId });
@@ -132,7 +129,7 @@ function RabbitHoleGame() {
 
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
         if (raceId == raceIdSocket && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(part)) {
-          console.log("JOINED++")
+          //console.log("JOINED++")
           setAmountOfConnected(amountOfConnected + 1);
           if (amountOfConnected + 1 >= 1) {
             setIsOpen(false);
@@ -146,33 +143,37 @@ function RabbitHoleGame() {
       socket.on('leaved', (data) => {
         if (["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part) && data.raceId == raceId && !data.movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
-          
-          setPlayers(players.filter(i => i.address !== data.userAddress));
+          //console.log({data});
+          // setPlayers(players.filter(i => i.address !== data.userAddress));
   
           // if user was sending a TX
+          // TODO: may cause game stuck on leave
           if (raceId == data.raceId && amountOfPending - 1 >= 0) {
             setAmountOfPending(amountOfPending - 1);
           }
-          
-          /*
-          if (!isRolling) {
-            if (amountOfConnected - 1 == 1 && !gameCompleted) {
-              pause();
-              if (modalIsOpen) {
-                setIsOpen(false);
-                setModalType(undefined);
-              }
-              handleFinishTunnelGame(String(raceId), true, 1, 3, true);
-            }
-          }
-          */
         }
       });
 
       socket.on('race-progress', ({progress, tunnelState}) => {
-        const time = new Date();
-        time.setSeconds(time.getSeconds() + tunnelState.secondsLeft);
-        restart(time);
+        //socket.emit("get-all-fuel-tunnel", { raceId });
+        
+        // alert(`${tunnelState.roundsPlayed}, ${tunnelState.secondsLeft}`);
+        if (tunnelState.roundsPlayed > 0) {
+          setGameOver(true);
+          setIsRolling(false);
+          setGameCompleted(true);
+          setUserIsLost(true);
+          setAmountOfAllocatedPoints(0);
+        } 
+
+        if (tunnelState.secondsLeft > 2) {
+          const time = new Date();
+          time.setSeconds(time.getSeconds() + tunnelState.secondsLeft);
+          restart(time);
+        } else {
+          pause();
+          handleTunnelChange();
+        }
 
         // @ts-ignore
         setDisplayNumber(progress?.progress?.game2?.[version]?.game?.fuel || 0);
@@ -182,10 +183,10 @@ function RabbitHoleGame() {
 
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
-        console.log(">>>>>>> UPDATING USERS FUEL DATA")
+        //console.log(">>>>>>> UPDATING USERS FUEL DATA")
         const usersData = progress.progresses;
 
-        if (usersData.length < 2) return;
+        // if (usersData.length < 1) return;
 
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
@@ -239,6 +240,7 @@ function RabbitHoleGame() {
             name: user?.name || "Newbie"
           }
         }).toSorted((a: any, b: any) => a.id - b.id));
+        //console.log("USERS_DATA:", usersData)
       });
       
 
@@ -255,10 +257,10 @@ function RabbitHoleGame() {
 
             // check if all transactions are processed
             const pendingCount = newSet.size;
-            console.log("Pending transactions:", pendingCount);
+            //console.log("Pending transactions:", pendingCount);
 
             if (pendingCount === 0 && phase !== "Reset") {
-              console.log("All transactions processed. Starting the tunnel...");
+              //console.log("All transactions processed. Starting the tunnel...");
               socket.emit("tunnel-started", { raceId });
               triggerAnimationsOpen();
             }
@@ -273,7 +275,7 @@ function RabbitHoleGame() {
                 confirmations: 0,
                 pollingInterval: 300,
               });
-              openWinModal();
+              // openWinModal();
             });
           } else {
             setAmountOfComplteted(amountOfComplteted + 1);
@@ -303,9 +305,9 @@ function RabbitHoleGame() {
 
 
       socket.on('tunnel-started-on-client', ({ socketId, raceId: raceIdSocket }) => {
-        console.log(`event: tunnel-started-on-client`, { raceIdSocket, socketId, isCurrentGame: raceIdSocket == raceId, phaseCheck: phase !== "Reset" });
+        //console.log(`event: tunnel-started-on-client`, { raceIdSocket, socketId, isCurrentGame: raceIdSocket == raceId, phaseCheck: phase !== "Reset" });
         if (phase !== "Reset" && raceId == raceIdSocket) {
-          console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)
+          //console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)
           // socket.emit("get-all-fuel-tunnel", { raceId });
           setPendingTransactions(new Set());
           //triggerAnimations();
@@ -328,7 +330,6 @@ function RabbitHoleGame() {
         }
 
         setAmountOfPlayersNextClicked(amountOfNextClicked);
-        setAddressesCompleted(playersClickedNextAddrs);
       });
   
       return () => {
@@ -464,7 +465,7 @@ function RabbitHoleGame() {
 
     pause();
     if (!gameOver) {
-      console.log("EMIT FUEL UPDATE!")
+      //console.log("EMIT FUEL UPDATE!")
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
@@ -521,29 +522,6 @@ function RabbitHoleGame() {
   }, [isRolling, players, roundIsFinished, gameOver, amountOfAllocatedPoints]);
 
 
-  // INITIAL USE EFFECT
-  useEffect(() => {
-    if (smartAccountAddress && gameState?.progress && String(raceId).length) {
-      // @ts-ignore
-      const game2state = gameState.progress.game2[version].game;
-      console.log(">>>>>>>>>>> INIT AFTER LEAVE <<<<<<<<<<<", {game2state});
-      
-      if (game2state.isEliminated) {
-        setGameOver(true);
-        setIsRolling(false);
-        setGameCompleted(true);
-        setUserIsLost(true);
-        openLoseModal();
-        handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
-      }
-      
-      if (game2state.pointsAllocated.toString().length) {
-        setAmountOfAllocatedPoints(game2state.pointsAllocated);
-      }
-    }
-  }, [smartAccountAddress, raceId]);
-
-
   const handleFinishTunnelGame = async(
     raceId: string, 
     isWon: boolean, 
@@ -574,7 +552,7 @@ function RabbitHoleGame() {
 
     if (playersLeft === 1 || finishPermanently) {
       setGameCompleted(true);
-      console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
+      //console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
 
       // try to recall tx sending on error
       txAttempts(
@@ -622,8 +600,8 @@ function RabbitHoleGame() {
         break;
     }
     
-    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
-    console.log("BONUSES", {bonuses});
+    //console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
+    //console.log("BONUSES", {bonuses});
 
     // get bonus for current user
     const currentUserBonus = bonuses.find(i => i.address == smartAccountAddress)?.amount || 0;
@@ -640,23 +618,25 @@ function RabbitHoleGame() {
       return i;
     });
 
-    console.log("AFTER APPLYING BONUSES", newListOfPlayers)
+    //console.log("AFTER APPLYING BONUSES", newListOfPlayers)
 
     const remainingPlayersCount = newListOfPlayers.length;
 
       // if user was playing with himself
+      /*
       if (remainingPlayersCount === 0) {
-        console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
+        //console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
         handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3, true);
         setIsRolling(false);
         return;
       }
+      */
 
       // if only one user got bonus (second-to-last one doesn’t consume fuel)
       if (bonuses.length <= 1) {
         // if user has lost the game
         if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
-          console.log("YOU LOSE :(")
+          //console.log("YOU LOSE :(")
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
@@ -678,7 +658,7 @@ function RabbitHoleGame() {
   
         // if the user is one in players array -> he won
         if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
-          console.log("YOU WIN!");
+          //console.log("YOU WIN!");
           setAmountOfAllocatedPoints(3);
           handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
           setIsRolling(false);
@@ -687,7 +667,7 @@ function RabbitHoleGame() {
   
         // if all the remaining players are sitting with 0 available fuel
         if (newListOfPlayers.map(i => i.maxAvailableFuel).every(i => i == 0)) {
-          console.log("YOU LOSE :( (all 0)")
+          //console.log("YOU LOSE :( (all 0)")
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
@@ -702,13 +682,13 @@ function RabbitHoleGame() {
       const restartTimerAfterRound = () => {
         setTimeout(() => {
           //setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
-          console.log("SETTING MAX FUEL:", newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0)
+          //console.log("SETTING MAX FUEL:", newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0)
           setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
           setDisplayNumber(0);
     
           // refetch users data
           if (newListOfPlayers.length > 1) {
-            console.log("next round... time reset");
+            //console.log("next round... time reset");
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
@@ -720,7 +700,7 @@ function RabbitHoleGame() {
   }
 
   function onNextGameClicked() {
-    openWaitingModal();
+    //openWaitingModal();
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
@@ -730,32 +710,23 @@ function RabbitHoleGame() {
   }
 
   function openWinModal() {
-    console.log("OPEN WIN MODAL");
-    socket.emit('set-tunnel-state', {
-      raceId, 
-      secondsLeft: 0,
-      addRoundsPlayed: 1,
-    });
-    setIsOpen(true);
-    setModalType("win");
-    setWinModalPermanentlyOpened(true);
+    pause();
+    if (!modalIsOpen) {
+      //console.log("OPEN WIN MODAL");
+      setIsOpen(true);
+      setModalType("win");
+      setWinModalPermanentlyOpened(true);
+    }
   }
 
   function openLoseModal() {
-    console.log("OPEN LOSE MODAL");
-    socket.emit('set-tunnel-state', {
-      raceId, 
-      secondsLeft: 0,
-      addRoundsPlayed: 1,
-    });
-    setIsOpen(true);
-    setModalType("lose");
-    setLoseModalPermanentlyOpened(true);
-  }
-
-  function openWaitingModal() {
-    setIsOpen(true);
-    setModalType("waiting");
+    pause();
+    if (!modalIsOpen) {
+      //console.log("OPEN LOSE MODAL");
+      setIsOpen(true);
+      setModalType("lose");
+      setLoseModalPermanentlyOpened(true);
+    }
   }
 
   function closeWinLoseModal() {
@@ -819,14 +790,6 @@ function RabbitHoleGame() {
         </div>
 
       </div>
-        {modalIsOpen || (amountOfPlayersnextClicked >= amountOfConnected) && (
-          <>
-            {
-              modalType === "waiting" || (amountOfPlayersnextClicked >= amountOfConnected) && 
-              <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={amountOfConnected} replacedText="..."/> 
-            }
-          </>
-        )}
         {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
         {winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints} gameName="rabbit-hole"/>}
     </div>

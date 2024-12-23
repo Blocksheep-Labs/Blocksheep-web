@@ -36,6 +36,7 @@ let questionsState = [];
 // { 
 // 'room': string, 
 // 'secondsLeft': number,
+// 'roundsPlayed': number,
 // }
 let tunnelState = [];
 
@@ -118,6 +119,7 @@ module.exports = (io) => {
             roomsToEmitDisconnectEvent.forEach(roomName => {
                 //let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
                 socket.leave(roomName);
+                // console.log("LEAVED", {socketId: socket.id, userAddress, raceId, movedToNext: false, part});
                 io.to(roomName).emit('leaved', {socketId: socket.id, userAddress, raceId, movedToNext: false, part});
             });
         });
@@ -305,7 +307,10 @@ module.exports = (io) => {
                 return;
             }
 
-            currData.secondsLeft = secondsLeft;
+            if (secondsLeft < currData.secondsLeft) {
+                currData.secondsLeft = secondsLeft;
+            }
+
             currData.roundsPlayed += addRoundsPlayed;
 
             console.log("Updated data:", currData)

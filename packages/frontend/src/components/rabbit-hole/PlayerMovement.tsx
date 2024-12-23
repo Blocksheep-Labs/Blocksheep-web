@@ -33,7 +33,7 @@ const PlayerMovement = ({
     fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
   }, [players]);
 
-  console.log({phase})
+  // console.log({phase})
 
   // Handle animations when the phase changes or players change
   useEffect(() => {

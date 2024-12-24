@@ -472,6 +472,19 @@ export default function Bullrun() {
         }
     }, [raceId, socket]);
 
+
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
+
     return (
         <div className="mx-auto flex w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative" style={{ height: `${window.innerHeight}px` }}>
             { 

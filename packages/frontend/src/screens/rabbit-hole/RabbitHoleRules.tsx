@@ -178,6 +178,18 @@ export default function RabbitHoleRules() {
         }
     }, [raceId, socket]);
 
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
+
 
     return (
         <div className="mx-auto justify-start w-full bg-cover bg-bullrun_rules_bg bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>

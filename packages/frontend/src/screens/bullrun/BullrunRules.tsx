@@ -168,6 +168,19 @@ export default function BullrunRules() {
         }
     }, [raceId, socket]);
 
+
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
+
     return (
         <div className="mx-auto flex w-full flex-col bg-bullrun_rules_bg bg-cover bg-bottom items-center" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={secondsVisual * 1000} />

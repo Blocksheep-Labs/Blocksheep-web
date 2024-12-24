@@ -652,6 +652,18 @@ function UnderdogGame() {
       }
   }, [raceId, socket]);
 
+    // kick player if page chnages (closes)
+    useEffect(() => {
+      const handleTabClosing = (e: any) => {
+        e.preventDefault();
+        socket.disconnect();
+      }
+      window.addEventListener('unload', handleTabClosing);
+      return () => {
+        window.removeEventListener('unload', handleTabClosing);
+      }
+    }, [socket, smartAccountAddress, raceId]);
+
   return (
     <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
       { 

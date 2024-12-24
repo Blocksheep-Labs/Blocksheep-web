@@ -158,6 +158,19 @@ export default function UnderdogRules() {
     }, [raceId, socket]);
 
 
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
+
+
     return (
         <div className="mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={seconds * 1000} />

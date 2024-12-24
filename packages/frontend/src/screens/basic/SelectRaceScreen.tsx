@@ -254,6 +254,8 @@ function SelectRaceScreen() {
 
   //console.log(races, races.find((r: any) => r.id === raceId))
 
+  
+
   return (
     <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom`} style={{ height: `${window.innerHeight}px` }}>
       {

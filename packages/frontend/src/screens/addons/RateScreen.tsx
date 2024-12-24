@@ -176,6 +176,17 @@ export default function RateScreen() {
         }
     }, [raceId, socket]);
 
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
 
 
     return (

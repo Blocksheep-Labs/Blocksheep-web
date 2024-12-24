@@ -425,6 +425,7 @@ function RabbitHoleGame() {
       handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
       openLoseModal();
       onNextGameClicked();
+      socket.disconnect();
     }
     window.addEventListener('unload', handleTabClosing);
     return () => {

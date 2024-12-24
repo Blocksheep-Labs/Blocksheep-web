@@ -62,6 +62,8 @@ function UnderdogGame() {
   const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
   const [answersSubmittedBy, setAnswersSubmittedBy] = useState<string[]>([]);
 
+  const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
+
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
@@ -94,8 +96,19 @@ function UnderdogGame() {
     },
   });
 
-  // updates global questions state
+  // updates seconds on server
+  useEffect(() => {
+    if (totalSeconds > 0) {
+      socket.emit('set-questions-state', {
+        raceId,
+        newIndex: currentQuestionIndex,
+        secondsLeft: totalSeconds,
+        state: "answering",
+      });
+    }
+  }, [totalSeconds]);
 
+  // updates global questions state
   const updateProgress = () => {
     getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then((data) => {
       if (data) {
@@ -264,6 +277,7 @@ function UnderdogGame() {
     setModalType(undefined);
     openWaitingAfterFinishModal();
     pause();
+    setLatestInteractiveModalWasClosed(true);
   }
 
 
@@ -622,35 +636,43 @@ function UnderdogGame() {
   }, [socket, smartAccountAddress, raceData]); 
 
 
-  useEffect(() => {
-    if(smartAccountAddress && String(raceId).length && raceData) {
-        if (!socket.connected) {
-          socket.connect();
-        }
-        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
-        socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
-    }
-  }, [smartAccountAddress, socket, raceId, raceData]);
-
-  useEffect(() => {
-    updateProgress();
-  }, []);
-
-  useEffect(() => {
-      if (raceId && socket) {
-          if (!socket.connected) {
-              socket.connect();
-          }
-          
-          socket.on('screen-changed', ({ screen }) => {
-              navigate(generateLink(screen, Number(raceId)));
-          });
   
-          return () => {
-              socket.off('screen-changed');
-          }
+    useEffect(() => {
+    if (raceId && socket) {
+      if (!socket.connected) {
+        socket.connect();
       }
-  }, [raceId, socket]);
+      
+      socket.on('screen-changed', ({ screen }) => {
+        navigate(generateLink(screen, Number(raceId)));
+      });
+
+      socket.on('latest-screen', ({ screen }) => {
+          if (screen !== "UNDERDOG") {
+            navigate(generateLink(screen, Number(raceId)));
+          }
+      });
+  
+      return () => {
+          socket.off('screen-changed');
+          socket.off('latest-screen');
+        }
+      }
+    }, [raceId, socket]);
+        
+    useEffect(() => {
+      if(smartAccountAddress && String(raceId).length && raceData) {
+          if (!socket.connected) {
+            socket.connect();
+          }
+          socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
+          socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
+      }
+    }, [smartAccountAddress, socket, raceId, raceData]);
+  
+    useEffect(() => {
+      updateProgress();
+    }, []);
 
     // kick player if page chnages (closes)
     useEffect(() => {
@@ -708,7 +730,7 @@ function UnderdogGame() {
         />
       }
 
-      <div className="m-auto mb-0 w-[65%]">
+      <div className="m-auto mb-0 w-[65%] z-50">
         <SelectionBtnBox
           leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
           rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
@@ -726,15 +748,15 @@ function UnderdogGame() {
       {modalIsOpen && (
         <>
           {
-            modalType === "loading" && 
+            modalType === "loading" &&
             <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={[]}/>
           }
           {
-            modalType === "waiting" && 
+            modalType === "waiting" && !latestInteractiveModalWasClosed &&
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
           }
           {
-            modalType && ["waiting-after-finish", "waiting-before-finish"].includes(modalType) && 
+            modalType && ["waiting-after-finish", "waiting-before-finish"].includes(modalType) && !latestInteractiveModalWasClosed &&
             <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
           }
         </>
@@ -745,11 +767,11 @@ function UnderdogGame() {
         <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={[]}/>
       }
       {
-        waitingToFinishModalPermanentlyOpened &&
+        waitingToFinishModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
         <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
       }
       {
-        winModalPermanentlyOpened && 
+        winModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
         <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex} gameName="underdog"/>
       }
     </div>

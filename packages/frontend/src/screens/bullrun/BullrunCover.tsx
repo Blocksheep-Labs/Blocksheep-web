@@ -124,16 +124,7 @@ export default function BullrunCover() {
     }, [socket, raceId, smartAccountAddress, gameState]);
 
 
-    useEffect(() => {
-        if(smartAccountAddress && String(raceId).length) {
-            if (!socket.connected) {
-                socket.connect();
-            }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN_PREVIEW" });
-            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_PREVIEW" });
-        }
-    }, [smartAccountAddress, socket, raceId]);
-
+    
     useEffect(() => {
         if (raceId && socket) {
             if (!socket.connected) {
@@ -148,13 +139,35 @@ export default function BullrunCover() {
                 });
                 navigate(generateLink(screen, Number(raceId)));
             });
-    
+            
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== "BULL_RUN_PREVIEW") {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "game3-preview-complete",
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+            
             return () => {
                 socket.off('screen-changed');
+                socket.off('latest-screen');
             }
         }
     }, [raceId, socket]);
-
+    
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN_PREVIEW" });
+            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_PREVIEW" });
+        }
+    }, [smartAccountAddress, socket, raceId]);
+    
     // kick player if page chnages (closes)
     useEffect(() => {
         const handleTabClosing = (e: any) => {

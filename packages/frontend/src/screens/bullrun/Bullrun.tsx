@@ -54,6 +54,7 @@ export default function Bullrun() {
     const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
     const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
     //const [players, setPlayers] = useState([]);
+    const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
 
 
     const time = new Date();
@@ -194,6 +195,7 @@ export default function Bullrun() {
             userAddress: smartAccountAddress,
             property: "game3-complete",
         });
+        setLatestInteractiveModalWasClosed(true);
     }
 
     const bullrunGetWinnerAndSetPoints = () => {
@@ -431,6 +433,49 @@ export default function Bullrun() {
         }
     }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted, winModalIsOpened]);
 
+    
+    
+    function endGame() {
+        console.log("NEXT OPPONENT >>>>")
+        socket.emit('bullrun-game-end', { raceId });
+        
+        setGamesPlayed(prev => prev + 1);
+        
+        if (gamesPlayed >= raceData.numberOfPlayersRequired - 1) {
+            pause();
+            setStatus('finished');
+        }
+    }
+    
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                navigate(generateLink(screen, Number(raceId)));
+            });
+
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== "BULL_RUN") {
+                    socket.emit("update-progress", {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "game3-complete",
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+            
+            return () => {
+                socket.off('screen-changed');
+                socket.off('latest-screen');
+            }
+        }
+    }, [raceId, socket]);
+    
+
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && raceData) {
             if (!socket.connected) {
@@ -442,37 +487,7 @@ export default function Bullrun() {
             socket.emit("get-progress-all", { raceId });
         }
     }, [smartAccountAddress, socket, raceId, raceData]);
-
-
-    function endGame() {
-        console.log("NEXT OPPONENT >>>>")
-        socket.emit('bullrun-game-end', { raceId });
     
-        setGamesPlayed(prev => prev + 1);
-    
-        if (gamesPlayed >= raceData.numberOfPlayersRequired - 1) {
-            pause();
-            setStatus('finished');
-        }
-    }
-
-    useEffect(() => {
-        if (raceId && socket) {
-            if (!socket.connected) {
-                socket.connect();
-            }
-            
-            socket.on('screen-changed', ({ screen }) => {
-                navigate(generateLink(screen, Number(raceId)));
-            });
-    
-            return () => {
-                socket.off('screen-changed');
-            }
-        }
-    }, [raceId, socket]);
-
-
     // kick player if page chnages (closes)
     useEffect(() => {
         const handleTabClosing = (e: any) => {
@@ -505,7 +520,7 @@ export default function Bullrun() {
                 />
             }
             {
-                winModalIsOpened && !addressesCompleted.includes(smartAccountAddress as string) &&
+                winModalIsOpened && !addressesCompleted.includes(smartAccountAddress as string) && !latestInteractiveModalWasClosed &&
                 <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore} gameName="bullrun"/>
             }
 

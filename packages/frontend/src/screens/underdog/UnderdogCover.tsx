@@ -125,17 +125,8 @@ export default function UnderdogCover() {
     }, [socket, raceId, smartAccountAddress, gameState]);
 
 
-    useEffect(() => {
-        if (smartAccountAddress && String(raceId).length) {
-            if (!socket.connected) {
-                socket.connect();
-            }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_PREVIEW" });
-            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_PREVIEW" });
-        }
-    }, [smartAccountAddress, socket, raceId]);
-
-
+    
+    
     useEffect(() => {
         if (raceId && socket) {
             if (!socket.connected) {
@@ -150,13 +141,35 @@ export default function UnderdogCover() {
                 });
                 navigate(generateLink(screen, Number(raceId)));
             });
+            
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== "UNDERDOG_PREVIEW") {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "game1-preview-complete",
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
     
             return () => {
                 socket.off('screen-changed');
+                socket.off('latest-screen');
             }
         }
     }, [raceId, socket]);
-
+    
+    useEffect(() => {
+        if (smartAccountAddress && String(raceId).length) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_PREVIEW" });
+            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_PREVIEW" });
+        }
+    }, [smartAccountAddress, socket, raceId]);
+    
     // kick player if page chnages (closes)
     useEffect(() => {
         const handleTabClosing = (e: any) => {

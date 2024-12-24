@@ -125,17 +125,8 @@ export default function UnderdogRules() {
         }
     }, [socket, raceId, smartAccountAddress, gameState]);
 
-    useEffect(() => {
-        if(smartAccountAddress && String(raceId).length) {
-            if (!socket.connected) {
-                socket.connect();
-            }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_RULES" });
-            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_RULES" });
-        }
-    }, [smartAccountAddress, socket, raceId]);
-
-
+    
+    
     useEffect(() => {
         if (raceId && socket) {
             if (!socket.connected) {
@@ -150,14 +141,35 @@ export default function UnderdogRules() {
                 });
                 navigate(generateLink(screen, Number(raceId)));
             });
-    
+            
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== "UNDERDOG_RULES") {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "game1-rules-complete",
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+            
             return () => {
                 socket.off('screen-changed');
+                socket.off('latest-screen');
             }
         }
     }, [raceId, socket]);
-
-
+    
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_RULES" });
+            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_RULES" });
+        }
+    }, [smartAccountAddress, socket, raceId]);
+    
     // kick player if page chnages (closes)
     useEffect(() => {
         const handleTabClosing = (e: any) => {

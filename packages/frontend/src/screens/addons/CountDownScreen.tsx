@@ -201,9 +201,22 @@ function CountDownScreen() {
               });
               navigate(generateLink(screen, Number(raceId)));
           });
+
+          socket.on('latest-screen', ({ screen }) => {
+            if (screen !== "RACE_START") {
+              socket.emit('update-progress', {
+                raceId, 
+                userAddress: smartAccountAddress,
+                property: "countdown",
+                value: true,
+              });
+              navigate(generateLink(screen, Number(raceId)));
+            }
+          });
   
           return () => {
               socket.off('screen-changed');
+              socket.off('latest-screen');
           }
       }
   }, [raceId, socket]);

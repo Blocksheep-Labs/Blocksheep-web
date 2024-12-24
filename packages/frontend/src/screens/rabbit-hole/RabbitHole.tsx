@@ -69,6 +69,7 @@ function RabbitHoleGame() {
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
   const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
+  const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -390,6 +391,42 @@ function RabbitHoleGame() {
     }
   }, [socket, smartAccountAddress, gameState]); 
   */
+
+
+  
+  useEffect(() => {
+    if (raceId && socket) {
+        if (!socket.connected) {
+            socket.connect();
+        }
+        
+        socket.on('screen-changed', ({ screen }) => {
+            navigate(generateLink(screen, Number(raceId)));
+        });
+
+        socket.on('latest-screen', ({ screen }) => {
+            if (screen !== rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game")) {
+              socket.emit("update-progress", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: "game2-complete",
+                value: {
+                  isWon: false,
+                  pointsAllocated: 0,
+                },
+                version,
+              });
+              navigate(generateLink(screen, Number(raceId)));
+            }
+        });
+
+        return () => {
+            socket.off('screen-changed');
+            socket.off('latest-screen');
+        }
+    }
+  }, [raceId, socket]);
+
 
   useEffect(() => {
     if(smartAccountAddress && String(raceId).length && gameState) {
@@ -737,6 +774,7 @@ function RabbitHoleGame() {
       property: "game2-wait-to-finish",
       version
     });
+    setLatestInteractiveModalWasClosed(true);
   }
 
   function openWinModal() {
@@ -772,21 +810,6 @@ function RabbitHoleGame() {
     setModalType(undefined);
   }
 
-  useEffect(() => {
-      if (raceId && socket) {
-          if (!socket.connected) {
-              socket.connect();
-          }
-          
-          socket.on('screen-changed', ({ screen }) => {
-              navigate(generateLink(screen, Number(raceId)));
-          });
-  
-          return () => {
-              socket.off('screen-changed');
-          }
-      }
-  }, [raceId, socket]);
 
   return (
     <div className="mx-auto flex w-full flex-col bg-cover bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
@@ -820,8 +843,16 @@ function RabbitHoleGame() {
         </div>
 
       </div>
-        {loseModalPermanentlyOpened && <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>}
-        {winModalPermanentlyOpened  && <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints} gameName="rabbit-hole"/>}
+        {
+          loseModalPermanentlyOpened && 
+          !latestInteractiveModalWasClosed && 
+          <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>
+        }
+        {
+          winModalPermanentlyOpened && 
+          !latestInteractiveModalWasClosed && 
+          <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints} gameName="rabbit-hole"/>
+        }
     </div>
   );
 }

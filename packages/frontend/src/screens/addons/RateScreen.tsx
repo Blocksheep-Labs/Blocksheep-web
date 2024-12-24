@@ -169,9 +169,21 @@ export default function RateScreen() {
                 
                 navigate(generateLink(screen, Number(raceId)));
             });
+
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== "RATE") {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `rate`,
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
     
             return () => {
                 socket.off('screen-changed');
+                socket.off('latest-screen');
             }
         }
     }, [raceId, socket]);

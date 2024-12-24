@@ -215,6 +215,40 @@ export default function StoryScreen() {
         }
     }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState, part]);
 
+    
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: `story-${part}`,
+                });
+                navigate(generateLink(screen, Number(raceId)));
+            });
+            
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== getStoryPart(part as string)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `story-${part}`,
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+            
+            return () => {
+                socket.off('screen-changed');
+                socket.off('latest-screen');
+            }
+        }
+    }, [raceId, socket]);
+    
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {
             httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
@@ -234,28 +268,7 @@ export default function StoryScreen() {
             }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);
-
-    useEffect(() => {
-        if (raceId && socket) {
-            if (!socket.connected) {
-                socket.connect();
-            }
-            
-            socket.on('screen-changed', ({ screen }) => {
-                socket.emit('update-progress', {
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    property: `story-${part}`,
-                });
-                navigate(generateLink(screen, Number(raceId)));
-            });
     
-            return () => {
-                socket.off('screen-changed');
-            }
-        }
-    }, [raceId, socket]);
-
     // kick player if page chnages (closes)
     useEffect(() => {
         const handleTabClosing = (e: any) => {

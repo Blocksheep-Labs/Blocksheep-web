@@ -138,16 +138,7 @@ export default function RabbitHoleCover() {
         }
     }, [socket, raceId, smartAccountAddress, gameState]);
 
-    useEffect(() => {
-        if(smartAccountAddress && String(raceId).length) {
-            if (!socket.connected) {
-                socket.connect();
-            }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
-            socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
-        }
-    }, [smartAccountAddress, socket, raceId]);
-
+    
     useEffect(() => {
         if (raceId && socket) {
             if (!socket.connected) {
@@ -164,14 +155,36 @@ export default function RabbitHoleCover() {
                 
                 navigate(generateLink(screen, Number(raceId)));
             });
-    
+            
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview")) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "game2-preview-complete",
+                        version
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+            
             return () => {
                 socket.off('screen-changed');
+                socket.off('latest-screen');
             }
         }
     }, [raceId, socket]);
-
-
+    
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
+            socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
+        }
+    }, [smartAccountAddress, socket, raceId]);
+    
     // kick player if page chnages (closes)
     useEffect(() => {
         const handleTabClosing = (e: any) => {

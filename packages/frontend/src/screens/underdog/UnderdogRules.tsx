@@ -143,6 +143,11 @@ export default function UnderdogRules() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: "game1-rules-complete",
+                });
                 navigate(generateLink(screen, Number(raceId)));
             });
     

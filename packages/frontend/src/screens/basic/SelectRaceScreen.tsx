@@ -46,15 +46,13 @@ function SelectRaceScreen() {
     if (screen !== "RABBIT_HOLE") {
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/rabbit-hole/v1/preview`);
+        navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       });
       return;
     }
-      */
+    */
     
-    
-    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-      // If no conditions met, navigate to PODIUM
+    getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(data, progress, undefined);
       navigate(generateLink(screen, rIdNumber));
     });

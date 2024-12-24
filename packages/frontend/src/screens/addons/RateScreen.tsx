@@ -46,8 +46,6 @@ export default function RateScreen() {
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const time = new Date();
@@ -94,10 +92,12 @@ export default function RateScreen() {
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+                    /*
                     if (amount) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                 }
             });
 
@@ -144,8 +144,8 @@ export default function RateScreen() {
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length) {
-            setModalIsOpen(true);
-            setModalType("waiting");
+            // setModalIsOpen(true);
+            // setModalType("waiting");
             if (!socket.connected) {
                 socket.connect();
             }
@@ -161,6 +161,12 @@ export default function RateScreen() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: `rate`,
+                });
+                
                 navigate(generateLink(screen, Number(raceId)));
             });
     

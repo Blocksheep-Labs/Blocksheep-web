@@ -242,6 +242,11 @@ export default function StoryScreen() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: `story-${part}`,
+                });
                 navigate(generateLink(screen, Number(raceId)));
             });
     

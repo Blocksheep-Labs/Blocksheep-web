@@ -143,6 +143,11 @@ export default function UnderdogCover() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: "game1-preview-complete",
+                });
                 navigate(generateLink(screen, Number(raceId)));
             });
     

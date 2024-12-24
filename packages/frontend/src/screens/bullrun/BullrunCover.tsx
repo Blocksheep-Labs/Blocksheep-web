@@ -141,6 +141,11 @@ export default function BullrunCover() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: "game3-preview-complete",
+                });
                 navigate(generateLink(screen, Number(raceId)));
             });
     

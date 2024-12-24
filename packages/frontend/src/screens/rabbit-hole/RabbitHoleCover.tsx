@@ -155,6 +155,13 @@ export default function RabbitHoleCover() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: "game2-preview-complete",
+                    version
+                });
+                
                 navigate(generateLink(screen, Number(raceId)));
             });
     

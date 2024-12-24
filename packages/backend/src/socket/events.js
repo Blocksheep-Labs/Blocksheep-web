@@ -184,6 +184,7 @@ module.exports = (io) => {
     
         // Listen for 'update-progress' events
         socket.on('update-progress', ({ raceId, userAddress, property, value, version }) => {
+            // console.log({ raceId, userAddress, property, value, version })
             const roomName = `race-${raceId}`;
             
             // try to find existing progress
@@ -384,10 +385,10 @@ module.exports = (io) => {
         // get all progresses for tunnel game
         socket.on('get-all-fuel-tunnel', ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const progresses = racesProgresses.filter(i => i.room === roomName);
+            const progresses = racesProgresses.filter(i => i.room == roomName);
 
             /*
-            console.log("PROGRESSES", progresses.map(i => {
+            console.log("PROGRESSES", raceId, roomName, progresses.map(i => {
                 return {
                     userAddress: i.userAddress,
                     game2: {...i.progress.game2.v1.game}

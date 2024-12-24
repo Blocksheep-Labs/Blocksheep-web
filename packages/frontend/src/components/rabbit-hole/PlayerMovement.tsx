@@ -31,13 +31,11 @@ const PlayerMovement = ({
     
     playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
     fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
-  }, [players]);
+  }, [players, players.length]);
 
-  // console.log({phase})
-
-  // Handle animations when the phase changes or players change
+  
   useEffect(() => {
-    if (prevStage !== phase || animationTrigger) {
+    //if (animationTrigger) {
       let execOnce = false;
       let loopExecuted = false;
 
@@ -122,7 +120,7 @@ const PlayerMovement = ({
               // }
 
               // get minimal fuel in the list
-              const minFuel = activePlayers[sortedPlayers.length - 1 - amountOfComplteted].Fuel;
+              const minFuel = activePlayers[sortedPlayers.length - 1 - amountOfComplteted]?.Fuel || 0;
 
               // count min fuel players (same fuel)
               const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
@@ -160,7 +158,7 @@ const PlayerMovement = ({
           }, 1000 + delay);
         }
       });
-    }
+    //}
   }, [phase, sortedPlayers, prevStage, animationTrigger, playerRefs, fuelRefs, isRolling, players]);
 
   // Handle phase changes to trigger animations

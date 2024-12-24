@@ -193,6 +193,12 @@ function CountDownScreen() {
           }
           
           socket.on('screen-changed', ({ screen }) => {
+              socket.emit('update-progress', {
+                raceId, 
+                userAddress: smartAccountAddress,
+                property: "countdown",
+                value: true,
+              });
               navigate(generateLink(screen, Number(raceId)));
           });
   

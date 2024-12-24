@@ -19,8 +19,6 @@ export default function BullrunRules() {
     const {smartAccountAddress} = useSmartAccount();
     const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
     const [secondsVisual, setSecondsVisual] = useState(1000);
 
@@ -75,10 +73,12 @@ export default function BullrunRules() {
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+                    /*
                     if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                 }
             });
 
@@ -130,8 +130,8 @@ export default function BullrunRules() {
     }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
-        setModalIsOpen(true);
-        setModalType("waiting");
+        //setModalIsOpen(true);
+        //setModalType("waiting");
         if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
@@ -154,6 +154,11 @@ export default function BullrunRules() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: "game3-rules-complete",
+                });
                 navigate(generateLink(screen, Number(raceId)));
             });
     

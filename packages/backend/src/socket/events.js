@@ -38,6 +38,7 @@ let questionsState = [];
 // 'secondsLeft': number,
 // 'roundsPlayed': number,
 // }
+let tunnelGameStates = ["reset", "default", "close", "open"];
 let tunnelState = [];
 
 
@@ -60,88 +61,106 @@ module.exports = (io) => {
     });
 
     io.on("connection", socket => { 
-        // when user disconnects
          // when user disconnects
          socket.on('disconnect', () => {
-            const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
-    
-    
-            // rm user
-            let userAddress = null;
-            let raceId = null;
-            let part = null;
-            connectedUsers = connectedUsers.filter(i => {
-                // i.id !== socket.id
-                if (i.id !== socket.id) {
-                    return true;
-                } else {
-                    userAddress = i.userAddress;
-                    raceId = i.raceId;
-                    part = i.part;
-                    return false;
-                }
+            // Find all rooms this socket was connected to before filtering
+            const userConnection = connectedUsers.find(i => i.id === socket.id);
+            const roomsToEmitDisconnectEvent = userConnection ? [userConnection.room] : [];
+
+            // Log the disconnect attempt
+            console.log("Disconnect attempt for socket:", {
+                socketId: socket.id,
+                foundUser: userConnection,
+                allConnectedUsers: connectedUsers.map(u => ({id: u.id, room: u.room, address: u.userAddress}))
             });
-
-            // handling bullrun
-            if (
-                userAddress && 
-                raceId && 
-                activePlayers[raceId] && 
-                waitingPlayers[raceId]
-            ) {
-                activePlayers[raceId]  = activePlayers[raceId].filter(i => i.userAddress != userAddress);
-                waitingPlayers[raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userAddress);
-
-                
-                if (!gameCompletes[raceId]) {
-                    gameCompletes[raceId] = {};
-                }
-
-                if (!gamesRequired[raceId]) {
-                    gamesRequired[raceId] = {};
-                }
-
-                if (!gameCounts[raceId]) {
-                    gameCounts[raceId] = {};
-                }
-
-                // if user is not completed the game but he/she leaves
-                if (
-                    !gameCompletes[raceId][userAddress] && 
-                    gamesRequired[raceId][userAddress] <= gameCounts[raceId][userAddress]
-                ) {
-                    gameCompletesAmount[raceId]++;
-                    gameCompletes[raceId][userAddress] = true;
-                }
+            
+            if (!userConnection) {
+                console.log("No user active session, skip leave event");
+                return;
             }
-    
-            // send the socket events
-            roomsToEmitDisconnectEvent.forEach(roomName => {
-                //let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
-                socket.leave(roomName);
-                // console.log("LEAVED", {socketId: socket.id, userAddress, raceId, movedToNext: false, part});
-                io.to(roomName).emit('leaved', {socketId: socket.id, userAddress, raceId, movedToNext: false, part});
-            });
+
+            // Remove user from connected users
+            if (userConnection) {
+                connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
+                
+                // Leave rooms and emit events
+                roomsToEmitDisconnectEvent.forEach(roomName => {
+                    socket.leave(roomName);
+                    io.to(roomName).emit('leaved', {
+                        socketId: socket.id,
+                        userAddress: userConnection.userAddress,
+                        raceId: userConnection.raceId,
+                        movedToNext: false,
+                        part: userConnection.part
+                    });
+                });
+
+                // handling bullrun
+                if (
+                    userConnection.userAddress && 
+                    userConnection.raceId && 
+                    activePlayers[userConnection.raceId] && 
+                    waitingPlayers[userConnection.raceId]
+                ) {
+                    activePlayers[userConnection.raceId]  = activePlayers[userConnection.raceId].filter(i => i.userAddress != userConnection.userAddress);
+                    waitingPlayers[userConnection.raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userConnection.userAddress);
+
+                    
+                    if (!gameCompletes[userConnection.raceId]) {
+                        gameCompletes[userConnection.raceId] = {};
+                    }
+
+                    if (!gamesRequired[userConnection.raceId]) {
+                        gamesRequired[userConnection.raceId] = {};
+                    }
+
+                    if (!gameCounts[userConnection.raceId]) {
+                        gameCounts[userConnection.raceId] = {};
+                    }
+
+                    // if user is not completed the game but he/she leaves
+                    if (
+                        !gameCompletes[userConnection.raceId][userConnection.userAddress] && 
+                        gamesRequired[userConnection.raceId][userConnection.userAddress] <= gameCounts[userConnection.raceId][userConnection.userAddress]
+                    ) {
+                        gameCompletesAmount[userConnection.raceId]++;
+                        gameCompletes[userConnection.raceId][userConnection.userAddress] = true;
+                    }
+                }
+
+                console.log("User disconnected:", {
+                    socketId: socket.id,
+                    userAddress: userConnection.userAddress,
+                    rooms: roomsToEmitDisconnectEvent
+                });
+            }
         });
     
         // connect the live
         socket.on('connect-live-game', ({ raceId, userAddress, part }) => {
             const roomName = `race-${raceId}`;
-            // find user 
-            const data = connectedUsers.find(i => i.raceId === raceId && i.userAddress === userAddress);
-    
-            if (!data) {
-                // add user
-                connectedUsers.push({ room: roomName, id: socket.id, userAddress, raceId, part });
-            } else {
-                connectedUsers = connectedUsers.map(i => {
-                    if (i => i.raceId === raceId && i.userAddress === userAddress) {
-                        i.part = part;
-                        i.id = socket.id;
-                    }
-                    return i;
-                });
-            }
+            console.log("Connect live game", roomName, userAddress, part);
+
+            // Remove any existing connections for this user address
+            connectedUsers = connectedUsers.filter(user => 
+                !(user.userAddress === userAddress && user.room === roomName)
+            );
+
+            // Add new connection with unique socket ID
+            connectedUsers.push({
+                room: roomName, 
+                id: socket.id,  // This should now be unique
+                userAddress, 
+                raceId, 
+                part 
+            });
+
+            // Log current connections for debugging
+            console.log("Current connections:", connectedUsers.map(u => ({
+                socketId: u.id,
+                address: u.userAddress,
+                room: u.room
+            })));
 
             // set latest screen
             const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
@@ -152,11 +171,14 @@ module.exports = (io) => {
             } else {
                 roomsLatestScreen.push({ raceId, screen: part });
             }
-    
+
             socket.join(roomName);
-            // send the socket event
-            //console.log('joined',  {socketId: socket.id, userAddress, raceId, roomName, part})
-            io.to(roomName).emit('joined', {socketId: socket.id, userAddress, raceId, part});
+            io.to(roomName).emit('joined', {
+                socketId: socket.id, 
+                userAddress, 
+                raceId, 
+                part
+            });
         });
 
         socket.on('get-latest-screen', ({ raceId }) => {
@@ -237,7 +259,7 @@ module.exports = (io) => {
         socket.on('set-questions-state', ({ raceId, newIndex, secondsLeft, state }) => {
             const roomName = `race-${raceId}`;
             const currData = questionsState.find(i => i.room == roomName);
-            console.log("Data:", currData)
+            //console.log("Data:", currData)
             if (!currData) {
                 const newState = {
                     room: roomName,
@@ -246,7 +268,7 @@ module.exports = (io) => {
                     state: 'answering'
                 };
                 questionsState.push(newState);
-                console.log("New data:", newState)
+                //console.log("New data:", newState)
 
                 io.to(roomName).emit('questions-state', { raceId, data: newState });
                 return;
@@ -264,7 +286,7 @@ module.exports = (io) => {
                 currData.state = state;
             }
 
-            console.log("Updated data:", currData)
+            //console.log("Updated data:", currData)
 
             io.to(roomName).emit('questions-state', { raceId, data: currData })
         });
@@ -291,18 +313,21 @@ module.exports = (io) => {
 
 
 
-        socket.on('set-tunnel-state', ({ raceId, secondsLeft, addRoundsPlayed }) => {
+        socket.on('set-tunnel-state', ({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished }) => {
+            console.log({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished })
             const roomName = `race-${raceId}`;
             const currData = tunnelState.find(i => i.room == roomName);
-            console.log("Data:", currData)
+            //console.log("Data:", currData)
             if (!currData) {
                 const newState = {
                     room: roomName,
                     secondsLeft: 10,
-                    roundsPlayed: addRoundsPlayed
+                    roundsPlayed: addRoundsPlayed,
+                    gameState,
+                    isFinished: false,
                 };
                 tunnelState.push(newState);
-                console.log("New data:", newState)
+                //console.log("New data:", newState)
 
                 io.to(roomName).emit('tunnel-state', { raceId, data: newState });
                 return;
@@ -314,7 +339,15 @@ module.exports = (io) => {
 
             currData.roundsPlayed += addRoundsPlayed;
 
-            console.log("Updated data:", currData)
+            if (gameState && tunnelGameStates.includes(gameState)) {
+                currData.gameState = gameState;
+            }
+
+            if (isFinished) {
+                currData.isFinished = true;
+            }
+
+            //console.log("Updated data:", currData)
 
             io.to(roomName).emit('tunnel-state', { raceId, data: currData })
         });
@@ -328,6 +361,8 @@ module.exports = (io) => {
                     room: roomName,
                     secondsLeft: 10,
                     roundsPlayed: 0,
+                    gameState: "default",
+                    isFinished: false,
                 };
                 tunnelState.push(newState);
                 io.to(socket.id).emit('tunnel-state', { raceId, data: newState });
@@ -362,6 +397,8 @@ module.exports = (io) => {
                     room: roomName,
                     secondsLeft: 10,
                     roundsPlayed: 0,
+                    gameState: "default",
+                    isFinished: false,
                 };
                 tunnelState.push(newState);
                 tunnelStateValue = newState;

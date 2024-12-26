@@ -31,6 +31,7 @@ function App() {
   useEffect(() => {
     socket.connect();
   }, [socket]);
+  
 
   return (
     <Routes>

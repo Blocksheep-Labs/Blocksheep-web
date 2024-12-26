@@ -210,7 +210,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: 
       </div>
                 
       {
-        // <button onClick={() => onClickJoin(race.id)}>Force join</button>
+         <button onClick={() => onClickJoin(race.id)}>Force join</button>
       }
     </div>
   );

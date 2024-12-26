@@ -1,4 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTimer } from "react-timer-hook";
+
+// Components - Game UI
 import FuelBar from "../../components/rabbit-hole/FuelBar";
 import PlayerMovement from "../../components/rabbit-hole/PlayerMovement";
 import Darkness from "../../components/rabbit-hole/Darkness";
@@ -6,28 +10,36 @@ import RabbitHead from "../../components/rabbit-hole/RabbitHead";
 import RabbitTail from "../../components/rabbit-hole/RabbitTail";
 import Lever from "../../components/rabbit-hole/Lever";
 import GasolineGauge from "../../components/rabbit-hole/GasolineGauge";
-import WinModal from "../../components/modals/WinModal";
 import Timer from "../../components/Timer";
 import UserCount from "../../components/UserCount";
-import { waitForTransactionReceipt  } from '@wagmi/core';
-import { useTimer } from "react-timer-hook";
-import { useNavigate, useParams } from "react-router-dom";
-import { socket } from "../../utils/socketio";
+
+// Components - Modals
+import WinModal from "../../components/modals/WinModal";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
-import { finishTunnelGame, getRaceById, submitFuel } from "../../utils/contract-functions";
 import LoseModal from "../../components/modals/LoseModal";
+
+// Web3 and Contract
+import { waitForTransactionReceipt } from '@wagmi/core';
 import { config } from "../../config/wagmi";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
-import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
-import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
+import { finishTunnelGame, getRaceById, submitFuel } from "../../utils/contract-functions";
+
+// Socket and HTTP
+import { socket } from "../../utils/socketio";
 import { httpGetRaceDataById } from "../../utils/http-requests";
+
+// Game Logic
 import generateLink from "../../utils/linkGetter";
 import { txAttempts } from "../../utils/txAttempts";
 import calculatePlayersV1 from "./calculations/v1";
 import calculatePlayersV2 from "./calculations/v2";
-import BG_Carrots from "../../assets/rabbit-hole/backgroundcarrot.jpg";
 import { useGameContext } from "../../utils/game-context";
 import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "./utils/getGamePart";
+
+// Assets
+import BlackSheep from "../../assets/rabbit-hole/blacksheep.png";
+import WhiteSheep from "../../assets/rabbit-hole/sheeepy.png";
+import BG_Carrots from "../../assets/rabbit-hole/backgroundcarrot.jpg";
 
 export type ConnectedUser = {
     id: number;
@@ -44,32 +56,41 @@ export type ConnectedUser = {
 export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
 
 function RabbitHoleGame() {
-  const {smartAccountAddress} = useSmartAccount();
-  const [phase, setPhase] = useState<RabbitHolePhases>("Default");
-  const [players, setPlayers] = useState<ConnectedUser[]>([]);
-  const {gameState} = useGameContext();
-  const [modalType, setModalType] = useState<string | undefined>(undefined);
-  const [modalIsOpen, setIsOpen] = useState(false);
+  const { smartAccountAddress, smartAccountClient } = useSmartAccount();
+  const { gameState } = useGameContext();
   const navigate = useNavigate();
-  const {raceId, version} = useParams();
-  const [displayNumber, setDisplayNumber] = useState(0); // Start with a default of 0
+  const { raceId, version } = useParams();
+
+  // Game state
+  const [phase, setPhase] = useState<RabbitHolePhases>("Default");
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [gameCompleted, setGameCompleted] = useState(false);
+  const [roundIsFinished, setRoundIsFinsihed] = useState(false);
+
+  // Player states
+  const [players, setPlayers] = useState<ConnectedUser[]>([]);
+  const [userIsLost, setUserIsLost] = useState(false);
   const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 20);
-  const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
+
+  // Player counts
+  const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [amountOfPending, setAmountOfPending] = useState(0);
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
-  const {smartAccountClient} = useSmartAccount();
-  const [gameStarted, setGameStarted] = useState(false);
-  const [roundIsFinished, setRoundIsFinsihed] = useState(false);
   const [amountOfPlayersnextClicked, setAmountOfPlayersNextClicked] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [userIsLost, setUserIsLost] = useState(false);
-  const [gameCompleted, setGameCompleted] = useState(false);
   const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
+
+  // UI states
+  const [displayNumber, setDisplayNumber] = useState(0);
+  const [modalIsOpen, setIsOpen] = useState(false);
   const [loseModalPermanentlyOpened, setLoseModalPermanentlyOpened] = useState(false);
   const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
-  const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
   const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
+
+  // Transaction tracking
+  const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
+
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -81,6 +102,7 @@ function RabbitHoleGame() {
     },
     autoStart: false,
   });
+
 
   // WAIT FOR PLAYERS TO JOIN
   useEffect(() => {
@@ -113,70 +135,95 @@ function RabbitHoleGame() {
     }
   }, [totalSeconds]);
 
-  // handle socket eventsd
+  // handle socket events
   useEffect(() => {
     if (smartAccountAddress && gameState) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
+        console.log("AMOUNT OF CONNECTED", amount)
         if (raceId == raceIdSocket) {
           setAmountOfConnected(amount);
-          /* 
-          // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          if (amount) {
-            setIsOpen(false);
-            setModalType(undefined);
-            socket.emit("get-all-fuel-tunnel", { raceId });
-          }
-          */
         }
       });
 
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
-        if (raceId == raceIdSocket && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(part)) {
-          //console.log("JOINED++")
-          setAmountOfConnected(amountOfConnected + 1);
-          if (amountOfConnected + 1 >= 1) {
-            setIsOpen(false);
-            setModalType(undefined);
-          }
+        // && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(part)
+        //if (raceId == raceIdSocket) {
+          console.log("JOINED")
+          setAmountOfConnected(prev => {
+            const newAmount = prev + 1;
+            if (newAmount >= 1) {
+              setIsOpen(false);
+            }
+            return newAmount;
+          });
           socket.emit("get-connected", { raceId });
-        }
+        //}
       });
 
-      
       socket.on('leaved', (data) => {
-        if (["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part) && data.raceId == raceId && !data.movedToNext) {
-          setAmountOfConnected(amountOfConnected - 1);
-          //console.log({data});
-          // setPlayers(players.filter(i => i.address !== data.userAddress));
-  
-          // if user was sending a TX
-          // TODO: may cause game stuck on leave
+        // && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part) && !data.movedToNext
+        //if (data.raceId == raceId) {
+          console.log("LEAVED")
+          setAmountOfConnected(prev => Math.max(0, prev - 1));
 
-          if (raceId == data.raceId && amountOfPending - 1 >= 0) {
-            setAmountOfPending(amountOfPending - 1);
+          if (raceId == data.raceId) {
+            setAmountOfPending(prev => Math.max(0, prev - 1));
           }
-        }
+        //}
       });
 
       socket.on('race-progress', ({progress, tunnelState}) => {
         // socket.emit("get-all-fuel-tunnel", { raceId });
         
-        // alert(`${tunnelState.roundsPlayed}, ${tunnelState.secondsLeft}`);
+        alert(`${tunnelState.roundsPlayed}, ${tunnelState.secondsLeft}, ${tunnelState.isFinished}`);
         if (tunnelState.roundsPlayed > 0) {
           setGameOver(true);
           setIsRolling(false);
           setGameCompleted(true);
           setUserIsLost(true);
           setAmountOfAllocatedPoints(0);
-        } 
 
-        if (tunnelState.secondsLeft > 2) {
+        } 
+        
+        if (tunnelState.isFinished) {
+          pause();
+          openLoseModal();
+          return;
+        }
+
+        if (tunnelState.secondsLeft >= 2) {
           const time = new Date();
           time.setSeconds(time.getSeconds() + tunnelState.secondsLeft);
           restart(time);
         } else {
           pause();
-          handleTunnelChange();
+      
+          if (tunnelState.gameState !== "default") {
+            // Wait for tunnel to return to default state before restarting
+            const checkTunnelState = () => {
+              socket.emit("get-tunnel-state", { raceId }, (response: any) => {
+                if (response.data.gameState === "default") {
+                  // Restart timer and sync with other players
+                  const time = new Date();
+                  time.setSeconds(time.getSeconds() + 10); // Reset to 10 seconds
+                  restart(time);
+                  socket.emit('set-tunnel-state', {
+                    raceId,
+                    secondsLeft: 10,
+                    addRoundsPlayed: 0,
+                    gameState: "default"
+                  });
+                } else {
+                  // Check again in 700ms if not in default state
+                  setTimeout(checkTunnelState, 700);
+                }
+              });
+            };
+            
+            checkTunnelState();
+          } else {
+            handleTunnelChange();
+          }
         }
 
         // @ts-ignore
@@ -244,7 +291,6 @@ function RabbitHoleGame() {
             name: user?.name || "Newbie"
           }
         }).toSorted((a: any, b: any) => a.id - b.id));
-        //console.log("USERS_DATA:", usersData)
       });
       
 
@@ -258,7 +304,7 @@ function RabbitHoleGame() {
 
             // check if all transactions are processed
             const pendingCount = newSet.size;
-            //console.log("Pending transactions:", pendingCount);
+            console.log("Pending transactions:", pendingCount);
 
             if (pendingCount === 0 && phase !== "Reset") {
               //console.log("All transactions processed. Starting the tunnel...");
@@ -433,14 +479,24 @@ function RabbitHoleGame() {
       if (!socket.connected) {
         socket.connect();
       }
-      socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
-      socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
+      
       socket.emit("game2-reach", { raceId, userAddress: smartAccountAddress })
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-progress-all", { raceId });
       socket.emit("get-all-fuel-tunnel", { raceId });
     }
   }, [smartAccountAddress, socket, raceId, gameState]);
+
+
+  useEffect(() => {
+    if(smartAccountAddress && String(raceId).length) {
+        if (!socket.connected) {
+            socket.connect();
+        }
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
+        socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
+    }
+}, [smartAccountAddress, socket, raceId]);
   
 
   useEffect(() => {
@@ -461,12 +517,14 @@ function RabbitHoleGame() {
       });
       handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
       openLoseModal();
-      onNextGameClicked();
       socket.disconnect();
     }
-    window.addEventListener('unload', handleTabClosing);
-    return () => {
-      window.removeEventListener('unload', handleTabClosing);
+
+    if (smartAccountAddress) {
+      window.addEventListener('unload', handleTabClosing);
+      return () => {
+        window.removeEventListener('unload', handleTabClosing);
+      }
     }
   }, [openLoseModal, socket, smartAccountAddress, raceId]);
 
@@ -491,10 +549,22 @@ function RabbitHoleGame() {
 
   const triggerAnimations = () => {
     // Close tunnel: Head moves to swallow everything.
+    socket.emit('set-tunnel-state', {
+      raceId, 
+      secondsLeft: 0,
+      addRoundsPlayed: 1,
+      gameState: "close",
+    });
     setPhase("CloseTunnel"); 
 
     // Open tunnel: cars get out
     setTimeout(() => {
+      socket.emit('set-tunnel-state', {
+        raceId, 
+        secondsLeft: 0,
+        addRoundsPlayed: 0,
+        gameState: "open",
+      });
       socket.emit("get-all-fuel-tunnel", { raceId });
       setPhase("OpenTunnel");
     }, 3000);
@@ -502,11 +572,23 @@ function RabbitHoleGame() {
 
   const triggerAnimationsOpen = () => {
     // reset and make calculations
+    socket.emit('set-tunnel-state', {
+      raceId, 
+      secondsLeft: 0,
+      addRoundsPlayed: 0,
+      gameState: "reset",
+    });
     setPhase("Reset");
     setRoundIsFinsihed(true);
     setIsRolling(false);
 
     setTimeout(() => {
+      socket.emit('set-tunnel-state', {
+        raceId, 
+        secondsLeft: 0,
+        addRoundsPlayed: 0,
+        gameState: "default",
+      });
       setPhase("Default");
     }, 4000);
   }
@@ -519,12 +601,6 @@ function RabbitHoleGame() {
   }
 
   const handleTunnelChange = async() => {
-    socket.emit('set-tunnel-state', {
-      raceId, 
-      secondsLeft: 0,
-      addRoundsPlayed: 1,
-    });
-
     triggerAnimations();
     
     if (gameCompleted) 
@@ -638,10 +714,8 @@ function RabbitHoleGame() {
       .catch(console.log)
       .finally(() => {
         if (isWon) {
-          setModalType(undefined);
           openWinModal();
         } else {
-          setModalType(undefined);
           openLoseModal();
         }
       });
@@ -779,27 +853,38 @@ function RabbitHoleGame() {
 
   function openWinModal() {
     pause();
+    socket.emit('set-tunnel-state', {
+      raceId,
+      secondsLeft: 0,
+      addRoundsPlayed: 0,
+      gameState: "default",
+      isFinished: true,
+    });
     if (!modalIsOpen) {
       //console.log("OPEN WIN MODAL");
       setIsOpen(true);
-      setModalType("win");
       setWinModalPermanentlyOpened(true);
     }
   }
 
   function openLoseModal() {
     pause();
+    socket.emit('set-tunnel-state', {
+      raceId,
+      secondsLeft: 0,
+      addRoundsPlayed: 0,
+      gameState: "default",
+      isFinished: true,
+    });
     if (!modalIsOpen) {
       //console.log("OPEN LOSE MODAL");
       setIsOpen(true);
-      setModalType("lose");
       setLoseModalPermanentlyOpened(true);
     }
   }
 
   function closeWinLoseModal() {
     setIsOpen(false);
-    setModalType(undefined);
     setLoseModalPermanentlyOpened(false);
     setWinModalPermanentlyOpened(false);
     onNextGameClicked();
@@ -807,7 +892,6 @@ function RabbitHoleGame() {
 
   function closeWaitingModal() {
     setIsOpen(false);
-    setModalType(undefined);
   }
 
 

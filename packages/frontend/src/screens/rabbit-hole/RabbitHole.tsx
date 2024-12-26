@@ -175,7 +175,7 @@ function RabbitHoleGame() {
       socket.on('race-progress', ({progress, tunnelState}) => {
         // socket.emit("get-all-fuel-tunnel", { raceId });
         
-        alert(`${tunnelState.roundsPlayed}, ${tunnelState.secondsLeft}, ${tunnelState.isFinished}`);
+        // alert(`${tunnelState.roundsPlayed}, ${tunnelState.secondsLeft}, ${tunnelState.isFinished}`);
         if (tunnelState.roundsPlayed > 0) {
           setGameOver(true);
           setIsRolling(false);

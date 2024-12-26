@@ -103,7 +103,7 @@ module.exports = (io) => {
                     waitingPlayers[userConnection.raceId]
                 ) {
                     activePlayers[userConnection.raceId]  = activePlayers[userConnection.raceId].filter(i => i.userAddress != userConnection.userAddress);
-                    waitingPlayers[userConnection.raceId] = waitingPlayers[raceId].filter(i => i.userAddress != userConnection.userAddress);
+                    waitingPlayers[userConnection.raceId] = waitingPlayers[userConnection.raceId].filter(i => i.userAddress != userConnection.userAddress);
 
                     
                     if (!gameCompletes[userConnection.raceId]) {

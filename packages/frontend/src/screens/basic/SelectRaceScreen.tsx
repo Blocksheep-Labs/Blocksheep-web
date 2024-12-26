@@ -105,6 +105,11 @@ function SelectRaceScreen() {
 
       socket.on('amount-of-connected', (data) => {
         if (data.raceId == raceId) {
+          if (racesUserParticipatesIn.includes(smartAccountAddress)) {
+            console.log("Ready to navigate!");
+            socket.emit('get-latest-screen', { raceId });
+            return;
+          }
           const race = races.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
           console.log("Got amount of connected:", data);
@@ -159,7 +164,7 @@ function SelectRaceScreen() {
         socket.off('latest-screen');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, progress]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, progress, racesUserParticipatesIn]);
 
 
   const onClickJoin = useCallback((id: number) => {

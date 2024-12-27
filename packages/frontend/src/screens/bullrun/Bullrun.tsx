@@ -437,13 +437,14 @@ export default function Bullrun() {
         }
     }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted, winModalIsOpened]);
 
-
+    /*
     useEffect(() => {
         if (amountOfPlayersCompleted >= amountOfConnected) {
           socket.emit('minimize-live-game', { part: 'BULL_RUN', raceId });
           navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
         }
     }, [amountOfPlayersCompleted, amountOfConnected]);
+    */
 
     
     

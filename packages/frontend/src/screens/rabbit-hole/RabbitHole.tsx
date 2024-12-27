@@ -440,6 +440,7 @@ function RabbitHoleGame() {
 
 
   // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
+  /*
   useEffect(() => {
     if (amountOfPlayersnextClicked >= amountOfConnected && amountOfPlayersnextClicked > 0 && amountOfConnected > 0) {
       let redirectLink = "/";
@@ -457,6 +458,7 @@ function RabbitHoleGame() {
       navigate(redirectLink);
     }
   }, [ amountOfConnected, amountOfPlayersnextClicked ]);
+  */
 
   
   useEffect(() => {

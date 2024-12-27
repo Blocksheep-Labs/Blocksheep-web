@@ -22,11 +22,12 @@ export type SwipeSelectionProps = {
   questions: any[]; // Array of questions
   currentQuestionIndex: number; // Index of the current question
   disabled: boolean;
+  answeredQuestions: Set<number>;
 };
 
 // eslint-disable-next-line react/display-name
 const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
-  ({ leftAction, rightAction, questions, currentQuestionIndex, disabled }, ref) => {
+  ({ leftAction, rightAction, questions, currentQuestionIndex, disabled, answeredQuestions }, ref) => {
     useImperativeHandle(ref, () => ({
       swipeLeft() {
         swipe("left");
@@ -39,6 +40,10 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     const cardRef: RefObject<API> = useRef(null);
 
     const swiped = (direction: Direction, index: number) => {
+      if (answeredQuestions.has(index)) {
+        return;
+      }
+
       // Handle swipe direction
       if (direction === "left") {
         leftAction(index);
@@ -48,6 +53,9 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
     };
 
     const swipe = async (dir: Direction) => {
+      if (answeredQuestions.has(currentQuestionIndex)) {
+        return;
+      }
       console.log("SWIPE CURRENT INDEX", { currentQuestionIndex });
       await cardRef.current?.swipe(dir); // Swipe the card!
     };

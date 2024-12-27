@@ -63,6 +63,7 @@ function UnderdogGame() {
   const [answersSubmittedBy, setAnswersSubmittedBy] = useState<string[]>([]);
 
   const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
+  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
 
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -119,8 +120,14 @@ function UnderdogGame() {
   };
   
   const onClickLike = async(qIndex: number, sendTx=true) => {
+    // Prevent multiple submissions for the same question
+    if (submittingAnswer || answeredQuestions.has(currentQuestionIndex)) {
+      return;
+    }
+
     setSelectedAnswer("left");
     setSubmittingAnswer(true);
+    setAnsweredQuestions(prev => new Set([...prev, currentQuestionIndex]));
     pause();
 
     console.log("UPDATE PROGRESS", {
@@ -171,8 +178,14 @@ function UnderdogGame() {
 
 
   const onClickDislike = async(qIndex: number, sendTx=true) => {
+    // Prevent multiple submissions for the same question
+    if (submittingAnswer || answeredQuestions.has(currentQuestionIndex)) {
+      return;
+    }
+
     setSelectedAnswer("right");
     setSubmittingAnswer(true);
+    setAnsweredQuestions(prev => new Set([...prev, currentQuestionIndex]));
     pause();
 
     console.log("UPDATE PROGRESS", {
@@ -727,6 +740,7 @@ function UnderdogGame() {
           questions={questions}
           currentQuestionIndex={currentQuestionIndex}
           disabled={modalIsOpen || submittingAnswer}
+          answeredQuestions={answeredQuestions}
         />
       }
 

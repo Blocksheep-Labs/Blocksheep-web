@@ -367,22 +367,6 @@ function UnderdogGame() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
         if (raceId == raceIdSocket && part == "UNDERDOG") {
           setAmountOfConnected(amountOfConnected + 1);
-
-          /*
-          // handle player join on distribute part
-          if (distributePermanentlyOpened) {
-            return;
-          }
-
-          // handle player join on win part
-          if (winModalPermanentlyOpened) {
-            return;
-          }
-
-          const time = new Date();
-          time.setSeconds(time.getSeconds() + 10);
-          restart(time);
-          */
           socket.emit("get-connected", { raceId });
         }
       });
@@ -390,22 +374,6 @@ function UnderdogGame() {
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == "UNDERDOG" && raceId == raceIdSocket && !movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
-          /*
-          pause();
-
-          // handle player leave on distribute part
-          if (distributePermanentlyOpened) {
-            return;
-          }
-
-          // handle player leave on win part
-          if (winModalPermanentlyOpened) {
-            return;
-          }
-
-          setIsOpen(true);
-          setModalType("waiting");
-          */
         }
       });
 
@@ -431,7 +399,6 @@ function UnderdogGame() {
           console.log("Submitted answer", progress.value.answer);
                 
           // if we have questions amount in sum of answers count
-          // TODO: HANDLE SOCKET EVENT (SETTING TIMEOUT)
           console.log({amountOfConnected, amount: amountOfAnswersLeft + amountOfAnswersRight + 1})
           if (amountOfAnswersLeft + amountOfAnswersRight + amountOfAnswersUnknwon + 1 >= amountOfConnected) {
             socket.emit('underdog-results-shown', { raceId });
@@ -638,6 +605,13 @@ function UnderdogGame() {
     winModalPermanentlyOpened,
     answersSubmittedBy
   ]);
+
+  useEffect(() => {
+    if (waitingAfterFinishPlayersCount >= amountOfConnected && waitingAfterFinishPlayersCount > 0 && amountOfConnected > 0) {
+      socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
+      navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
+    }
+  }, [amountOfConnected, waitingAfterFinishPlayersCount]);
 
   // fetch server-side data
   useEffect(() => {

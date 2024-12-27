@@ -232,6 +232,17 @@ function RabbitHoleGame() {
         setMaxFuel(progress?.progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
       });
 
+      socket.on("rabbit-hole-results-shown-on-client", ({ socketId, raceId }) => {
+        // means that some player got a win-lose modal opened, finished the game and ready to navigate to the next screen
+        pause();
+        if (!winModalPermanentlyOpened || !loseModalPermanentlyOpened || !modalIsOpen) {
+          if (amountOfAllocatedPoints > 0) {
+            openWinModal();
+          } else {
+            openLoseModal();
+          }
+        }
+      });
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
         console.log(">>>>>>> UPDATING USERS FUEL DATA")
@@ -424,20 +435,28 @@ function RabbitHoleGame() {
     isRolling,
     pendingTransactions,
     phase,
+    amountOfAllocatedPoints
   ]);
 
-  /*
-  // fetch required amount of users to wait
-  useEffect(() => {
-    if (smartAccountAddress && gameState) {
-      socket.emit("game2-reach", { raceId, userAddress: smartAccountAddress })
-      socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
-      socket.emit("get-all-fuel-tunnel", { raceId });
-      socket.emit("get-progress-all", { raceId });
-    }
-  }, [socket, smartAccountAddress, gameState]); 
-  */
 
+  // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
+  useEffect(() => {
+    if (amountOfPlayersnextClicked >= amountOfConnected && amountOfPlayersnextClicked > 0 && amountOfConnected > 0) {
+      let redirectLink = "/";
+
+      switch (version) {
+        case "v1":
+          redirectLink = generateLink("RACE_UPDATE_1", Number(raceId)); break;
+        case "v2":
+          redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
+        default:
+          break;
+      }
+
+      socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
+      navigate(redirectLink);
+    }
+  }, [ amountOfConnected, amountOfPlayersnextClicked ]);
 
   
   useEffect(() => {
@@ -860,6 +879,7 @@ function RabbitHoleGame() {
       gameState: "default",
       isFinished: true,
     });
+    socket.emit('rabbit-hole-results-shown', { raceId });
     if (!modalIsOpen) {
       //console.log("OPEN WIN MODAL");
       setIsOpen(true);
@@ -876,6 +896,7 @@ function RabbitHoleGame() {
       gameState: "default",
       isFinished: true,
     });
+    socket.emit('rabbit-hole-results-shown', { raceId });
     if (!modalIsOpen) {
       //console.log("OPEN LOSE MODAL");
       setIsOpen(true);

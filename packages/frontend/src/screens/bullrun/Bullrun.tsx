@@ -56,6 +56,8 @@ export default function Bullrun() {
     //const [players, setPlayers] = useState([]);
     const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
 
+    const [amountOfConnected, setAmountOfConnected] = useState(0);
+
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -332,6 +334,7 @@ export default function Bullrun() {
             });
 
             socket.on('leaved', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
+                setAmountOfConnected(prev => prev - 1);
                 if (opponent && opponent.id == socketId && part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
                     console.log("OPPONENT LEAVED");
                     if (amountOfPending > 1) {
@@ -349,6 +352,7 @@ export default function Bullrun() {
             });
 
             socket.on('joined', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
+                setAmountOfConnected(prev => prev + 1);
                 if (opponent && opponent.id == socketId && part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
                     console.log("OPPONENT JOINED");
                     setAmountOfPending(prev => prev + 1);
@@ -362,7 +366,7 @@ export default function Bullrun() {
                 socket.off('joined');
             }
         }
-    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, winModalIsOpened]);
+    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, winModalIsOpened, amountOfConnected]);
 
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress && raceData) {
@@ -432,6 +436,14 @@ export default function Bullrun() {
             }
         }
     }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted, winModalIsOpened]);
+
+
+    useEffect(() => {
+        if (amountOfPlayersCompleted >= amountOfConnected) {
+          socket.emit('minimize-live-game', { part: 'BULL_RUN', raceId });
+          navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
+        }
+    }, [amountOfPlayersCompleted, amountOfConnected]);
 
     
     

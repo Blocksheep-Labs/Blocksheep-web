@@ -97,9 +97,16 @@ function SelectRaceScreen() {
 
   useEffect(() => {
     if (smartAccountAddress) {
-      socket.once('race-progress', ({progress}) => {
+      socket.on('race-progress', ({progress, latestScreen}) => {
         console.log("PROGRESS SET", progress?.progress)
-        progress?.progress && setProgress(progress.progress);
+        if (progress?.progress) {
+          setProgress(progress.progress);
+          
+          //alert(latestScreen)
+          if (latestScreen) {
+            handleNavigate(progress.progress, latestScreen);
+          }
+        }
       });
 
 

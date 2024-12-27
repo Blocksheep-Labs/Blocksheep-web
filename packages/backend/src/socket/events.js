@@ -404,8 +404,11 @@ module.exports = (io) => {
                 tunnelStateValue = newState;
             }
 
+            const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
+
             io.to(socket.id).emit('race-progress', { 
                 progress, 
+                latestScreen: roomScreenData ? roomScreenData.screen : undefined,
                 questionsState: questionsStateValue,
                 tunnelState: tunnelStateValue
             });
@@ -459,10 +462,13 @@ module.exports = (io) => {
         });
     
         // get users amount connected to the game
-        socket.on('get-connected', async({ raceId }) => {
+        socket.on('get-connected', ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const sockets = await io.in(roomName).fetchSockets();
-            io.to(socket.id).emit('amount-of-connected', { amount: sockets.length, raceId });
+            const connectedInRoom = connectedUsers.filter(user => user.room === roomName);
+            io.to(socket.id).emit('amount-of-connected', { 
+                amount: connectedInRoom.length, 
+                raceId 
+            });
         });
         
         

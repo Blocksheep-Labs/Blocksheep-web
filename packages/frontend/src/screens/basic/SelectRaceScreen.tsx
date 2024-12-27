@@ -12,6 +12,7 @@ import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import { useGameContext } from "../../utils/game-context";
 import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 import { useBalance } from "wagmi";
+import SynchronizingModal from "../../components/modals/SynchronizingModal";
 
 
 function SelectRaceScreen() {
@@ -23,7 +24,7 @@ function SelectRaceScreen() {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
   const [cost, setCost] = useState(0);
-  const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | undefined>(undefined);
+  const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | "synchronizing" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
 
@@ -42,7 +43,7 @@ function SelectRaceScreen() {
     const currentUserActiveGames = JSON.parse(localStorage.getItem("races") as string) || [];
     localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
 
-    /*
+    
     if (screen !== "RABBIT_HOLE") {
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
@@ -50,7 +51,7 @@ function SelectRaceScreen() {
       });
       return;
     }
-      */
+      
     
     
     getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
@@ -95,24 +96,42 @@ function SelectRaceScreen() {
     return races.find(({ id }) => id === raceId);
   }, [races, raceId]);
 
+  console.log(modalType)
+
   useEffect(() => {
     if (smartAccountAddress) {
       socket.on('race-progress', ({progress, latestScreen}) => {
-        console.log("PROGRESS SET", progress?.progress)
+        //alert(latestScreen)
+        console.log("PROGRESS SET", progress)
+        
+        console.log(latestScreen)
         if (progress?.progress) {
           setProgress(progress.progress);
-          
-          //alert(latestScreen)
-          if (latestScreen) {
+          // if teh user left on not-playable screen, we have to navigate him to the actual screen
+          if (!["UNDERDOG", "RABBIT_HOLE", "BULL_RUN"].includes(latestScreen)) {
             handleNavigate(progress.progress, latestScreen);
+          } else {
+            //if (!modalIsOpen) {
+              setIsOpen(true);
+              setModalType("synchronizing");
+            //} 
+            setTimeout(() => {
+              socket.emit("get-latest-screen", { raceId, userAddress: smartAccountAddress });
+            }, 1200);
           }
         }
       });
 
 
       socket.on('amount-of-connected', (data) => {
+        // prevent amount of players tracking if we are waiting to synchronize with the game
+        if (modalType == "synchronizing" && modalIsOpen) {
+          console.log(modalType, modalIsOpen)
+          return;
+        }
+
         if (data.raceId == raceId) {
-          if (racesUserParticipatesIn.includes(smartAccountAddress)) {
+          if (racesUserParticipatesIn.includes(smartAccountAddress) && modalType !== "synchronizing") {
             console.log("Ready to navigate!");
             socket.emit('get-latest-screen', { raceId });
             return;
@@ -120,28 +139,54 @@ function SelectRaceScreen() {
           const race = races.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
           console.log("Got amount of connected:", data);
-          setIsOpen(true);
-          setModalType("waiting");
-          // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-          console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
+          if (modalType !== "synchronizing") {
+            setIsOpen(true);
+            setModalType("waiting");
 
-          if (data.amount === race.numOfPlayersRequired) {
-            console.log("Ready to navigate!");
-            socket.emit('get-latest-screen', { raceId });
+            // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
+            console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
+  
+            if (data.amount === race.numOfPlayersRequired) {
+              console.log("Ready to navigate!");
+              socket.emit('get-latest-screen', { raceId });
+            }
           }
         }
       });
 
       socket.on('latest-screen', ({raceId: raceIdSocket, screen}) => {
+        // prevent amount of players tracking if we are waiting to synchronize with the game
+        //if (modalType == "synchronizing" && modalIsOpen) {
+        //  console.log(modalType, modalIsOpen)
+        //  return;
+        //}
+
         console.log({screen});
         if (raceIdSocket == raceId) {
           setIsOpen(false);
           setModalType(undefined);
-          handleNavigate(progress, screen);
+          // alert("naviagte because of latest screen")
+          if (!["UNDERDOG", "RABBIT_HOLE", "BULL_RUN"].includes(screen)) {
+            handleNavigate(progress, screen);
+          } else {
+            //if (!modalIsOpen) {
+              setIsOpen(true);
+              setModalType("synchronizing");
+            //} 
+            setTimeout(() => {
+              socket.emit("get-latest-screen", { raceId, userAddress: smartAccountAddress });
+            }, 1200);
+          }
         }
       });
       
       socket.on('joined', ({ raceId: raceIdSocket, userAddress }) => {
+        // prevent amount of players tracking if we are waiting to synchronize with the game
+        if (modalType == "synchronizing" && modalIsOpen) {
+          console.log(modalType, modalIsOpen)
+          return;
+        }
+
         const race = races.find((r: any) => r.id === raceId);
         console.log("Player joined:", {raceIdSocket, raceId, race})
 
@@ -152,6 +197,12 @@ function SelectRaceScreen() {
       });
 
       socket.on('leaved', ({ raceId: raceIdSocket, part, movedToNext }) => {
+        // prevent amount of players tracking if we are waiting to synchronize with the game
+        if (modalType == "synchronizing" && modalIsOpen) {
+          console.log(modalType, modalIsOpen)
+          return;
+        }
+
         console.log("LEAVED", { raceId: raceIdSocket, part, movedToNext })
         if (raceId == raceIdSocket && part == 'RACE_SELECTION' && !movedToNext) {
           setAmountOfConnected(amountOfConnected - 1);
@@ -171,7 +222,16 @@ function SelectRaceScreen() {
         socket.off('latest-screen');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, progress, racesUserParticipatesIn]);
+  }, [
+    socket, 
+    raceId, 
+    smartAccountAddress, 
+    amountOfConnected, 
+    progress, 
+    racesUserParticipatesIn, 
+    modalType, 
+    modalIsOpen
+  ]);
 
 
   const onClickJoin = useCallback((id: number) => {
@@ -290,7 +350,10 @@ function SelectRaceScreen() {
             />
           ))}
       </div>
-      { modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> }
+      { modalIsOpen && modalType === "synchronizing" &&  <SynchronizingModal/> }
+      { 
+        modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> 
+      }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
       { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {
           const dt = new Date(Number(selectedRace?.startAt) * 1000);

@@ -606,14 +606,14 @@ function UnderdogGame() {
     answersSubmittedBy
   ]);
 
-  /*
+  // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
   useEffect(() => {
     if (waitingAfterFinishPlayersCount >= amountOfConnected && waitingAfterFinishPlayersCount > 0 && amountOfConnected > 0) {
       socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
       navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
     }
   }, [amountOfConnected, waitingAfterFinishPlayersCount]);
-  */
+  
 
   // fetch server-side data
   useEffect(() => {

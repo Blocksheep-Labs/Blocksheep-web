@@ -146,8 +146,7 @@ function RabbitHoleGame() {
       });
 
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
-        // && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(part)
-        //if (raceId == raceIdSocket) {
+        if (raceId == raceIdSocket && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(part)) {
           console.log("JOINED")
           setAmountOfConnected(prev => {
             const newAmount = prev + 1;
@@ -157,22 +156,21 @@ function RabbitHoleGame() {
             return newAmount;
           });
           socket.emit("get-connected", { raceId });
-        //}
+        }
       });
 
       socket.on('leaved', (data) => {
-        // && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part) && !data.movedToNext
-        //if (data.raceId == raceId) {
+        if (data.raceId == raceId && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part)) {
           console.log("LEAVED")
           setAmountOfConnected(prev => Math.max(0, prev - 1));
 
           if (raceId == data.raceId) {
             setAmountOfPending(prev => Math.max(0, prev - 1));
           }
-        //}
+        }
       });
 
-      socket.on('race-progress', ({progress, tunnelState}) => {
+      socket.once('race-progress', ({progress, tunnelState}) => {
         // socket.emit("get-all-fuel-tunnel", { raceId });
         
         // alert(`${tunnelState.roundsPlayed}, ${tunnelState.secondsLeft}, ${tunnelState.isFinished}`);
@@ -207,12 +205,14 @@ function RabbitHoleGame() {
                   const time = new Date();
                   time.setSeconds(time.getSeconds() + 10); // Reset to 10 seconds
                   restart(time);
+                  /*
                   socket.emit('set-tunnel-state', {
                     raceId,
                     secondsLeft: 10,
                     addRoundsPlayed: 0,
                     gameState: "default"
                   });
+                  */
                 } else {
                   // Check again in 700ms if not in default state
                   setTimeout(checkTunnelState, 700);
@@ -435,12 +435,11 @@ function RabbitHoleGame() {
     isRolling,
     pendingTransactions,
     phase,
-    amountOfAllocatedPoints
+    amountOfAllocatedPoints,
   ]);
 
 
   // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
-  /*
   useEffect(() => {
     if (amountOfPlayersnextClicked >= amountOfConnected && amountOfPlayersnextClicked > 0 && amountOfConnected > 0) {
       let redirectLink = "/";
@@ -455,10 +454,11 @@ function RabbitHoleGame() {
       }
 
       socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
+      //alert('Navigate useEffect')
       navigate(redirectLink);
     }
   }, [ amountOfConnected, amountOfPlayersnextClicked ]);
-  */
+  
 
   
   useEffect(() => {
@@ -468,7 +468,8 @@ function RabbitHoleGame() {
         }
         
         socket.on('screen-changed', ({ screen }) => {
-            navigate(generateLink(screen, Number(raceId)));
+          //alert('Navigate screen-changed')
+          navigate(generateLink(screen, Number(raceId)));
         });
 
         socket.on('latest-screen', ({ screen }) => {
@@ -483,6 +484,7 @@ function RabbitHoleGame() {
                 },
                 version,
               });
+              //alert('Navigate latest-screen')
               navigate(generateLink(screen, Number(raceId)));
             }
         });
@@ -560,6 +562,7 @@ function RabbitHoleGame() {
             if (socket.connected) {
               socket.disconnect();
             }
+            alert('Not registered!');
             navigate('/', { replace: true });
           }
         }
@@ -881,7 +884,7 @@ function RabbitHoleGame() {
       gameState: "default",
       isFinished: true,
     });
-    socket.emit('rabbit-hole-results-shown', { raceId });
+    //socket.emit('rabbit-hole-results-shown', { raceId });
     if (!modalIsOpen) {
       //console.log("OPEN WIN MODAL");
       setIsOpen(true);
@@ -898,7 +901,7 @@ function RabbitHoleGame() {
       gameState: "default",
       isFinished: true,
     });
-    socket.emit('rabbit-hole-results-shown', { raceId });
+    //socket.emit('rabbit-hole-results-shown', { raceId });
     if (!modalIsOpen) {
       //console.log("OPEN LOSE MODAL");
       setIsOpen(true);

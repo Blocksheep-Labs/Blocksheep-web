@@ -168,8 +168,9 @@ module.exports = (io) => {
                 console.log({part});
                 roomScreenData.screen = part;
                 io.to(roomName).emit('screen-changed', { screen: part });
-            } else {
+            } else if (!roomScreenData) {
                 roomsLatestScreen.push({ raceId, screen: part });
+                io.to(roomName).emit('screen-changed', { screen: part });
             }
 
             socket.join(roomName);
@@ -186,7 +187,7 @@ module.exports = (io) => {
             let latestScreen = screens[0];
             if (roomScreenData?.screen) {
                 latestScreen = roomScreenData.screen;
-            }
+            }                                    
             io.to(socket.id).emit('latest-screen', { raceId, screen: latestScreen });
         });
     

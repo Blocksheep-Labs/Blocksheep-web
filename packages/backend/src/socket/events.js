@@ -50,6 +50,7 @@ let gameCounts = {};     // number of games each player has played (e.g., { 'pla
 let gamesRequired = {};  // number of games per player required to move to next game  { 'player1_id': 3, ... }
 let gameCompletesAmount = {};
 let gameCompletes = {};
+let inGamePlayers = {}; // Track players currently in a game by raceId
 
 
 module.exports = (io) => {
@@ -82,6 +83,32 @@ module.exports = (io) => {
             // Remove user from connected users
             if (userConnection) {
                 connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
+
+                const usersInRace = connectedUsers.filter(u => u.raceId == userConnection.raceId);
+                if (usersInRace.length == 0) {
+                    console.log("[alert] no users in game left!");
+                    console.log(userConnection)
+                    // Reset the latest screen to initial state when all users disconnect
+                    const roomScreenIndex = roomsLatestScreen.findIndex(i => i.raceId == userConnection.raceId);
+                    if (roomScreenIndex == -1) {
+                        console.log("no screen found, set:", screens[0]);
+                        roomsLatestScreen.push({
+                            raceId: userConnection.raceId,
+                            screen: screens[0]
+                        });
+                    } else if (["UNDERDOG", "BULL_RUN", "RABBIT_HOLE"].includes(roomsLatestScreen[roomScreenIndex].screen)) {
+                        const screen = roomsLatestScreen[roomScreenIndex].screen;
+                        const screenPos = screens.indexOf(screen);
+                        
+                        if (screens.length - 1 >= screenPos + 1) {
+                            console.log("switching to next screen. set:", screens[screenPos + 1]);
+                            roomsLatestScreen[roomScreenIndex].screen = screens[screenPos + 1];
+                        } else {
+                            console.log("switching to next screen (last one), set:", screens[screens.length - 1]);
+                            roomsLatestScreen[roomScreenIndex].screen = screens[screens.length - 1];
+                        }
+                    }
+                }
                 
                 // Leave rooms and emit events
                 roomsToEmitDisconnectEvent.forEach(roomName => {
@@ -96,36 +123,74 @@ module.exports = (io) => {
                 });
 
                 // handling bullrun
-                if (
-                    userConnection.userAddress && 
-                    userConnection.raceId && 
-                    activePlayers[userConnection.raceId] && 
-                    waitingPlayers[userConnection.raceId]
-                ) {
-                    activePlayers[userConnection.raceId]  = activePlayers[userConnection.raceId].filter(i => i.userAddress != userConnection.userAddress);
+                if (userConnection.userAddress && userConnection.raceId) {
+                    // Initialize arrays if they don't exist
+                    if (!activePlayers[userConnection.raceId]) activePlayers[userConnection.raceId] = [];
+                    if (!waitingPlayers[userConnection.raceId]) waitingPlayers[userConnection.raceId] = [];
+
+                    // Remove the disconnected user from both arrays
+                    activePlayers[userConnection.raceId] = activePlayers[userConnection.raceId].filter(i => i.userAddress != userConnection.userAddress);
                     waitingPlayers[userConnection.raceId] = waitingPlayers[userConnection.raceId].filter(i => i.userAddress != userConnection.userAddress);
 
+                    // Initialize other data structures if they don't exist
+                    if (!gameCompletes[userConnection.raceId]) gameCompletes[userConnection.raceId] = {};
+                    if (!gamesRequired[userConnection.raceId]) gamesRequired[userConnection.raceId] = {};
+                    if (!gameCounts[userConnection.raceId]) gameCounts[userConnection.raceId] = {};
+                    if (!matchesPlayed[userConnection.raceId]) matchesPlayed[userConnection.raceId] = {};
+                    if (!gameCompletesAmount[userConnection.raceId]) gameCompletesAmount[userConnection.raceId] = 0;
+
+                    // Get all remaining players
+                    const remainingPlayers = [
+                        ...(activePlayers[userConnection.raceId] || []), 
+                        ...(waitingPlayers[userConnection.raceId] || []),
+                        ...(inGamePlayers[userConnection.raceId] || [])
+                    ];
                     
-                    if (!gameCompletes[userConnection.raceId]) {
-                        gameCompletes[userConnection.raceId] = {};
-                    }
+                    console.log("Remaining players:", remainingPlayers.map(p => ({
+                        id: p.id,
+                        address: p.userAddress
+                    })));
 
-                    if (!gamesRequired[userConnection.raceId]) {
-                        gamesRequired[userConnection.raceId] = {};
-                    }
+                    const remainingPlayersCount = remainingPlayers.length;
 
-                    if (!gameCounts[userConnection.raceId]) {
-                        gameCounts[userConnection.raceId] = {};
-                    }
+                    // Calculate new required games based on remaining players
+                    const newRequiredGames = Math.max(0, remainingPlayersCount - 1);
 
-                    // if user is not completed the game but he/she leaves
-                    if (
-                        !gameCompletes[userConnection.raceId][userConnection.userAddress] && 
-                        gamesRequired[userConnection.raceId][userConnection.userAddress] <= gameCounts[userConnection.raceId][userConnection.userAddress]
-                    ) {
-                        gameCompletesAmount[userConnection.raceId]++;
-                        gameCompletes[userConnection.raceId][userConnection.userAddress] = true;
-                    }
+                    // For each remaining player
+                    remainingPlayers.forEach(player => {
+                        // Update required games to new value
+                        gamesRequired[userConnection.raceId][player.userAddress] = newRequiredGames;
+
+                        // If they haven't played against the leaving player, increment their game count
+                        if (!matchesPlayed[userConnection.raceId][player.userAddress]?.includes(userConnection.userAddress)) {
+                            gameCounts[userConnection.raceId][player.userAddress] = 
+                                (gameCounts[userConnection.raceId][player.userAddress] || 0) + 1;
+                        }
+
+                        // Check if player has completed their games
+                        if (gameCounts[userConnection.raceId][player.userAddress] >= newRequiredGames) {
+                            if (!gameCompletes[userConnection.raceId][player.userAddress]) {
+                                gameCompletes[userConnection.raceId][player.userAddress] = true;
+                                gameCompletesAmount[userConnection.raceId]++;
+                            }
+                        }
+                    });
+
+                    // Notify remaining players about updates
+                    const roomName = `race-${userConnection.raceId}`;
+                    io.to(roomName).emit('bullrun-required-games-descreased', {
+                        raceId: userConnection.raceId,
+                    });
+
+                    // Emit updated game counts to all remaining players
+                    remainingPlayers.forEach(player => {
+                        io.to(player.id).emit('bullrun-game-counts', {
+                            raceId: userConnection.raceId,
+                            userAddress: player.userAddress,
+                            gameCounts: gameCounts[userConnection.raceId][player.userAddress],
+                            gameCompletesAmount: gameCompletesAmount[userConnection.raceId],
+                        });
+                    });
                 }
 
                 console.log("User disconnected:", {
@@ -489,10 +554,10 @@ module.exports = (io) => {
         });
 
         socket.on('bullrun-join-game', async({ raceId, userAddress, amountOfGamesRequired }) => {
-            //console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
+            console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
             const roomName = `race-${raceId}`;
             socket.join(roomName);
-
+        
             // Initialize game data for the race if not already initialized
             if (!gamesRequired[raceId]) {
                 gamesRequired[raceId] = {};      // Track required games per player
@@ -501,7 +566,8 @@ module.exports = (io) => {
                 gameCompletesAmount[raceId] = 0; // Initialize completed games counter for race
                 activePlayers[raceId] = [];      // Track active players in the race
                 waitingPlayers[raceId] = [];     // Track players waiting for a match
-                gameCompletes[raceId] = {};      // Treack game completes by player web3 address
+                gameCompletes[raceId] = {};      // Track game completes by player web3 address
+                inGamePlayers[raceId] = [];
             }
         
             // Initialize game data for the player
@@ -509,19 +575,24 @@ module.exports = (io) => {
                 if (!matchesPlayed[raceId][playerAddress]) matchesPlayed[raceId][playerAddress] = [];
                 if (!gameCounts[raceId][playerAddress]) gameCounts[raceId][playerAddress] = 0;
                 if (!gamesRequired[raceId][playerAddress]) gamesRequired[raceId][playerAddress] = amountOfGamesRequired;
+
+                if (!inGamePlayers[raceId].some(p => p.userAddress == playerAddress)) {
+                    inGamePlayers[raceId].push(socket); 
+                }
             }
             initializePlayer(userAddress, socket);
-            socket.userAddress = userAddress;
+            socket.userAddress = userAddress; 
+        
+        
             // get players from waiting queue
-            activePlayers[raceId] = [...activePlayers[raceId], ...waitingPlayers[raceId]];
+            activePlayers[raceId] = [...(activePlayers[raceId] || []), ...(waitingPlayers[raceId] || [])];
             waitingPlayers[raceId] = [];
-
-            //console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
-            if (!activePlayers[raceId].includes(socket)) {
+        
+            console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
+            if (!activePlayers[raceId].some(p => p.userAddress === userAddress)) {
                 activePlayers[raceId].push(socket); 
             }
-            //console.log("GR_:", gamesRequired[raceId]);
-            //console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => i.id));
+            console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => ({id: i.id, address: i.userAddress})));
         
             // Pair players and start the game
             function pairPlayers() {
@@ -534,6 +605,7 @@ module.exports = (io) => {
                 while (activePlayers[raceId].length >= 2 && retries < maxRetries) {
                     const player1 = activePlayers[raceId].shift();
                     const player2 = activePlayers[raceId].shift();
+
                     //console.log("TRYING TO PAIR...", player1.id, player2.id);
             
                     // Ensure player1 and player2 are not the same person

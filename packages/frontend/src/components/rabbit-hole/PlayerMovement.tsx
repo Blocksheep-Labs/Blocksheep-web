@@ -105,6 +105,7 @@ const PlayerMovement = ({
             fuelElement.style.top = topPosition;
             fuelElement.style.left = leftPosition;
             fuelElement.style.transition = 'all 3s ease-out';
+            
             if (!player.isCompleted && !player.isEliminated) {
               playerElement.style.opacity = '1';
               fuelElement.style.opacity = '1';

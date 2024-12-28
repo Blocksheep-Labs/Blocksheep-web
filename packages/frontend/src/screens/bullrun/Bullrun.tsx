@@ -334,11 +334,19 @@ export default function Bullrun() {
             });
 
             socket.on('leaved', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
-                setAmountOfConnected(prev => prev - 1);
-                if (opponent && opponent.id == socketId && part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
-                    console.log("OPPONENT LEAVED");
-                    if (amountOfPending > 1) {
-                        setAmountOfPending(prev => prev - 1);
+                if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
+                    const newConnectedCount = amountOfConnected - 1;
+                    setAmountOfConnected(newConnectedCount);
+                    
+                    if (opponent && opponent.id == socketId) {
+                        console.log("OPPONENT LEAVED");
+                        setAmountOfPending(0);
+                        setRoundStarted(false);
+                        
+                        if (newConnectedCount <= 1) {
+                            setStatus('finished');
+                            bullrunGetWinnerAndSetPoints();
+                        }
                     }
                 }
             });
@@ -346,16 +354,18 @@ export default function Bullrun() {
             socket.on('bullrun-amount-of-completed-games', ({ gameCompletesAmount }) => {
                 console.log({gameCompletesAmount})
                 // check if all users completed all the games  [required amount of games per user] * [players amount]
-                if (gameCompletesAmount >= Number(raceData?.numberOfPlayersRequired)) {
+                if (gameCompletesAmount >= amountOfConnected && amountOfConnected > 0 && gameCompletesAmount > 0) {
                     bullrunGetWinnerAndSetPoints();
                 }
             });
 
             socket.on('joined', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
-                setAmountOfConnected(prev => prev + 1);
-                if (opponent && opponent.id == socketId && part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
-                    console.log("OPPONENT JOINED");
-                    setAmountOfPending(prev => prev + 1);
+                if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
+                    setAmountOfConnected(prev => prev + 1);
+                    if (opponent && opponent.id == socketId) {
+                        console.log("OPPONENT JOINED");
+                        setAmountOfPending(prev => prev + 1);
+                    }
                 }
             });
 
@@ -372,12 +382,17 @@ export default function Bullrun() {
         if (String(raceId).length && smartAccountAddress && raceData) {
             socket.on('bullrun-game-counts', ({ gameCounts, raceId: raceIdSocket, gameCompletesAmount }) => {
                 console.log({ gameCounts, raceIdSocket, gameCompletesAmount });
-
+    
                 if (raceIdSocket == raceId) {
-                    gameCounts >= 1 && setGamesPlayed(gameCounts);
+                    // Update games played only if it's increasing
+                    if (gameCounts > gamesPlayed) {
+                        setGamesPlayed(gameCounts);
+                    }
                 }
-
-                if (gameCompletesAmount >= Number(raceData?.numberOfPlayersRequired)) {
+    
+                // Check if all required games are completed
+                const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
+                if (gameCompletesAmount >= totalRequiredGames && amountOfConnected > 0) {
                     bullrunGetWinnerAndSetPoints();
                 }
             });
@@ -388,13 +403,21 @@ export default function Bullrun() {
                 }
             });
 
+            socket.on('bullrun-required-games-descreased', ({ raceId: raceIdSocket }) => {
+                if (raceId === raceIdSocket) {
+                    setGamesPlayed(prev => prev + 1);
+                    //setRequiredGames(prev => Math.max(0, prev - 1));
+                }
+            });
+
 
             socket.on("progress-updated", async(progress) => {
                 console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
                 if (progress.property === "game3-complete") {
                     console.log( "game3-complete", raceData.numberOfPlayersRequired, amountOfPlayersCompleted + 1)
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
-                    if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted + 1) {
+                    if (amountOfConnected <= amountOfPlayersCompleted + 1) {
+                        alert(31230);
                         navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                     }
                 }
@@ -423,6 +446,7 @@ export default function Bullrun() {
                 setAmountOfPlayersCompleted(completedAmount);
 
                 if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted) {
+                    alert(1133);
                     navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                 }
             });
@@ -433,14 +457,24 @@ export default function Bullrun() {
                 socket.off('screen-changed');
                 socket.off('race-progress-all');
                 socket.off('bullrun-win-modal-opened-on-client');
+                socket.off('bullrun-required-games-descreased');
             }
         }
-    }, [raceId, smartAccountAddress, raceData, amountOfPlayersCompleted, winModalIsOpened]);
+    }, [
+        raceId, 
+        smartAccountAddress, 
+        raceData, 
+        amountOfPlayersCompleted, 
+        winModalIsOpened, 
+        gamesPlayed, 
+        amountOfConnected
+    ]);
 
     // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
     useEffect(() => {
-        if (amountOfPlayersCompleted >= amountOfConnected) {
+        if (amountOfPlayersCompleted >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
           socket.emit('minimize-live-game', { part: 'BULL_RUN', raceId });
+          alert(110);
           navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
         }
     }, [amountOfPlayersCompleted, amountOfConnected]);
@@ -452,7 +486,9 @@ export default function Bullrun() {
         
         setGamesPlayed(prev => prev + 1);
         
-        if (gamesPlayed >= raceData.numberOfPlayersRequired - 1) {
+        // Calculate total required games using combination formula
+        const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
+        if (gamesPlayed >= totalRequiredGames) {
             pause();
             setStatus('finished');
         }
@@ -465,6 +501,7 @@ export default function Bullrun() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                alert(101);
                 navigate(generateLink(screen, Number(raceId)));
             });
 
@@ -475,6 +512,7 @@ export default function Bullrun() {
                         userAddress: smartAccountAddress,
                         property: "game3-complete",
                     });
+                    alert(100);
                     navigate(generateLink(screen, Number(raceId)));
                 }
             });

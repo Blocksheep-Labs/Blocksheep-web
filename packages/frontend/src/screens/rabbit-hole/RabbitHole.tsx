@@ -248,6 +248,9 @@ function RabbitHoleGame() {
         console.log(">>>>>>> UPDATING USERS FUEL DATA")
         const usersData = progress.progresses;
 
+
+        console.log(usersData, usersData.length)
+
         // if (usersData.length < 1) return;
 
         let amountPendingPerGame2 = 0;
@@ -284,24 +287,36 @@ function RabbitHoleGame() {
 
         // set players list
         const usersDATADB = await httpGetRaceDataById(`race-${raceId}`);
-        setPlayers(usersData.map((i: any, index: number) => {
-          const user = usersDATADB.data.race.users.find((j: any) => j.address == i.userAddress);
-
-          // @ts-ignore
-          const dataByTunnelVersion = i[version];
-
-          return {
-            id: index,
-            address: i.userAddress,
-            src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
-            PlayerPosition:   dataByTunnelVersion.game.fuel / 9,
-            Fuel:             dataByTunnelVersion.game.fuel,
-            maxAvailableFuel: dataByTunnelVersion.game.maxAvailableFuel,
-            isEliminated:     dataByTunnelVersion.game.isEliminated,
-            isCompleted:      dataByTunnelVersion.game.isCompleted,
-            name: user?.name || "Newbie"
-          }
-        }).toSorted((a: any, b: any) => a.id - b.id));
+        setPlayers(prevPlayers => {
+          const updatedPlayers = [...prevPlayers];
+          
+          usersData.forEach((i: any) => {
+            const user = usersDATADB.data.race.users.find((j: any) => j.address == i.userAddress);
+            // @ts-ignore
+            const dataByTunnelVersion = i[version];
+            
+            const existingPlayerIndex = updatedPlayers.findIndex(p => p.address === i.userAddress);
+            const updatedPlayer = {
+              id: existingPlayerIndex !== -1 ? updatedPlayers[existingPlayerIndex].id : updatedPlayers.length,
+              address: i.userAddress,
+              src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
+              PlayerPosition: dataByTunnelVersion.game.fuel / 9,
+              Fuel: dataByTunnelVersion.game.fuel,
+              maxAvailableFuel: dataByTunnelVersion.game.maxAvailableFuel,
+              isEliminated: dataByTunnelVersion.game.isEliminated,
+              isCompleted: dataByTunnelVersion.game.isCompleted,
+              name: user?.name || "Newbie"
+            };
+      
+            if (existingPlayerIndex !== -1) {
+              updatedPlayers[existingPlayerIndex] = updatedPlayer;
+            } else {
+              updatedPlayers.push(updatedPlayer);
+            }
+          });
+      
+          return updatedPlayers.sort((a, b) => a.id - b.id);
+        });
       });
       
 
@@ -532,6 +547,7 @@ function RabbitHoleGame() {
   useEffect(() => {
     const handleTabClosing = (e: any) => {
       e.preventDefault();
+      /*
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
@@ -540,6 +556,7 @@ function RabbitHoleGame() {
       });
       handleFinishTunnelGame(raceId as string, false, Number.MAX_VALUE, 0, true);
       openLoseModal();
+      */
       socket.disconnect();
     }
 

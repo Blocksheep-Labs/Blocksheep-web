@@ -38,6 +38,7 @@ export default function BullrunRules() {
         });
         
         socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
+        // alert(generateLink("BULL_RUN", Number(raceId)))
         navigate(generateLink("BULL_RUN", Number(raceId)));
     };
 

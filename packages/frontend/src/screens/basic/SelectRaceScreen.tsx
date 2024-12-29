@@ -53,7 +53,6 @@ function SelectRaceScreen() {
     }
     */
     
-    
     getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(data, progress, undefined);
       navigate(generateLink(screen, rIdNumber));

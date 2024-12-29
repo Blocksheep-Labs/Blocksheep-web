@@ -311,7 +311,7 @@ export default function Bullrun() {
 
     // handle pending events
     useEffect(() => {
-        if (String(raceId).length && smartAccountAddress && opponent) {
+        if (String(raceId).length && smartAccountAddress) {
             socket.on('bullrun-pending', ({ isPending }) => {
                 if (isPending) {
                     console.log("PENDING++", amountOfPending + 1);
@@ -335,26 +335,34 @@ export default function Bullrun() {
 
             socket.on('leaved', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
                 if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
-                    const newConnectedCount = amountOfConnected - 1;
-                    setAmountOfConnected(newConnectedCount);
-                    
-                    if (opponent && opponent.id == socketId) {
-                        console.log("OPPONENT LEAVED");
-                        setAmountOfPending(0);
-                        setRoundStarted(false);
-                        
-                        if (newConnectedCount <= 1) {
-                            setStatus('finished');
-                            bullrunGetWinnerAndSetPoints();
+                    socket.emit('get-connected', { raceId }, ({ amount, raceId }: {amount: number, raceId: number}) => {
+                        setAmountOfConnected(amount); // Update the state with the new amount
+                        alert(amount);
+                        // Check if the opponent has left
+                        if (opponent && opponent.id == socketId) {
+                            console.log("OPPONENT LEAVED");
+                            setAmountOfPending(0);
+                            setRoundStarted(false);
+                            
+                            // Check if there are no players left
+                            if (amount <= 1) {
+                                setStatus('finished'); 
+                                bullrunGetWinnerAndSetPoints(); 
+                            }
                         }
-                    }
+                    });
+
                 }
             });
 
             socket.on('bullrun-amount-of-completed-games', ({ gameCompletesAmount }) => {
-                console.log({gameCompletesAmount})
+                console.log({
+                    "gameCompletesAmount >= amountOfConnected": gameCompletesAmount >= amountOfConnected,
+                    amountOfConnected,
+                    gameCompletesAmount
+                });
                 // check if all users completed all the games  [required amount of games per user] * [players amount]
-                if (gameCompletesAmount >= amountOfConnected && amountOfConnected > 0 && gameCompletesAmount > 0) {
+                if (gameCompletesAmount >= amountOfConnected - 1 && amountOfConnected > 0 && gameCompletesAmount > 0) {
                     bullrunGetWinnerAndSetPoints();
                 }
             });
@@ -389,12 +397,6 @@ export default function Bullrun() {
                         setGamesPlayed(gameCounts);
                     }
                 }
-    
-                // Check if all required games are completed
-                const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
-                if (gameCompletesAmount >= totalRequiredGames && amountOfConnected > 0) {
-                    bullrunGetWinnerAndSetPoints();
-                }
             });
 
             socket.on('bullrun-win-modal-opened-on-client', ({ raceId: raceIdSocket }) => {
@@ -417,7 +419,7 @@ export default function Bullrun() {
                     console.log( "game3-complete", raceData.numberOfPlayersRequired, amountOfPlayersCompleted + 1)
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                     if (amountOfConnected <= amountOfPlayersCompleted + 1) {
-                        alert(31230);
+                        //alert(31230);
                         navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                     }
                 }
@@ -446,7 +448,7 @@ export default function Bullrun() {
                 setAmountOfPlayersCompleted(completedAmount);
 
                 if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted) {
-                    alert(1133);
+                    //alert(1133);
                     navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                 }
             });
@@ -474,7 +476,7 @@ export default function Bullrun() {
     useEffect(() => {
         if (amountOfPlayersCompleted >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
           socket.emit('minimize-live-game', { part: 'BULL_RUN', raceId });
-          alert(110);
+          // alert(110);
           navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
         }
     }, [amountOfPlayersCompleted, amountOfConnected]);
@@ -501,8 +503,9 @@ export default function Bullrun() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                alert(101);
-                navigate(generateLink(screen, Number(raceId)));
+                if (screen !== "BULL_RUN") {
+                    navigate(generateLink(screen, Number(raceId)));
+                }
             });
 
             socket.on('latest-screen', ({ screen }) => {
@@ -512,7 +515,6 @@ export default function Bullrun() {
                         userAddress: smartAccountAddress,
                         property: "game3-complete",
                     });
-                    alert(100);
                     navigate(generateLink(screen, Number(raceId)));
                 }
             });

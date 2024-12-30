@@ -91,10 +91,20 @@ function RabbitHoleGame() {
   // Transaction tracking
   const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
 
-
+  
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
+  // after game finish
+  const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
+    expiryTimestamp: time,
+    autoStart: false,
+    onExpire: () => {
+      closeWinLoseModal();
+    }
+  });
+
+  // in-game
   const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
@@ -341,6 +351,10 @@ function RabbitHoleGame() {
         }
 
         if (progress.property === "game2-set-fuel") {
+          if (!isRolling) {
+            return;
+          }
+
           if (progress.value.isPending) {
             // add to pending transactions
             setPendingTransactions(prev => new Set(prev).add(progress.userAddress));
@@ -638,10 +652,23 @@ function RabbitHoleGame() {
   const handleFuelUpdate = (fuel: number) => {
     if (!isRolling && !gameOver && fuel <= maxFuel) {
       setDisplayNumber(fuel);
+      
+      socket.emit("update-progress", {
+        raceId,
+        userAddress: smartAccountAddress,
+        property: "game2-set-fuel",
+        value: {
+          fuel: fuel,
+          maxAvailableFuel: maxFuel - fuel,
+          isPending: false,
+        },
+        version,
+      });
     }
   }
 
   const handleTunnelChange = async() => {
+    setIsRolling(true);
     triggerAnimations();
     
     if (gameCompleted) 
@@ -907,9 +934,10 @@ function RabbitHoleGame() {
       setIsOpen(true);
       setWinModalPermanentlyOpened(true);
 
-      setTimeout(() => {
-        closeWinLoseModal();
-      }, 1000 * 10);
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restartNextTimer(time);
+      startNextTimer();
     }
   }
 
@@ -927,10 +955,10 @@ function RabbitHoleGame() {
       //console.log("OPEN LOSE MODAL");
       setIsOpen(true);
       setLoseModalPermanentlyOpened(true);
-
-      setTimeout(() => {
-        closeWinLoseModal();
-      }, 1000 * 10);
+      const time = new Date();
+      time.setSeconds(time.getSeconds() + 10);
+      restartNextTimer(time);
+      startNextTimer();
     }
   }
 
@@ -981,12 +1009,23 @@ function RabbitHoleGame() {
         {
           loseModalPermanentlyOpened && 
           !latestInteractiveModalWasClosed && 
-          <LoseModal handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints}/>
+          <LoseModal 
+            secondsLeft={totlaSecondsToMoveNext}
+            handleClose={closeWinLoseModal} 
+            raceId={Number(raceId)} 
+            preloadedScore={amountOfAllocatedPoints}
+          />
         }
         {
           winModalPermanentlyOpened && 
           !latestInteractiveModalWasClosed && 
-          <WinModal  handleClose={closeWinLoseModal} raceId={Number(raceId)} preloadedScore={amountOfAllocatedPoints} gameName="rabbit-hole"/>
+          <WinModal  
+            secondsLeft={totlaSecondsToMoveNext}
+            handleClose={closeWinLoseModal} 
+            raceId={Number(raceId)} 
+            preloadedScore={amountOfAllocatedPoints} 
+            gameName="rabbit-hole"
+          />
         }
     </div>
   );

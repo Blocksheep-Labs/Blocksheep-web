@@ -69,11 +69,19 @@ export default function Bullrun() {
 
     const [amountOfConnected, setAmountOfConnected] = useState(0);
 
-    let moveToNextGameTimeout: NodeJS.Timeout | null = null;
 
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
+
+    // after game finish
+    const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
+        expiryTimestamp: time,
+        autoStart: false,
+        onExpire: () => {
+            handleMoveToNextGame();
+        }
+    });
 
     const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
         expiryTimestamp: time,
@@ -202,9 +210,6 @@ export default function Bullrun() {
     }
 
     const handleMoveToNextGame = () => {
-        if (moveToNextGameTimeout) {
-            clearTimeout(moveToNextGameTimeout); // Cancel the timeout if it exists
-        }
         setAddressesCompleted([...addressesCompleted, smartAccountAddress as string]);
         setRulesModalIsOpened(false);
         setWinModalIsOpened(false);
@@ -237,9 +242,10 @@ export default function Bullrun() {
         
                 socket.emit("bullrun-win-modal-opened", { raceId });
 
-                moveToNextGameTimeout = setTimeout(() => {
-                    handleMoveToNextGame();
-                }, 1000 * 10);
+                const time = new Date();
+                time.setSeconds(time.getSeconds() + 10);
+                restartNextTimer(time);
+                startNextTimer();
             });
         }
     };
@@ -315,6 +321,14 @@ export default function Bullrun() {
         
                 socket.on('amount-of-connected', ({ amount, raceId }) => {
                     console.log(`Players connected: ${amount} ${raceId}`);
+                    setAmountOfConnected(amount);
+                    // Check if there are no players left
+                    /*
+                    if (amount <= 1) {
+                        setStatus('finished'); 
+                        bullrunGetWinnerAndSetPoints(); 
+                    }
+                    */
                 });
             });
 
@@ -354,24 +368,16 @@ export default function Bullrun() {
             });
 
             socket.on('leaved', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
+                console.log(part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext, socketId, opponent)
                 if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
-                    socket.emit('get-connected', { raceId }, ({ amount, raceId }: {amount: number, raceId: number}) => {
-                        setAmountOfConnected(amount); // Update the state with the new amount
-                        alert(amount);
-                        // Check if the opponent has left
-                        if (opponent && opponent.id == socketId) {
-                            console.log("OPPONENT LEAVED");
-                            setAmountOfPending(0);
-                            setRoundStarted(false);
-                            
-                            // Check if there are no players left
-                            if (amount <= 1) {
-                                setStatus('finished'); 
-                                bullrunGetWinnerAndSetPoints(); 
-                            }
-                        }
-                    });
+                    socket.emit('get-connected', { raceId });
 
+                    // Check if the opponent has left
+                    if (opponent && opponent.id == socketId) {
+                        console.log("OPPONENT LEAVED");
+                        setAmountOfPending(prev => Math.max(0, prev - 1));
+                        setRoundStarted(false);
+                    }
                 }
             });
 
@@ -592,7 +598,13 @@ export default function Bullrun() {
             }
             {
                 winModalIsOpened && !addressesCompleted.includes(smartAccountAddress as string) && !latestInteractiveModalWasClosed &&
-                <WinModal handleClose={handleMoveToNextGame} raceId={Number(raceId)} preloadedScore={preloadedScore} gameName="bullrun"/>
+                <WinModal 
+                    handleClose={handleMoveToNextGame} 
+                    raceId={Number(raceId)} 
+                    preloadedScore={preloadedScore} 
+                    gameName="bullrun"
+                    secondsLeft={totlaSecondsToMoveNext}
+                />
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">

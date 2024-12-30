@@ -26,12 +26,17 @@ const PlayerMovement = ({
 
   // Sort players and update refs when players change
   useEffect(() => {
-    const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
-    setSortedPlayers(sorted);
-    
-    playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
-    fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
-  }, [players, players.length]);
+      // Check if the phase is not 'Default' before sorting
+      if (phase !== 'Default') {
+        const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
+        setSortedPlayers(sorted);
+      } else {
+        setSortedPlayers(players); // Keep the original order if phase is 'Default'
+      }
+      
+      playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
+      fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
+  }, [players, players.length, phase]);
 
   
   useEffect(() => {

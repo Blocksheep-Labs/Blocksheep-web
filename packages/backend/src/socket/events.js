@@ -309,6 +309,21 @@ module.exports = (io) => {
             // clone to avoid issues
             const updatedRProgress = JSON.parse(JSON.stringify(rProgress));
 
+            if (property === 'game2-eliminate') {
+                // Set all other players' fuels to 0 to achieve proper state handling
+                racesProgresses.forEach(progress => {
+                    if (progress.userAddress !== userAddress) {
+                        progress.progress.game2[version] = {
+                            ...rProgress.progress.game2[version],
+                            game: {
+                                ...rProgress.progress.game2[version].game,
+                                fuel: 0,
+                            }
+                        };
+                    }
+                });
+            }
+
             const updatedProgress = updateProgress(property, value, updatedRProgress, version);
 
             // update rProgress by index
@@ -577,7 +592,7 @@ module.exports = (io) => {
                 if (!gamesRequired[raceId][playerAddress]) gamesRequired[raceId][playerAddress] = amountOfGamesRequired;
 
                 if (!inGamePlayers[raceId]) inGamePlayers[raceId] = [];
-                
+
                 if (!inGamePlayers[raceId].some(p => p.userAddress == playerAddress)) {
                     inGamePlayers[raceId].push(socket); 
                 }

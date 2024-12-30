@@ -65,6 +65,7 @@ function UnderdogGame() {
   const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
 
+
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
@@ -79,6 +80,15 @@ function UnderdogGame() {
       pause();
     }
   }, [flipState, modalIsOpen, distributePermanentlyOpened]);
+
+  // after game finish
+  const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
+    expiryTimestamp: time,
+    autoStart: false,
+    onExpire: () => {
+      closeWinModal();
+    }
+  });
 
   const { totalSeconds, restart, pause, resume } = useTimer({
     expiryTimestamp: time,
@@ -282,13 +292,14 @@ function UnderdogGame() {
     //setFinished(true);
     pause();
 
-    setTimeout(() => {
-      closeWinModal();
-    }, 1000 * 10);
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+    restartNextTimer(time);
+    startNextTimer();
   }
 
   function closeWinModal() {
-    console.log("win modal closed")
+    console.log("win modal closed");
     setWinModalPermanentlyOpened(false);
     setIsOpen(false);
     setModalType(undefined);
@@ -766,7 +777,12 @@ function UnderdogGame() {
       }
       {
         winModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
-        <WinModal handleClose={closeWinModal} raceId={Number(raceId)} gameIndex={currentGameIndex} gameName="underdog"/>
+        <WinModal 
+          secondsLeft={totlaSecondsToMoveNext}
+          handleClose={closeWinModal} 
+          raceId={Number(raceId)} 
+          gameIndex={currentGameIndex} 
+          gameName="underdog"/>
       }
     </div>
   );

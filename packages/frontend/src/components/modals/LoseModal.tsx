@@ -7,9 +7,10 @@ export type WinModalProps = {
   raceId?: number;
   gameIndex?: number;
   preloadedScore?: number;
+  secondsLeft: number;
 };
 
-function LoseModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalProps) {
+function LoseModal({ handleClose, raceId, gameIndex, preloadedScore, secondsLeft }: WinModalProps) {
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%] relative">
@@ -24,10 +25,10 @@ function LoseModal({ handleClose, raceId, gameIndex, preloadedScore }: WinModalP
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">
         <button
-          className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
+          className="absolute mt-[10%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[23px] text-[#18243F] hover:text-white"
           onClick={handleClose}
         >
-          Next
+          Next ({secondsLeft}s)
         </button>
         <img src={NextFlag} alt="next-flag" />
       </div>

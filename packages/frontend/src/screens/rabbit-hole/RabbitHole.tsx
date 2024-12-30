@@ -906,6 +906,10 @@ function RabbitHoleGame() {
       //console.log("OPEN WIN MODAL");
       setIsOpen(true);
       setWinModalPermanentlyOpened(true);
+
+      setTimeout(() => {
+        closeWinLoseModal();
+      }, 1000 * 10);
     }
   }
 
@@ -923,6 +927,10 @@ function RabbitHoleGame() {
       //console.log("OPEN LOSE MODAL");
       setIsOpen(true);
       setLoseModalPermanentlyOpened(true);
+
+      setTimeout(() => {
+        closeWinLoseModal();
+      }, 1000 * 10);
     }
   }
 

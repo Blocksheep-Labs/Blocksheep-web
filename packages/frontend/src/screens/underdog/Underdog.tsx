@@ -281,6 +281,10 @@ function UnderdogGame() {
     setWinModalPermanentlyOpened(true);
     //setFinished(true);
     pause();
+
+    setTimeout(() => {
+      closeWinModal();
+    }, 1000 * 10);
   }
 
   function closeWinModal() {

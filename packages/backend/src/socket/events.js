@@ -576,6 +576,8 @@ module.exports = (io) => {
                 if (!gameCounts[raceId][playerAddress]) gameCounts[raceId][playerAddress] = 0;
                 if (!gamesRequired[raceId][playerAddress]) gamesRequired[raceId][playerAddress] = amountOfGamesRequired;
 
+                if (!inGamePlayers[raceId]) inGamePlayers[raceId] = [];
+                
                 if (!inGamePlayers[raceId].some(p => p.userAddress == playerAddress)) {
                     inGamePlayers[raceId].push(socket); 
                 }

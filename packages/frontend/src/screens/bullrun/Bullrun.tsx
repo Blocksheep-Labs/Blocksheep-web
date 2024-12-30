@@ -1,26 +1,37 @@
+// React and React-related imports
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useTimer } from "react-timer-hook";
+
+// Third-party library imports
 import { socket } from "../../utils/socketio";
+
+// Custom hooks and context
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useGameContext } from "../../utils/game-context";
+
+// Components
+import BullrunRulesModal from "../../components/BullrunRulesModal";
+import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
+import WinModal from "../../components/modals/WinModal";
+import Timer from "../../components/Timer";
+
+// Utilities
+import shortenAddress from "../../utils/shortenAddress";
+import generateLink from "../../utils/linkGetter";
+import { txAttempts } from "../../utils/txAttempts";
+import { httpGetRaceDataById } from "../../utils/http-requests";
+import { BULLRUN_distribute, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndexes, BULLRUN_getWinnersPerGame, BULLRUN_makeChoice, getRaceById } from "../../utils/contract-functions";
+
+// Assets
 import Shield from "../../assets/bullrun/defence.png";
 import Swords from "../../assets/bullrun/fight.png";
 import BullHead from "../../assets/bullrun/run.png";
 import WhiteSheep from "../../assets/bullrun/sheeepy.png";
 import BlackSheep from "../../assets/bullrun/blacksheep.png";
 import Horns from "../../assets/bullrun/bullhorns.png";
-import Timer from "../../components/Timer";
 import LeftCurtain from "../../assets/bullrun/bullrun-next-round-bg-left.png";
 import RightCurtain from "../../assets/bullrun/bullrun-next-round-bg-right.png";
-import { useEffect, useRef, useState } from "react";
-import { useTimer } from "react-timer-hook";
-import BullrunRulesModal from "../../components/BullrunRulesModal";
-import { BULLRUN_distribute, BULLRUN_getPerksMatrix, BULLRUN_getUserChoicesIndexes, BULLRUN_getWinnersPerGame, BULLRUN_makeChoice, getRaceById } from "../../utils/contract-functions";
-import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
-import shortenAddress from "../../utils/shortenAddress";
-import WinModal from "../../components/modals/WinModal";
-import { httpGetRaceDataById } from "../../utils/http-requests";
-import generateLink from "../../utils/linkGetter";
-import { txAttempts } from "../../utils/txAttempts";
-import { useGameContext } from "../../utils/game-context";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 
@@ -57,6 +68,8 @@ export default function Bullrun() {
     const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
 
     const [amountOfConnected, setAmountOfConnected] = useState(0);
+
+    let moveToNextGameTimeout: NodeJS.Timeout | null = null;
 
 
     const time = new Date();
@@ -189,6 +202,9 @@ export default function Bullrun() {
     }
 
     const handleMoveToNextGame = () => {
+        if (moveToNextGameTimeout) {
+            clearTimeout(moveToNextGameTimeout); // Cancel the timeout if it exists
+        }
         setAddressesCompleted([...addressesCompleted, smartAccountAddress as string]);
         setRulesModalIsOpened(false);
         setWinModalIsOpened(false);
@@ -220,6 +236,10 @@ export default function Bullrun() {
                 setWinModalIsOpened(true);
         
                 socket.emit("bullrun-win-modal-opened", { raceId });
+
+                moveToNextGameTimeout = setTimeout(() => {
+                    handleMoveToNextGame();
+                }, 1000 * 10);
             });
         }
     };

@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
-import { adminCreateRace, getNextGameId, userHasAdminAccess } from "../../utils/contract-functions";
-import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { adminCreateRace, getNextGameId, userHasAdminAccess } from "../../../utils/contract-functions";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import { useNavigate } from "react-router-dom";
-import { httpCreateRace } from "../../utils/http-requests";
-import { txAttempts } from "../../utils/txAttempts";
+import { httpCreateRace } from "../../../utils/http-requests";
+import { txAttempts } from "../../../utils/txAttempts";
 
 
 export default function AdminScreen() {

@@ -15,7 +15,7 @@ import { useGameContext } from "../../utils/game-context";
 function CountDownScreen() {
   const { gameState, setGameStateObject } = useGameContext();
   const { smartAccountAddress } = useSmartAccount();
-  const [seconds, setSeconds] = useState(5);
+  const [seconds, setSeconds] = useState(7);
   const navigate = useNavigate();
   const {raceId} = useParams();
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
@@ -99,11 +99,11 @@ function CountDownScreen() {
   useEffect(() => {
     if (data) {
       const interval = setInterval(() => {
-        setSeconds((old) => (old > 0 ? old - 1 : 0));
+        setSeconds((old) => old - 1);
       }, 1000);
 
       return () => {
-        setSeconds(5);
+        setSeconds(7);
         clearInterval(interval);
       };
     }
@@ -111,7 +111,7 @@ function CountDownScreen() {
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
-    if (seconds === 0 && data) {
+    if (seconds === -1 && data) {
       handleClose();
     }
   }, [seconds, data]);
@@ -239,7 +239,7 @@ function CountDownScreen() {
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">
-            { seconds <= 4 && <Countdown321/> }
+            { seconds <= 5 && <Countdown321/> }
           </div>
         </div>
       </div>

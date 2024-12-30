@@ -19,12 +19,29 @@
         opacity: 0;
     }
 }
+
+/* Container for the intro lines */
+.intro-container {
+  display: inline-block; /* keeps width tight around content */
+  text-align: center;
+  min-width: 100vw;
+}
+
+/* Each intro line, smaller font, close line spacing */
+.intro-line {
+  font-family: 'Luckiest Guy', cursive;
+  color: #ffd700;
+  font-size: 0.65em; 
+  line-height: 0.8;
+  margin: 0;
+  padding: 10px;
+}
   
 .count-style {
-    font-size: 25vw;
-    font-weight: 1000; /* Thicker font for a stronger impact */
+    font-size: 38vw;
+    font-weight: 800; /* Thicker font for a stronger impact */
     color: #ffd700;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Luckiest Guy', cursive;
     text-shadow: 8px 8px 0px #ff6347, 10px 10px 0px #000;
     animation: shrinkMore 1s ease forwards;
     position: relative;
@@ -32,10 +49,10 @@
 }
 
 .go-style {
-    font-size: 25vw;
-    font-weight: 1000; /* Thicker font for more emphasis */
+    font-size: 38vw;
+    font-weight: 800; /* Thicker font for more emphasis */
     color: #ffd700; /* Keeping consistent color */
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'Luckiest Guy', cursive;
     text-shadow: 8px 8px 0px #ff4500, 10px 10px 0px #000;
     animation: growAndFadeOut 2s ease forwards;
     transform-origin: center;

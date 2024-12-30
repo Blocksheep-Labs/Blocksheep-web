@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RibbonLabel from "../../components/RibbonLabel";
-import RaceItem from "../../components/race-item/RaceItem";
+import RibbonLabel from "../../../components/RibbonLabel";
+import RaceItem from "../../../components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
-import { buyTokens, getRaceById, getRacesWithPagination, getTestETH, registerOnTheRace, retreiveCOST } from "../../utils/contract-functions";
-import RegisteringModal from "../../components/modals/RegisteringModal";
-import RegisteredModal from "../../components/modals/RegisteredModal";
-import { socket } from "../../utils/socketio";
-import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
-import { useSmartAccount } from "../../hooks/smartAccountProvider";
-import generateLink, { TFlowPhases } from "../../utils/linkGetter";
-import { useGameContext } from "../../utils/game-context";
-import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
+import { buyTokens, getRaceById, getRacesWithPagination, getTestETH, registerOnTheRace, retreiveCOST } from "../../../utils/contract-functions";
+import RegisteringModal from "../../../components/modals/RegisteringModal";
+import RegisteredModal from "../../../components/modals/RegisteredModal";
+import { socket } from "../../../utils/socketio";
+import WaitingForPlayersModal from "../../../components/modals/WaitingForPlayersModal";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
+import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
+import { useGameContext } from "../../../utils/game-context";
+import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInsertUser } from "../../../utils/http-requests";
 import { useBalance } from "wagmi";
-import SynchronizingModal from "../../components/modals/SynchronizingModal";
+import SynchronizingModal from "../../../components/modals/SynchronizingModal";
 
 
 function SelectRaceScreen() {

@@ -1,16 +1,15 @@
-import SelectRaceScreen from "./screens/basic/SelectRaceScreen";
+import SelectRaceScreen from "./screens/basic/SelectRace";
 import BottomTab from "./components/BottomTab";
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 import UnderdogGame from "./screens/underdog/Underdog";
 import CountDownScreen from "./screens/addons/CountDownScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
-import AccountScreen from "./screens/basic/AccountScreen";
 import RabbitHoleGame from "./screens/rabbit-hole/RabbitHole";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
-import HomeScreen from "./screens/basic/HomeScreen";
-import AdminScreen from "./screens/basic/AdminScreen";
+import HomeScreen from "./screens/basic/Home";
+import AdminScreen from "./screens/basic/Admin/AdminScreen";
 import UnderdogCover from "./screens/underdog/UnderdogCover";
 import UnderdogRules from "./screens/underdog/UnderdogRules";
 import RabbitHoleRules from "./screens/rabbit-hole/RabbitHoleRules";
@@ -22,7 +21,7 @@ import BullrunRules from "./screens/bullrun/BullrunRules";
 import Bullrun from "./screens/bullrun/Bullrun";
 import StoryScreen from "./screens/addons/StoryScreen";
 import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
-
+import AccountScreen from "./screens/basic/Account";
 
 function App() {
   import('eruda').then(eruda => eruda.default.init());

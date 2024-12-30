@@ -1,12 +1,12 @@
-import { USDC_MULTIPLIER } from "../../config/constants";
-import { useSmartAccount } from "../../hooks/smartAccountProvider";
-import { useUserBalance } from "../../hooks/useUserBalance";
-import shortenAddress from "../../utils/shortenAddress";
-import NextFlag from "../../assets/common/flag.png";
+import { USDC_MULTIPLIER } from "../../../config/constants";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
+import { useUserBalance } from "../../../hooks/useUserBalance";
+import shortenAddress from "../../../utils/shortenAddress";
+import NextFlag from "../../../assets/common/flag.png";
 import { useNavigate } from "react-router-dom";
-import { buyTokens, withdrawTokens } from "../../utils/contract-functions";
+import { buyTokens, withdrawTokens } from "../../../utils/contract-functions";
 import { useState } from "react";
-import SelectAmountModal from "../../components/SelectAmountModal";
+import SelectAmountModal from "../../../components/SelectAmountModal";
 import { usePrivy } from "@privy-io/react-auth";
 import { useBalance } from "wagmi";
 

@@ -99,12 +99,12 @@ function HomeScreen() {
                     }
                 }}
             />
-            <FrameEdges/>
-            
             {
                 smartAccountAddress && smartAccountClient &&
-                <div className="absolute bottom-2 right-2" onClick={logout}>Logout</div>
+                <div className="absolute bottom-0 right-0 z-[9999] text-2xl text-white bg-black p-3 py-1 rounded-full" onClick={logout}>X</div>
             }
+            <FrameEdges/>
+            
         </div>
     );
 }

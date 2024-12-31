@@ -15,3 +15,4 @@ export const PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID;
 
 export const SELECTED_NETWORK = baseSepoliaOverride;
 //export const SMART_ACCOUNT_FACTORY_ADDRESS = "0x0000000000400CdFef5E2714E63d8040b700BC24";
+export const VITE_ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT;

@@ -100,6 +100,11 @@ function HomeScreen() {
                 }}
             />
             <FrameEdges/>
+            
+            {
+                smartAccountAddress && smartAccountClient &&
+                <div className="absolute bottom-2 right-2">Logout</div>
+            }
         </div>
     );
 }

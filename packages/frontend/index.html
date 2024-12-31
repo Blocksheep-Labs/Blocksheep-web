@@ -11,25 +11,6 @@
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
-    <script src="https://telegram.org/js/telegram-web-app.js">
-      window.Telegram.WebApp.isVerticalSwipesEnabled = false;
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.disableVerticalSwipes();
-
-      document.addEventListener('touchstart', function(event) {
-        if (event.touches.length > 0) {
-          event.preventDefault();
-        }
-      }, { passive: false });
-
-      const overflow = 100
-      document.body.style.overflowY = 'hidden'
-      document.body.style.marginTop = `${overflow}px`
-      document.body.style.height = window.innerHeight + overflow + "px"
-      document.body.style.paddingBottom = `${overflow}px`
-      window.scrollTo(0, overflow)
-    </script>
 
     <link rel="manifest" href="manifest.json" />
     <title>BlockSheep</title>

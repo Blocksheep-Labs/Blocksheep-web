@@ -5,7 +5,6 @@ import "./index.css";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import Modal from "react-modal";
 import { BrowserRouter } from "react-router-dom";
-import { Provider } from "react-redux";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { config } from "./config/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,10 +12,15 @@ import { WagmiProvider } from '@privy-io/wagmi';
 import { SmartAccountProvider } from "./hooks/smartAccountProvider";
 import { PRIVY_APP_ID, SELECTED_NETWORK } from "./config/constants";
 import { GameProvider } from "./utils/game-context";
-
+import { init, postEvent } from '@telegram-apps/sdk';
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 const queryClient = new QueryClient();
+
+init();
+postEvent('web_app_set_header_color', { color_key: 'bg_color' });
+//postEvent('web_app_request_fullscreen');
+postEvent('web_app_setup_swipe_behavior', { allow_vertical_swipe: false });
 
 
 if (window.visualViewport) {
@@ -28,6 +32,7 @@ if (window.visualViewport) {
 window.addEventListener('scroll', () => {
   if (window.scrollY > 0) window.scrollTo(0, 0);
 });
+
 
 root.render(
   <PrivyProvider 

@@ -253,7 +253,7 @@ function UnderdogGame() {
       state: "distributing",
     });
     console.log("loading modal opened");
-    //setIsOpen(true);
+    setIsOpen(true);
     //setModalType("loading");
     setDistributePermanentlyOpened(true);
   }
@@ -278,6 +278,7 @@ function UnderdogGame() {
   }
 
   function openWinModal() {
+    setIsOpen(true);
     console.log("win modal opened");
     socket.emit('set-questions-state', {
       raceId,

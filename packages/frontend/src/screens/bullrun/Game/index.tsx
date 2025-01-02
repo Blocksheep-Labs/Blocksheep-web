@@ -789,7 +789,7 @@ export default function Bullrun() {
                         src={Swords} alt="swords" 
                         className={`z-10 absolute w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
 
-                        onClick={() => setPreviewPerk(0)}
+                        onClick={!perksLocked ? () => setPreviewPerk(0) : undefined}
                         onMouseDown={previewPerk === 0 ? () => handleMouseDown(0) : undefined} 
                         onMouseUp={previewPerk === 0 ? handleMouseUp : undefined} 
                         onTouchStart={previewPerk === 0 ? () => handleMouseDown(0) : undefined} 
@@ -830,7 +830,7 @@ export default function Bullrun() {
                         src={Shield} alt="shield" 
                         className={`z-10 absolute top-2 w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
 
-                        onClick={() => setPreviewPerk(1)}
+                        onClick={!perksLocked ? () => setPreviewPerk(1) : undefined}
                         onMouseDown={previewPerk === 1 ? () => handleMouseDown(1) : undefined}
                         onMouseUp={previewPerk === 1 ? handleMouseUp : undefined} 
                         onTouchStart={previewPerk === 1 ? () => handleMouseDown(1) : undefined} 
@@ -874,7 +874,8 @@ export default function Bullrun() {
                         className={`z-10 absolute top-1 w-16 h-16 
                                     ${selectedPerk === 2 ? 'bg-green-400 p-2 rounded-lg border-[1px] border-black' : ''} 
                                     ${(perksLocked || status !== "playing") ? 'opacity-50' : ''}`}
-                        onClick={() => setPreviewPerk(2)}
+                                    
+                        onClick={!perksLocked ? () => setPreviewPerk(2) : undefined}
                         onMouseDown={previewPerk === 2 ? () => handleMouseDown(2) : undefined} 
                         onMouseUp={previewPerk === 2 ? handleMouseUp : undefined} 
                         onTouchStart={previewPerk === 2 ? () => handleMouseDown(2) : undefined} 

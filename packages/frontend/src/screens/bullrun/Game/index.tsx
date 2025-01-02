@@ -76,25 +76,56 @@ export default function Bullrun() {
 
     const [amountOfConnected, setAmountOfConnected] = useState(0);
 
-    const [showHoldText, setShowHoldText] = useState(false);
-    const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
-    const [previewPerk, setPreviewPerk] = useState<number | null>(null);
 
+    const [showHoldText, setShowHoldText] = useState(false);
+    const [holdTimeout0, setHoldTimeout0] = useState<NodeJS.Timeout | null>(null);
+    const [holdTimeout1, setHoldTimeout1] = useState<NodeJS.Timeout | null>(null);
+    const [holdTimeout2, setHoldTimeout2] = useState<NodeJS.Timeout | null>(null);
+    const [previewPerk, setPreviewPerk] = useState<number | null>(null);
+    
+    // Handle mouse down (start holding)
     const handleMouseDown = (perk: number) => {
-        setPreviewPerk(perk);
-        setShowHoldText(true);
-        const timeout = setTimeout(() => {
-            handlePerkChange(perk); // Select perk after 1.5 seconds
-            setShowHoldText(false);
+        setShowHoldText(true); // Show text immediately
+
+        // Start full hold timeout (1.5s) for selecting the perk
+        const holdDelay = setTimeout(() => {
+            handlePerkChange(perk); // Trigger perk selection
         }, 1500);
-        setHoldTimeout(timeout);
+
+        switch (perk) {
+            case 0:
+                setHoldTimeout0(holdDelay);
+                break;
+            case 1:
+                setHoldTimeout1(holdDelay);
+                break;
+            case 2:
+                setHoldTimeout2(holdDelay);
+                break;
+            default:
+                break;
+        }
+        
     };
 
+    // Handle mouse up (release holding early)
     const handleMouseUp = () => {
-        setShowHoldText(false);
-        if (holdTimeout) {
-            clearTimeout(holdTimeout); // Clear the timeout if released early
-            setHoldTimeout(null);
+        setShowHoldText(false); // Hide text immediately
+
+        // Clear the hold timeout if released early
+        if (holdTimeout0) {
+            clearTimeout(holdTimeout0);
+            setHoldTimeout0(null);
+        }
+
+        if (holdTimeout1) {
+            clearTimeout(holdTimeout1);
+            setHoldTimeout1(null);
+        }
+
+        if (holdTimeout2) {
+            clearTimeout(holdTimeout2);
+            setHoldTimeout2(null);
         }
     };
 
@@ -757,16 +788,20 @@ export default function Bullrun() {
                     <img 
                         src={Swords} alt="swords" 
                         className={`z-10 absolute w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
-                        onMouseDown={(perksLocked || status !== "playing") ? undefined : () => handleMouseDown(0)} 
-                        onMouseUp={(perksLocked || status !== "playing") ? undefined : handleMouseUp} 
-                        onTouchStart={(perksLocked || status !== "playing") ? undefined : () => handleMouseDown(0)} 
-                        onTouchEnd={(perksLocked || status !== "playing") ? undefined : handleMouseUp} 
+
+                        onClick={() => setPreviewPerk(0)}
+                        onMouseDown={previewPerk === 0 ? () => handleMouseDown(0) : undefined} 
+                        onMouseUp={previewPerk === 0 ? handleMouseUp : undefined} 
+                        onTouchStart={previewPerk === 0 ? () => handleMouseDown(0) : undefined} 
+                        onTouchEnd={previewPerk === 0 ? handleMouseUp : undefined} 
                     />
                     {
                         previewPerk === 0 &&
                         <div 
-                            className={`rounded-xl absolute inset-x-0 bottom-0 bg-gray-600 transition-all duration-[1.5s] ${holdTimeout ? 'opacity-100' : 'opacity-0'}`} 
-                            style={{ height: holdTimeout ? '100%' : '0%', width: '100%' }} 
+                            className={`rounded-xl absolute inset-x-0 bottom-0 transition-all 
+                                        ${showHoldText ? 'duration-[1.5s]' : 'duration-0 bg-transparent'} 
+                                        ${holdTimeout0 ? 'opacity-100 bg-gray-600' : 'opacity-0'}`} 
+                            style={{ height: holdTimeout0 ? '100%' : '0%', width: '100%' }} 
                         />
                     }
                 </div>
@@ -794,22 +829,27 @@ export default function Bullrun() {
                     <img 
                         src={Shield} alt="shield" 
                         className={`z-10 absolute top-2 w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
-                        onMouseDown={(perksLocked || status !== "playing") ? undefined : () => handleMouseDown(1)}
-                        onMouseUp={(perksLocked || status !== "playing") ? undefined : handleMouseUp} 
-                        onTouchStart={(perksLocked || status !== "playing") ? undefined : () => handleMouseDown(1)} 
-                        onTouchEnd={(perksLocked || status !== "playing") ? undefined : handleMouseUp} 
+
+                        onClick={() => setPreviewPerk(1)}
+                        onMouseDown={previewPerk === 1 ? () => handleMouseDown(1) : undefined}
+                        onMouseUp={previewPerk === 1 ? handleMouseUp : undefined} 
+                        onTouchStart={previewPerk === 1 ? () => handleMouseDown(1) : undefined} 
+                        onTouchEnd={previewPerk === 1 ? handleMouseUp : undefined} 
+                    
                     />
                     {
                         previewPerk === 1 &&
                         <div 
-                            className={`rounded-xl absolute inset-x-0 bottom-0 bg-gray-600 transition-all duration-[1.5s] ${holdTimeout ? 'opacity-100' : 'opacity-0'}`} 
-                            style={{ height: holdTimeout ? '100%' : '0%', width: '100%' }} 
+                            className={`rounded-xl absolute inset-x-0 bottom-0 transition-all 
+                                        ${showHoldText ? 'duration-[1.5s]' : 'duration-0 bg-transparent'} 
+                                        ${holdTimeout1 ? 'opacity-100 bg-gray-600' : 'opacity-0'}`} 
+                            style={{ height: holdTimeout1 ? '100%' : '0%', width: '100%' }} 
                         />
                     }
                 </div>
                 <div className="relative w-20 h-20 bg-gray-200 bg-opacity-75 p-2 rounded-xl shadow-xl border-[1px] border-black">
                     {
-                        previewPerk === 2 &&
+                        previewPerk === 2 && !perksLocked &&
                         <div 
                             className={`absolute -top-14 left-0 bg-white h-fit w-20 rounded-xl flex flex-row border-[1px] border-black bg-opacity-75 items-center justify-center`}  
                         >
@@ -829,19 +869,26 @@ export default function Bullrun() {
                         </div>
                     }
                     <img 
-                        src={BullHead} alt="run"  
-                        className={`z-10 absolute top-1 w-16 h-16 ${selectedPerk === 2 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
-                        onMouseDown={(perksLocked || status !== "playing") ? undefined : () => handleMouseDown(2)} 
-                        onMouseUp={(perksLocked || status !== "playing") ? undefined : handleMouseUp} 
-                        onTouchStart={(perksLocked || status !== "playing") ? undefined : () => handleMouseDown(2)} 
-                        onTouchEnd={(perksLocked || status !== "playing") ? undefined : handleMouseUp} 
+                        src={BullHead} 
+                        alt="run"
+                        className={`z-10 absolute top-1 w-16 h-16 
+                                    ${selectedPerk === 2 ? 'bg-green-400 p-2 rounded-lg border-[1px] border-black' : ''} 
+                                    ${(perksLocked || status !== "playing") ? 'opacity-50' : ''}`}
+                        onClick={() => setPreviewPerk(2)}
+                        onMouseDown={previewPerk === 2 ? () => handleMouseDown(2) : undefined} 
+                        onMouseUp={previewPerk === 2 ? handleMouseUp : undefined} 
+                        onTouchStart={previewPerk === 2 ? () => handleMouseDown(2) : undefined} 
+                        onTouchEnd={previewPerk === 2 ? handleMouseUp : undefined}
                     />
                     {
-                        previewPerk === 2 &&
-                        <div 
-                            className={`rounded-xl absolute inset-x-0 bottom-0 bg-gray-600 transition-all duration-[1.5s] ${holdTimeout ? 'opacity-100' : 'opacity-0'}`} 
-                            style={{ height: holdTimeout ? '100%' : '0%', width: '100%' }} 
-                        />
+                        previewPerk === 2 && (
+                            <div 
+                                className={`rounded-xl absolute inset-x-0 bottom-0 transition-all 
+                                            ${showHoldText ? 'duration-[1.5s]' : 'duration-0 bg-transparent'} 
+                                            ${holdTimeout2 ? 'opacity-100 bg-gray-600' : 'opacity-0'}`} 
+                                style={{ height: holdTimeout2 ? '100%' : '0%', width: '100%' }} 
+                            />
+                        )
                     }
                 </div>
             </div>

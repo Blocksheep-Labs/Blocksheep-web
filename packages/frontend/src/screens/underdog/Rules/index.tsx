@@ -1,29 +1,24 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 import { socket } from "../../../utils/socketio";
-import { useEffect, useState } from "react";
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import RibbonLabel from "../../../components/RibbonLabel";
 import Rule from "../../../components/Rule";
-import BullrunRulesGrid from "../Game/components/BullrunRulesGrid";
-import { BULLRUN_getPerksMatrix } from "../../../utils/contract-functions";
+import { useEffect, useState } from "react";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import generateLink from "../../../utils/linkGetter";
 import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
 import { useGameContext } from "../../../utils/game-context";
-import BRule1 from "./components/rule-1";
-import BRule2 from "./components/rule-2";
-import BRule3 from "./components/rule-3";
-import BRule4 from "./components/rule-4";
 
 
-export default function BullrunRules() {
+export default function UnderdogRules() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
     const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
-    const [secondsVisual, setSecondsVisual] = useState(1000);
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
+    const [seconds, setSeconds] = useState(1000);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -32,18 +27,17 @@ export default function BullrunRules() {
         console.log("UPDATE PROGRESS", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game3-rules-complete",
+            property: "game1-rules-complete",
         });
         socket.emit('update-progress', {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game3-rules-complete",
+            property: "game1-rules-complete",
         });
-        
-        socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
-        // alert(generateLink("BULL_RUN", Number(raceId)))
-        navigate(generateLink("BULL_RUN", Number(raceId)));
-    };
+
+        socket.emit('minimize-live-game', { part: 'UNDERDOG_RULES', raceId });
+        navigate(generateLink("UNDERDOG", Number(raceId)));
+    }
 
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: time,
@@ -55,19 +49,10 @@ export default function BullrunRules() {
         if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
+            setSeconds(10);
             restart(time);
-            setSecondsVisual(10);
-        }
+        } 
     }, [gameState]);
-
-    // fetch points matrix
-    useEffect(() => {
-        if (String(raceId).length) {
-            BULLRUN_getPerksMatrix(Number(raceId)).then(data => {
-                setPointsMatrix(data as number[][]);
-            });
-        }
-    }, [raceId]);
 
     // handle socket events
     useEffect(() => {
@@ -77,19 +62,17 @@ export default function BullrunRules() {
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    /*
                     if (amount === gameState.amountOfRegisteredUsers) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
-                    */
                 }
             });
 
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "BULL_RUN_RULES") {
+                if (raceId == raceIdSocket && part == "UNDERDOG_RULES") {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -103,7 +86,7 @@ export default function BullrunRules() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "BULL_RUN_RULES" && raceId == raceIdSocket && !movedToNext) {
+                if (part == "UNDERDOG_RULES" && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
@@ -134,12 +117,14 @@ export default function BullrunRules() {
     }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
-        //setModalIsOpen(true);
-        //setModalType("waiting");
+        setModalIsOpen(true);
+        setModalType("waiting");
         if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }
     }, [socket, raceId, smartAccountAddress, gameState]);
+
+    
     
     useEffect(() => {
         if (raceId && socket) {
@@ -151,17 +136,17 @@ export default function BullrunRules() {
                 socket.emit('update-progress', {
                     raceId,
                     userAddress: smartAccountAddress,
-                    property: "game3-rules-complete",
+                    property: "game1-rules-complete",
                 });
                 navigate(generateLink(screen, Number(raceId)));
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "BULL_RUN_RULES") {
+                if (screen !== "UNDERDOG_RULES") {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
-                        property: "game3-rules-complete",
+                        property: "game1-rules-complete",
                     });
                     navigate(generateLink(screen, Number(raceId)));
                 }
@@ -173,17 +158,16 @@ export default function BullrunRules() {
             }
         }
     }, [raceId, socket]);
-
+    
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length) {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN_RULES" });
-            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_RULES" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_RULES" });
+            socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_RULES" });
         }
     }, [smartAccountAddress, socket, raceId]);
-    
     
     // kick player if page chnages (closes)
     useEffect(() => {
@@ -197,25 +181,27 @@ export default function BullrunRules() {
         }
     }, [socket, smartAccountAddress, raceId]);
 
+
     return (
-        <div className="mx-auto flex w-full flex-col bg-bullrun_cover_bg bg-cover bg-bottom items-center justify-center" style={{ height: `${window.innerHeight}px` }}>
-            <TopPageTimer duration={secondsVisual * 1000} />
-
-            <div className="px-12 pt-4">
-                <BRule1/>
+        <div className="mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
+            <TopPageTimer duration={seconds * 1000} />
+            <div className="mt-7 flex w-full justify-center">
+                <RibbonLabel text="HOW TO PLAY"/>
             </div>
-
-            <div className="px-12 pt-4">
-                <BRule2/>
+            <div className="h-full flex flex-col gap-3 px-10 mt-4">
+                <Rule text="SWIPE LEFT OR RIGHT TO ANSWER QUESTIONS"/>
+                <Rule text="WIN IF YOU ARE IN THE MINORITY GROUP"/>
+                <Rule text="IS IT BETTER TO HAVE NICE OR SMART KIDS?" showExample/>
             </div>
-        
-            <div className="px-12 pt-4">
-                <BRule3/>
-            </div>
-
-            <div className="px-12 pt-4">
-                <BRule4/>
-            </div>
+            {
+                /*
+                modalIsOpen && modalType === "waiting" && 
+                <WaitingForPlayersModal 
+                    numberOfPlayers={amountOfConnected} 
+                    numberOfPlayersRequired={location?.state?.amountOfRegisteredUsers || 9}
+                />
+                */
+            }
         </div>
     );
 }

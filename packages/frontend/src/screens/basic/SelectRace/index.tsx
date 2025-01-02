@@ -44,10 +44,10 @@ function SelectRaceScreen() {
     localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
 
     /*
-    if (screen !== "UNDERDOG") {
+    if (screen !== "BULL_RUN") {
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/underdog/rules`);
+        navigate(`/race/${raceId}/bullrun/rules`);
       });
       return;
     }

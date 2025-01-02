@@ -205,10 +205,10 @@ export default function RabbitHoleRules() {
 
 
     return (
-        <div className="mx-auto justify-start w-full bg-cover bg-rabbit_hole_cover_bg bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
+        <div className="mx-auto flex flex-col justify-center items-center w-full bg-cover bg-rabbit_hole_cover_bg bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={secondsVisual * 1000} />
 
-            <div className="px-12 pt-12">
+            <div className="px-12 pt-4">
                 <RHRule1/>
             </div>
             

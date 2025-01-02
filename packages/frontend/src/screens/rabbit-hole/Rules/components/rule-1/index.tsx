@@ -2,7 +2,7 @@ import SliderImage from "../../../assets/images/sliderscreenshot.png";
 
 export default function RHRule1() {
     return (
-        <div className="flex h-32 rounded-2xl border-[5px]">
+        <div className="flex h-32 rounded-2xl border-[5px] shadow-xl">
             <div className="w-full bg-[#ece0c8] flex flex-row bg-opacity-90">
                 <div className="flex flex-col bg-black w-[48%] rounded-xl flex items-center justify-center">
                     <img src={SliderImage} alt="slider" className="w-28"/>

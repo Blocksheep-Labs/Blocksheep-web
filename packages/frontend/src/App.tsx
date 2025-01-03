@@ -22,6 +22,7 @@ import Bullrun from "./screens/bullrun/Game";
 import StoryScreen from "./screens/addons/StoryScreen";
 import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
 import AccountScreen from "./screens/basic/Account";
+import LevelUpdateScreen from "./screens/addons/LevelUpdate";
 
 function App() {
   import('eruda').then(eruda => eruda.default.init());
@@ -178,6 +179,16 @@ function App() {
           element={
             <ProtectedRoute>
               <StatsScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RACE LEVEL UPDATE */}
+        <Route
+          path="race/:raceId/level-update"
+          element={
+            <ProtectedRoute>
+              <LevelUpdateScreen />
             </ProtectedRoute>
           }
         />

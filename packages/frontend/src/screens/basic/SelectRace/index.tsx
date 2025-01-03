@@ -43,15 +43,15 @@ function SelectRaceScreen() {
     const currentUserActiveGames = JSON.parse(localStorage.getItem("races") as string) || [];
     localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
 
+    
     /*
-    if (screen !== "BULL_RUN") {
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/bullrun/rules`);
+        navigate(`/race/${raceId}/level-update`);
       });
       return;
-    }
     */
+
     
     
     getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {

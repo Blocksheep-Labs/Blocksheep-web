@@ -18,12 +18,17 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 const queryClient = new QueryClient();
 
 // init telegram if not in dev mode
-if (VITE_ENVIRONMENT !== "development") {
+try {
   init();
   postEvent('web_app_set_header_color', { color_key: 'bg_color' });
   //postEvent('web_app_request_fullscreen');
   postEvent('web_app_setup_swipe_behavior', { allow_vertical_swipe: false });
+} catch (error) {
+  console.error("Telegram mini-app init error")
+  console.log(error)
 }
+
+
 
 
 if (window.visualViewport) {

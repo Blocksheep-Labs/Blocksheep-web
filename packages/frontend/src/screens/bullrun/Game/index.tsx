@@ -75,6 +75,29 @@ export default function Bullrun() {
     const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
 
     const [amountOfConnected, setAmountOfConnected] = useState(0);
+    const [holdToSelectWasShown, setHoldToSelectWasShown] = useState(false);
+    const [showHoldTip, setShowHoldTip] = useState(false);
+
+    const time = new Date();
+    time.setSeconds(time.getSeconds() + 10);
+
+    // after game finish
+    const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
+        expiryTimestamp: time,
+        autoStart: false,
+        onExpire: () => {
+            handleMoveToNextGame();
+        }
+    });
+
+    const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
+        expiryTimestamp: time,
+        onExpire: () => {
+            console.log("Time expired.")
+            setRoundStarted(true);
+        },
+        autoStart: false,
+    });
 
 
     const [showHoldText, setShowHoldText] = useState(false);
@@ -85,6 +108,7 @@ export default function Bullrun() {
     
     // Handle mouse down (start holding)
     const handleMouseDown = (perk: number) => {
+        pause();
         setShowHoldText(true); // Show text immediately
 
         // Start full hold timeout (1.5s) for selecting the perk
@@ -110,6 +134,7 @@ export default function Bullrun() {
 
     // Handle mouse up (release holding early)
     const handleMouseUp = () => {
+        resume();
         setShowHoldText(false); // Hide text immediately
 
         // Clear the hold timeout if released early
@@ -129,26 +154,6 @@ export default function Bullrun() {
         }
     };
 
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-
-    // after game finish
-    const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
-        expiryTimestamp: time,
-        autoStart: false,
-        onExpire: () => {
-            handleMoveToNextGame();
-        }
-    });
-
-    const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
-        expiryTimestamp: time,
-        onExpire: () => {
-            console.log("Time expired.")
-            setRoundStarted(true);
-        },
-        autoStart: false,
-    });
 
     const closeCurtains = () => {
         if (refLeftCurtain.current && refRightCurtain.current) {
@@ -181,6 +186,17 @@ export default function Bullrun() {
             }, 6000);
         }
     }
+
+
+    useEffect(() => {
+        if (previewPerk !== null && !holdToSelectWasShown) {
+            setHoldToSelectWasShown(true);
+            setShowHoldTip(true);
+            setTimeout(() => {
+                setShowHoldTip(false);
+            }, 3000);
+        } 
+    }, [previewPerk, holdToSelectWasShown])
 
     
 
@@ -453,7 +469,7 @@ export default function Bullrun() {
 
             socket.on('joined', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
                 if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
-                    setAmountOfConnected(prev => prev + 1);
+                    socket.emit('get-connected', { raceId });
                     if (opponent && opponent.id == socketId) {
                         console.log("OPPONENT JOINED");
                         setAmountOfPending(prev => prev + 1);
@@ -500,7 +516,8 @@ export default function Bullrun() {
             socket.on("progress-updated", async(progress) => {
                 console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
                 if (progress.property === "game3-complete") {
-                    console.log( "game3-complete", raceData.numberOfPlayersRequired, amountOfPlayersCompleted + 1)
+                    alert(`COMPLETE++ ${amountOfConnected}, ${amountOfPlayersCompleted + 1}`);
+                    console.log( "game3-complete", amountOfConnected, amountOfPlayersCompleted + 1)
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                     if (amountOfConnected <= amountOfPlayersCompleted + 1) {
                         //alert(31230);
@@ -531,7 +548,7 @@ export default function Bullrun() {
                 setAddressesCompleted(completedAddrs);
                 setAmountOfPlayersCompleted(completedAmount);
 
-                if (raceData.numberOfPlayersRequired <= amountOfPlayersCompleted) {
+                if (amountOfConnected <= amountOfPlayersCompleted && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
                     //alert(1133);
                     navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
                 }
@@ -560,11 +577,22 @@ export default function Bullrun() {
     useEffect(() => {
         if (amountOfPlayersCompleted >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
           socket.emit('minimize-live-game', { part: 'BULL_RUN', raceId });
-          // alert(110);
+          //alert("navigate in useEffect");
           navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
         }
     }, [amountOfPlayersCompleted, amountOfConnected]);
-    
+
+
+    function getPerkPointsColor(perkNumericValue: number) {
+        if (perkNumericValue > 0) {
+            return 'text-green-600'
+        }
+        if (perkNumericValue < 0) {
+            return 'text-red-600'
+        }
+        return 'text-black'
+    }
+     
     
     function endGame() {
         console.log("NEXT OPPONENT >>>>")
@@ -663,6 +691,13 @@ export default function Bullrun() {
                     gameName="bullrun"
                     secondsLeft={totlaSecondsToMoveNext}
                 />
+            }
+
+            {
+                showHoldTip &&
+                <div className="absolute z-50 bottom-44 p-3 w-52 border-[3px] border-white bg-gray-300 bg-opacity-75 rounded-xl text-black text-center">
+                    Hold to confirm
+                </div>
             }
 
             <div ref={refLeftCurtain} className="h-full w-[50%] absolute top-0 left-[-50%] z-20">
@@ -772,28 +807,28 @@ export default function Bullrun() {
                         >
                             <div className="rounded-xl h-fit p-1">
                                 <img src={Swords} alt="swords" className="w-5 h-5"/>
-                                <p className="w-full text-center text-green-600">{String(pointsMatrix[0][0])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[0][0])}`}>{String(pointsMatrix[0][0])}</p>
                             </div>
                             <div className="rounded-xl h-fit p-1">
                                 <img src={Shield} alt="shield" className="w-5 h-5"/>
-                                <p className="w-full text-center">{String(pointsMatrix[0][1])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[0][1])}`}>{String(pointsMatrix[0][1])}</p>
                             </div>
                             <div className="rounded-xl h-fit p-1">
                                 <img src={BullHead} alt="run" className="w-5 h-5"/>
-                                <p className="w-full text-center text-red-600">{String(pointsMatrix[0][2])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[0][2])}`}>{String(pointsMatrix[0][2])}</p>
                             </div>
           
                         </div>
                     }
                     <img 
                         src={Swords} alt="swords" 
-                        className={`z-10 absolute w-16 h-16 ${selectedPerk === 0 && `bg-green-400 p-2 rounded-lg border-[1px] border-black`} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
+                        className={`z-10 absolute w-16 h-16 ${(perksLocked || status !== "playing") && 'opacity-50'}`}
 
-                        onClick={!perksLocked ? () => setPreviewPerk(0) : undefined}
-                        onMouseDown={previewPerk === 0 ? () => handleMouseDown(0) : undefined} 
-                        onMouseUp={previewPerk === 0 ? handleMouseUp : undefined} 
-                        onTouchStart={previewPerk === 0 ? () => handleMouseDown(0) : undefined} 
-                        onTouchEnd={previewPerk === 0 ? handleMouseUp : undefined} 
+                        onClick={(!perksLocked && status == "playing") ? () => setPreviewPerk(0) : undefined}
+                        onMouseDown={(!perksLocked && status == "playing" && previewPerk === 0) ? () => handleMouseDown(0) : undefined} 
+                        onMouseUp={(!perksLocked && status == "playing" && previewPerk === 0) ? handleMouseUp : undefined} 
+                        onTouchStart={(!perksLocked && status == "playing" && previewPerk === 0) ? () => handleMouseDown(0) : undefined} 
+                        onTouchEnd={(!perksLocked && status == "playing" && previewPerk === 0) ? handleMouseUp : undefined} 
                     />
                     {
                         previewPerk === 0 &&
@@ -813,28 +848,28 @@ export default function Bullrun() {
                         >
                             <div className="rounded-xl h-fit p-1">
                                 <img src={Swords} alt="swords" className="w-5 h-5"/>
-                                <p className="w-full text-center text-green-600">{String(pointsMatrix[1][0])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[1][0])}`}>{String(pointsMatrix[1][0])}</p>
                             </div>
                             <div className="rounded-xl h-fit p-1">
                                 <img src={Shield} alt="shield" className="w-5 h-5"/>
-                                <p className="w-full text-center">{String(pointsMatrix[1][1])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[1][1])}`}>{String(pointsMatrix[1][1])}</p>
                             </div>
                             <div className="rounded-xl h-fit p-1">
                                 <img src={BullHead} alt="run" className="w-5 h-5"/>
-                                <p className="w-full text-center text-red-600">{String(pointsMatrix[1][2])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[1][2])}`}>{String(pointsMatrix[1][2])}</p>
                             </div>
           
                         </div>
                     }
                     <img 
                         src={Shield} alt="shield" 
-                        className={`z-10 absolute top-2 w-16 h-16 ${selectedPerk === 1 && 'bg-green-400 p-2 rounded-lg border-[1px] border-black'} ${(perksLocked || status !== "playing") && 'opacity-50'}`}
+                        className={`z-10 absolute top-2 w-16 h-16 ${(perksLocked || status !== "playing") && 'opacity-50'}`}
 
-                        onClick={!perksLocked ? () => setPreviewPerk(1) : undefined}
-                        onMouseDown={previewPerk === 1 ? () => handleMouseDown(1) : undefined}
-                        onMouseUp={previewPerk === 1 ? handleMouseUp : undefined} 
-                        onTouchStart={previewPerk === 1 ? () => handleMouseDown(1) : undefined} 
-                        onTouchEnd={previewPerk === 1 ? handleMouseUp : undefined} 
+                        onClick={(!perksLocked && status == "playing") ? () => setPreviewPerk(1) : undefined}
+                        onMouseDown={(!perksLocked && status == "playing" && previewPerk === 1) ? () => handleMouseDown(1) : undefined}
+                        onMouseUp={(!perksLocked && status == "playing" && previewPerk === 1) ? handleMouseUp : undefined} 
+                        onTouchStart={(!perksLocked && status == "playing" && previewPerk === 1) ? () => handleMouseDown(1) : undefined} 
+                        onTouchEnd={(!perksLocked && status == "playing" && previewPerk === 1) ? handleMouseUp : undefined} 
                     
                     />
                     {
@@ -855,15 +890,15 @@ export default function Bullrun() {
                         >
                             <div className="rounded-xl h-fit p-1">
                                 <img src={Swords} alt="swords" className="w-5 h-5"/>
-                                <p className="w-full text-center text-green-600">{String(pointsMatrix[2][0])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[2][0])}`}>{String(pointsMatrix[2][0])}</p>
                             </div>
                             <div className="rounded-xl h-fit p-1">
                                 <img src={Shield} alt="shield" className="w-5 h-5"/>
-                                <p className="w-full text-center">{String(pointsMatrix[2][1])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[2][1])}`}>{String(pointsMatrix[2][1])}</p>
                             </div>
                             <div className="rounded-xl h-fit p-1">
                                 <img src={BullHead} alt="run" className="w-5 h-5"/>
-                                <p className="w-full text-center text-red-600">{String(pointsMatrix[2][2])}</p>
+                                <p className={`w-full text-center text-black ${getPerkPointsColor(pointsMatrix[2][2])}`}>{String(pointsMatrix[2][2])}</p>
                             </div>
           
                         </div>
@@ -872,14 +907,13 @@ export default function Bullrun() {
                         src={BullHead} 
                         alt="run"
                         className={`z-10 absolute top-1 w-16 h-16 
-                                    ${selectedPerk === 2 ? 'bg-green-400 p-2 rounded-lg border-[1px] border-black' : ''} 
                                     ${(perksLocked || status !== "playing") ? 'opacity-50' : ''}`}
                                     
-                        onClick={!perksLocked ? () => setPreviewPerk(2) : undefined}
-                        onMouseDown={previewPerk === 2 ? () => handleMouseDown(2) : undefined} 
-                        onMouseUp={previewPerk === 2 ? handleMouseUp : undefined} 
-                        onTouchStart={previewPerk === 2 ? () => handleMouseDown(2) : undefined} 
-                        onTouchEnd={previewPerk === 2 ? handleMouseUp : undefined}
+                        onClick={(!perksLocked && status == "playing") ? () => setPreviewPerk(2) : undefined}
+                        onMouseDown={(!perksLocked && status == "playing" && previewPerk === 2) ? () => handleMouseDown(2) : undefined} 
+                        onMouseUp={(!perksLocked && status == "playing" && previewPerk === 2) ? handleMouseUp : undefined} 
+                        onTouchStart={(!perksLocked && status == "playing" && previewPerk === 2) ? () => handleMouseDown(2) : undefined} 
+                        onTouchEnd={(!perksLocked && status == "playing" && previewPerk === 2) ? handleMouseUp : undefined}
                     />
                     {
                         previewPerk === 2 && (

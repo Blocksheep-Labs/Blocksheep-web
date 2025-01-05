@@ -516,7 +516,7 @@ export default function Bullrun() {
             socket.on("progress-updated", async(progress) => {
                 console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
                 if (progress.property === "game3-complete") {
-                    alert(`COMPLETE++ ${amountOfConnected}, ${amountOfPlayersCompleted + 1}`);
+                    //alert(`COMPLETE++ ${amountOfConnected}, ${amountOfPlayersCompleted + 1}`);
                     console.log( "game3-complete", amountOfConnected, amountOfPlayersCompleted + 1)
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                     if (amountOfConnected <= amountOfPlayersCompleted + 1) {

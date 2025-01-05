@@ -170,11 +170,28 @@ function RabbitHoleGame() {
 
       socket.on('leaved', (data) => {
         if (data.raceId == raceId && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part)) {
-          console.log("LEAVED")
-          setAmountOfConnected(prev => Math.max(0, prev - 1));
-
+          
           if (raceId == data.raceId) {
             setAmountOfPending(prev => Math.max(0, prev - 1));
+            setAmountOfConnected(prev => Math.max(0, prev - 1));
+
+            if (pendingTransactions.size > 0) {
+              // remove from pending transactions
+              const newSet = new Set(pendingTransactions);
+              newSet.delete(data?.userAddress);
+              setPendingTransactions(newSet);
+  
+              // check if all transactions are processed
+              const pendingCount = newSet.size;
+              console.log("Pending transactions:", pendingCount);
+  
+              if (pendingCount === 0 && phase !== "Reset") {
+                console.log("All transactions processed.");
+                socket.emit("tunnel-started", { raceId });
+                triggerAnimationsOpen();
+              }
+            }
+            socket.emit("get-connected", { raceId });
           }
         }
       });
@@ -254,11 +271,11 @@ function RabbitHoleGame() {
       });
       
       socket.on("race-fuel-all-tunnel", async(progress) => {
-        console.log(">>>>>>> UPDATING USERS FUEL DATA")
+        //console.log(">>>>>>> UPDATING USERS FUEL DATA")
         const usersData = progress.progresses;
 
 
-        console.log(usersData, usersData.length)
+        //console.log(usersData, usersData.length)
 
         // if (usersData.length < 1) return;
 
@@ -342,7 +359,7 @@ function RabbitHoleGame() {
             console.log("Pending transactions:", pendingCount);
 
             if (pendingCount === 0 && phase !== "Reset") {
-              //console.log("All transactions processed. Starting the tunnel...");
+              console.log("All transactions processed.");
               socket.emit("tunnel-started", { raceId });
               triggerAnimationsOpen();
             }
@@ -363,12 +380,13 @@ function RabbitHoleGame() {
             newSet.delete(progress.userAddress);
             setPendingTransactions(newSet);
 
+            console.log("PENDING TXS:", newSet, newSet.size)
             // check if all transactions are processed
             const pendingCount = newSet.size;
             //console.log("Pending transactions:", pendingCount);
 
             if (pendingCount === 0 && phase !== "Reset") {
-              //console.log("All transactions processed. Starting the tunnel...");
+              console.log("All transactions processed.");
               socket.emit("tunnel-started", { raceId });
               triggerAnimationsOpen();
             }
@@ -807,6 +825,20 @@ function RabbitHoleGame() {
       default:
         break;
     }
+
+    // update Player List By Eliminating them
+    players.forEach(player => {
+      if (!newListOfPlayers.map(i => i.address).includes(player.address)) {
+        if (!player.isEliminated) {
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: player.address,
+            property: "game2-eliminate",
+            version,
+          });
+        }
+      }
+    })
     
     //console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
     //console.log("BONUSES", {bonuses});

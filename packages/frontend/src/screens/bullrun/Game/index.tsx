@@ -412,7 +412,7 @@ export default function Bullrun() {
             // Check if there are no players left
             
             if (amount <= 1 && gamesPlayed > 1 && status !== "playing") {
-                alert(`here! 402, gamesPlayed: ${gamesPlayed}, amount: ${amount}, status: ${status}`)
+                // alert(`here! 402, gamesPlayed: ${gamesPlayed}, amount: ${amount}, status: ${status}`)
                 setStatus('finished'); 
                 bullrunGetWinnerAndSetPoints(); 
             }

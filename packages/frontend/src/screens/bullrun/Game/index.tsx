@@ -392,18 +392,6 @@ export default function Bullrun() {
                         amountOfGamesRequired: Number(data.numberOfPlayersRequired) - 1 
                     });
                 });
-        
-                socket.on('amount-of-connected', ({ amount, raceId }) => {
-                    console.log(`Players connected: ${amount} ${raceId}`);
-                    setAmountOfConnected(amount);
-                    // Check if there are no players left
-                    /*
-                    if (amount <= 1) {
-                        setStatus('finished'); 
-                        bullrunGetWinnerAndSetPoints(); 
-                    }
-                    */
-                });
             });
 
             return () => {
@@ -415,6 +403,25 @@ export default function Bullrun() {
             };
         }
     }, [raceId, smartAccountAddress]);
+
+
+    useEffect(() => {
+        socket.on('amount-of-connected', ({ amount, raceId }) => {
+            console.log(`Players connected: ${amount} ${raceId}`);
+            setAmountOfConnected(amount);
+            // Check if there are no players left
+            
+            if (amount <= 1 && gamesPlayed > 1 && status !== "playing") {
+                alert(`here! 402, gamesPlayed: ${gamesPlayed}, amount: ${amount}, status: ${status}`)
+                setStatus('finished'); 
+                bullrunGetWinnerAndSetPoints(); 
+            }
+        });
+
+        return () => {
+            socket.off('amount-of-connected');
+        }
+    }, [gamesPlayed, status]);
 
 
     // handle pending events
@@ -452,6 +459,16 @@ export default function Bullrun() {
                         setAmountOfPending(prev => Math.max(0, prev - 1));
                         setRoundStarted(false);
                     }
+
+                    /*
+                    if (!opponent) {
+                        const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
+                        if (gamesPlayed >= totalRequiredGames) {
+                            pause();
+                            setStatus('finished');
+                        }
+                    }
+                    */
                 }
             });
 
@@ -484,7 +501,16 @@ export default function Bullrun() {
                 socket.off('joined');
             }
         }
-    }, [raceId, smartAccountAddress, opponent, amountOfPending, raceData, winModalIsOpened, amountOfConnected]);
+    }, [
+        raceId, 
+        smartAccountAddress, 
+        opponent, 
+        amountOfPending, 
+        raceData, 
+        winModalIsOpened, 
+        amountOfConnected, 
+        gamesPlayed
+    ]);
 
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress && raceData) {

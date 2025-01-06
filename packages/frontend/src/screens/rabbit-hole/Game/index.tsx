@@ -340,6 +340,8 @@ function RabbitHoleGame() {
               updatedPlayers.push(updatedPlayer);
             }
           });
+
+          console.log(updatedPlayers.map(i => ({eliminated: i.isEliminated, completed: i.isCompleted})));
       
           return updatedPlayers.sort((a, b) => a.id - b.id);
         });
@@ -826,10 +828,12 @@ function RabbitHoleGame() {
         break;
     }
 
+    console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
     // update Player List By Eliminating them
     players.forEach(player => {
       if (!newListOfPlayers.map(i => i.address).includes(player.address)) {
         if (!player.isEliminated) {
+          console.log("ELIMINATE!", player.address, player.Fuel)
           socket.emit("update-progress", {
             raceId,
             userAddress: player.address,
@@ -837,10 +841,24 @@ function RabbitHoleGame() {
             version,
           });
         }
+
+        if (!player.isCompleted) {
+          console.log("COMPLETE!", player.address, player.Fuel)
+          socket.emit("update-progress", {
+            raceId,
+            userAddress: player.address,
+            property: "game2-complete",
+            value: {
+              isWon: false,
+              pointsAllocated: 0,
+            },
+            version,
+          });
+          
+        }
       }
     })
     
-    //console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
     //console.log("BONUSES", {bonuses});
 
     // get bonus for current user
@@ -876,13 +894,15 @@ function RabbitHoleGame() {
       if (bonuses.length <= 1) {
         // if user has lost the game
         if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
-          //console.log("YOU LOSE :(")
+          console.log("YOU LOSE :(")
+          /*
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
             property: "game2-eliminate",
             version,
           });
+          */
   
           if (!isGameOver) {
             const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
@@ -898,7 +918,7 @@ function RabbitHoleGame() {
   
         // if the user is one in players array -> he won
         if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
-          //console.log("YOU WIN!");
+          console.log("YOU WIN!");
           setAmountOfAllocatedPoints(3);
           handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
           setIsRolling(false);
@@ -907,13 +927,15 @@ function RabbitHoleGame() {
   
         // if all the remaining players are sitting with 0 available fuel
         if (newListOfPlayers.map(i => i.maxAvailableFuel).every(i => i == 0)) {
-          //console.log("YOU LOSE :( (all 0)")
+          console.log("YOU LOSE :( (all 0)")
+          /*
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
             property: "game2-eliminate",
             version
           });
+          */
           handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints, true);
           return;
         }

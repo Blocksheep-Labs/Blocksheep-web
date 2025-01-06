@@ -69,14 +69,16 @@ module.exports = (io) => {
             const roomsToEmitDisconnectEvent = userConnection ? [userConnection.room] : [];
 
             // Log the disconnect attempt
+            /*
             console.log("Disconnect attempt for socket:", {
                 socketId: socket.id,
                 foundUser: userConnection,
                 allConnectedUsers: connectedUsers.map(u => ({id: u.id, room: u.room, address: u.userAddress}))
             });
+            */
             
             if (!userConnection) {
-                console.log("No user active session, skip leave event");
+                //console.log("No user active session, skip leave event");
                 return;
             }
 
@@ -86,12 +88,12 @@ module.exports = (io) => {
 
                 const usersInRace = connectedUsers.filter(u => u.raceId == userConnection.raceId);
                 if (usersInRace.length == 0) {
-                    console.log("[alert] no users in game left!");
-                    console.log(userConnection)
+                    //console.log("[alert] no users in game left!");
+                    //console.log(userConnection)
                     // Reset the latest screen to initial state when all users disconnect
                     const roomScreenIndex = roomsLatestScreen.findIndex(i => i.raceId == userConnection.raceId);
                     if (roomScreenIndex == -1) {
-                        console.log("no screen found, set:", screens[0]);
+                        //console.log("no screen found, set:", screens[0]);
                         roomsLatestScreen.push({
                             raceId: userConnection.raceId,
                             screen: screens[0]
@@ -101,10 +103,10 @@ module.exports = (io) => {
                         const screenPos = screens.indexOf(screen);
                         
                         if (screens.length - 1 >= screenPos + 1) {
-                            console.log("switching to next screen. set:", screens[screenPos + 1]);
+                            //console.log("switching to next screen. set:", screens[screenPos + 1]);
                             roomsLatestScreen[roomScreenIndex].screen = screens[screenPos + 1];
                         } else {
-                            console.log("switching to next screen (last one), set:", screens[screens.length - 1]);
+                            //console.log("switching to next screen (last one), set:", screens[screens.length - 1]);
                             roomsLatestScreen[roomScreenIndex].screen = screens[screens.length - 1];
                         }
                     }
@@ -145,11 +147,12 @@ module.exports = (io) => {
                         ...(waitingPlayers[userConnection.raceId] || []),
                         ...(inGamePlayers[userConnection.raceId] || [])
                     ];
-                    
+                    /*
                     console.log("Remaining players:", remainingPlayers.map(p => ({
                         id: p.id,
                         address: p.userAddress
                     })));
+                    */
 
                     const remainingPlayersCount = remainingPlayers.length;
 
@@ -193,18 +196,20 @@ module.exports = (io) => {
                     });
                 }
 
+                /*
                 console.log("User disconnected:", {
                     socketId: socket.id,
                     userAddress: userConnection.userAddress,
                     rooms: roomsToEmitDisconnectEvent
                 });
+                */
             }
         });
     
         // connect the live
         socket.on('connect-live-game', ({ raceId, userAddress, part }) => {
             const roomName = `race-${raceId}`;
-            console.log("Connect live game", roomName, userAddress, part);
+            //console.log("Connect live game", roomName, userAddress, part);
 
             // Remove any existing connections for this user address
             connectedUsers = connectedUsers.filter(user => 
@@ -221,11 +226,13 @@ module.exports = (io) => {
             });
 
             // Log current connections for debugging
+            /*
             console.log("Current connections:", connectedUsers.map(u => ({
                 socketId: u.id,
                 address: u.userAddress,
                 room: u.room
             })));
+            */
 
             // set latest screen
             const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
@@ -309,20 +316,35 @@ module.exports = (io) => {
             // clone to avoid issues
             const updatedRProgress = JSON.parse(JSON.stringify(rProgress));
 
+
             if (property === 'game2-eliminate') {
-                // Set all other players' fuels to 0 to achieve proper state handling
+                // Set the fuel of all players who are not connected to 0
                 racesProgresses.forEach(progress => {
-                    if (progress.userAddress !== userAddress) {
+                    // Check if the player is not the eliminating player and is not connected
+                    if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
                         progress.progress.game2[version] = {
-                            ...rProgress.progress.game2[version],
+                            ...progress.progress.game2[version],
                             game: {
-                                ...rProgress.progress.game2[version].game,
-                                fuel: 0,
+                                ...progress.progress.game2[version].game,
+                                fuel: 0, // Set fuel to 0 for players who are not connected
                             }
                         };
                     }
                 });
+
+                // Set the fuel of the eliminating player to 0
+                const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
+                if (eliminatingPlayerProgress) {
+                    eliminatingPlayerProgress.progress.game2[version] = {
+                        ...eliminatingPlayerProgress.progress.game2[version],
+                        game: {
+                            ...eliminatingPlayerProgress.progress.game2[version].game,
+                            fuel: 0, // Set fuel to 0 for the eliminating player
+                        }
+                    };
+                }
             }
+            
 
             const updatedProgress = updateProgress(property, value, updatedRProgress, version);
 
@@ -395,7 +417,7 @@ module.exports = (io) => {
 
 
         socket.on('set-tunnel-state', ({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished }) => {
-            console.log({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished })
+            //console.log({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished })
             const roomName = `race-${raceId}`;
             const currData = tunnelState.find(i => i.room == roomName);
             //console.log("Data:", currData)
@@ -569,7 +591,7 @@ module.exports = (io) => {
         });
 
         socket.on('bullrun-join-game', async({ raceId, userAddress, amountOfGamesRequired }) => {
-            console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
+            //console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
             const roomName = `race-${raceId}`;
             socket.join(roomName);
         
@@ -605,11 +627,11 @@ module.exports = (io) => {
             activePlayers[raceId] = [...(activePlayers[raceId] || []), ...(waitingPlayers[raceId] || [])];
             waitingPlayers[raceId] = [];
         
-            console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
+            //console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
             if (!activePlayers[raceId].some(p => p.userAddress === userAddress)) {
                 activePlayers[raceId].push(socket); 
             }
-            console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => ({id: i.id, address: i.userAddress})));
+            //console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => ({id: i.id, address: i.userAddress})));
         
             // Pair players and start the game
             function pairPlayers() {
@@ -694,7 +716,7 @@ module.exports = (io) => {
             function incrementGameCount(player1, player2) {
                 gameCounts[raceId][player1.userAddress]++;
                 gameCounts[raceId][player2.userAddress]++;
-                console.log(`Incremented gameCounts for players: ${player1.userAddress} (${gameCounts[raceId][player1.userAddress]}) and ${player2.userAddress} (${gameCounts[raceId][player2.userAddress]})`);
+                //console.log(`Incremented gameCounts for players: ${player1.userAddress} (${gameCounts[raceId][player1.userAddress]}) and ${player2.userAddress} (${gameCounts[raceId][player2.userAddress]})`);
             }
         
             pairPlayers();

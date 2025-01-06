@@ -14,7 +14,7 @@ import UnderdogCover from "./screens/underdog/Intro";
 import UnderdogRules from "./screens/underdog/Rules";
 import RabbitHoleRules from "./screens/rabbit-hole/Rules";
 import RabbitHoleCover from "./screens/rabbit-hole/Intro";
-import StatsScreen from "./screens/addons/StatsScreen";
+import StatsScreen from "./screens/addons/Stats";
 import RateScreen from "./screens/addons/RateScreen";
 import BullrunCover from "./screens/bullrun/Intro";
 import BullrunRules from "./screens/bullrun/Rules";

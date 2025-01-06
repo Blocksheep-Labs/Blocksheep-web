@@ -1,13 +1,14 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {useEffect, useState} from "react";
-import {getRaceById} from "../../utils/contract-functions";
-import {useSmartAccount} from "../../hooks/smartAccountProvider";
-import shortenAddress from "../../utils/shortenAddress";
-import StatsImage from "../../assets/stats/podium.png";
-import WhiteSheepImage from "../../assets/rabbit-hole/sheeepy.png";
-import BlackSheepImage from "../../assets/rabbit-hole/blacksheep.png";
-import NextFlag from "../../assets/common/flag.png";
-import { httpGetRaceDataById } from "../../utils/http-requests";
+import {getRaceById} from "../../../utils/contract-functions";
+import {useSmartAccount} from "../../../hooks/smartAccountProvider";
+import shortenAddress from "../../../utils/shortenAddress";
+import StatsImage from "./assets/images/podium.png";
+import WhiteSheepImage from "./assets/images/sheeepy.png";
+import BlackSheepImage from "./assets/images/blacksheep.png";
+import NextFlag from "../../../assets/common/flag.png";
+import { httpGetRaceDataById } from "../../../utils/http-requests";
+import PodiumBGImage from "./assets/images/podiumbg.png";
 
 export default function StatsScreen() {
     const navigate = useNavigate();
@@ -43,65 +44,87 @@ export default function StatsScreen() {
                 console.log("PROGRESS:", newProgress);
                 
                 setUsers(data.serverData.race.users);
+                /*
+                setUsers([
+                    {
+                        address: "0xd8Fa137051acD7f3964524485be4b9A10CA22E94",
+                        name: "bada9te",
+                    },
+                    {
+                        address: "0xd8ea137051acD7f3964524485be4b9A10CA22E94",
+                        name: "bada9te2",
+                    },
+                    {
+                        address: "0xd8na137051acD7f3964524485be4b9A10CA22E94",
+                        name: "bada9te1",
+                    }
+                ]);
+                */
             });
         }
     }, [raceId, smartAccountAddress]);
 
 
+
+
     return (
-        <div className="relative mx-auto flex w-full flex-col bg-[#4c9230]" style={{ height: `${window.innerHeight}px` }}>
+        <div className={`relative mx-auto flex w-full flex-col bg-center bg-top`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
             <div className="h-[60%] w-full flex justify-center relative">
-                <img src={StatsImage} alt="stats image"/>
+
 
 
                 {
                     users && users.length >= 2 &&
-                    <div className="absolute w-10 left-[108px] top-[60.5%]" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div className="absolute w-16 left-[75px] top-[250px] flex items-center justify-center flex-col" style={{ transform: 'translate(-50%, -50%)' }}>
                         { 
                             // LEFT
                         }
-                        <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
-                            {stats && users && users.find(j => j.address == stats[1]?.address)?.name} 
+                        <p className="bg-black font-bold text-white text-[10px] p-1 rounded-xl z-10 text-center">
+                            {stats && users && (users.find(j => j.address == stats[1]?.address)?.name || "Unknown")} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="left"/>
+                        <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-16" alt="left"/>
                     </div>
                 }
                 
                 {
                     users && users.length >= 1 &&
-                    <div className="absolute w-10 top-[51%] left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div className="absolute w-24 top-[200px] left-[50%] flex items-center justify-center flex-col" style={{ transform: 'translate(-50%, -50%)' }}>
                         { 
                             // CENTER
                         }
-                        <p className="bg-black font-bold text-white text-[7px] p-1 rounded-xl z-10 text-center">
+                        <p className="bg-black font-bold text-white text-[14px] p-1 rounded-xl z-10 text-center w-fit">
                             {stats && users && users.find(j => j.address == stats[0]?.address)?.name} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="center"/>
+                        <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-24" alt="center"/>
                     </div>
                 }
 
                 {
                     users && users.length >= 3 &&
-                    <div className="absolute w-10 right-[88px] top-[51%]">
+                    <div className="absolute w-12 right-[55px] top-[225px] flex items-center justify-center flex-col">
                         { 
                             // RIGHT
                         }
-                        <p className="bg-black text-center font-bold text-white text-[7px] p-1 rounded-xl z-10">
-                            {stats && users && users.find(j => j.address == stats[2]?.address)?.name} 
+                        <p className="bg-black text-center font-bold text-white text-[8px] p-1 rounded-xl z-10">
+                            {stats && users && (users.find(j => j.address == stats[2]?.address)?.name || "Unknown")} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} alt="right"/>
+                        <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-12" alt="right"/>
                     </div>
                 }
 
-                <p className="text-white font-bold text-center absolute top-[40%] w-full">
-                    {
-                        date.toLocaleDateString("en-GB", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                        })
-                    }
-                </p>
+                {
+                    /*
+                        <p className="text-white font-bold text-center absolute top-[40%] w-full">
+                            {
+                                date.toLocaleDateString("en-GB", {
+                                    year: "numeric",
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                })
+                            }
+                        </p>
+                    */
+                }
             </div>
             <div className="h-[40%] p-5">
                 <div className="bg-[#e1dfe2] h-full">
@@ -127,7 +150,7 @@ export default function StatsScreen() {
                 className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
                 onClick={() => navigate('/select', { replace: true })}
                 >
-                    Home
+                    Next
                 </button>
                 <img src={NextFlag} alt="next-flag" />
             </div>

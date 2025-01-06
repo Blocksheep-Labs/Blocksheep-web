@@ -1,14 +1,14 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {useEffect, useState} from "react";
 import {getRaceById} from "../../../utils/contract-functions";
 import {useSmartAccount} from "../../../hooks/smartAccountProvider";
 import shortenAddress from "../../../utils/shortenAddress";
-import StatsImage from "./assets/images/podium.png";
 import WhiteSheepImage from "./assets/images/sheeepy.png";
 import BlackSheepImage from "./assets/images/blacksheep.png";
 import NextFlag from "../../../assets/common/flag.png";
 import { httpGetRaceDataById } from "../../../utils/http-requests";
 import PodiumBGImage from "./assets/images/podiumbg.png";
+import generateLink from "../../../utils/linkGetter";
 
 export default function StatsScreen() {
     const navigate = useNavigate();
@@ -18,6 +18,10 @@ export default function StatsScreen() {
     const [users, setUsers] = useState<any[]>([]);
     
     const date = new Date();
+
+    const handleMoveToNext = () => {
+        navigate(generateLink("LEVEL_UPDATE", Number(raceId)));
+    }
 
     useEffect(() => {
         if (raceId?.length && smartAccountAddress) {
@@ -148,7 +152,7 @@ export default function StatsScreen() {
             <div className="absolute bottom-0 right-0 w-[40%]">
                 <button
                 className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
-                onClick={() => navigate('/select', { replace: true })}
+                onClick={handleMoveToNext}
                 >
                     Next
                 </button>

@@ -24,7 +24,8 @@ export type TFlowPhases =
     "STORY_PART_4" | 
     "STORY_CONCLUSION" |
     "RATE" | 
-    "PODIUM"
+    "PODIUM" | 
+    "LEVEL_UPDATE"
 ;
 
 export default function generateLink(phase: TFlowPhases, raceId: number) {
@@ -63,6 +64,8 @@ export default function generateLink(phase: TFlowPhases, raceId: number) {
         case "STORY_CONCLUSION": return `/race/${raceId}/story/conclusion`
         case "RATE": return `/race/${raceId}/rate`
         case "PODIUM": return `/race/${raceId}/stats`
+
+        case "LEVEL_UPDATE": return `/race/${raceId}/level-update`
 
         default: return "/"
     }

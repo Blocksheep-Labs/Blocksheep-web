@@ -8,6 +8,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import { getRaceById } from "../../../utils/contract-functions";
 import { httpGetRaceDataById } from "../../../utils/http-requests";
+import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
+import { socket } from "../../../utils/socketio";
 
 export default function LevelUpdateScreen() {
     const navigate = useNavigate();
@@ -16,6 +18,7 @@ export default function LevelUpdateScreen() {
     const [stats, setStats] = useState<{curr: number; address: string}[] | undefined>(undefined);
     const [users, setUsers] = useState<any[]>([]);
     const [averageStatus, setAverageStatus] = useState<"above" | "below" | null>(null);
+    const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const tipRef = useRef<HTMLDivElement>(null);
     const sheepRef = useRef<HTMLImageElement>(null);
@@ -74,14 +77,21 @@ export default function LevelUpdateScreen() {
                 }
 
                 console.log("PROGRESS:", newProgress);
+
+                setSecondsVisual(10);
                 
                 setUsers(data.serverData.race.users);
+
+                setTimeout(() => {
+                    navigate('/select');
+                }, 10 * 1000);
             });
         }
     }, [raceId, smartAccountAddress]);
 
     return (
         <div className="relative w-full h-full bg-gradient-to-b from-[#5861c8] to-[#84bbf4]">
+             <TopPageTimer duration={secondsVisual * 1000} />
             <div className="z-50 absolute top-72 -left-64 transition-all duration-800" ref={tipRef}>
                 <div className="relative">
                     <div 

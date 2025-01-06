@@ -63,7 +63,7 @@ export default function Bullrun() {
 
     const [status, setStatus] = useState('waiting'); // could be 'playing', 'waiting', or 'finished'
     const [opponent, setOpponent] = useState<{id: string, userAddress: string} | undefined>(undefined);
-    const [gamesPlayed, setGamesPlayed] = useState(1);
+    const [gamesPlayed, setGamesPlayed] = useState(0);
     const [yourLastPerk, setYourLastPerk] = useState(-1);
     const [lastOpponentPerk, setLastOpponentPerk] = useState(-1);
     const [listOfPreviousPerksByOpponent, setListOfPreviousPerksByOpponent] = useState<any[]>([]);
@@ -411,7 +411,7 @@ export default function Bullrun() {
             setAmountOfConnected(amount);
             // Check if there are no players left
             
-            if (amount <= 1 && gamesPlayed > 1 && status !== "playing") {
+            if (amount <= 1 && gamesPlayed > 0 && status !== "playing") {
                 // alert(`here! 402, gamesPlayed: ${gamesPlayed}, amount: ${amount}, status: ${status}`)
                 setStatus('finished'); 
                 bullrunGetWinnerAndSetPoints(); 
@@ -628,7 +628,7 @@ export default function Bullrun() {
         
         // Calculate total required games using combination formula
         const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
-        if (gamesPlayed >= totalRequiredGames) {
+        if (gamesPlayed + 1 >= totalRequiredGames) {
             pause();
             setStatus('finished');
         }

@@ -689,6 +689,22 @@ export default function Bullrun() {
         }
     }, [socket, smartAccountAddress, raceId]);
 
+    // if amount of connected users is 1, and nobody connects in 5000 seconds,
+    // show win modal
+    useEffect(() => {
+        const tID = setTimeout(() => {
+            // on game idle
+            if (amountOfConnected === 1 && status !== "playing") {
+                console.log("No players to pair, skipping the game...");
+                bullrunGetWinnerAndSetPoints();
+            }
+        }, 4000);
+
+        return () => {
+            clearInterval(tID);
+        }
+    }, [amountOfConnected, status]);
+
     return (
         <div className="mx-auto flex w-full flex-col bg-bullrun_bg bg-cover bg-no-repeat bg-center justify-center items-center gap-4 relative" style={{ height: `${window.innerHeight}px` }}>
             { 

@@ -125,6 +125,8 @@
     animation:
       button-grow 2s forwards 3.5s,
       pulse 1.2s infinite 4.5s;
+
+    transition: transform 0.2s;
   }
   
   @keyframes button-grow {
@@ -203,4 +205,18 @@
 /* highlight style */
 .highlight {
   color: rgba(255, 255, 0, 0.7);;
+}
+
+.hover-effect {
+  transform: scale(1.1); /* Scale up on hover */
+}
+
+.clicked-effect {
+  transform: scale(0.9); /* Scale down on click */
+  animation: click-animation 0.1s forwards; /* Optional animation */
+}
+
+@keyframes click-animation {
+  0% { transform: scale(1); }
+  100% { transform: scale(0.9); }
 }

@@ -641,6 +641,14 @@ function RabbitHoleGame() {
       });
       socket.emit("get-all-fuel-tunnel", { raceId });
       setPhase("OpenTunnel");
+
+      // if user is one in race and eliminated, go on with animations without waiting for other (leaved) players
+      if (amountOfConnected <= 1 && userIsLost) {
+        console.log('user is one in race and eliminated, go on with animations without waiting for other (leaved) players');
+        setTimeout(() => {
+          triggerAnimationsOpen();
+        }, 3500);
+      }
     }, 3000);
   };
 

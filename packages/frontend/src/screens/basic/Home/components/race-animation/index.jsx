@@ -13,6 +13,7 @@ const UniqueRaceAnimation = (props) => {
     const [textAnimationComplete, setTextAnimationComplete] = useState(false);
     const [showFinalElements, setShowFinalElements] = useState(false);
     const [showButton, setShowButton] = useState(false);
+    const [isClicked, setIsClicked] = useState(false);
 
     useEffect(() => {
         // Show text immediately
@@ -75,8 +76,16 @@ const UniqueRaceAnimation = (props) => {
             <img
               src={PlayImage}
               alt="Play Button"
-              className="play-button bg-transparent"
-              onClick={handleClick}
+              className={`play-button bg-transparent transition-all duration-300`}
+              style={{ 
+                opacity: isClicked ? 0.5 : 1,
+                bottom:  isClicked ? '-25%' : '5%'
+              }}
+              onClick={() => {
+                  setIsClicked(true);
+                  handleClick();
+              }}
+              onAnimationEnd={() => setIsClicked(false)}
             />
           )}
         </>

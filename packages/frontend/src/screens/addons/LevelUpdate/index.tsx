@@ -20,25 +20,30 @@ export default function LevelUpdateScreen() {
     const [averageStatus, setAverageStatus] = useState<"above" | "below" | null>(null);
     const [secondsVisual, setSecondsVisual] = useState(1000);
 
-    const tipRef = useRef<HTMLDivElement>(null);
+    const tipRefAbove = useRef<HTMLDivElement>(null);
+    const tipRefBelow = useRef<HTMLDivElement>(null);
     const sheepRef = useRef<HTMLImageElement>(null);
 
 
     useEffect(() => {
-        if (sheepRef.current && averageStatus && tipRef.current) {
+        if (sheepRef.current && averageStatus && tipRefBelow.current && tipRefAbove.current) {
             const sheepObject = sheepRef.current;
-            const tipObject = tipRef.current;
+            const tipObjectAbove = tipRefAbove.current;
+            const tipObjectBelow = tipRefBelow.current;
 
             if (averageStatus == "below") {
+                setTimeout(() => {
+                    tipObjectBelow.style.left = '-10px';
+                }, 1700);
                 sheepObject.classList.add('jump-to-bottom-animation');
             } else if (averageStatus == "above") {
                 setTimeout(() => {
-                    tipObject.style.left = '-10px';
+                    tipObjectAbove.style.left = '-10px';
                 }, 1700);
                 sheepObject.classList.add('jump-to-top-animation');
             }
         }
-    }, [sheepRef, averageStatus, tipRef]);
+    }, [sheepRef, averageStatus, tipRefAbove, tipRefBelow]);
 
 
     
@@ -92,7 +97,7 @@ export default function LevelUpdateScreen() {
     return (
         <div className="relative w-full h-full bg-gradient-to-b from-[#5861c8] to-[#84bbf4]">
              <TopPageTimer duration={secondsVisual * 1000} />
-            <div className="z-50 absolute top-72 -left-64 transition-all duration-800" ref={tipRef}>
+            <div className="z-50 absolute top-72 -left-64 transition-all duration-800" ref={tipRefAbove}>
                 <div className="relative">
                     <div 
                         className="
@@ -118,6 +123,34 @@ export default function LevelUpdateScreen() {
                     </div>
                 </div>
             </div>
+
+            <div className="z-50 absolute top-72 -left-64 transition-all duration-800" ref={tipRefBelow}>
+                <div className="relative">
+                    <div 
+                        className="
+                            w-52 h-10 bg-[#a3ae9e] border-[5px] 
+                            border-white text-black flex items-center justify-center
+                            shadow-lg
+                        "
+                        style={{ background: `radial-gradient(circle, rgba(255,158,158,1) 0%, rgba(218,81,81,1) 100%)` }}
+                    >
+                        Below average
+                    </div>
+                    <div 
+                        className="
+                            absolute -right-10 -top-3 
+                            w-16 h-16 rounded-full 
+                            bg-red-400 flex items-center justify-center 
+                            text-white border-[5px] border-white
+                            shadow-lg text-3xl
+                        "
+                        style={{ background: `radial-gradient(circle, rgba(255,158,158,1) 0%, rgba(218,81,81,1) 100%)` }}
+                    >
+                        -1
+                    </div>
+                </div>
+            </div>
+
             <div className="z-30 absolute top-0 p-10 flex flex-col items-center justify-center">
                 <img src={ProgressImage} alt="progress" />
                 <div className="w-48 mt-1 border-[4px] border-[#7e99ce] rounded-xl h-8 bg-[#030119] text-[#dac260] flex items-center justify-center text-[12px]">

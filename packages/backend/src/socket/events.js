@@ -2,6 +2,7 @@ const updateProgress = require("./update-progress");
 const underdogBaseState = require("./default-states-by-games/underdog");
 const rabbitHoleBaseState = require("./default-states-by-games/rabbit-hole");
 const bullrunBaseState = require("./default-states-by-games/bullrun");
+const { finishRace } = require("../models/users/users.model");
 
 // { room: string, id: string, userAddress: string }
 let connectedUsers = [];
@@ -51,6 +52,10 @@ let gamesRequired = {};  // number of games per player required to move to next 
 let gameCompletesAmount = {};
 let gameCompletes = {};
 let inGamePlayers = {}; // Track players currently in a game by raceId
+
+
+// PLAYER IN-GAME POINTS
+let playerPoints = [];
 
 
 module.exports = (io) => {
@@ -749,6 +754,43 @@ module.exports = (io) => {
 
             // Emit the updated amount of completed games to the room
             io.to(`race-${raceId}`).emit('bullrun-amount-of-completed-games', { gameCompletesAmount: gameCompletesAmount[raceId] });
+        });
+
+        socket.on('player-add-points', ({ raceId, points, userAddress }) => {
+            if (!playerPoints[raceId]) {
+                playerPoints[raceId] = {};
+            }
+
+            if (!playerPoints[raceId][userAddress]) {
+                playerPoints[raceId][userAddress] = { points, finished: false };
+            } else {
+                playerPoints[raceId][userAddress].points += points;
+            }
+        });
+
+        socket.on('race-finish', ({raceId, userAddress}) => {
+            if (!playerPoints[raceId]) {
+                playerPoints[raceId] = {};
+            }
+
+            if (!playerPoints[raceId][userAddress]) {
+                playerPoints[raceId][userAddress] = { points: 0, finished: true };
+            } else {
+                playerPoints[raceId][userAddress].finished = true;
+            }
+
+            const entries = Object.entries(playerPoints[raceId]);
+            const avg = entries.map(i => {
+                            return i[1].points
+                        }).reduce((prev, curr) => prev + curr, 0);
+
+            entries.forEach((i) => {
+                finishRace(
+                    i[0],
+                    i[1].points >= avg ? "increment" : "decrement",
+                    raceId
+                );
+            });
         });
     });
 

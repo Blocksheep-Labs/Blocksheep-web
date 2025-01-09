@@ -7,9 +7,53 @@ import "./assets/css/jumps.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import { getRaceById } from "../../../utils/contract-functions";
-import { httpGetRaceDataById } from "../../../utils/http-requests";
+import { httpGetRaceDataById, httpGetUserDataByAddress } from "../../../utils/http-requests";
 import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
-import { socket } from "../../../utils/socketio";
+import levelsData from "../../../config/levels.json";
+
+// bottom - px, left - %
+const positionsByLevel = {
+    1: {
+        bottom: -5, 
+        left: 22,
+    },
+    2: {
+        bottom: 30,
+        left: 26,
+    },
+    3: {
+        bottom: 65,
+        left: 30,
+    },
+    4: {
+        bottom: 95,
+        left: 35,
+    } ,
+    5: {
+        bottom: 125,
+        left: 40,
+    },
+    6: {
+        bottom: 155,
+        left: 44,
+    },
+    7: {
+        bottom: 185,
+        left: 48,
+    },
+    8: {
+        bottom: 220,
+        left: 52,
+    },
+    9: {
+        bottom: 255,
+        left: 56,
+    },
+    10: {
+        bottom: 290,
+        left: 60,
+    },
+}
 
 export default function LevelUpdateScreen() {
     const navigate = useNavigate();
@@ -17,33 +61,69 @@ export default function LevelUpdateScreen() {
     const {smartAccountAddress} = useSmartAccount();
     const [stats, setStats] = useState<{curr: number; address: string}[] | undefined>(undefined);
     const [users, setUsers] = useState<any[]>([]);
-    const [averageStatus, setAverageStatus] = useState<"above" | "below" | null>(null);
     const [secondsVisual, setSecondsVisual] = useState(1000);
+    const [level, setLevel] = useState<number | null>(null);
 
     const tipRefAbove = useRef<HTMLDivElement>(null);
     const tipRefBelow = useRef<HTMLDivElement>(null);
     const sheepRef = useRef<HTMLImageElement>(null);
 
 
+    const determineUserLevel = (gamesAboveAverage: number) => {
+        const level = levelsData.find(i => i.requiredGames == gamesAboveAverage);
+        return level?.level || 1;
+    }
+
+
     useEffect(() => {
-        if (sheepRef.current && averageStatus && tipRefBelow.current && tipRefAbove.current) {
+        if (
+            sheepRef.current &&
+            tipRefBelow.current && 
+            tipRefAbove.current &&
+            smartAccountAddress
+        ) {
             const sheepObject = sheepRef.current;
             const tipObjectAbove = tipRefAbove.current;
             const tipObjectBelow = tipRefBelow.current;
 
-            if (averageStatus == "below") {
-                setTimeout(() => {
-                    tipObjectBelow.style.left = '-10px';
-                }, 1700);
-                sheepObject.classList.add('jump-to-bottom-animation');
-            } else if (averageStatus == "above") {
-                setTimeout(() => {
-                    tipObjectAbove.style.left = '-10px';
-                }, 1700);
-                sheepObject.classList.add('jump-to-top-animation');
-            }
+            httpGetUserDataByAddress(smartAccountAddress).then(({data}) => {
+                const {gamesAboveAverage, previousGamesAboveAverage} = data.user;
+
+                // update level states
+                console.log({gamesAboveAverage, previousGamesAboveAverage})
+                const userLevel = determineUserLevel(previousGamesAboveAverage);
+                const newUserLevel = determineUserLevel(gamesAboveAverage);
+                setLevel(userLevel);
+
+                const key = userLevel as keyof typeof positionsByLevel;
+                sheepObject.style.left = `${positionsByLevel[key].left}%`;
+                sheepObject.style.bottom = `${positionsByLevel[key].bottom}px`;
+                sheepObject.style.opacity = '1';
+
+                const newLevelkey = newUserLevel as keyof typeof positionsByLevel;
+                if (gamesAboveAverage > previousGamesAboveAverage) {
+                    // above average
+                    setTimeout(() => {
+                        tipObjectAbove.style.left = '-10px';
+                        setLevel(newUserLevel);
+                        sheepObject.style.left = `${positionsByLevel[newLevelkey].left}%`;
+                        sheepObject.style.bottom = `${positionsByLevel[newLevelkey].bottom}px`;
+                    }, 1700);
+                    //sheepObject.classList.add('jump-to-top-animation');
+                } else if (gamesAboveAverage < previousGamesAboveAverage) {
+                    // below average
+                    setTimeout(() => {
+                        tipObjectBelow.style.left = '-10px';
+                        setLevel(newUserLevel);
+                        sheepObject.style.left = `${positionsByLevel[newLevelkey].left}%`;
+                        sheepObject.style.bottom = `${positionsByLevel[newLevelkey].bottom}px`;
+                    }, 1700);
+                    //sheepObject.classList.add('jump-to-bottom-animation');
+                }
+                
+            });
         }
-    }, [sheepRef, averageStatus, tipRefAbove, tipRefBelow]);
+    }, [sheepRef, tipRefAbove, tipRefBelow, smartAccountAddress]);
 
 
     
@@ -70,6 +150,7 @@ export default function LevelUpdateScreen() {
                 });
                 setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
 
+                /*
                 const myPoints = newProgress.find(i => i.address == smartAccountAddress)?.curr || 0;
                 const total = newProgress.reduce((sum, stat) => sum + stat.curr, 0);
                 const average = total / newProgress.length;
@@ -80,6 +161,7 @@ export default function LevelUpdateScreen() {
                 } else {
                     setAverageStatus("above");
                 }
+                */
 
                 console.log("PROGRESS:", newProgress);
 
@@ -154,14 +236,14 @@ export default function LevelUpdateScreen() {
             <div className="z-30 absolute top-0 p-10 flex flex-col items-center justify-center">
                 <img src={ProgressImage} alt="progress" />
                 <div className="w-48 mt-1 border-[4px] border-[#7e99ce] rounded-xl h-8 bg-[#030119] text-[#dac260] flex items-center justify-center text-[12px]">
-                    Current level: 1
+                    Current level: {(level === null) ? '--' : level}
                 </div>
             </div>
             <div className="absolute bottom-3">
                 <div className="relative">
                     <img src={StairsImage} alt="stairs" className="scale-[1.07] w-full"/>
 
-                    <img ref={sheepRef} src={SheepImage} alt="sheep" className="w-16 absolute z-30 -bottom-[5px] left-[22%]"/>
+                    <img ref={sheepRef} src={SheepImage} alt="sheep" className="w-16 absolute z-30 -bottom-[5px] left-[22%] transition-all opacity-0"/>
                 </div>
             </div>
         </div>

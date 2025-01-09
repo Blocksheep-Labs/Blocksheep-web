@@ -47,7 +47,7 @@ function SelectRaceScreen() {
     /*
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/stats`);
+        navigate(`/race/${raceId}/bullrun/rules`);
       });
       return;
     */
@@ -336,7 +336,7 @@ function SelectRaceScreen() {
       <div className="mt-16 flex w-full justify-center">
         <RibbonLabel text="Races"/>
       </div>
-      <div className="mx-8 my-4 flex h-3/5 flex-col gap-28 overflow-y-auto pt-28 items-center">
+      <div className="mt-2 pb-20 flex h-full flex-col gap-28 overflow-y-auto pt-28 items-center">
         {races &&
           races.map((r, i) => (
             <RaceItem

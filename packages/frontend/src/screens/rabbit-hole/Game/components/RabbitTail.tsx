@@ -15,7 +15,7 @@ function RabbitTail({ phase }) {
       
       setTimeout(() => {
         tail.style.transform = 'translateX(-150vw)';
-      }, 5000);
+      }, 4000);
     } else if (phase === 'Default') {
       tail.style.visibility = 'hidden';
       tail.style.transform = 'translateX(0) rotate(0) translateY(0)'; 

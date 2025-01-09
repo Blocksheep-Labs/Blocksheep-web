@@ -2,7 +2,7 @@
 import LoseMain from "../../assets/lose/lose-main.webp";
 import NextFlag from "../../assets/common/flag.png";
 
-export type WinModalProps = {
+export type LoseModalProps = {
   handleClose: () => void;
   raceId?: number;
   gameIndex?: number;
@@ -10,7 +10,7 @@ export type WinModalProps = {
   secondsLeft: number;
 };
 
-function LoseModal({ handleClose, raceId, gameIndex, preloadedScore, secondsLeft }: WinModalProps) {
+function LoseModal({ handleClose, raceId, gameIndex, preloadedScore, secondsLeft }: LoseModalProps) {
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%] relative">

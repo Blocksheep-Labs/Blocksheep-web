@@ -83,24 +83,20 @@ body{
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 667px; /* Typical iPhone Pro Max height */
+  height: fit-content;
   margin: 0;
   padding:0;
   position: relative;
-  overflow: hidden;
-
+  
 }
 
 
 .tunnel {
   position: relative; 
   z-index: 1; 
-  height: 200px;
+  height: 175px;
   width: 100%;
-  top:300px;
   background: url('./assets/rabbit-hole/tunnel-light.png') no-repeat center;
-  margin-bottom:80px;
- 
 }
 
 #StartTunnel{
@@ -164,10 +160,14 @@ body{
 
 
 .control-panels{
+  z-index: 200;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top:250px;
 }
 
 .panel{
@@ -233,10 +233,9 @@ body{
 
 .fuel-bar-container {
   position: absolute;
-  width: calc(100% - 20px); /* Adjust based on your margin needs */
-  padding: 0 10px; /* 10px margin on both sides */
+  top: 0;
+  width: calc(100%); /* Adjust based on your margin needs */
   height: 50px; /* Adjust as needed */
-
 }
 
 .fuel-line {
@@ -255,4 +254,11 @@ body{
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+}
+
+
+@media (max-width: 375px) { /* iPhone SE width */
+  .mobile-image-rh {
+    margin-top: -70px; /* Adjust this value as needed */
+  }
 }

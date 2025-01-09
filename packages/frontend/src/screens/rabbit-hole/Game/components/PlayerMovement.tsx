@@ -183,7 +183,7 @@ const PlayerMovement = ({
               src={player.src}
               alt={player.id.toString()}
             />
-            <p className="absolute top-[-20px] text-[10px] text-white bg-black font-bold px-1 rounded-full w-fit" style={{ opacity: phase == "CloseTunnel" ? 0 : 1 }}>
+            <p className="absolute top-[-20px] text-[10px] text-white bg-black px-1 rounded-full w-fit" style={{ opacity: phase == "CloseTunnel" ? 0 : 1 }}>
               {player.name}
             </p>
             
@@ -193,7 +193,7 @@ const PlayerMovement = ({
         <p
           key={player.id}
           ref={fuelRefs.current[index]}
-          className="fuel-text absolute text-[10px] text-white bg-black font-bold px-1 rounded-full w-fit"
+          className="fuel-text absolute text-[10px] text-white bg-black px-1 rounded-full w-fit"
           style={{ opacity: player.isEliminated ? 0 : 1 }}
           //style={{ position: 'absolute', transition: 'all 0.5s ease-out' }} // Set initial styles
         >

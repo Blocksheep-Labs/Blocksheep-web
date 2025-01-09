@@ -25,12 +25,20 @@ const finishRace = async(address, type, raceId) => {
         throw new Error("User was not found");
     }
 
+    if (user.finishedRaces.includes(raceId)) {
+        return;
+    }
+
+    // to track state on the frontend
+    user.previousGamesAboveAverage = user.gamesAboveAverage;
     if (type == "increment") {
         user.gamesAboveAverage++;
     }
 
     if (type == "decrement") {
-        user.gamesAboveAverage--;
+        if (user.gamesAboveAverage - 1 >= 0) {
+            user.gamesAboveAverage--;
+        }
     }
 
     user.finishedRaces.push(raceId);

@@ -13,6 +13,10 @@ const usersSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    previousGamesAboveAverage: {
+        type: Number,
+        default: 0,
+    },
     finishedRaces: [{
         type: Number,
     }]

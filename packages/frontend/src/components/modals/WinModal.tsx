@@ -4,6 +4,7 @@ import WinMain from "../../assets/win/win-main.webp";
 import NextFlag from "../../assets/common/flag.png";
 import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../../utils/contract-functions";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { socket } from "../../utils/socketio";
 
 export type WinModalProps = {
   handleClose: () => void;
@@ -27,7 +28,18 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName, se
           setScore(Number(data));
         });
     }
-  }, [raceId, gameIndex, smartAccountAddress, preloadedScore])
+  }, [raceId, gameIndex, smartAccountAddress, preloadedScore]);
+
+  // add user points on server side
+  useEffect(() => {
+    if ((preloadedScore || score) && smartAccountAddress) {
+      socket.emit('player-add-points', {
+        raceId,
+        userAddress: smartAccountAddress,
+        points: preloadedScore || score,
+      });
+    }
+  }, [preloadedScore, score, smartAccountAddress]);
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">

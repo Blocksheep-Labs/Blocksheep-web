@@ -766,6 +766,7 @@ module.exports = (io) => {
             } else {
                 playerPoints[raceId][userAddress].points += points;
             }
+            console.log({ raceId, points, userAddress });
         });
 
         socket.on('race-finish', ({raceId, userAddress}) => {
@@ -773,18 +774,26 @@ module.exports = (io) => {
                 playerPoints[raceId] = {};
             }
 
-            if (!playerPoints[raceId][userAddress]) {
-                playerPoints[raceId][userAddress] = { points: 0, finished: true };
-            } else {
-                playerPoints[raceId][userAddress].finished = true;
-            }
-
             const entries = Object.entries(playerPoints[raceId]);
             const avg = entries.map(i => {
                             return i[1].points
-                        }).reduce((prev, curr) => prev + curr, 0);
+                        }).reduce((prev, curr) => prev + curr, 0) / entries.length;
+            
+            console.log({avg})
 
             entries.forEach((i) => {
+                if (!playerPoints[raceId][i[0]]) {
+                    playerPoints[raceId][i[0]] = { points: 0, finished: true };
+                } else {
+                    playerPoints[raceId][i[0]].finished = true;
+                }
+
+                console.log(
+                    i[0],
+                    i[1].points >= avg ? "increment" : "decrement",
+                    raceId
+                )
+
                 finishRace(
                     i[0],
                     i[1].points >= avg ? "increment" : "decrement",

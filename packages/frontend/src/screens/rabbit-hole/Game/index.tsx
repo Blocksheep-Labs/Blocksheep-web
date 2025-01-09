@@ -39,6 +39,8 @@ import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGameP
 import BlackSheep from "../assets/images/blacksheep.png";
 import WhiteSheep from "../assets/images/sheeepy.png";
 import BG_Carrots from "../assets/images/backgroundcarrot.jpg";
+import CarrotSlider from "./components/slider";
+import CarrotBasket from "./components/basket";
 
 export type ConnectedUser = {
     id: number;
@@ -127,6 +129,7 @@ function RabbitHoleGame() {
         //closeWaitingModal();
         //(">>>> STARTING... <<<<", {timerIsRunning, isRolling})
 
+        // TODO: uncomment here
         !timerIsRunning && resume();
         !isRolling && start();
       }
@@ -1045,10 +1048,12 @@ function RabbitHoleGame() {
           <UserCount currentAmount={amountOfConnected} requiredAmount={amountOfConnected}/>
         </div>
       </div>
-      <img src={BG_Carrots} className="scale-[140%] absolute -top-2"/>
+      <img src={BG_Carrots} className="scale-[120%] mobile-image-rh"/>
 
-      <div className="app-container">
-        <FuelBar players={players} />
+        <div className="absolute top-20 z-50 w-full">
+          <FuelBar players={players} />
+        </div>
+        
         <div className="tunnel">
           <PlayerMovement 
             phase={phase} 
@@ -1060,13 +1065,23 @@ function RabbitHoleGame() {
           <RabbitHead phase={phase} />
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />
-        </div>
-        <div className="control-panels mb-5">
-          <Lever setDisplayNumber={handleFuelUpdate} displayNumber={displayNumber} maxAvailable={maxFuel} isRolling={totalSeconds === 0 || userIsLost}/>
-          <GasolineGauge fuel={maxFuel - displayNumber} version={version as string}/>
-        </div>
 
-      </div>
+          <div className="absolute -bottom-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
+            <div className="mr-16">
+              <CarrotSlider 
+                min={0} 
+                max={maxFuel} 
+                setDisplayNumber={setDisplayNumber} 
+                isRolling={totalSeconds === 0 || userIsLost}
+              />
+            </div>
+            
+            <div className="absolute -top-4 right-0">
+              <CarrotBasket fuelLeft={maxFuel - displayNumber}/>
+            </div>
+          </div>
+        </div>
+  
         {
           loseModalPermanentlyOpened && 
           !latestInteractiveModalWasClosed && 

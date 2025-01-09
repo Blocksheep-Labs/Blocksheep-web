@@ -139,6 +139,11 @@ function RaceUpdateScreen() {
 
           // SERVER DATA
           setUsers(data?.serverData?.race?.users || []);
+
+          // means that all the games were passed, we have to distribute level and so on...
+          if (board == "board3") {
+            socket.emit('race-finish', { raceId, userAddress: smartAccountAddress });
+          }
         }
       });
 

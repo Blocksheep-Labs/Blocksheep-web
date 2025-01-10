@@ -1,6 +1,9 @@
 "use client"
 import LoseMain from "../../assets/lose/lose-main.webp";
 import NextFlag from "../../assets/common/flag.png";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useEffect } from "react";
+import { socket } from "../../utils/socketio";
 
 export type LoseModalProps = {
   handleClose: () => void;
@@ -11,6 +14,19 @@ export type LoseModalProps = {
 };
 
 function LoseModal({ handleClose, raceId, gameIndex, preloadedScore, secondsLeft }: LoseModalProps) {
+  const { smartAccountAddress } = useSmartAccount();
+
+  // add user points on server side
+  useEffect(() => {
+    if (preloadedScore && smartAccountAddress) {
+      socket.emit('player-add-points', {
+        raceId,
+        userAddress: smartAccountAddress,
+        points: preloadedScore,
+      });
+    }
+  }, [preloadedScore, smartAccountAddress]);
+
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%] relative">

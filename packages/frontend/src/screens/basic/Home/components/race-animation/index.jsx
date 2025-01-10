@@ -78,14 +78,13 @@ const UniqueRaceAnimation = (props) => {
               alt="Play Button"
               className={`play-button bg-transparent transition-all duration-300`}
               style={{ 
-                opacity: isClicked ? 0.5 : 1,
-                bottom:  isClicked ? '-25%' : '5%'
+                opacity: isClicked ? 0 : 1,
+                bottom:  isClicked ? '-25%' : '5%',
               }}
               onClick={() => {
                   setIsClicked(true);
                   handleClick();
               }}
-              onAnimationEnd={() => setIsClicked(false)}
             />
           )}
         </>

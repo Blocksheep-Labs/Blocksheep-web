@@ -41,9 +41,6 @@ const PlayerMovement = ({
   
   useEffect(() => {
     //if (animationTrigger) {
-      let execOnce = false;
-      let loopExecuted = false;
-
       sortedPlayers.forEach((player, index) => {
         const playerElement = playerRefs.current[index]?.current;
         const fuelElement = fuelRefs.current[index]?.current;
@@ -69,11 +66,8 @@ const PlayerMovement = ({
         
         // Animation logic for different phases
         if (phase === 'Default') {
-          setTimeout(() => {
-            loopExecuted = false;
-            execOnce = false;
-            
-            console.log("DEFAULT")
+          setTimeout(() => {            
+            //console.log("DEFAULT")
             if (!player.isCompleted && !player.isEliminated) {
               playerElement.style.transition = 'all 1.5s ease-out';
               playerElement.style.left = leftPosition;
@@ -87,7 +81,7 @@ const PlayerMovement = ({
           }, index * 300);
         } else if (phase === 'CloseTunnel') {
           setTimeout(() => {
-            console.log("CLOSE")
+            //console.log("CLOSE")
             playerElement.style.transition = 'all 0s ease-out';
             playerElement.style.left = leftPosition;
             playerElement.style.transition = 'all 0.5s ease-out';
@@ -102,7 +96,7 @@ const PlayerMovement = ({
         } else if (phase === 'Reset') {
           const delay = index * 500;
           setTimeout(() => {
-            console.log("RESET")
+            //console.log("RESET")
             playerElement.style.top = topPosition;
             playerElement.style.left = leftPosition;
             playerElement.style.transition = 'all 3s ease-out';
@@ -130,22 +124,13 @@ const PlayerMovement = ({
 
               // count min fuel players (same fuel)
               const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
-  
-              // if (listOfMinFuelPlayers.length === activePlayers.length) {
-              //   return;
-              // }
 
-              execOnce = listOfMinFuelPlayers.length > 1;
-
-              // loop through players
-              for (let i = 0; i < activePlayers.length; i++) {
-                if (execOnce && loopExecuted) {
-                  break;
-                }
-
-                const playerData = activePlayers[i];
-                if (playerData.address == player.address && playerData.Fuel == minFuel) {
-                  console.log("DOWN");
+              // Only eliminate one player
+              if (listOfMinFuelPlayers.length > 0) {
+                const playerToEliminate = listOfMinFuelPlayers[0]; // Get the first player with minimum fuel
+                // Apply elimination logic
+                if (playerElement && fuelElement && playerToEliminate.address == player.address) {
+                  console.log("TO ELIMINATE:", player.address, playerToEliminate.address);
                   playerElement.style.transition = 'all 1.5s ease-out';
                   fuelElement.style.transition = 'all 1.5s ease-out';
 
@@ -154,12 +139,9 @@ const PlayerMovement = ({
 
                   playerElement.style.top = '600px';
                   playerElement.style.opacity = "0";
-
-                  if (execOnce) {
-                    loopExecuted = true;
-                  }
                 }
               }
+
             }, 1500);
           }, 1000 + delay);
         }

@@ -701,8 +701,10 @@ function RabbitHoleGame() {
     setIsRolling(true);
     triggerAnimations();
     
+    /*
     if (gameCompleted) 
       return;
+    */
 
     pause();
     if (!gameOver) {
@@ -756,11 +758,10 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (players && !isRolling && roundIsFinished) {
-      // console.log({players});
-      calculateSubmittedFuelPerPlayers(players, gameOver, amountOfAllocatedPoints);
+      calculateSubmittedFuelPerPlayers(players, gameOver);
       setRoundIsFinsihed(false);
     }
-  }, [isRolling, players, roundIsFinished, gameOver, amountOfAllocatedPoints]);
+  }, [isRolling, players, roundIsFinished, gameOver]);
 
 
   const handleFinishTunnelGame = async(
@@ -770,7 +771,7 @@ function RabbitHoleGame() {
     amountOfPointsToAllocate: number, 
     finishPermanently?: boolean
   ) => {
-    pause();
+    // pause();
     setAmountOfAllocatedPoints(amountOfPointsToAllocate);
     
     if (!gameOver) {
@@ -791,9 +792,10 @@ function RabbitHoleGame() {
       });
     }
 
-    if (playersLeft === 1 || finishPermanently) {
+    //if (playersLeft === 1 || finishPermanently) {
+    if (!gameCompleted) {
       setGameCompleted(true);
-      //console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
+      console.log("FINISH TUNNEL GAME:", {raceid: Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate})
 
       // try to recall tx sending on error
       txAttempts(
@@ -822,7 +824,7 @@ function RabbitHoleGame() {
 
 
   // function that will end the game for the user with the lowest fuel amount
-  const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean, lastAmountOfAllocatedPoints: number) => {
+  const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean) => {
     let newListOfPlayers: ConnectedUser[] = [];
     let bonuses: {address: string, amount: number}[] = [];
 
@@ -891,85 +893,50 @@ function RabbitHoleGame() {
 
     const remainingPlayersCount = newListOfPlayers.length;
 
-      // if user was playing with himself
-      /*
-      if (remainingPlayersCount === 0) {
-        //console.log("YOU WIN! BETTER PLAYING WITH OTHER USERS :)");
-        handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3, true);
-        setIsRolling(false);
-        return;
-      }
-      */
+    if (bonuses.length <= 1) {
+      const userLost = !newListOfPlayers.some(i => i.address === smartAccountAddress);
+      const userWon = remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress;
+      // const allPlayersEliminated = newListOfPlayers.every(i => i.maxAvailableFuel === 0);
 
-      // if only one user got bonus (second-to-last one doesn’t consume fuel)
-      if (bonuses.length <= 1) {
-        // if user has lost the game
-        if (!newListOfPlayers.find(i => i.address === smartAccountAddress) && remainingPlayersCount > 0) {
-          console.log("YOU LOSE :(")
-          /*
-          socket.emit("update-progress", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "game2-eliminate",
-            version,
-          });
-          */
-  
+      if (userLost) {
+          console.log("YOU LOSE :(");
           if (!isGameOver) {
-            const amountOfPointsToAllocate = remainingPlayersCount <= 3 ? (3 - remainingPlayersCount) : 0;
-            setAmountOfAllocatedPoints(amountOfPointsToAllocate);
-            handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
-          } else {
-            handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints);
+              const amountOfPointsToAllocate = Math.max(0, 3 - remainingPlayersCount);
+              handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
           }
-  
           setIsRolling(false);
+      }
 
-        }
-  
-        // if the user is one in players array -> he won
-        if (remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress) {
+      if (userWon) {
           console.log("YOU WIN!");
-          setAmountOfAllocatedPoints(3);
           handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
           setIsRolling(false);
           return;
-        }
-  
-        // if all the remaining players are sitting with 0 available fuel
-        if (newListOfPlayers.map(i => i.maxAvailableFuel).every(i => i == 0)) {
-          console.log("YOU LOSE :( (all 0)")
-          /*
-          socket.emit("update-progress", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "game2-eliminate",
-            version
-          });
-          */
+      }
+      /*
+      if (allPlayersEliminated) {
+          console.log("YOU LOSE :( (all 0)");
           handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, lastAmountOfAllocatedPoints, true);
           return;
+      }
+      */
+    }
+
+    const restartTimerAfterRound = () => {
+      setTimeout(() => {
+        setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
+        setDisplayNumber(0);
+        
+        if (newListOfPlayers.length > 1) {
+          console.log("next round... time reset");
+          const time = new Date();
+          time.setSeconds(time.getSeconds() + 10);
+          restart(time);
         }
-      }
+      }, 6000);
+    }
 
-      const restartTimerAfterRound = () => {
-        setTimeout(() => {
-          //setMaxFuel(maxFuel - (newListOfPlayers.find(i => i.address == smartAccountAddress)?.Fuel || 0));
-          //console.log("SETTING MAX FUEL:", newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0)
-          setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
-          setDisplayNumber(0);
-    
-          // refetch users data
-          if (newListOfPlayers.length > 1) {
-            //console.log("next round... time reset");
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
-            restart(time);
-          }
-        }, 6000);
-      }
-
-      restartTimerAfterRound();
+    restartTimerAfterRound();
   }
 
   function onNextGameClicked() {
@@ -984,7 +951,6 @@ function RabbitHoleGame() {
   }
 
   function openWinModal() {
-    pause();
     socket.emit('set-tunnel-state', {
       raceId,
       secondsLeft: 0,
@@ -1006,7 +972,6 @@ function RabbitHoleGame() {
   }
 
   function openLoseModal() {
-    pause();
     socket.emit('set-tunnel-state', {
       raceId,
       secondsLeft: 0,

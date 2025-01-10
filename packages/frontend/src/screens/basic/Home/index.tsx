@@ -24,7 +24,8 @@ function HomeScreen() {
     const { generateSiweMessage, linkWithSiwe } = useLinkWithSiwe();
     const { login } = useLogin({
         onComplete: async(user) => {
-        console.log("LOGGED IN AS:", user);
+            console.log("LOGGED IN AS:", user);
+            linkAccount();
         }
     });
     const { logout } = usePrivy();
@@ -67,7 +68,7 @@ function HomeScreen() {
     const handleCloseNicknameModal = (nickname: string) => {
         setNicknameModalIsOpen(false);
         httpSetNameByAddress(nickname, smartAccountAddress as `0x${string}`).finally(() => {
-        navigate('/select');
+            navigate('/select');
         });
     }
 

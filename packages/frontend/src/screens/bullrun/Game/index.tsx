@@ -181,6 +181,8 @@ export default function Bullrun() {
                     setYourLastPerk(-1);
                     setLastOpponentPerk(-1);
                     setPerksLocked(false);
+
+                    setPreviewPerk(null);
                     //setOpponent(undefined);
                 }, 1500);
             }, 6000);
@@ -196,7 +198,7 @@ export default function Bullrun() {
                 setShowHoldTip(false);
             }, 3000);
         } 
-    }, [previewPerk, holdToSelectWasShown])
+    }, [previewPerk, holdToSelectWasShown]);
 
     
 

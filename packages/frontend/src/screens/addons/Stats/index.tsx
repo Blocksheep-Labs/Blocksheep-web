@@ -49,9 +49,21 @@ export default function StatsScreen() {
                     return { curr: Number(i.progress), address: i.user };
                 });
                 setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
+                
+                /*
+                setStats(
+                    [
+                        {curr: 6, address: 'addr1'},
+                        {curr: 6, address: 'addr2'}
+                    ]
+                );
+                */
+                
+                
                 console.log("PROGRESS:", newProgress);
                 
                 setUsers(data.serverData.race.users);
+                
                 /*
                 setUsers([
                     {
@@ -76,7 +88,7 @@ export default function StatsScreen() {
     const scoreAboveAverage = (score: number) => {
         const avg = Number(stats?.map(i => i.curr).reduce((curr, next) => curr + next, 0)) / Number(stats?.length);
 
-        return score > Number(avg);
+        return score >= Number(avg);
     }
 
     const formattedDate = date.toLocaleDateString("en-GB", {
@@ -85,43 +97,59 @@ export default function StatsScreen() {
         year: "2-digit",
     });
 
+    const getSheepPositions = () => {
+        const height = window.innerHeight;
+        console.log({height})
+
+        if (height < 670) {
+            return [
+                { left: '27%', top: '55%' },  // Position for left sheep
+                { left: '50%', top: '47%' },  // Position for center sheep
+                { right: '22%', top: '45%' }   // Position for right sheep
+            ];
+        } else {
+            return [
+                { left: '22%', top: '57%' },  // Position for left sheep
+                { left: '50%', top: '50%' },  // Position for center sheep
+                { right: '20%', top: '50%' }   // Position for right sheep
+            ];
+        }
+    };
+
     let belowAverageShown = false; // Flag to track if the message has been shown
 
     return (
-        <div className={`relative mx-auto flex w-full flex-col bg-center bg-top`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
+        <div className={`relative mx-auto flex w-full flex-col bg-center bg-top bg-cover`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
             <div className="h-full w-full flex justify-center relative">
-
-
-
                 {
                     users && users.length >= 2 &&
-                    <div className="absolute w-16 left-[75px] top-[250px] flex items-center justify-center flex-col" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div className={`absolute w-12 left-[${getSheepPositions()[0].left}] top-[${getSheepPositions()[0].top}] flex items-center justify-center flex-col`} style={{ transform: 'translate(-50%, -50%)' }}>
                         { 
                             // LEFT
                         }
-                        <p className="bg-black text-white text-[10px] p-1 rounded-md z-10 text-center w-full">
+                        <p className="bg-black text-center text-white text-[8px] p-1 rounded-md z-10 w-full">
                             {stats && users && (users.find(j => j.address == stats[1]?.address)?.name || "Unknown")} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-16" alt="left"/>
+                        <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-12" alt="left"/>
                     </div>
                 }
                 
                 {
                     users && users.length >= 1 &&
-                    <div className="absolute w-24 top-[190px] left-[50%] flex items-center justify-center flex-col" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div className={`absolute w-12 top-[${getSheepPositions()[1].top}] left-[${getSheepPositions()[1].left}] flex items-center justify-center flex-col`} style={{ transform: 'translate(-50%, -50%)' }}>
                         { 
                             // CENTER
                         }
-                        <p className="bg-black text-white text-[14px] p-1 rounded-md z-10 text-center w-full">
-                            {stats && users && users.find(j => j.address == stats[0]?.address)?.name} 
+                        <p className="bg-black text-center text-white text-[8px] p-1 rounded-md z-10 w-full">
+                            {stats && users && users.find(j => j.address == stats[0]?.address)?.name || "Unknown"} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-24" alt="center"/>
+                        <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-12" alt="center"/>
                     </div>
                 }
 
                 {
                     users && users.length >= 3 &&
-                    <div className="absolute w-12 right-[55px] top-[225px] flex items-center justify-center flex-col">
+                    <div className={`absolute w-12 right-[${getSheepPositions()[2].right}] top-[${getSheepPositions()[2].top}] flex items-center justify-center flex-col`}>
                         { 
                             // RIGHT
                         }
@@ -166,7 +194,7 @@ export default function StatsScreen() {
                                 return (
                                     <div key={key} className="flex flex-col gap-2 text-sm text-[#647896] mb-1">
                                         <div className="flex flex-row gap-1 text-sm text-[#647896] ">
-                                            <div className={`w-[55%] bg-[#e9f1f3] p-1 px-3 rounded-xl flex flex-row gap-[${smartAccountAddress == i.address ? '5' : '6'}px] items-center`}>
+                                            <div className={`w-[55%] bg-[#e9f1f3] p-1 px-3 rounded-xl flex flex-row items-center justify-around`}>
                                                 <div>{key + 1}</div>
                                                 {
                                                     smartAccountAddress == i.address ? 

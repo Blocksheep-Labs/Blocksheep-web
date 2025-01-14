@@ -111,34 +111,32 @@ const PlayerMovement = ({
             }
   
             setTimeout(() => {
-              // get players who is not eliminated
+              // Get players who are not eliminated
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
 
-              // if we have some bonuses to apply (> 1 - because of more than one rule passed) (at the 2nd version of the game) - nobody should fall
-              // if (version == "v2" && calculatePlayersV2(activePlayers).bonuses.length > 1) {
-              //   return;
-              // }
+              // Ensure there are active players before proceeding
+              if (activePlayers.length > 0) {
+                // Get minimal fuel in the list
+                const minFuel = Math.min(...activePlayers.map(player => player.Fuel));
 
-              // get minimal fuel in the list
-              const minFuel = activePlayers[sortedPlayers.length - 1 - amountOfComplteted]?.Fuel || 0;
+                // Count players with the minimum fuel
+                const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
 
-              // count min fuel players (same fuel)
-              const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
+                // Only eliminate one player
+                if (listOfMinFuelPlayers.length > 0) {
+                  const playerToEliminate = listOfMinFuelPlayers[0]; // Get the first player with minimum fuel
+                  // Apply elimination logic
+                  if (playerElement && fuelElement && playerToEliminate.address === player.address) {
+                    console.log("TO ELIMINATE:", player.address, playerToEliminate.address);
+                    playerElement.style.transition = 'all 1.5s ease-out';
+                    fuelElement.style.transition = 'all 1.5s ease-out';
 
-              // Only eliminate one player
-              if (listOfMinFuelPlayers.length > 0) {
-                const playerToEliminate = listOfMinFuelPlayers[0]; // Get the first player with minimum fuel
-                // Apply elimination logic
-                if (playerElement && fuelElement && playerToEliminate.address == player.address) {
-                  console.log("TO ELIMINATE:", player.address, playerToEliminate.address);
-                  playerElement.style.transition = 'all 1.5s ease-out';
-                  fuelElement.style.transition = 'all 1.5s ease-out';
+                    fuelElement.style.top = '600px';
+                    fuelElement.style.opacity = "0";
 
-                  fuelElement.style.top = '600px';
-                  fuelElement.style.opacity = "0";
-
-                  playerElement.style.top = '600px';
-                  playerElement.style.opacity = "0";
+                    playerElement.style.top = '600px';
+                    playerElement.style.opacity = "0";
+                  }
                 }
               }
 

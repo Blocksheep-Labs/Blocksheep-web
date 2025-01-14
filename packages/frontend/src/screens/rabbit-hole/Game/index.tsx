@@ -92,6 +92,10 @@ function RabbitHoleGame() {
   // Transaction tracking
   const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
 
+  const [animationsTriggered, setAnimationsTriggered] = useState(false);
+
+  const [playersNextClicked, setPlayersNextClicked] = useState<Set<string>>(new Set());
+
   
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -177,6 +181,7 @@ function RabbitHoleGame() {
           if (raceId == data.raceId) {
             setAmountOfPending(prev => Math.max(0, prev - 1));
             setAmountOfConnected(prev => Math.max(0, prev - 1));
+            setAmountOfPlayersNextClicked(prev => Math.max(0, prev - 1));
 
             if (pendingTransactions.size > 0) {
               // remove from pending transactions
@@ -414,23 +419,36 @@ function RabbitHoleGame() {
         }
 
         if (progress.property === "game2-wait-to-finish") {
-          // set amount of next clicked
-          setAmountOfPlayersNextClicked(amountOfPlayersnextClicked + 1);
-          if (amountOfPlayersnextClicked + 1 >= amountOfConnected) {
-            let redirectLink = "/";
-
-            switch (version) {
-              case "v1":
-                redirectLink = generateLink("RACE_UPDATE_1", Number(raceId)); break;
-              case "v2":
-                redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
-              default:
-                break;
+          // Check if the player has already clicked next
+          if (!playersNextClicked.has(progress.userAddress)) {
+            // Create a new Set to avoid mutating the existing state directly
+            const updatedPlayersNextClicked = new Set(playersNextClicked);
+            // Add the user to the new Set
+            updatedPlayersNextClicked.add(progress.userAddress);
+            // Update the state with the new Set
+            setPlayersNextClicked(updatedPlayersNextClicked);
+            // Increment the count based on the new Set size
+            setAmountOfPlayersNextClicked(updatedPlayersNextClicked.size); // Use the size of the new Set
+            
+            //alert(`${amountOfPlayersnextClicked + 1}, ${amountOfConnected}`); // Updated alert to show the new count
+            
+            if (updatedPlayersNextClicked.size >= amountOfConnected) { // Check against the updated count
+              let redirectLink = "/";
+  
+              switch (version) {
+                case "v1":
+                  redirectLink = generateLink("RACE_UPDATE_1", Number(raceId)); break;
+                case "v2":
+                  redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
+                default:
+                  break;
+              }
+  
+              socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
+              navigate(redirectLink);
             }
-
-            socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
-            navigate(redirectLink);
           }
+
         }
       });
 
@@ -481,6 +499,7 @@ function RabbitHoleGame() {
     amountOfComplteted, 
     gameState, 
     amountOfPlayersnextClicked, 
+    playersNextClicked,
     amountOfPending, 
     gameCompleted,
     isRolling,
@@ -570,14 +589,8 @@ function RabbitHoleGame() {
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
         socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
     }
-}, [smartAccountAddress, socket, raceId]);
-  
+  }, [smartAccountAddress, socket, raceId]);
 
-  useEffect(() => {
-    if (gameState && !isRolling) {
-      closeWaitingModal();
-    }
-  }, [gameState, isRolling]);
 
   // kick player if page chnages (closes)
   useEffect(() => {
@@ -625,6 +638,9 @@ function RabbitHoleGame() {
 
 
   const triggerAnimations = () => {
+    if (animationsTriggered) return;
+    setAnimationsTriggered(true);
+
     // Close tunnel: Head moves to swallow everything.
     socket.emit('set-tunnel-state', {
       raceId, 
@@ -654,6 +670,13 @@ function RabbitHoleGame() {
       }
     }, 3000);
   };
+
+  // Reset animationsTriggered when a new round starts
+  useEffect(() => {
+    if (roundIsFinished) {
+      setAnimationsTriggered(false);
+    }
+  }, [roundIsFinished]);
 
   const triggerAnimationsOpen = () => {
     // reset and make calculations
@@ -1007,17 +1030,23 @@ function RabbitHoleGame() {
     <div className="mx-auto flex w-full flex-col bg-cover bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
       <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Eliminated ☠️. Wait for next game!" : displayNumber}</p>
       
-      <div className="relative z-50 py-6 bg-black">
+     
+      <div className="relative z-50 py-6">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-6">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={amountOfConnected}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={gameState?.amountOfRegisteredUsers}/>
         </div>
       </div>
+     
       <img src={BG_Carrots} className="scale-[120%] mobile-image-rh"/>
 
-        <div className="absolute top-20 z-50 w-full">
-          <FuelBar players={players} />
-        </div>
+        {
+          /* 
+            <div className="absolute top-20 z-50 w-full">
+              <FuelBar players={players} />
+            </div>
+          */
+        }
         
         <div className="tunnel">
           <PlayerMovement 
@@ -1036,7 +1065,7 @@ function RabbitHoleGame() {
               <CarrotSlider 
                 min={0} 
                 max={maxFuel} 
-                setDisplayNumber={setDisplayNumber} 
+                setDisplayNumber={handleFuelUpdate} 
                 isRolling={totalSeconds === 0 || userIsLost}
               />
             </div>

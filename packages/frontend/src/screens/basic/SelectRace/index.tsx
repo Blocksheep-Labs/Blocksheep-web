@@ -32,6 +32,8 @@ function SelectRaceScreen() {
     address: smartAccountAddress
   });
 
+  //console.log({ETHBalance: ETHBalance?.formatted})
+
   const handleNavigate = useCallback((progress: any, screen: TFlowPhases) => {
     console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
@@ -47,7 +49,7 @@ function SelectRaceScreen() {
     /*
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
+        navigate(`/race/${raceId}/stats`);
       });
       return;
     */
@@ -95,7 +97,7 @@ function SelectRaceScreen() {
     return races.find(({ id }) => id === raceId);
   }, [races, raceId]);
 
-  console.log(modalType)
+  //console.log(modalType)
 
   useEffect(() => {
     if (smartAccountAddress) {
@@ -287,6 +289,7 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
     setIsOpen(true);
     setModalType("registering");
+    console.log('Requesting test ETH if needed.');
     await getTestETH(30, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted))
         .then(() => {
           console.log('Got test ETH!')
@@ -300,10 +303,13 @@ function SelectRaceScreen() {
         const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
         
         fetchAndSetRaces();
-  
+        
+        /*
+        console.log(raceData.registeredUsers);
         if (!raceData.registeredUsers.map((i: string) => i.toLowerCase()).includes(smartAccountAddress?.toLowerCase())) {
           throw new Error("Registration error, user is not in a list of registered users")
         };
+        */
   
         setRaceId(id);
         setIsOpen(true);

@@ -101,17 +101,17 @@ export default function StatsScreen() {
         const height = window.innerHeight;
         console.log({height})
 
-        if (height < 670) {
+        if (height < 740) {
             return [
                 { left: '27%', top: '55%' },  // Position for left sheep
                 { left: '50%', top: '47%' },  // Position for center sheep
-                { right: '22%', top: '45%' }   // Position for right sheep
+                { right: '16%', top: '56%' }   // Position for right sheep
             ];
         } else {
             return [
                 { left: '22%', top: '57%' },  // Position for left sheep
                 { left: '50%', top: '50%' },  // Position for center sheep
-                { right: '20%', top: '50%' }   // Position for right sheep
+                { right: '13%', top: '58%' }   // Position for right sheep
             ];
         }
     };
@@ -119,13 +119,14 @@ export default function StatsScreen() {
     let belowAverageShown = false; // Flag to track if the message has been shown
 
     return (
-        <div className={`relative mx-auto flex w-full flex-col bg-center bg-top bg-cover`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
+        <div className={`relative mx-auto flex w-full flex-col bg-center bg-cover`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
             <div className="h-full w-full flex justify-center relative">
                 {
                     users && users.length >= 2 &&
                     <div 
                         className={`absolute w-12 flex items-center justify-center flex-col`} 
                         style={{ 
+                            transform: 'translate(-50%, -50%)',
                             top: getSheepPositions()[0].top,
                             left: getSheepPositions()[0].left
                         }}
@@ -165,6 +166,7 @@ export default function StatsScreen() {
                     <div 
                         className={`absolute w-12 flex items-center justify-center flex-col`}
                         style={{ 
+                            transform: 'translate(-50%, -50%)',
                             top: getSheepPositions()[2].top,
                             right: getSheepPositions()[2].right
                         }}

@@ -179,7 +179,9 @@ export const registerOnTheRace = async(raceId: number, numberOfQuestions: number
     
     const userBalance = await getUserBalance(smartAccountAddress);
 
-    const needToDeposit = numberOfQuestions * Number(COST);
+
+    const decimals = await getTokenDecimals();
+    const needToDeposit = 30 * 10 * 10**Number(decimals);
 
     console.log({userBalance, needToDeposit, isEnough: Number(userBalance) >= needToDeposit});
 
@@ -487,7 +489,9 @@ export const getTestETH = async(amount: number, smartAccountClient: any, smartAc
     const decimals = await getTokenDecimals();
     const needToDeposit = amount * 10 * 10**Number(decimals);
 
-    if (currentETHBlance < 0.0012) {
+    console.log(currentETHBlance, 0.0012, currentETHBlance < 0.0012)
+    if (!currentETHBlance || currentETHBlance < 0.0012) {
+        console.log('getting test ETH...');
         const mintHash = await smartAccountClient.sendTransaction({
             account: smartAccountClient.account!,
             chain: SELECTED_CHAIN,
@@ -495,12 +499,11 @@ export const getTestETH = async(amount: number, smartAccountClient: any, smartAc
             data: encodeFunctionData({
                 abi: MockUsdcAbi,
                 functionName: "mint",
-                args: [smartAccountAddress, needToDeposit, currentETHBlance < 0.0012]
+                args: [smartAccountAddress, needToDeposit, (!currentETHBlance || currentETHBlance < 0.0012)]
             }),
         });
         console.log("MINT:", mintHash);
     }
-
 }
 
 export const withdrawTokens = async(amount: number, smartAccountClient: any) => {

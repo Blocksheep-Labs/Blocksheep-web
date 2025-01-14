@@ -123,7 +123,13 @@ export default function StatsScreen() {
             <div className="h-full w-full flex justify-center relative">
                 {
                     users && users.length >= 2 &&
-                    <div className={`absolute w-12 left-[${getSheepPositions()[0].left}] top-[${getSheepPositions()[0].top}] flex items-center justify-center flex-col`} style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div 
+                        className={`absolute w-12 flex items-center justify-center flex-col`} 
+                        style={{ 
+                            top: getSheepPositions()[0].top,
+                            left: getSheepPositions()[0].left
+                        }}
+                    >
                         { 
                             // LEFT
                         }
@@ -136,7 +142,14 @@ export default function StatsScreen() {
                 
                 {
                     users && users.length >= 1 &&
-                    <div className={`absolute w-12 top-[${getSheepPositions()[1].top}] left-[${getSheepPositions()[1].left}] flex items-center justify-center flex-col`} style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div 
+                        className={`absolute w-12 flex items-center justify-center flex-col`} 
+                        style={{ 
+                            transform: 'translate(-50%, -50%)',
+                            top: getSheepPositions()[1].top,
+                            left: getSheepPositions()[1].left
+                        }}
+                    >
                         { 
                             // CENTER
                         }
@@ -149,7 +162,13 @@ export default function StatsScreen() {
 
                 {
                     users && users.length >= 3 &&
-                    <div className={`absolute w-12 right-[${getSheepPositions()[2].right}] top-[${getSheepPositions()[2].top}] flex items-center justify-center flex-col`}>
+                    <div 
+                        className={`absolute w-12 flex items-center justify-center flex-col`}
+                        style={{ 
+                            top: getSheepPositions()[2].top,
+                            right: getSheepPositions()[2].right
+                        }}
+                    >
                         { 
                             // RIGHT
                         }

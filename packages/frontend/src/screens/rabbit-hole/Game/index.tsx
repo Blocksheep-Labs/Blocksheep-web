@@ -1038,7 +1038,7 @@ function RabbitHoleGame() {
         </div>
       </div>
      
-      <img src={BG_Carrots} className="scale-[120%] mobile-image-rh"/>
+      <img src={BG_Carrots} className="scale-[120%] -mt-[120px]"/>
 
         {
           /* 

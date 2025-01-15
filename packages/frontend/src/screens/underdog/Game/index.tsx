@@ -63,6 +63,7 @@ function UnderdogGame() {
 
   const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
+  const [hideGameInterface, setHideGameInterface] = useState(false);
 
 
   const time = new Date();
@@ -321,6 +322,7 @@ function UnderdogGame() {
 
 
   function onFinish() {
+    setHideGameInterface(true);
     setInterval(pause, 1000);
     openLoadingModal();
   }
@@ -721,7 +723,7 @@ function UnderdogGame() {
         </div>
       </div>
       {
-        (currentQuestionIndex !== questions.length && !modalIsOpen)
+        (currentQuestionIndex !== questions.length && !modalIsOpen && !hideGameInterface)
         &&
         <SwipeSelection 
           leftAction={onClickLike}
@@ -735,19 +737,22 @@ function UnderdogGame() {
         />
       }
 
-      <div className="m-auto mb-0 w-[65%] z-50">
-        <SelectionBtnBox
-          leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
-          rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
-          leftAction={onClickLike}
-          rightAction={onClickDislike}
-          disabled={modalIsOpen || submittingAnswer}
-          currentQuestionIndex={currentQuestionIndex}
-          selectedAnswer={selectedAnswer}
-          leftCount={amountOfAnswersLeft}
-          rightCount={amountOfAnswersRight}
-        />
-      </div>
+      {
+        !hideGameInterface &&
+        <div className="m-auto mb-0 w-[65%] z-50">
+          <SelectionBtnBox
+            leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
+            rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
+            leftAction={onClickLike}
+            rightAction={onClickDislike}
+            disabled={modalIsOpen || submittingAnswer}
+            currentQuestionIndex={currentQuestionIndex}
+            selectedAnswer={selectedAnswer}
+            leftCount={amountOfAnswersLeft}
+            rightCount={amountOfAnswersRight}
+          />
+        </div>
+      }
       
 
       {modalIsOpen && (

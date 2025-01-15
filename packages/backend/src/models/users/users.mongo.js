@@ -18,7 +18,18 @@ const usersSchema = new mongoose.Schema({
         default: 0,
     },
     finishedRaces: [{
-        type: Number,
+        raceId: {
+            type: Number,
+            required: true,
+        },
+        previousGamesAboveAverage: {
+            type: Number,
+            required: true,
+        },
+        newGamesAboveAverage: {
+            type: Number,
+            required: true,
+        }
     }]
 }, { timestamps: true });
 

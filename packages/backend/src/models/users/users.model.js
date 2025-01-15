@@ -25,23 +25,32 @@ const finishRace = async(address, type, raceId) => {
         throw new Error("User was not found");
     }
 
-    if (user.finishedRaces.includes(raceId)) {
+    if (user.finishedRaces.map(i => i.raceId).includes(raceId)) {
         return;
     }
 
+    const stat = {
+        raceId,
+        previousGamesAboveAverage: user.gamesAboveAverage,
+        newGamesAboveAverage: 0,
+    };
+
+    
     // to track state on the frontend
     user.previousGamesAboveAverage = user.gamesAboveAverage;
     if (type == "increment") {
+        stat.newGamesAboveAverage = stat.previousGamesAboveAverage + 1;
         user.gamesAboveAverage++;
     }
-
+    
     if (type == "decrement") {
         if (user.gamesAboveAverage - 1 >= 0) {
+            stat.newGamesAboveAverage = stat.previousGamesAboveAverage - 1;
             user.gamesAboveAverage--;
         }
     }
-
-    user.finishedRaces.push(raceId);
+    
+    user.finishedRaces.push(stat);
 
     return await user.save();
 }

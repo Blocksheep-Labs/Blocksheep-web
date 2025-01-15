@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 import {getRaceById} from "../../../utils/contract-functions";
 import {useSmartAccount} from "../../../hooks/smartAccountProvider";
 import shortenAddress from "../../../utils/shortenAddress";
@@ -19,7 +19,10 @@ export default function StatsScreen() {
     const {smartAccountAddress} = useSmartAccount();
     const [stats, setStats] = useState<{curr: number; address: string}[] | undefined>(undefined);
     const [users, setUsers] = useState<any[]>([]);
-    const [avgLineExists, setAvgLineExists] = useState(false);
+    const [showAverageLine, setShowAverageLine] = useState(false);
+    const averageLineRef = useRef<HTMLDivElement | null>(null);
+    const tableRef = useRef<HTMLDivElement | null>(null);
+
     
     const date = new Date();
 
@@ -84,6 +87,16 @@ export default function StatsScreen() {
         }
     }, [raceId, smartAccountAddress]);
 
+    useEffect(() => {
+        const tableObj = tableRef.current;
+        if (stats && stats.length > 0 && tableObj) {
+            tableObj.style.overflowY = 'hidden';
+            setShowAverageLine(true);
+            setTimeout(() => {
+                tableObj.style.overflowY = 'auto';
+            }, 1400);
+        }
+    }, [stats, tableRef]);
 
     const scoreAboveAverage = (score: number) => {
         const avg = Number(stats?.map(i => i.curr).reduce((curr, next) => curr + next, 0)) / Number(stats?.length);
@@ -117,6 +130,7 @@ export default function StatsScreen() {
     };
 
     let belowAverageShown = false; // Flag to track if the message has been shown
+
 
     return (
         <div className={`relative mx-auto flex w-full flex-col bg-center bg-cover`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
@@ -205,7 +219,7 @@ export default function StatsScreen() {
                         blocksheep race - {formattedDate}
                     </div>
                     
-                    <div className="shadow-xl bg-white w-[88%] p-2 my-3 rounded-xl overflow-y-auto h-full">
+                    <div ref={tableRef} className="shadow-xl bg-white w-[88%] p-2 my-3 rounded-xl h-full">
                         <div className="flex flex-row gap-1 text-sm text-[#647896] mb-1">
                             <div className="w-[55%] bg-[#e9f1f3] p-1 px-3 rounded-xl"># Player</div>
                             <div className="w-[45%] bg-[#e9f1f3] p-1 px-3 rounded-xl">Score</div>
@@ -213,8 +227,11 @@ export default function StatsScreen() {
                         {
                             stats && stats.map((i, key) => {
                                 return (
-                                    <div key={key} className="flex flex-col gap-2 text-sm text-[#647896] mb-1">
-                                        <div className="flex flex-row gap-1 text-sm text-[#647896] ">
+                                    <div 
+                                        key={key} 
+                                        className={`flex flex-col gap-2 text-sm text-[#647896] mb-1 transform transition-transform`}
+                                    >
+                                        <div className={`flex flex-row gap-1 text-sm text-[#647896] transition-all duration-[1400ms] ${showAverageLine ? 'opacity-1' : 'opacity-0'}`}>
                                             <div className={`w-[55%] bg-[#e9f1f3] p-1 px-3 rounded-xl flex flex-row items-center justify-around`}>
                                                 <div>{key + 1}</div>
                                                 {
@@ -241,7 +258,10 @@ export default function StatsScreen() {
                                             (key + 1 <= stats.length - 1) &&
                                             !scoreAboveAverage(stats[key + 1].curr) &&
                                             !belowAverageShown && // Check if the msg has been shown
-                                            <div className="flex flex-row gap-2 items-center w-full">
+                                            <div 
+                                                ref={averageLineRef} 
+                                                className={`flex flex-row gap-2 items-center w-full transition-transform duration-1000 transform ${showAverageLine ? 'translate-y-0' : 'translate-y-[400px] opacity-0'}`}
+                                            >
                                                 <div className="flex-1 bg-yellow-400 h-1"></div>
                                                 <span className="flex-1 text-yellow-400 whitespace-nowrap text-center">Average</span>
                                                 <div className="flex-1 bg-yellow-400 h-1"></div>
@@ -251,7 +271,7 @@ export default function StatsScreen() {
                                         {
                                             (key + 1 <= stats.length - 1) &&
                                             !scoreAboveAverage(stats[key + 1].curr) &&
-                                            (belowAverageShown = true) // Set the flag to true after showing the msg
+                                            (belowAverageShown = true)// Set the flag to true after showing the msg
                                         }
                                     </div>
                                 );

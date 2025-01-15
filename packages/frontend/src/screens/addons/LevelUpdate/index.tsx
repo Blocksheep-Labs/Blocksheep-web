@@ -59,8 +59,6 @@ export default function LevelUpdateScreen() {
     const navigate = useNavigate();
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
-    const [stats, setStats] = useState<{curr: number; address: string}[] | undefined>(undefined);
-    const [users, setUsers] = useState<any[]>([]);
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const [level, setLevel] = useState<number | null>(null);
 
@@ -87,12 +85,12 @@ export default function LevelUpdateScreen() {
             const tipObjectBelow = tipRefBelow.current;
 
             httpGetUserDataByAddress(smartAccountAddress).then(({data}) => {
-                const {gamesAboveAverage, previousGamesAboveAverage} = data.user;
+                const {previousGamesAboveAverage, newGamesAboveAverage} = data.user.finishedRaces.find((i: any) => i.raceId == raceId);
 
                 // update level states
-                console.log({gamesAboveAverage, previousGamesAboveAverage})
+                console.log({newGamesAboveAverage, previousGamesAboveAverage})
                 const userLevel = determineUserLevel(previousGamesAboveAverage);
-                const newUserLevel = determineUserLevel(gamesAboveAverage);
+                const newUserLevel = determineUserLevel(newGamesAboveAverage);
                 setLevel(userLevel);
 
                 const key = userLevel as keyof typeof positionsByLevel;
@@ -101,7 +99,7 @@ export default function LevelUpdateScreen() {
                 sheepObject.style.opacity = '1';
 
                 const newLevelkey = newUserLevel as keyof typeof positionsByLevel;
-                if (gamesAboveAverage > previousGamesAboveAverage) {
+                if (newGamesAboveAverage > previousGamesAboveAverage) {
                     // above average
                     setTimeout(() => {
                         tipObjectAbove.style.left = '-10px';
@@ -110,7 +108,7 @@ export default function LevelUpdateScreen() {
                         sheepObject.style.bottom = `${positionsByLevel[newLevelkey].bottom}px`;
                     }, 1700);
                     //sheepObject.classList.add('jump-to-top-animation');
-                } else if (gamesAboveAverage < previousGamesAboveAverage) {
+                } else if (newGamesAboveAverage < previousGamesAboveAverage) {
                     // below average
                     setTimeout(() => {
                         tipObjectBelow.style.left = '-10px';
@@ -145,10 +143,6 @@ export default function LevelUpdateScreen() {
                     navigate('/', { replace: true });
                 }
 
-                let newProgress: { curr: number; address: string }[] = data.contractData.progress.map(i => {
-                    return { curr: Number(i.progress), address: i.user };
-                });
-                setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
 
                 /*
                 const myPoints = newProgress.find(i => i.address == smartAccountAddress)?.curr || 0;
@@ -163,11 +157,7 @@ export default function LevelUpdateScreen() {
                 }
                 */
 
-                console.log("PROGRESS:", newProgress);
-
                 setSecondsVisual(10);
-                
-                setUsers(data.serverData.race.users);
 
                 setTimeout(() => {
                     navigate('/select');
@@ -179,7 +169,7 @@ export default function LevelUpdateScreen() {
     return (
         <div className="relative w-full h-full bg-gradient-to-b from-[#5861c8] to-[#84bbf4]">
              <TopPageTimer duration={secondsVisual * 1000} />
-            <div className="z-50 absolute top-72 -left-64 transition-all duration-800" ref={tipRefAbove}>
+            <div className="z-50 absolute top-72 -left-64 transition-all duration-[1500ms]" ref={tipRefAbove}>
                 <div className="relative">
                     <div 
                         className="
@@ -206,7 +196,7 @@ export default function LevelUpdateScreen() {
                 </div>
             </div>
 
-            <div className="z-50 absolute top-72 -left-64 transition-all duration-800" ref={tipRefBelow}>
+            <div className="z-50 absolute top-72 -left-64 transition-all duration-[1500ms]" ref={tipRefBelow}>
                 <div className="relative">
                     <div 
                         className="
@@ -243,7 +233,7 @@ export default function LevelUpdateScreen() {
                 <div className="relative">
                     <img src={StairsImage} alt="stairs" className="scale-[1.07] w-full"/>
 
-                    <img ref={sheepRef} src={SheepImage} alt="sheep" className="w-16 absolute z-30 -bottom-[5px] left-[22%] transition-all opacity-0"/>
+                    <img ref={sheepRef} src={SheepImage} alt="sheep" className="w-16 absolute z-30 -bottom-[5px] left-[22%] transition-all opacity-0 duration-[1500ms]"/>
                 </div>
             </div>
         </div>

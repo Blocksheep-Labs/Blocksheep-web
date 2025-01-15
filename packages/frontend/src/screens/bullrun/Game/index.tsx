@@ -172,19 +172,9 @@ export default function Bullrun() {
                 
                 endGame();
                 
-                const time = new Date();
-                time.setSeconds(time.getSeconds() + 10);
-                restart(time);
-
-                setTimeout(() => {
-                    setSelectedPerk(-1);
-                    setYourLastPerk(-1);
-                    setLastOpponentPerk(-1);
-                    setPerksLocked(false);
-
-                    setPreviewPerk(null);
-                    //setOpponent(undefined);
-                }, 1500);
+                //const time = new Date();
+                //time.setSeconds(time.getSeconds() + 10);
+                //restart(time);
             }, 6000);
         }
     }
@@ -230,7 +220,7 @@ export default function Bullrun() {
                     console.log({
                         perk1: data[0][data[0].length - 1],
                         perk2: data[1][data[1].length - 1]
-                    })
+                    });
                     setYourLastPerk(Number(data[0][data[0].length - 1]));
                     setLastOpponentPerk(Number(data[1][data[1].length - 1]));
                     closeCurtains();
@@ -623,17 +613,27 @@ export default function Bullrun() {
      
     
     function endGame() {
-        console.log("NEXT OPPONENT >>>>")
-        socket.emit('bullrun-game-end', { raceId });
-        
-        setGamesPlayed(prev => prev + 1);
-        
-        // Calculate total required games using combination formula
-        const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
-        if (gamesPlayed + 1 >= totalRequiredGames) {
-            pause();
-            setStatus('finished');
-        }
+        console.log("Trying to find next opponent in 1500ms >>>>")
+        setTimeout(() => {
+            setSelectedPerk(-1);
+            setYourLastPerk(-1);
+            setLastOpponentPerk(-1);
+            setPerksLocked(false);
+
+            setPreviewPerk(null);
+            //setOpponent(undefined);
+
+            socket.emit('bullrun-game-end', { raceId });
+            
+            setGamesPlayed(prev => prev + 1);
+            
+            // Calculate total required games using combination formula
+            const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
+            if (gamesPlayed + 1 >= totalRequiredGames) {
+                pause();
+                setStatus('finished');
+            }
+        }, 1500);
     }
     
     useEffect(() => {

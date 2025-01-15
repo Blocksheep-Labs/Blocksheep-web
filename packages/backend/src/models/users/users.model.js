@@ -25,7 +25,8 @@ const finishRace = async(address, type, raceId) => {
         throw new Error("User was not found");
     }
 
-    if (user.finishedRaces.map(i => i.raceId).includes(raceId)) {
+    // ensure that the user has been modified since the points distribution of the race
+    if (user.finishedRaces.map(i => Number(i.raceId)).includes(Number(raceId))) {
         return;
     }
 

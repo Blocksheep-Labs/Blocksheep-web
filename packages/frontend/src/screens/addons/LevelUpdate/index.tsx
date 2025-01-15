@@ -85,7 +85,15 @@ export default function LevelUpdateScreen() {
             const tipObjectBelow = tipRefBelow.current;
 
             httpGetUserDataByAddress(smartAccountAddress).then(({data}) => {
-                const {previousGamesAboveAverage, newGamesAboveAverage} = data.user.finishedRaces.find((i: any) => i.raceId == raceId);
+                let previousGamesAboveAverage = 0, 
+                    newGamesAboveAverage = 0;
+
+                const gamesData = data.user.finishedRaces?.find((i: any) => i.raceId == raceId);
+
+                if (gamesData) {
+                    previousGamesAboveAverage = gamesData.previousGamesAboveAverage;
+                    newGamesAboveAverage = gamesData.newGamesAboveAverage;
+                }
 
                 // update level states
                 console.log({newGamesAboveAverage, previousGamesAboveAverage})
@@ -117,6 +125,12 @@ export default function LevelUpdateScreen() {
                         sheepObject.style.bottom = `${positionsByLevel[newLevelkey].bottom}px`;
                     }, 1700);
                     //sheepObject.classList.add('jump-to-bottom-animation');
+                } else if (newGamesAboveAverage == previousGamesAboveAverage) {
+                    // no progress (0 == 0)
+                    setTimeout(() => {
+                        tipObjectBelow.style.left = '-10px';
+                        setLevel(newUserLevel);
+                    }, 1700);
                 }
                 
             });
@@ -160,7 +174,7 @@ export default function LevelUpdateScreen() {
                 setSecondsVisual(10);
 
                 setTimeout(() => {
-                    navigate('/select');
+                    // navigate('/select');
                 }, 10 * 1000);
             });
         }

@@ -174,7 +174,7 @@ export default function LevelUpdateScreen() {
                 setSecondsVisual(10);
 
                 setTimeout(() => {
-                    // navigate('/select');
+                    navigate('/select');
                 }, 10 * 1000);
             });
         }

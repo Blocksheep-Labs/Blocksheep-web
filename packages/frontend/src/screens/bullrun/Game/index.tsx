@@ -77,6 +77,7 @@ export default function Bullrun() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [holdToSelectWasShown, setHoldToSelectWasShown] = useState(false);
     const [showHoldTip, setShowHoldTip] = useState(false);
+    const [opponentPending, setOpponentPending] = useState(false);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -195,7 +196,13 @@ export default function Bullrun() {
     const [isSubmitting, setIsSubmitting] = useState(false); // New state to track submission status
 
     useEffect(() => {
-        if (amountOfPending == 0 && roundStarted) {
+        if (roundStarted && opponentPending) {
+            if (!waitingModalIsOpened) {
+                setWaitingModalIsOpened(true);
+            }
+        }
+        
+        if (amountOfPending == 0 && roundStarted && !opponentPending) {
             setRoundStarted(false);
             if (!waitingModalIsOpened) {
                 setWaitingModalIsOpened(true);
@@ -238,7 +245,7 @@ export default function Bullrun() {
                 });
             });
         }
-    }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent, isSubmitting]);
+    }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent, isSubmitting, opponentPending]);
 
     const setPending = (isPending: boolean) => {
         console.log({
@@ -428,11 +435,17 @@ export default function Bullrun() {
     // handle pending events
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress) {
-            socket.on('bullrun-pending', ({ isPending }) => {
+            socket.on('bullrun-pending', ({ isPending, userAddress }) => {
                 if (isPending) {
+                    if (userAddress !== smartAccountAddress) {
+                        setOpponentPending(true);
+                    }
                     console.log("PENDING++", amountOfPending + 1);
                     setAmountOfPending(prev => prev + 1);
                 } else {
+                    if (userAddress !== smartAccountAddress) {
+                        setOpponentPending(false);
+                    }
                     console.log("PENDING--", amountOfPending - 1);
                     if (amountOfPending - 1 >= 0) {
                         setAmountOfPending(prev => prev - 1);

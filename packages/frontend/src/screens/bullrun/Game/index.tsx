@@ -192,11 +192,18 @@ export default function Bullrun() {
 
     
 
+    const [isSubmitting, setIsSubmitting] = useState(false); // New state to track submission status
+
     useEffect(() => {
         if (amountOfPending == 0 && roundStarted) {
             setRoundStarted(false);
-            setWaitingModalIsOpened(true);
-            //console.log("ITS TIME TO FETCH DATA FROM THE CONTRACT!!!")
+            if (!waitingModalIsOpened) {
+                setWaitingModalIsOpened(true);
+            }
+
+            // Prevent ghost submissions
+            if (isSubmitting) return; // Exit if already submitting
+            setIsSubmitting(true); // Set submitting flag
 
             txAttempts(
                 10,
@@ -207,7 +214,7 @@ export default function Bullrun() {
                         opponent?.userAddress as string,
                     ).then(() => {
                         console.log("POINTS DISTRIBUTED");
-                    })
+                    });
                 },
                 3000
             )
@@ -225,11 +232,13 @@ export default function Bullrun() {
                     setLastOpponentPerk(Number(data[1][data[1].length - 1]));
                     closeCurtains();
                     setWaitingModalIsOpened(false);
-                    console.log(pointsMatrix)
+                    console.log(pointsMatrix);
+                }).finally(() => {
+                    setIsSubmitting(false); // Reset submitting flag after completion
                 });
             });
         }
-    }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent]);
+    }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent, isSubmitting]);
 
     const setPending = (isPending: boolean) => {
         console.log({

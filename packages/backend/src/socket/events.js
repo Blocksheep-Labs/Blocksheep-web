@@ -775,11 +775,14 @@ module.exports = (io) => {
             }
 
             const entries = Object.entries(playerPoints[raceId]);
-            const avg = entries.map(i => {
-                            return i[1].points
-                        }).reduce((prev, curr) => prev + curr, 0) / entries.length;
-            
-            console.log({avg})
+
+            // Sort entries by points in descending order
+            entries.sort((a, b) => b[1].points - a[1].points);
+
+            const centralIndex = Math.floor(entries.length / 2) - 1;
+            const centralScore = entries[centralIndex]?.[1].points || 0; // Default to 0 if no score exists
+
+            console.log({ centralScore });
 
             entries.forEach((i) => {
                 if (!playerPoints[raceId][i[0]]) {
@@ -790,13 +793,13 @@ module.exports = (io) => {
 
                 console.log(
                     i[0],
-                    i[1].points >= avg ? "increment" : "decrement",
+                    i[1].points >= centralScore ? "increment" : "decrement",
                     raceId
-                )
+                );
 
                 finishRace(
                     i[0],
-                    i[1].points >= avg ? "increment" : "decrement",
+                    i[1].points >= centralScore ? "increment" : "decrement",
                     raceId
                 );
             });

@@ -52,16 +52,44 @@ export default function StatsScreen() {
                     return { curr: Number(i.progress), address: i.user };
                 });
                 setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
-                
+
+
                 /*
-                setStats(
-                    [
-                        {curr: 6, address: 'addr1'},
-                        {curr: 6, address: 'addr2'}
-                    ]
-                );
+                setStats([
+                    {
+                        address: "ajlidjalwjd",
+                        curr: 5,
+                    },
+                    {
+                        address: "a",
+                        curr: 5,
+                    },
+                    {
+                        address: "adw",
+                        curr: 5,
+                    },
+                    {
+                        address: "o[po[pop",
+                        curr: 4,
+                    },
+                    {
+                        address: "iopipo12i",
+                        curr: 2,
+                    },
+                    {
+                        address: "iopipoi",
+                        curr: 1,
+                    },
+                    {
+                        address: "iopiaspoi",
+                        curr: 1,
+                    },
+                    {
+                        address: "te45",
+                        curr: 0,
+                    }
+                ])
                 */
-                
                 
                 console.log("PROGRESS:", newProgress);
                 
@@ -98,10 +126,16 @@ export default function StatsScreen() {
         }
     }, [stats, tableRef]);
 
-    const scoreAboveAverage = (score: number) => {
-        const avg = Number(stats?.map(i => i.curr).reduce((curr, next) => curr + next, 0)) / Number(stats?.length);
+    const scoreAboveAverage = (score: number, index: number) => {
+        if (!stats) {
+            return true;
+        }
 
-        return score >= Number(avg);
+        const centralIndex = Math.floor(stats.length / 2) - 1;
+        console.log({centralIndex})
+        const centralScore = stats[centralIndex]?.curr || 0; // 0 if no score exists
+
+        return score >= centralScore; // Check if the score is greater than the central score
     }
 
     const formattedDate = date.toLocaleDateString("en-GB", {
@@ -232,22 +266,29 @@ export default function StatsScreen() {
                                         className={`flex flex-col gap-2 text-sm text-[#647896] mb-1 transform transition-transform`}
                                     >
                                         <div className={`flex flex-row gap-1 text-sm text-[#647896] transition-all duration-[1400ms] ${showAverageLine ? 'opacity-1' : 'opacity-0'}`}>
-                                            <div className={`w-[55%] bg-[#e9f1f3] p-1 px-3 rounded-xl flex flex-row items-center justify-around`}>
-                                                <div>{key + 1}</div>
-                                                {
-                                                    smartAccountAddress == i.address ? 
-                                                    <img src={BlackSheepImage} alt="you" className="w-[16px] h-[16px]"/> 
-                                                    :
-                                                    <img src={WhiteSheepImage} alt="opponent" className="w-[14px] h-[16px]"/>
-                                                }
+                                            <div className={`w-[55%] bg-[#e9f1f3] p-1 px-3 rounded-xl flex flex-row items-center justify-start gap-2`}>
+                                                <div className="flex flex-row w-7 justify-between items-center">
+                                                    <div>{key + 1}</div>
+                                                    {
+                                                        smartAccountAddress == i.address ? 
+                                                        <img src={BlackSheepImage} alt="you" className="w-[16px] h-[16px]"/> 
+                                                        :
+                                                        <img src={WhiteSheepImage} alt="opponent" className="w-[14px] h-[16px]"/>
+                                                    }
+                                                </div>
                                                 <div>
-                                                    {users.find(j => j.address == i.address)?.name || "Unknown"}
+                                                    {
+                                                        users.find(j => j.address == i.address)?.name || "Unknown"
+                                                    }
+                                                    { 
+                                                        // i.address 
+                                                    }
                                                 </div>
                                             </div>
                                             <div className="w-[45%] bg-[#e9f1f3] p-1 px-3 rounded-xl flex flex-row gap-4 items-center justify-around">
                                                 {i.curr}
                                                 {
-                                                    scoreAboveAverage(i.curr) ? 
+                                                    scoreAboveAverage(i.curr, key) ? 
                                                     <img src={ArrowUpImage} alt="above-avg" className="w-4 h-4"/> :
                                                     <img src={ArrowDownImage} alt="below-avg" className="w-4 h-4"/>
                                                 }
@@ -256,7 +297,7 @@ export default function StatsScreen() {
 
                                         {
                                             (key + 1 <= stats.length - 1) &&
-                                            !scoreAboveAverage(stats[key + 1].curr) &&
+                                            !scoreAboveAverage(stats[key + 1].curr, key + 1) &&
                                             !belowAverageShown && // Check if the msg has been shown
                                             <div 
                                                 ref={averageLineRef} 
@@ -270,7 +311,7 @@ export default function StatsScreen() {
 
                                         {
                                             (key + 1 <= stats.length - 1) &&
-                                            !scoreAboveAverage(stats[key + 1].curr) &&
+                                            !scoreAboveAverage(stats[key + 1].curr, key + 1) &&
                                             (belowAverageShown = true)// Set the flag to true after showing the msg
                                         }
                                     </div>

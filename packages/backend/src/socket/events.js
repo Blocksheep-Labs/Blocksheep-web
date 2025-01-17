@@ -620,7 +620,9 @@ module.exports = (io) => {
 
                 if (!inGamePlayers[raceId]) inGamePlayers[raceId] = [];
 
-                if (!inGamePlayers[raceId].some(p => p.userAddress == playerAddress)) {
+                // Check if the player is already in active or waiting players
+                if (!activePlayers[raceId].some(p => p.userAddress === playerAddress) && 
+                    !waitingPlayers[raceId].some(p => p.userAddress === playerAddress)) {
                     inGamePlayers[raceId].push(socket); 
                 }
             }

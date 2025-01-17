@@ -278,7 +278,15 @@ export default function StatsScreen() {
                                                 </div>
                                                 <div>
                                                     {
-                                                        users.find(j => j.address == i.address)?.name || "Unknown"
+                                                        (() => {
+                                                            const userName = users.find(j => j.address == i.address)?.name;
+
+                                                            if (userName) {
+                                                                return String(userName).substring(0, 5) + '...';
+                                                            } else {
+                                                                return "Unknown";
+                                                            }
+                                                        })()
                                                     }
                                                     { 
                                                         // i.address 

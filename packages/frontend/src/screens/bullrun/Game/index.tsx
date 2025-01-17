@@ -106,16 +106,37 @@ export default function Bullrun() {
     const [holdTimeout1, setHoldTimeout1] = useState<NodeJS.Timeout | null>(null);
     const [holdTimeout2, setHoldTimeout2] = useState<NodeJS.Timeout | null>(null);
     const [previewPerk, setPreviewPerk] = useState<number | null>(null);
+
+    const clearTimeouts = () => {
+        // Clear the hold timeout if released early
+        if (holdTimeout0) {
+            clearTimeout(holdTimeout0);
+            setHoldTimeout0(null);
+        }
+
+        if (holdTimeout1) {
+            clearTimeout(holdTimeout1);
+            setHoldTimeout1(null);
+        }
+
+        if (holdTimeout2) {
+            clearTimeout(holdTimeout2);
+            setHoldTimeout2(null);
+        }
+    }
     
     // Handle mouse down (start holding)
     const handleMouseDown = (perk: number) => {
+        // Clear the hold timeout if released early
+        clearTimeouts();
+
         pause();
         setShowHoldText(true); // Show text immediately
 
         // Start full hold timeout (1.5s) for selecting the perk
         const holdDelay = setTimeout(() => {
             handlePerkChange(perk); // Trigger perk selection
-        }, 1500);
+        }, 1000);
 
         switch (perk) {
             case 0:
@@ -139,20 +160,7 @@ export default function Bullrun() {
         setShowHoldText(false); // Hide text immediately
 
         // Clear the hold timeout if released early
-        if (holdTimeout0) {
-            clearTimeout(holdTimeout0);
-            setHoldTimeout0(null);
-        }
-
-        if (holdTimeout1) {
-            clearTimeout(holdTimeout1);
-            setHoldTimeout1(null);
-        }
-
-        if (holdTimeout2) {
-            clearTimeout(holdTimeout2);
-            setHoldTimeout2(null);
-        }
+        clearTimeouts();
     };
 
 
@@ -213,7 +221,7 @@ export default function Bullrun() {
             setIsSubmitting(true); // Set submitting flag
 
             txAttempts(
-                10,
+                3,
                 async () => {
                     return await BULLRUN_distribute(
                         smartAccountClient,
@@ -273,7 +281,7 @@ export default function Bullrun() {
         setSelectedPerk(perk);
 
         txAttempts(
-            5,
+            3,
             async () => {
                 return await BULLRUN_makeChoice(
                     smartAccountClient,
@@ -900,7 +908,7 @@ export default function Bullrun() {
                         previewPerk === 0 &&
                         <div 
                             className={`rounded-xl absolute inset-x-0 bottom-0 transition-all 
-                                        ${showHoldText ? 'duration-[1.5s]' : 'duration-0 bg-transparent'} 
+                                        ${showHoldText ? 'duration-[1s]' : 'duration-0 bg-transparent'} 
                                         ${holdTimeout0 ? 'opacity-100 bg-gray-600' : 'opacity-0'}`} 
                             style={{ height: holdTimeout0 ? '100%' : '0%', width: '100%' }} 
                         />
@@ -942,7 +950,7 @@ export default function Bullrun() {
                         previewPerk === 1 &&
                         <div 
                             className={`rounded-xl absolute inset-x-0 bottom-0 transition-all 
-                                        ${showHoldText ? 'duration-[1.5s]' : 'duration-0 bg-transparent'} 
+                                        ${showHoldText ? 'duration-[1s]' : 'duration-0 bg-transparent'} 
                                         ${holdTimeout1 ? 'opacity-100 bg-gray-600' : 'opacity-0'}`} 
                             style={{ height: holdTimeout1 ? '100%' : '0%', width: '100%' }} 
                         />
@@ -985,7 +993,7 @@ export default function Bullrun() {
                         previewPerk === 2 && (
                             <div 
                                 className={`rounded-xl absolute inset-x-0 bottom-0 transition-all 
-                                            ${showHoldText ? 'duration-[1.5s]' : 'duration-0 bg-transparent'} 
+                                            ${showHoldText ? 'duration-[1s]' : 'duration-0 bg-transparent'} 
                                             ${holdTimeout2 ? 'opacity-100 bg-gray-600' : 'opacity-0'}`} 
                                 style={{ height: holdTimeout2 ? '100%' : '0%', width: '100%' }} 
                             />

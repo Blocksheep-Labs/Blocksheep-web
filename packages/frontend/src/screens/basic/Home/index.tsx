@@ -74,6 +74,13 @@ function HomeScreen() {
 
     const handleLoginClick = () => {
         login();
+        const playBtn = document.querySelector('.play-button') as HTMLButtonElement | null;
+
+        if (playBtn) {
+            playBtn.style.opacity = '0';
+            playBtn.style.bottom = '-25%'
+        }
+
         setTimeout(() => {
             const wrapper = document.querySelector('[id^="headlessui-dialog-panel-"]') as HTMLDivElement | null;
             const el = document.querySelector("#privy-modal-content") as HTMLDivElement | null;
@@ -84,8 +91,22 @@ function HomeScreen() {
                 el.style.marginBottom = '200px';
                 el.style.borderRadius = '18px';
             };
+            
+            const closeButton = document.querySelector('button[aria-label="close modal"]') as HTMLButtonElement | null;
+            if (closeButton) {
+                closeButton.addEventListener('click', () => {
+                    console.log("Close button clicked, returning play button");
+                    if (playBtn) {
+                        playBtn.style.opacity = '1';
+                        playBtn.style.bottom = '5%'
+                    }
+                });
+            }
         }, 500);
     }
+
+    // return the play button on privy modal close
+    
 
 
     return (

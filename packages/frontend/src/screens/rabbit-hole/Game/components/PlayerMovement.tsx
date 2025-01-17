@@ -27,7 +27,7 @@ const PlayerMovement = ({
   // Sort players and update refs when players change
   useEffect(() => {
       // Check if the phase is not 'Default' before sorting
-      if (phase !== 'Default') {
+      if (phase == 'CloseTunnel') {
         const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
         setSortedPlayers(sorted);
       } else {
@@ -94,7 +94,7 @@ const PlayerMovement = ({
             fuelElement.style.opacity = '0';
           }, 1500);
         } else if (phase === 'Reset') {
-          const delay = index * 500;
+          const delay = index * 1000;
           setTimeout(() => {
             //console.log("RESET")
             playerElement.style.top = topPosition;
@@ -139,9 +139,8 @@ const PlayerMovement = ({
                   }
                 }
               }
-
-            }, 1500);
-          }, 1000 + delay);
+            }, 2000);
+          }, delay);
         }
       });
     //}

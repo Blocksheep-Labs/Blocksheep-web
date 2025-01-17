@@ -653,7 +653,7 @@ function RabbitHoleGame() {
       setRoundIsFinsihed(true);
       setIsRolling(false);
       setPhase("Default");
-    }, 4000);
+    }, 6000);
   }
 
 
@@ -696,7 +696,7 @@ function RabbitHoleGame() {
       
       try {
         await txAttempts(
-          10,
+          3,
           async () => {
             const data = await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient);
             await waitForTransactionReceipt(config, {
@@ -770,7 +770,7 @@ function RabbitHoleGame() {
 
       // try to recall tx sending on error
       txAttempts(
-        10, 
+        3, 
         async () => {
           return await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
             await waitForTransactionReceipt(config, {

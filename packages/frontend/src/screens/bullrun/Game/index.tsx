@@ -78,6 +78,7 @@ export default function Bullrun() {
     const [holdToSelectWasShown, setHoldToSelectWasShown] = useState(false);
     const [showHoldTip, setShowHoldTip] = useState(false);
     const [opponentPending, setOpponentPending] = useState(false);
+    const [isCurtainsClosing, setIsCurtainsClosing] = useState(false);
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -166,6 +167,7 @@ export default function Bullrun() {
 
     const closeCurtains = () => {
         if (refLeftCurtain.current && refRightCurtain.current) {
+            setIsCurtainsClosing(true);
             const leftCurtain = refLeftCurtain.current;
             const rightCurtain = refRightCurtain.current;
 
@@ -174,6 +176,7 @@ export default function Bullrun() {
 
             rightCurtain.style.transition = 'all 1s ease-out';
             rightCurtain.style.right = "0px";
+
 
             setTimeout(() => {
                 leftCurtain.style.left = "-50%";
@@ -184,6 +187,7 @@ export default function Bullrun() {
                 //const time = new Date();
                 //time.setSeconds(time.getSeconds() + 10);
                 //restart(time);
+                setIsCurtainsClosing(false);
             }, 6000);
         }
     }
@@ -245,8 +249,18 @@ export default function Bullrun() {
                     });
                     setYourLastPerk(Number(data[0][data[0].length - 1]));
                     setLastOpponentPerk(Number(data[1][data[1].length - 1]));
-                    closeCurtains();
-                    setWaitingModalIsOpened(false);
+
+                    // Emit event to notify opponent that curtains are closing
+                    if (!isCurtainsClosing) {
+                        socket.emit('bullrun-curtains-closing', { 
+                            toId: opponent?.id,
+                            raceId, 
+                            userAddress: smartAccountAddress,
+                            perkUser: Number(data[0][data[0].length - 1]),
+                            perkOpponent: Number(data[1][data[1].length - 1])
+                        });
+                    }
+
                     console.log(pointsMatrix);
                 }).finally(() => {
                     setIsSubmitting(false); // Reset submitting flag after completion
@@ -254,6 +268,43 @@ export default function Bullrun() {
             });
         }
     }, [amountOfPending, smartAccountAddress, raceId, roundStarted, opponent, isSubmitting, opponentPending]);
+
+    useEffect(() => {
+        if (socket && smartAccountAddress && opponent && !isCurtainsClosing) {
+            socket.on('bullrun-curtains-closing', ({ raceId: raceIdSocket, userAddress, perkUser, perkOpponent }) => {
+                console.log({ 
+                    raceId: raceIdSocket, 
+                    currentRaceId: raceId, 
+                    userAddress, 
+                    perkUser, 
+                    perkOpponent 
+                });
+
+                if (raceIdSocket == raceId) {
+                    setIsCurtainsClosing(true);
+                    setWaitingModalIsOpened(false);
+
+                    if (userAddress == opponent.userAddress) {
+                        // Handle the curtains closing for the opponent
+                        console.log("Opponent's curtains are closing.");
+                        setYourLastPerk(perkOpponent);
+                        setLastOpponentPerk(perkUser);
+                        closeCurtains();
+                        
+                    } else if (userAddress == smartAccountAddress) {
+                        console.log("Curtains are closing.");
+                        setYourLastPerk(perkUser);
+                        setLastOpponentPerk(perkOpponent);
+                        closeCurtains();
+                    }
+                }
+            });
+
+            return () => {
+                socket.off('bullrun-curtains-closing');
+            };
+        }
+    }, [opponent, smartAccountAddress, socket, isCurtainsClosing]);
 
     const setPending = (isPending: boolean) => {
         console.log({

@@ -32,7 +32,7 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName, se
 
   // add user points on server side
   useEffect(() => {
-    if ((preloadedScore || score) && smartAccountAddress) {
+    if ((preloadedScore !== undefined || score) && smartAccountAddress) {
       socket.emit('player-add-points', {
         raceId,
         userAddress: smartAccountAddress,

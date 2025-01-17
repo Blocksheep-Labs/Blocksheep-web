@@ -620,14 +620,14 @@ module.exports = (io) => {
 
                 if (!inGamePlayers[raceId]) inGamePlayers[raceId] = [];
 
-                // Check if the player is already in active or waiting players
-                if (!activePlayers[raceId].some(p => p.userAddress === playerAddress) && 
-                    !waitingPlayers[raceId].some(p => p.userAddress === playerAddress)) {
+                // Check if the player is not in inGamePlayers
+                if (!Array(inGamePlayers[raceId]).indexOf(i => i.userAddress == playerAddress)) {
+                        console.log("PUSH:", playerAddress)
                     inGamePlayers[raceId].push(socket); 
                 }
             }
-            initializePlayer(userAddress, socket);
             socket.userAddress = userAddress; 
+            initializePlayer(userAddress, socket);
         
         
             // get players from waiting queue
@@ -727,6 +727,11 @@ module.exports = (io) => {
             }
         
             pairPlayers();
+        });
+
+        socket.on('bullrun-curtains-closing', (data) => {
+            io.to(data.toId).emit('bullrun-curtains-closing', data);
+            io.to(socket.id).emit('bullrun-curtains-closing', data);
         });
 
         socket.on('bullrun-get-game-counts', ({ raceId, userAddress }) => {

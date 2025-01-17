@@ -18,7 +18,7 @@ function LoseModal({ handleClose, raceId, gameIndex, preloadedScore, secondsLeft
 
   // add user points on server side
   useEffect(() => {
-    if (preloadedScore && smartAccountAddress) {
+    if (preloadedScore !== undefined && smartAccountAddress) {
       socket.emit('player-add-points', {
         raceId,
         userAddress: smartAccountAddress,

@@ -18,6 +18,7 @@ import RabbitHoleIcon from "../../assets/common/rabbithole-icon.jpg";
 import UnderdogIcon from "../../assets/common/underdog-icon.jpg";
 import GamePreview from "../../assets/common/game-preview.jpg";
 import USDCIcon from "../../assets/common/usdc.png";
+import { TRace } from "../../hooks/basic/SelectRace/getRaceById";
 
 
 // import { Web3Button, useContract, useContractWrite } from "@thirdweb-dev/react";
@@ -38,24 +39,22 @@ function RaceStatusItem({ icon, label }: RaceStatusItemProps) {
 }
 
 type RaceItemProps = {
-  race: Race;
+  race: TRace;
   onClickJoin: (a: number) => void;
-  onClickRegister: (id: number , questionsCount: number) => Promise<void>;
+  onClickRegister: (id: number) => Promise<void>;
   cost: number;
   participatesIn: string[];
 };
 
 function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: RaceItemProps) {
   const { smartAccountClient } = useSmartAccount();
-  // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
-  // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
-  //console.log(race)
+
   const [timeLeft, setTimeLeft] = useState((Number(race.startAt) * 1000) - new Date().getTime());
   const [loading, setLoading] = useState(false);
 
   const withdrawFundsHandler = async() => {
     setLoading(true);
-    const hash = await refundBalance(race.numOfQuestions * cost, race.id, smartAccountClient);
+    const hash = await refundBalance(cost, race.id, smartAccountClient);
 
     console.log("Withdraw balance hash:", hash);
     await waitForTransactionReceipt(config, {
@@ -68,7 +67,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: 
 
   const handleRegister = async(id: number) => {
     setLoading(true);
-    await onClickRegister(id, race.numOfQuestions);
+    await onClickRegister(id);
     setLoading(false);
   }
   
@@ -119,7 +118,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: 
                     alt="Coin Icon"
                     className="icon"
                   />
-                  <span>{(race.numOfQuestions * cost / USDC_MULTIPLIER).toString()}</span>
+                  <span>{(cost).toString()}</span>
                 </div>
               </div>
 

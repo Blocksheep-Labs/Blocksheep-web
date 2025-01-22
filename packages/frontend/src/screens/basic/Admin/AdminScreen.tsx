@@ -4,26 +4,22 @@ import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import { useNavigate } from "react-router-dom";
 import { httpCreateRace } from "../../../utils/http-requests";
 import { txAttempts } from "../../../utils/txAttempts";
+import { TUnderdogQuestion, useAdminCreateRace } from "../../../hooks/basic/Admin/createRace";
+import { useCheckAdminAccess } from "../../../hooks/basic/Admin/checkAdminAccess";
 
 
 export default function AdminScreen() {
-    const {smartAccountClient} = useSmartAccount();
     const navigate = useNavigate();
+    const { processTransaction } = useAdminCreateRace();
+    const { hasAccess, loading } = useCheckAdminAccess();
     
     useEffect(() => {
-        if (smartAccountClient) {
-            userHasAdminAccess(smartAccountClient).then(data => {
-                console.log({
-                    account: smartAccountClient.account.address,
-                    isAdmin: data,
-                });
-                if (!data) {
-                    alert("You are not an admin!");
-                    navigate('/');
-                }
-            })
+        if (!loading && !hasAccess) {
+            alert("You are not an admin!");
+            navigate('/');
         }
-    }, [smartAccountClient]);
+    }, [loading, hasAccess]);
+
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -32,16 +28,17 @@ export default function AdminScreen() {
         const formData = new FormData(e.currentTarget);
         
         // Extract the form values
-        const title = formData.get('title') as string;
         const duration = Number(formData.get('duration'));
         const playersRequired = Number(formData.get('playersRequired'));
         
+        /*
         const numbers: number[] = [];
         for (let i = 0; i < 3; i++) {
             // Generate a random number between 0 and 43 (inclusive)
             const randomNumber = Math.floor(Math.random() * 44);
             numbers.push(randomNumber);
         }
+        */
 
         const storyKey = Math.floor(Math.random() * 4);
         const rID = await getNextGameId();
@@ -49,16 +46,34 @@ export default function AdminScreen() {
         // Log the values
         console.log({
             raceId: `race-${rID}`,
-            title,
             duration,
             playersRequired,
-            numbers
+            // numbers
         });
+
+        const questions: TUnderdogQuestion[] = [
+            {
+                imgUrl: "https://gateway.pinata.cloud/ipfs/bafybeifalh7xa4vexupzelazm26pvx4id746justwbbefphfgjablxm4gq",
+                content: "Is it better to have nice or smart kids?",
+                answers: ["Smart", "Nice"]
+            },
+            {
+                imgUrl: "https://gateway.pinata.cloud/ipfs/bafybeibzj5kt6iptaqn3nbf3ph4mnlvnwks7g5eyqllx3xlwpk7m7je4zy",
+                content: "Would you rather explore the depths of the ocean or outer space?",
+                answers: ["Ocean", "Space"]
+            },
+            {
+                imgUrl: "https://gateway.pinata.cloud/ipfs/bafkreie3gcaeirx6mpmmptno4tryt4mmv7aotuudsbv562h54bon7vxfyq",
+                content: "Would you rather read minds or being able to teleport?",
+                answers: ["Read", "Teleport"]
+            },
+        ];
 
 
         txAttempts(
             3,
             async() => {
+                /*
                 return await adminCreateRace(
                     title, 
                     duration,
@@ -66,6 +81,13 @@ export default function AdminScreen() {
                     smartAccountClient,
                     numbers
                 )
+                */
+                return await processTransaction(
+                    duration,
+                    playersRequired,
+                    questions,
+                    [[-1, -2, 3], [1, 0, 0], [-1, 1, 1]]
+                );
             },
             3000
         )
@@ -79,7 +101,6 @@ export default function AdminScreen() {
         <div className="bg-white p-10" style={{ height: `${window.innerHeight}px` }}>
             <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
                 <h2>Create Race</h2>
-                <input type="text" placeholder="Title" name="title"></input>
                 <input type="number" placeholder="Duration (1,2,3...)" name="duration"></input>
                 <input type="number" placeholder="Players required" name="playersRequired"></input>
                 

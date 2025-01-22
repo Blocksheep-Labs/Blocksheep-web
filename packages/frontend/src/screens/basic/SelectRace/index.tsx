@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../../components/RibbonLabel";
 import RaceItem from "../../../components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
-import { buyTokens, getRaceById, getRacesWithPagination, getTestETH, registerOnTheRace, retreiveCOST } from "../../../utils/contract-functions";
+import { buyTokens, getRacesWithPagination, getTestETH, registerOnTheRace, retreiveCOST } from "../../../utils/contract-functions";
 import RegisteringModal from "../../../components/modals/RegisteringModal";
 import RegisteredModal from "../../../components/modals/RegisteredModal";
 import { socket } from "../../../utils/socketio";
@@ -13,13 +13,18 @@ import { useGameContext } from "../../../utils/game-context";
 import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInsertUser } from "../../../utils/http-requests";
 import { useBalance } from "wagmi";
 import SynchronizingModal from "../../../components/modals/SynchronizingModal";
+import { useRegisterOnTheRace } from "../../../hooks/basic/SelectRace/registerOnTheRace";
+import { TRace, useRaceById } from "../../../hooks/basic/SelectRace/getRaceById";
+import { useRacesWithPagination } from "../../../hooks/basic/SelectRace/getRacesWithPagination";
 
 
 function SelectRaceScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
+
+  const { processTransaction } = useRegisterOnTheRace();
   const navigate = useNavigate();
   const { updateGameState, gameState } = useGameContext();
-  const [races, setRaces] = useState<any[]>([]);
+
   const [racesUserParticipatesIn, setRacesUserParticipatesIn] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
@@ -27,6 +32,9 @@ function SelectRaceScreen() {
   const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | "synchronizing" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
+
+  const { race } = useRaceById(raceId);
+  const { races } = useRacesWithPagination(0); 
 
   const { data: ETHBalance } = useBalance({
     address: smartAccountAddress
@@ -54,41 +62,12 @@ function SelectRaceScreen() {
       return;
     */
 
-    
-    getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
-      updateGameState(data, progress, undefined);
+    //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
+      updateGameState(race, progress, undefined);
       navigate(generateLink(screen, rIdNumber));
-    });
-  }, [raceId]);
+    //});
+  }, [raceId, race]);
 
-  const fetchAndSetRaces = useCallback(async() => {
-    if (smartAccountAddress) {
-      getRacesWithPagination(smartAccountAddress as `0x${string}`, 0).then(data => {
-        setRaces(data as any[]);
-      });
-
-      httpGetRacesUserParticipatesIn(smartAccountAddress as `0x${string}`).then(({data}) => {
-        // console.log(data.races)
-        setRacesUserParticipatesIn(data.races);
-      });
-
-      setCost(Number(await retreiveCOST()));
-    }
-  }, [smartAccountAddress]);
-  
-  useEffect(() => {
-    if (smartAccountAddress) {
-      fetchAndSetRaces();
-      
-      const intId = setInterval(() => {
-        fetchAndSetRaces();
-      }, 5000);
-
-      return () => {
-        clearInterval(intId);
-      }
-    }
-  }, [smartAccountAddress]);
 
   const selectedRace = useMemo(() => {
     if (!races) {
@@ -97,7 +76,6 @@ function SelectRaceScreen() {
     return races.find(({ id }) => id === raceId);
   }, [races, raceId]);
 
-  //console.log(modalType)
 
   useEffect(() => {
     if (smartAccountAddress) {
@@ -137,7 +115,7 @@ function SelectRaceScreen() {
             socket.emit('get-latest-screen', { raceId });
             return;
           }
-          const race = races.find((r: any) => r.id === raceId);
+          const race = races?.find((r: any) => r.id === raceId);
           setAmountOfConnected(data.amount);
           console.log("Got amount of connected:", data);
           if (modalType !== "synchronizing") {
@@ -145,9 +123,9 @@ function SelectRaceScreen() {
             setModalType("waiting");
 
             // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-            console.log(data.amount === race.numOfPlayersRequired, race.numOfPlayersRequired)
+            console.log(data.amount === race?.numOfPlayersRequired, race?.numOfPlayersRequired)
   
-            if (data.amount === race.numOfPlayersRequired) {
+            if (data.amount === race?.numOfPlayersRequired) {
               console.log("Ready to navigate!");
               socket.emit('get-latest-screen', { raceId });
             }
@@ -188,7 +166,7 @@ function SelectRaceScreen() {
           return;
         }
 
-        const race = races.find((r: any) => r.id === raceId);
+        const race = races?.find((r: any) => r.id === raceId);
         console.log("Player joined:", {raceIdSocket, raceId, race})
 
         if (raceIdSocket == raceId) {
@@ -286,7 +264,7 @@ function SelectRaceScreen() {
     }
   }, [raceId, socket, smartAccountAddress]);
 
-  const onClickRegister = useCallback(async(id: number, questionsCount: number) => {
+  const onClickRegister = useCallback(async(id: number) => {
     setIsOpen(true);
     setModalType("registering");
     console.log('Requesting test ETH if needed.');
@@ -295,22 +273,11 @@ function SelectRaceScreen() {
           console.log('Got test ETH!')
         })
         .catch(console.error);
-
-    await registerOnTheRace(id, questionsCount, smartAccountClient, smartAccountAddress).then(async _ => {
+    
+    processTransaction(id).then(async _ => {
       console.log("REGISTERED, fetching list of races...");
       
       try {
-        const raceData = await getRaceById(Number(raceId), smartAccountAddress as `0x${string}`);
-        
-        fetchAndSetRaces();
-        
-        /*
-        console.log(raceData.registeredUsers);
-        if (!raceData.registeredUsers.map((i: string) => i.toLowerCase()).includes(smartAccountAddress?.toLowerCase())) {
-          throw new Error("Registration error, user is not in a list of registered users")
-        };
-        */
-  
         setRaceId(id);
         setIsOpen(true);
         setModalType("registered");
@@ -347,20 +314,22 @@ function SelectRaceScreen() {
           races.map((r, i) => (
             <RaceItem
               key={i.toString()}
-              cost={cost}
-              race={r}
+              cost={30}
+              race={r as any}
               onClickJoin={onClickJoin}
               onClickRegister={onClickRegister}
               participatesIn={racesUserParticipatesIn}
             />
-          ))}
+          ))
+        }
       </div>
       { modalIsOpen && modalType === "synchronizing" &&  <SynchronizingModal/> }
       { 
-        modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> 
+        modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races?.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> 
       }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
       { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {
+          // @ts-ignore
           const dt = new Date(Number(selectedRace?.startAt) * 1000);
           const h = dt.getHours();
           const m = dt.getMinutes();

@@ -1,12 +1,4 @@
-// import { ConnectWallet, useAddress } from "@thirdweb-dev/react";
-// import React, { useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-import BlockSheepLogo from "../../assets/home/black sheepy.png";
-import Sheep from "../../assets/home/sheep itself.png";
-import SheepShadow from "../../assets/home/sheep shadow.png";
-import FlagYellow from "../../assets/home/Layer 8.png";
-import FlagGreen from "../../assets/home/Layer 12.png";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import { SELECTED_NETWORK } from "../../../config/constants";
@@ -103,10 +95,7 @@ function HomeScreen() {
                 });
             }
         }, 500);
-    }
-
-    // return the play button on privy modal close
-    
+    }    
 
 
     return (

@@ -4,11 +4,12 @@ import { useUserBalance } from "../../../hooks/useUserBalance";
 import shortenAddress from "../../../utils/shortenAddress";
 import NextFlag from "../../../assets/common/flag.png";
 import { useNavigate } from "react-router-dom";
-import { buyTokens, withdrawTokens } from "../../../utils/contract-functions";
 import { useState } from "react";
 import SelectAmountModal from "../../../components/SelectAmountModal";
 import { usePrivy } from "@privy-io/react-auth";
 import { useBalance } from "wagmi";
+import { useBuyTokens } from "../../../hooks/basic/Account/buyTokens";
+import { useWithdrawTokens } from "../../../hooks/basic/Account/withdrawTokens";
 
 
 const ProfileButton = ({text, onClick, bgColors, icon}: {text: string; onClick?: () => void; bgColors: string, icon: React.ReactNode}) => {
@@ -36,6 +37,8 @@ function AccountScreen() {
   const { data: ETHBalance } = useBalance({
     address: smartAccountAddress
   });
+  const { processTransaction: buyTokens } = useBuyTokens();
+  const { processTransaction: withdrawTokens } = useWithdrawTokens();
 
   console.log({userBalance})
 
@@ -52,13 +55,13 @@ function AccountScreen() {
 
   const handleDeposit = (amount: number) => {
     console.log(smartAccountAddress, user);
-    buyTokens(amount, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted))
+    buyTokens(amount, Number(ETHBalance?.formatted))
       .then(console.log)
       .catch(console.error)
   }
 
   const handleWithdraw = (amount: number) => {
-    withdrawTokens(amount, smartAccountClient);
+    withdrawTokens(amount);
   }
 
   const handleLogout = () => {
@@ -72,7 +75,7 @@ function AccountScreen() {
     alert(smartAccountAddress as string);
   }
 
-  console.log(smartAccountAddress, `Balance: ${Number(ETHBalance?.formatted)}`)
+  console.log(smartAccountAddress, `Balance: ${Number(ETHBalance?.formatted)}`);
 
   return (
     <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom`} style={{ height: `${window.innerHeight}px` }}>

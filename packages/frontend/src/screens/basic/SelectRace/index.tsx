@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../../components/RibbonLabel";
 import RaceItem from "../../../components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
-import { buyTokens, getRacesWithPagination, getTestETH, registerOnTheRace, retreiveCOST } from "../../../utils/contract-functions";
+import { getTestETH } from "../../../utils/contract-functions";
 import RegisteringModal from "../../../components/modals/RegisteringModal";
 import RegisteredModal from "../../../components/modals/RegisteredModal";
 import { socket } from "../../../utils/socketio";
@@ -14,7 +14,7 @@ import { httpGetRacesUserParticipatesIn, httpGetUserDataByAddress, httpRaceInser
 import { useBalance } from "wagmi";
 import SynchronizingModal from "../../../components/modals/SynchronizingModal";
 import { useRegisterOnTheRace } from "../../../hooks/basic/SelectRace/registerOnTheRace";
-import { TRace, useRaceById } from "../../../hooks/basic/SelectRace/getRaceById";
+import { useRaceById } from "../../../hooks/basic/SelectRace/getRaceById";
 import { useRacesWithPagination } from "../../../hooks/basic/SelectRace/getRacesWithPagination";
 
 
@@ -28,7 +28,6 @@ function SelectRaceScreen() {
   const [racesUserParticipatesIn, setRacesUserParticipatesIn] = useState<any[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
   const [raceId, setRaceId] = useState<number | null>(null);
-  const [cost, setCost] = useState(0);
   const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | "synchronizing" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
@@ -134,24 +133,17 @@ function SelectRaceScreen() {
       });
 
       socket.on('latest-screen', ({raceId: raceIdSocket, screen}) => {
-        // prevent amount of players tracking if we are waiting to synchronize with the game
-        //if (modalType == "synchronizing" && modalIsOpen) {
-        //  console.log(modalType, modalIsOpen)
-        //  return;
-        //}
-
         console.log({screen});
         if (raceIdSocket == raceId) {
           setIsOpen(false);
           setModalType(undefined);
-          // alert("naviagte because of latest screen")
+          
           if (!["UNDERDOG", "RABBIT_HOLE", "BULL_RUN"].includes(screen)) {
             handleNavigate(progress, screen);
           } else {
-            //if (!modalIsOpen) {
-              setIsOpen(true);
-              setModalType("synchronizing");
-            //} 
+            setIsOpen(true);
+            setModalType("synchronizing");
+            
             setTimeout(() => {
               socket.emit("get-latest-screen", { raceId, userAddress: smartAccountAddress });
             }, 1200);

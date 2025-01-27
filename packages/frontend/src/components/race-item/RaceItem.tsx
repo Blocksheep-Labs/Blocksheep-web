@@ -49,7 +49,7 @@ type RaceItemProps = {
 function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: RaceItemProps) {
   const { smartAccountClient } = useSmartAccount();
 
-  const [timeLeft, setTimeLeft] = useState((Number(race.startAt) * 1000) - new Date().getTime());
+  const [timeLeft, setTimeLeft] = useState((Number(race.endAt) * 1000) - new Date().getTime());
   const [loading, setLoading] = useState(false);
 
   const withdrawFundsHandler = async() => {
@@ -77,7 +77,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: 
     }
 
     const intId = setInterval(() => {
-      setTimeLeft((Number(race.startAt) * 1000) - new Date().getTime());
+      setTimeLeft((Number(race.endAt) * 1000) - new Date().getTime());
     }, 1000);
 
     return () => {
@@ -156,7 +156,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: 
                         return "Unknown";
                       })()
                       :
-                      msToTime((Number(race.startAt) * 1000) - new Date().getTime())
+                      msToTime((Number(race.endAt) * 1000) - new Date().getTime())
                     }
                   </span>
                 </div>

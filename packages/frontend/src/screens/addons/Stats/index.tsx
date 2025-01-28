@@ -131,8 +131,13 @@ export default function StatsScreen() {
             return true;
         }
 
-        const centralIndex = Math.floor(stats.length / 2) - 1;
-        console.log({centralIndex})
+        let centralIndex = Math.floor(stats.length / 2);
+
+        // if scores are equal and we reached the centre of the table
+        if (stats.every(i => i.curr == stats[0].curr) && index >= centralIndex) {
+            return false;
+        }
+
         const centralScore = stats[centralIndex]?.curr || 0; // 0 if no score exists
 
         return score >= centralScore; // Check if the score is greater than the central score

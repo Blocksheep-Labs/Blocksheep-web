@@ -786,27 +786,35 @@ module.exports = (io) => {
             // Sort entries by points in descending order
             entries.sort((a, b) => b[1].points - a[1].points);
 
-            const centralIndex = Math.floor(entries.length / 2) - 1;
+            const centralIndex = Math.floor(entries.length / 2);
+
+            // scores are equal check
+            const scoresAreSimilar = entries.every(i => i[1].points == entries[0][1].points);
+                
             const centralScore = entries[centralIndex]?.[1].points || 0; // Default to 0 if no score exists
 
-            console.log({ centralScore });
 
-            entries.forEach((i) => {
+            entries.forEach((i, key) => {
                 if (!playerPoints[raceId][i[0]]) {
                     playerPoints[raceId][i[0]] = { points: 0, finished: true };
                 } else {
                     playerPoints[raceId][i[0]].finished = true;
                 }
 
+                let property = i[1].points >= centralScore ? "increment" : "decrement";
+                if (scoresAreSimilar && key >= centralIndex) {
+                    property = "decrement";
+                }
+
                 console.log(
                     i[0],
-                    i[1].points >= centralScore ? "increment" : "decrement",
+                    property,
                     raceId
                 );
 
                 finishRace(
                     i[0],
-                    i[1].points >= centralScore ? "increment" : "decrement",
+                    property,
                     raceId
                 );
             });

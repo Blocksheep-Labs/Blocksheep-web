@@ -10,18 +10,8 @@ let connectedUsers = [];
 let racesProgresses = [];
 
 // { raceId: string, screen: string }
-let screens = [
-    "STORY_INTRO", "RACE_START", 
-    "RABBIT_HOLE_PREVIEW", "RABBIT_HOLE_RULES", "RABBIT_HOLE",
-    "RACE_UPDATE_1", "STORY_PART_1",
-    "UNDERDOG_PREVIEW", "UNDERDOG_RULES", "UNDERDOG",
-    "RACE_UPDATE_2", "STORY_PART_2",
-    "BULL_RUN_PREVIEW", "BULL_RUN_RULES", "BULL_RUN",
-    "RACE_UPDATE_3", "STORY_PART_3",
-    //"RABBIT_HOLE_V2_PREVIEW", "RABBIT_HOLE_V2_RULES", "RABBIT_HOLE_V2",
-    //"RACE_UPDATE_4", "STORY_PART_4", 
-    "RATE", "STORY_CONCLUSION", "PODIUM"
-];
+let screens = {};
+
 let roomsLatestScreen = [];
 
 // UNDERDOG
@@ -71,7 +61,6 @@ module.exports = (io) => {
          socket.on('disconnect', () => {
             // Find all rooms this socket was connected to before filtering
             const userConnection = connectedUsers.find(i => i.id === socket.id);
-            const roomsToEmitDisconnectEvent = userConnection ? [userConnection.room] : [];
 
             // Log the disconnect attempt
             /*
@@ -101,33 +90,34 @@ module.exports = (io) => {
                         //console.log("no screen found, set:", screens[0]);
                         roomsLatestScreen.push({
                             raceId: userConnection.raceId,
-                            screen: screens[0]
+                            screen: "RACE_START"
                         });
                     } else if (["UNDERDOG", "BULL_RUN", "RABBIT_HOLE"].includes(roomsLatestScreen[roomScreenIndex].screen)) {
                         const screen = roomsLatestScreen[roomScreenIndex].screen;
-                        const screenPos = screens.indexOf(screen);
+
+                        const screenNamesPerUserConnection = screens[userConnection.room];
+                        const screenPos = screenNamesPerUserConnection.indexOf(screen);
                         
-                        if (screens.length - 1 >= screenPos + 1) {
-                            //console.log("switching to next screen. set:", screens[screenPos + 1]);
-                            roomsLatestScreen[roomScreenIndex].screen = screens[screenPos + 1];
+
+                        if (screenNamesPerUserConnection.length - 1 >= screenPos + 1) {
+                            roomsLatestScreen[roomScreenIndex].screen = screenNamesPerUserConnection[screenPos + 1];
                         } else {
-                            //console.log("switching to next screen (last one), set:", screens[screens.length - 1]);
-                            roomsLatestScreen[roomScreenIndex].screen = screens[screens.length - 1];
+                            roomsLatestScreen[roomScreenIndex].screen = screenNamesPerUserConnection[screenNamesPerUserConnection.length - 1];
                         }
                     }
                 }
                 
                 // Leave rooms and emit events
-                roomsToEmitDisconnectEvent.forEach(roomName => {
-                    socket.leave(roomName);
-                    io.to(roomName).emit('leaved', {
-                        socketId: socket.id,
-                        userAddress: userConnection.userAddress,
-                        raceId: userConnection.raceId,
-                        movedToNext: false,
-                        part: userConnection.part
-                    });
+                
+                socket.leave(userConnection.room);
+                io.to(userConnection.room).emit('leaved', {
+                    socketId: socket.id,
+                    userAddress: userConnection.userAddress,
+                    raceId: userConnection.raceId,
+                    movedToNext: false,
+                    part: userConnection.part
                 });
+                
 
                 // handling bullrun
                 if (userConnection.userAddress && userConnection.raceId) {
@@ -212,8 +202,12 @@ module.exports = (io) => {
         });
     
         // connect the live
-        socket.on('connect-live-game', ({ raceId, userAddress, part }) => {
+        socket.on('connect-live-game', ({ raceId, userAddress, part, screensOrder }) => {
             const roomName = `race-${raceId}`;
+
+            if (!screens[roomName] && screensOrder) {
+                screens[roomName] = screensOrder;
+            }
             //console.log("Connect live game", roomName, userAddress, part);
 
             // Remove any existing connections for this user address
@@ -241,7 +235,7 @@ module.exports = (io) => {
 
             // set latest screen
             const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
-            if (roomScreenData && (screens.indexOf(roomScreenData.screen) < screens.indexOf(part))) {
+            if (roomScreenData && (screens[roomName].indexOf(roomScreenData.screen) < screens[roomName].indexOf(part))) {
                 console.log({part});
                 roomScreenData.screen = part;
                 io.to(roomName).emit('screen-changed', { screen: part });
@@ -260,11 +254,19 @@ module.exports = (io) => {
         });
 
         socket.on('get-latest-screen', ({ raceId }) => {
+            const roomName = `race-${raceId}`;
             const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
-            let latestScreen = screens[0];
+
+            let latestScreen = undefined;
+            
             if (roomScreenData?.screen) {
                 latestScreen = roomScreenData.screen;
-            }                                    
+            }
+            
+            if (!screens[roomName]) {
+                latestScreen = "UNKNOWN";
+            }
+
             io.to(socket.id).emit('latest-screen', { raceId, screen: latestScreen });
         });
     
@@ -786,27 +788,32 @@ module.exports = (io) => {
             // Sort entries by points in descending order
             entries.sort((a, b) => b[1].points - a[1].points);
 
-            const centralIndex = Math.floor(entries.length / 2) - 1;
+            const centralIndex = Math.floor(entries.length / 2);
+
             const centralScore = entries[centralIndex]?.[1].points || 0; // Default to 0 if no score exists
 
-            console.log({ centralScore });
 
-            entries.forEach((i) => {
+            entries.forEach((i, key) => {
                 if (!playerPoints[raceId][i[0]]) {
                     playerPoints[raceId][i[0]] = { points: 0, finished: true };
                 } else {
                     playerPoints[raceId][i[0]].finished = true;
                 }
 
+                let property = i[1].points >= centralScore ? "increment" : "decrement";
+                if (key >= centralIndex) {
+                    property = "decrement";
+                }
+
                 console.log(
                     i[0],
-                    i[1].points >= centralScore ? "increment" : "decrement",
+                    property,
                     raceId
                 );
 
                 finishRace(
                     i[0],
-                    i[1].points >= centralScore ? "increment" : "decrement",
+                    property,
                     raceId
                 );
             });

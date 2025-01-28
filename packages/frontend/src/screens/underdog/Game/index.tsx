@@ -1,23 +1,24 @@
-import SelectionBtnBox from "./components/SelectionBtnBox";
-import SwipeSelection from "./components/SwipeSelection";
-import UserCount from "../../../components/UserCount";
+import UserCount from "@/components/UserCount";
 import { RefObject, useEffect, useRef, useState } from "react";
-import LoadingModal from "../../../components/modals/LoadingModal";
-import WinModal from "../../../components/modals/WinModal";
-import Timer from "../../../components/Timer";
+import LoadingModal from "@/components/modals/LoadingModal";
+import WinModal from "@/components/modals/WinModal";
+import Timer from "@/components/Timer";
 import { useTimer } from "react-timer-hook";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRaceById, submitUserAnswer } from "../../../utils/contract-functions";
+import { submitUserAnswer } from "@/utils/contract-functions";
 import { waitForTransactionReceipt } from "@wagmi/core";
-import { config } from "../../../config/wagmi";
-import { socket } from "../../../utils/socketio";
-import WaitingForPlayersModal from "../../../components/modals/WaitingForPlayersModal";
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
-import generateLink from "../../../utils/linkGetter";
-import { txAttempts } from "../../../utils/txAttempts";
-import DogLoaderImage from "../../../assets/underdog/background_head.webp";
-import Firework from "../../../components/firework/firework";
-import { GameState, useGameContext } from "../../../utils/game-context";
+import { config } from "@/config/wagmi";
+import { socket } from "@/utils/socketio";
+import WaitingForPlayersModal from "@/components/modals/WaitingForPlayersModal";
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
+import generateLink from "@/utils/linkGetter";
+import { txAttempts } from "@/utils/txAttempts";
+import DogLoaderImage from "@/assets/underdog/background_head.webp";
+import Firework from "@/components/firework/firework";
+import { useGameContext } from "@/utils/game-context";
+import { useRaceById } from "@/hooks/useRaceById";
+import SwipeSelection from "./components/SwipeSelection";
+import SelectionBtnBox from "./components/SelectionBtnBox";
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
@@ -35,6 +36,7 @@ function UnderdogGame() {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [flipState, setFlipState] = useState(true);
   const {raceId} = useParams();
+  const { race: raceData } = useRaceById(Number(raceId));
   const {gameState} = useGameContext();
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -45,13 +47,11 @@ function UnderdogGame() {
 
   const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
   const questions = gameState?.questionsByGames[currentGameIndex];
-  const { questionsByGames, progress } = gameState as GameState;
 
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   //const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
   const { smartAccountClient } = useSmartAccount();
-  const [raceData, setRaceData] = useState<any>(undefined);
 
   const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | "unknown" | null>(null);
   const [amountOfAnswersLeft, setAmountOfAnswersLeft] = useState(0);
@@ -118,16 +118,6 @@ function UnderdogGame() {
       });
     }
   }, [totalSeconds]);
-
-  // updates global questions state
-  const updateProgress = () => {
-    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then((data) => {
-      if (data) {
-        console.log("SET RACE DATA", {data})
-        setRaceData(data);
-      }
-    });
-  };
   
   const onClickLike = async(qIndex: number, sendTx=true) => {
     // Prevent multiple submissions for the same question
@@ -506,7 +496,7 @@ function UnderdogGame() {
         setAmountOfAnswersLeft(amountOfAnswersLeftServer);
         setAmountOfAnswersRight(amountOfAnswersRightServer);
 
-        if (amountOfAnswersLeftServer + amountOfAnswersRightServer == raceData.numberOfPlayersRequired) {
+        if (amountOfAnswersLeftServer + amountOfAnswersRightServer == raceData.numOfPlayersRequired) {
           console.log({amountOfAnswersLeftServer, amountOfAnswersRightServer})
           socket.emit('underdog-results-shown', { raceId });
           setupTimeout();
@@ -675,10 +665,7 @@ function UnderdogGame() {
           socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
       }
     }, [smartAccountAddress, socket, raceId, raceData]);
-  
-    useEffect(() => {
-      updateProgress();
-    }, []);
+
 
     // kick player if page chnages (closes)
     useEffect(() => {
@@ -700,7 +687,7 @@ function UnderdogGame() {
           (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
         ) 
         &&
-        (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+        (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numOfPlayersRequired || 9)) 
         &&
         <Firework/>
       }
@@ -719,7 +706,7 @@ function UnderdogGame() {
       <div className="relative my-4">
         {!submittingAnswer && !modalIsOpen && <Timer seconds={totalSeconds} />}
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numberOfPlayersRequired || 9}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numOfPlayersRequired || 9}/>
         </div>
       </div>
       {
@@ -763,11 +750,11 @@ function UnderdogGame() {
           }
           {
             modalType === "waiting" && !latestInteractiveModalWasClosed &&
-            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
+            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numOfPlayersRequired || 9}/> 
           }
           {
             modalType && ["waiting-after-finish", "waiting-before-finish"].includes(modalType) && !latestInteractiveModalWasClosed &&
-            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
+            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numOfPlayersRequired || 9} replacedText="..."/> 
           }
         </>
       )}
@@ -778,7 +765,7 @@ function UnderdogGame() {
       }
       {
         waitingToFinishModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
-        <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
+        <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numOfPlayersRequired || 9} replacedText="..."/> 
       }
       {
         winModalPermanentlyOpened && !latestInteractiveModalWasClosed &&

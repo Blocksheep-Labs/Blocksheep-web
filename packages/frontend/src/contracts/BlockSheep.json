@@ -12,6 +12,11 @@
 				"type": "uint8"
 			},
 			{
+				"internalType": "string[]",
+				"name": "screens",
+				"type": "string[]"
+			},
+			{
 				"internalType": "bytes",
 				"name": "initStateForBullrun",
 				"type": "bytes"
@@ -26,49 +31,6 @@
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_underlying",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_cost",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "target",
-				"type": "address"
-			}
-		],
-		"name": "AddressEmptyCode",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "AddressInsufficientBalance",
-		"type": "error"
 	},
 	{
 		"inputs": [
@@ -108,9 +70,49 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "FailedInnerCall",
-		"type": "error"
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getScoreAtRaceOfUser",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_underlying",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_cost",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
 	},
 	{
 		"inputs": [
@@ -333,14 +335,9 @@
 			{
 				"components": [
 					{
-						"internalType": "uint256",
-						"name": "id",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint64",
-						"name": "startAt",
-						"type": "uint64"
+						"internalType": "bool",
+						"name": "refunded",
+						"type": "bool"
 					},
 					{
 						"internalType": "bool",
@@ -348,14 +345,24 @@
 						"type": "bool"
 					},
 					{
-						"internalType": "enum BlockSheep.RaceStatus",
-						"name": "status",
+						"internalType": "uint8",
+						"name": "numOfPlayersRequired",
 						"type": "uint8"
 					},
 					{
-						"internalType": "bool",
-						"name": "refunded",
-						"type": "bool"
+						"internalType": "uint64",
+						"name": "endAt",
+						"type": "uint64"
+					},
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string[]",
+						"name": "screens",
+						"type": "string[]"
 					},
 					{
 						"internalType": "address[]",
@@ -363,8 +370,8 @@
 						"type": "address[]"
 					},
 					{
-						"internalType": "uint8",
-						"name": "numOfPlayersRequired",
+						"internalType": "enum BlockSheep.RaceStatus",
+						"name": "status",
 						"type": "uint8"
 					}
 				],
@@ -418,14 +425,9 @@
 			{
 				"components": [
 					{
-						"internalType": "uint256",
-						"name": "id",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint64",
-						"name": "startAt",
-						"type": "uint64"
+						"internalType": "bool",
+						"name": "refunded",
+						"type": "bool"
 					},
 					{
 						"internalType": "bool",
@@ -433,14 +435,24 @@
 						"type": "bool"
 					},
 					{
-						"internalType": "enum BlockSheep.RaceStatus",
-						"name": "status",
+						"internalType": "uint8",
+						"name": "numOfPlayersRequired",
 						"type": "uint8"
 					},
 					{
-						"internalType": "bool",
-						"name": "refunded",
-						"type": "bool"
+						"internalType": "uint64",
+						"name": "endAt",
+						"type": "uint64"
+					},
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string[]",
+						"name": "screens",
+						"type": "string[]"
 					},
 					{
 						"internalType": "address[]",
@@ -448,8 +460,8 @@
 						"type": "address[]"
 					},
 					{
-						"internalType": "uint8",
-						"name": "numOfPlayersRequired",
+						"internalType": "enum BlockSheep.RaceStatus",
+						"name": "status",
 						"type": "uint8"
 					}
 				],
@@ -470,16 +482,16 @@
 			},
 			{
 				"internalType": "address",
-				"name": "user",
+				"name": "player",
 				"type": "address"
 			}
 		],
-		"name": "getScoreAtRaceOfUser",
+		"name": "isPlayerRegistered",
 		"outputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "bool",
 				"name": "",
-				"type": "uint256"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -506,6 +518,35 @@
 				"internalType": "address",
 				"name": "",
 				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "races",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint64",
+				"name": "endAt",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint8",
+				"name": "numOfPlayersRequired",
+				"type": "uint8"
 			}
 		],
 		"stateMutability": "view",

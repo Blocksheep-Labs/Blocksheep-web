@@ -1,11 +1,11 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
-import { socket } from "../../../utils/socketio";
+import { socket } from "@/utils/socketio";
 import { useEffect, useState } from "react";
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
-import generateLink from "../../../utils/linkGetter";
-import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
-import { useGameContext } from "../../../utils/game-context";
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
+import generateLink from "@/utils/linkGetter";
+import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
+import { useGameContext } from "@/utils/game-context";
 
 export default function BullrunCover() {
     const navigate = useNavigate();
@@ -13,8 +13,6 @@ export default function BullrunCover() {
     const {smartAccountAddress} = useSmartAccount();
     const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const time = new Date();
@@ -59,11 +57,6 @@ export default function BullrunCover() {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
-                    // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === gameState.amountOfRegisteredUsers) {
-                        setModalIsOpen(false);
-                        setModalType(undefined);
-                    }
                 }
             });
 
@@ -115,8 +108,6 @@ export default function BullrunCover() {
     }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
 
     useEffect(() => {
-        setModalIsOpen(true);
-        setModalType("waiting");
         if (smartAccountAddress && gameState) {
             socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
         }

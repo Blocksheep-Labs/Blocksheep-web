@@ -1,26 +1,26 @@
 // React and React-related imports
-import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 
 // Third-party library imports
-import { socket } from "../../../utils/socketio";
+import { socket } from "@/utils/socketio";
 
 // Custom hooks and context
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
-import { useGameContext } from "../../../utils/game-context";
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
+import { useGameContext } from "@/utils/game-context";
 
 // Components
 import BullrunRulesModal from "./components/BullrunRulesModal";
-import WaitingForPlayersModal from "../../../components/modals/WaitingForPlayersModal";
-import WinModal from "../../../components/modals/WinModal";
-import Timer from "../../../components/Timer";
+import WaitingForPlayersModal from "@/components/modals/WaitingForPlayersModal";
+import WinModal from "@/components/modals/WinModal";
+import Timer from "@/components/Timer";
 
 // Utilities
-import shortenAddress from "../../../utils/shortenAddress";
-import generateLink from "../../../utils/linkGetter";
-import { txAttempts } from "../../../utils/txAttempts";
-import { httpGetRaceDataById } from "../../../utils/http-requests";
+import shortenAddress from "@/utils/shortenAddress";
+import generateLink from "@/utils/linkGetter";
+import { txAttempts } from "@/utils/txAttempts";
+import { httpGetRaceDataById } from "@/utils/http-requests";
 import { 
     BULLRUN_distribute, 
     BULLRUN_getPerksMatrix,
@@ -28,7 +28,7 @@ import {
     BULLRUN_getWinnersPerGame, 
     BULLRUN_makeChoice, 
     getRaceById 
-} from "../../../utils/contract-functions";
+} from "@/utils/contract-functions";
 
 // Assets
 import Shield from "../assets/defence.png";

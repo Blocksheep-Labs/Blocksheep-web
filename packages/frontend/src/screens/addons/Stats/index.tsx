@@ -32,6 +32,34 @@ export default function StatsScreen() {
 
     useEffect(() => {
         if (raceId?.length && smartAccountAddress) {
+            /*
+            setUsers([
+                {
+                    address: "0xd8Fa137051acD7f3964524485be4b9A10CA22E94",
+                    name: "first",
+                },
+                {
+                    address: "0xd8ea137051acD7f3964524485be4b9A10CA22E94",
+                    name: "second",
+                },
+                {
+                    address: "0xd8na137051acD7f3964524485be4b9A10CA22E94",
+                    name: "third",
+                }
+            ]);
+
+            setStats([
+                {
+                    address: "0xd8Fa137051acD7f3964524485be4b9A10CA22E94",
+                    curr: 6,
+                },
+                {
+                    address: "0xd8ea137051acD7f3964524485be4b9A10CA22E94",
+                    curr: 6,
+                },
+            ])
+            */
+
             Promise.all([
                 getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
                 httpGetRaceDataById(`race-${raceId}`),
@@ -53,64 +81,9 @@ export default function StatsScreen() {
                 });
                 setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
 
-
-                /*
-                setStats([
-                    {
-                        address: "ajlidjalwjd",
-                        curr: 5,
-                    },
-                    {
-                        address: "a",
-                        curr: 5,
-                    },
-                    {
-                        address: "adw",
-                        curr: 5,
-                    },
-                    {
-                        address: "o[po[pop",
-                        curr: 4,
-                    },
-                    {
-                        address: "iopipo12i",
-                        curr: 2,
-                    },
-                    {
-                        address: "iopipoi",
-                        curr: 1,
-                    },
-                    {
-                        address: "iopiaspoi",
-                        curr: 1,
-                    },
-                    {
-                        address: "te45",
-                        curr: 0,
-                    }
-                ])
-                */
-                
                 console.log("PROGRESS:", newProgress);
                 
                 setUsers(data.serverData.race.users);
-                
-                /*
-                setUsers([
-                    {
-                        address: "0xd8Fa137051acD7f3964524485be4b9A10CA22E94",
-                        name: "bada9te",
-                    },
-                    {
-                        address: "0xd8ea137051acD7f3964524485be4b9A10CA22E94",
-                        name: "bada9te2",
-                    },
-                    {
-                        address: "0xd8na137051acD7f3964524485be4b9A10CA22E94",
-                        name: "bada9te1",
-                    }
-                ]);
-                */
             });
         }
     }, [raceId, smartAccountAddress]);
@@ -134,7 +107,7 @@ export default function StatsScreen() {
         let centralIndex = Math.floor(stats.length / 2);
 
         // if scores are equal and we reached the centre of the table
-        if (stats.every(i => i.curr == stats[0].curr) && index >= centralIndex) {
+        if (index >= centralIndex) {
             return false;
         }
 

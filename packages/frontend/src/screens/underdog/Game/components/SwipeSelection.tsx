@@ -17,8 +17,8 @@ const Content = ({ question }: { question: string }) => (
 
 export type SwipeSelectionProps = {
   onFinish: () => void;
-  leftAction: (qIndex: number) => void;
-  rightAction: (qIndex: number) => void;
+  leftAction: () => void;
+  rightAction: () => void;
   questions: any[]; // Array of questions
   currentQuestionIndex: number; // Index of the current question
   disabled: boolean;
@@ -46,9 +46,9 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
 
       // Handle swipe direction
       if (direction === "left") {
-        leftAction(index);
+        leftAction();
       } else if (direction === "right") {
-        rightAction(index);
+        rightAction();
       }
     };
 

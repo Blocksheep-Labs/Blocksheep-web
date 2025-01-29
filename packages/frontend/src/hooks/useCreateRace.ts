@@ -16,6 +16,7 @@ export const useAdminCreateRace = () => {
     const processTransaction = async(
         hoursBeforeFinish: number,
         playersRequired: number,
+        storyKey: number,
         initStateForUnderdog: TUnderdogQuestion[],
         initStateForBullrun: number[][],
         screensOrder: string[],
@@ -40,6 +41,7 @@ export const useAdminCreateRace = () => {
                 args: [
                     hoursBeforeFinish, 
                     playersRequired, 
+                    storyKey,
                     screensOrder,
                     encodedPerksMatrix, // initStateFor Bullrun
                     encodedQuestions,   // initStateFor Underdog

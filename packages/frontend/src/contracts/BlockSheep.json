@@ -12,6 +12,11 @@
 				"type": "uint8"
 			},
 			{
+				"internalType": "uint8",
+				"name": "storyKey",
+				"type": "uint8"
+			},
+			{
 				"internalType": "string[]",
 				"name": "screens",
 				"type": "string[]"
@@ -346,6 +351,11 @@
 					},
 					{
 						"internalType": "uint8",
+						"name": "storyKey",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
 						"name": "numOfPlayersRequired",
 						"type": "uint8"
 					},
@@ -433,6 +443,11 @@
 						"internalType": "bool",
 						"name": "registered",
 						"type": "bool"
+					},
+					{
+						"internalType": "uint8",
+						"name": "storyKey",
+						"type": "uint8"
 					},
 					{
 						"internalType": "uint8",
@@ -534,9 +549,14 @@
 		"name": "races",
 		"outputs": [
 			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
+				"internalType": "uint8",
+				"name": "storyKey",
+				"type": "uint8"
+			},
+			{
+				"internalType": "uint8",
+				"name": "numOfPlayersRequired",
+				"type": "uint8"
 			},
 			{
 				"internalType": "uint64",
@@ -544,9 +564,9 @@
 				"type": "uint64"
 			},
 			{
-				"internalType": "uint8",
-				"name": "numOfPlayersRequired",
-				"type": "uint8"
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",

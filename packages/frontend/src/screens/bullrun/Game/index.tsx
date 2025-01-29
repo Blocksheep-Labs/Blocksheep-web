@@ -522,8 +522,8 @@ export default function Bullrun() {
             });
 
             socket.on('leaved', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
-                console.log(part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext, socketId, opponent)
-                if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
+                console.log(part == "BULLRUN" && raceId == raceIdSocket && !movedToNext, socketId, opponent)
+                if (part == "BULLRUN" && raceId == raceIdSocket && !movedToNext) {
                     socket.emit('get-connected', { raceId });
 
                     // Check if the opponent has left
@@ -558,7 +558,7 @@ export default function Bullrun() {
             });
 
             socket.on('joined', ({socketId, userAddress, part, raceId: raceIdSocket, movedToNext}) => {
-                if (part == "BULL_RUN" && raceId == raceIdSocket && !movedToNext) {
+                if (part == "BULLRUN" && raceId == raceIdSocket && !movedToNext) {
                     socket.emit('get-connected', { raceId });
                     if (opponent && opponent.id == socketId) {
                         console.log("OPPONENT JOINED");
@@ -675,7 +675,7 @@ export default function Bullrun() {
     // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
     useEffect(() => {
         if (amountOfPlayersCompleted >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
-          socket.emit('minimize-live-game', { part: 'BULL_RUN', raceId });
+          socket.emit('minimize-live-game', { part: 'BULLRUN', raceId });
           //alert("navigate in useEffect");
           navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
         }
@@ -724,13 +724,13 @@ export default function Bullrun() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                if (screen !== "BULL_RUN") {
+                if (screen !== "BULLRUN") {
                     navigate(generateLink(screen, Number(raceId)));
                 }
             });
 
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "BULL_RUN") {
+                if (screen !== "BULLRUN") {
                     socket.emit("update-progress", {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -753,8 +753,8 @@ export default function Bullrun() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN" });
-            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULLRUN" });
+            socket.emit("get-latest-screen", { raceId, part: "BULLRUN" });
             socket.emit("bullrun-get-game-counts", { raceId, userAddress: smartAccountAddress });
             socket.emit("get-progress-all", { raceId });
         }

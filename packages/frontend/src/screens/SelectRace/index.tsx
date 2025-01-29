@@ -31,6 +31,7 @@ function SelectRaceScreen() {
   const [modalType, setModalType] = useState<"registering" | "registered" | "waiting" | "synchronizing" | undefined>(undefined);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [progress, setProgress] = useState<any>(null);
+  const [isJoining, setIsJoining] = useState(false);
 
   const { race } = useRaceById(raceId);
   const { races } = useRacesWithPagination(0); 
@@ -86,7 +87,7 @@ function SelectRaceScreen() {
         if (progress?.progress) {
           setProgress(progress.progress);
           // if teh user left on not-playable screen, we have to navigate him to the actual screen
-          if (!["UNDERDOG", "RABBIT_HOLE", "BULL_RUN"].includes(latestScreen)) {
+          if (!["UNDERDOG", "RABBIT_HOLE", "BULLRUN"].includes(latestScreen)) {
             handleNavigate(progress.progress, latestScreen);
           } else {
             //if (!modalIsOpen) {
@@ -138,7 +139,7 @@ function SelectRaceScreen() {
           setIsOpen(false);
           setModalType(undefined);
           
-          if (!["UNDERDOG", "RABBIT_HOLE", "BULL_RUN"].includes(screen)) {
+          if (!["UNDERDOG", "RABBIT_HOLE", "BULLRUN"].includes(screen)) {
             handleNavigate(progress, screen);
           } else {
             setIsOpen(true);
@@ -205,29 +206,40 @@ function SelectRaceScreen() {
   ]);
 
 
-  const onClickJoin = useCallback((id: number) => {
-    console.log("Joining...", id);
-    socket.connect();
-    
-    if (smartAccountAddress) {
-      console.log("Smart account is connected, requesting progress", {raceId: id, userAddress: smartAccountAddress});
+  useEffect(() => {
+    if (smartAccountAddress && race && isJoining && socket) {
+      console.log("Joining...");
+      socket.connect();
+
+      console.log("Smart account is connected, requesting progress", {raceId: race.id, userAddress: smartAccountAddress});
+      console.log({ race });
+      const convertedRaceId = Number(race.id);
+
       // get user by wallet address
       httpGetUserDataByAddress(smartAccountAddress).then(({ data }) => {
         // update race by inserting a user into race
-        httpRaceInsertUser(`race-${id}`, data.user._id).then(() => {
-          socket.emit("get-progress", { raceId: id, userAddress: smartAccountAddress });
-          setTimeout(() => {
-            console.log("Connecting into the game", {raceId: id, userAddress: smartAccountAddress});
-            socket.emit("connect-live-game", { raceId: id, userAddress: smartAccountAddress });
-          }, 500);
-          setRaceId(id);
+        httpRaceInsertUser(`race-${convertedRaceId}`, data.user._id).then(() => {
+          socket.emit("get-progress", { raceId: convertedRaceId, userAddress: smartAccountAddress });
 
+          setTimeout(() => {
+            console.log("Connecting into the game", {
+              raceId: convertedRaceId, 
+              userAddress: smartAccountAddress
+            });
+
+            socket.emit("connect-live-game", { 
+              raceId: convertedRaceId, 
+              userAddress: smartAccountAddress, 
+              screensOrder: race.screens 
+            });
+          }, 500);
+          
           setIsOpen(true);
           setModalType("waiting");
         });
       });
     } 
-  }, [smartAccountAddress, socket]);
+  }, [isJoining, smartAccountAddress, socket, race])
 
   useEffect(() => {
     if (socket && raceId !== null && smartAccountAddress && race) {
@@ -283,15 +295,12 @@ function SelectRaceScreen() {
       setIsOpen(false);
       console.log("REG ERR:", err);
     });
-  }, [smartAccountAddress]);
+  }, [smartAccountAddress, ETHBalance]);
 
-  function closeModal() {
-    onClickJoin(raceId as number);
+  function closeModalAndJoin() {
+    setIsJoining(true);
   }
 
-  //console.log(races, races.find((r: any) => r.id === raceId))
-
-  
 
   return (
     <div className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom`} style={{ height: `${window.innerHeight}px` }}>
@@ -308,7 +317,10 @@ function SelectRaceScreen() {
               key={i.toString()}
               cost={30}
               race={r as any}
-              onClickJoin={onClickJoin}
+              onClickJoin={() => {
+                setRaceId(r.id);
+                setIsJoining(true);
+              }}
               onClickRegister={onClickRegister}
               participatesIn={racesUserParticipatesIn}
             />
@@ -320,9 +332,9 @@ function SelectRaceScreen() {
         modalIsOpen && modalType === "waiting" && <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={races?.find((r: any) => r.id === raceId)?.numOfPlayersRequired || 9}/> 
       }
       { modalIsOpen && modalType === "registering" && <RegisteringModal/> }
-      { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModal} timeToStart={(() => {
+      { modalIsOpen && modalType === "registered"  && <RegisteredModal handleClose={closeModalAndJoin} timeToStart={(() => {
           // @ts-ignore
-          const dt = new Date(Number(selectedRace?.startAt) * 1000);
+          const dt = new Date(Number(selectedRace?.endAt) * 1000);
           const h = dt.getHours();
           const m = dt.getMinutes();
           const s = dt.getSeconds();

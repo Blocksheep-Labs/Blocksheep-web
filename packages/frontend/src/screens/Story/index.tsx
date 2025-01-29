@@ -5,10 +5,10 @@ import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { useTimer } from "react-timer-hook";
 import generateLink from "@/utils/linkGetter";
 import StoryVideo from "@/assets/stories/sh.mp4";
-import { httpGetRaceDataById } from "@/utils/http-requests";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import storiesData from "@/config/stories.json";
+import { useRaceById } from "@/hooks/useRaceById";
 
 
 const videos = [
@@ -48,10 +48,8 @@ export default function StoryScreen() {
     const { gameState } = useGameContext();
     const {smartAccountAddress} = useSmartAccount();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
-    const [storyKey, setStoryKey] = useState<number | undefined>(undefined);
     const [seconds, setSeconds] = useState(1000);
+    const { race } = useRaceById(Number(raceId));
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 6);
@@ -78,7 +76,7 @@ export default function StoryScreen() {
                 redirectLink = generateLink("UNDERDOG_PREVIEW", Number(raceId)); 
                 break;
             case "part2": 
-                redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
+                redirectLink = generateLink("BULLRUN_PREVIEW", Number(raceId)); 
                 break;
             case "part3": 
                 // redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
@@ -123,11 +121,6 @@ export default function StoryScreen() {
                 console.log({amount})
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
-                    // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === gameState.amountOfRegisteredUsers) {
-                        setModalIsOpen(false);
-                        setModalType(undefined);
-                    }
                 }
             });
 
@@ -207,12 +200,6 @@ export default function StoryScreen() {
     
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {
-            httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
-                console.log("RACE DATA:", data);
-                setStoryKey(data?.race?.storyKey || 0);
-            });
-            setModalIsOpen(true);
-            setModalType("waiting");
             if (!socket.connected) {
                 console.log("Not conencted, trying to reconnect")
                 socket.connect();
@@ -241,16 +228,16 @@ export default function StoryScreen() {
         <div className="bg-white relative" style={{ height: `${window.innerHeight}px` }}>
             <TopPageTimer duration={seconds * 1000} />
             {
-                storyKey != undefined &&
+                race &&
                 <video autoPlay muted className="asbolute w-full h-full object-cover" autoFocus={false} playsInline>
-                    <source src={videos[storyKey]} type="video/mp4" />
+                    <source src={videos[race.storyKey]} type="video/mp4" />
                     Your browser does not support the video tag.
                 </video>
             }
 
             <div className="absolute bottom-5 bg-black bg-opacity-50 p-5">
                 <p className="text-lg text-center text-white">
-                    { storyKey != undefined && getStoryText(part as string, storyKey) }
+                    { race && getStoryText(part as string, race.storyKey) }
                 </p>
             </div>
 

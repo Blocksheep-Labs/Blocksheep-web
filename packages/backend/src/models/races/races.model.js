@@ -22,8 +22,8 @@ const getRaceDataById = async(raceId) => {
     return await Race.findOne({ raceId });
 }
 
-const createRace = async(raceId, storyKey) => {
-    return await Race.insertMany([ {raceId, storyKey} ]);
+const createRace = async(raceId) => {
+    return await Race.insertMany([ {raceId} ]);
 }
 
 const getUserParticipatesIn = async(userAddress) => {

@@ -34,10 +34,10 @@ const getRaceDataById = async(req, res) => {
 }
 
 const createRace = async(req, res) => {
-    const { raceId, storyKey } = req.body;
+    const { raceId } = req.body;
 
     try {
-        const race = await racesModel.createRace(raceId, storyKey);
+        const race = await racesModel.createRace(raceId);
         return res.status(200).json({
             ok: true,
             race,

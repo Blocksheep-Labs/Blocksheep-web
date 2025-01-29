@@ -92,7 +92,7 @@ module.exports = (io) => {
                             raceId: userConnection.raceId,
                             screen: "RACE_START"
                         });
-                    } else if (["UNDERDOG", "BULL_RUN", "RABBIT_HOLE"].includes(roomsLatestScreen[roomScreenIndex].screen)) {
+                    } else if (["UNDERDOG", "BULLRUN", "RABBIT_HOLE"].includes(roomsLatestScreen[roomScreenIndex].screen)) {
                         const screen = roomsLatestScreen[roomScreenIndex].screen;
 
                         const screenNamesPerUserConnection = screens[userConnection.room];

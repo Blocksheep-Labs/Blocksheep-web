@@ -16,6 +16,7 @@ export default function AdminScreen() {
     const { hasAccess, loading } = useCheckAdminAccess();
     const { rid, loading: rIdLoading } = useNextGameId();
     const [ screensOrder, setScreensOrder ] = useState<string[]>(possibleScreensArray);
+    const [ toggledOffScreens, setToggledOffScreens ] = useState<string[]>(possibleScreensArray);
     
     useEffect(() => {
         if (!loading && !hasAccess) {
@@ -48,6 +49,8 @@ export default function AdminScreen() {
 
         const storyKey = Math.floor(Math.random() * 4);
 
+        const screensToWriteIntoContract = screensOrder.filter(i => toggledOffScreens.includes(i));
+
         // Log the values
         console.log({
             raceId: `race-${rid}`,
@@ -55,7 +58,7 @@ export default function AdminScreen() {
             playersRequired,
             questions,
             perksPoints,
-            screensOrder
+            screensToWriteIntoContract,
         });
 
 
@@ -65,16 +68,17 @@ export default function AdminScreen() {
                 return await processTransaction(
                     duration,
                     playersRequired,
+                    storyKey,
                     questions,
                     perksPoints,
-                    screensOrder,
+                    screensToWriteIntoContract,
                 );
             },
             3000
         )
         .catch(console.log)
         .then(async() => {
-            await httpCreateRace(`race-${rid}`, storyKey);
+            await httpCreateRace(`race-${rid}`);
         });
     }
 
@@ -92,8 +96,17 @@ export default function AdminScreen() {
 
                 <h2>Screens order</h2>
                 <div className="h-64 overflow-y-auto overflow-x-hidden">
-                    <ReordableList items={screensOrder} setItems={setScreensOrder} />
+                    <ReordableList 
+                        items={screensOrder} 
+                        setItems={setScreensOrder} 
+                        toggledItems={toggledOffScreens}
+                        setToggledItems={setToggledOffScreens}
+                    />
                 </div>
+                <hr/>
+
+                <h2>Stories</h2>
+                <span className="text-yellow-600">Story key will be randomly selected</span>
                 <hr/>
 
                 <h2>Underdog setup</h2>

@@ -15,6 +15,7 @@ export type TRace = {
     status: number,
     registered: boolean,
     screens: string[],
+    storyKey: number,
     progress: { user: string, progress: number }[],
 }
 

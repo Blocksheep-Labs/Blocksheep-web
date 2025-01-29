@@ -38,9 +38,9 @@ export default function BullrunRules() {
             property: "game3-rules-complete",
         });
         
-        socket.emit('minimize-live-game', { part: 'BULL_RUN_RULES', raceId });
-        // alert(generateLink("BULL_RUN", Number(raceId)))
-        navigate(generateLink("BULL_RUN", Number(raceId)));
+        socket.emit('minimize-live-game', { part: 'BULLRUN_RULES', raceId });
+        // alert(generateLink("BULLRUN", Number(raceId)))
+        navigate(generateLink("BULLRUN", Number(raceId)));
     };
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -87,7 +87,7 @@ export default function BullrunRules() {
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "BULL_RUN_RULES") {
+                if (raceId == raceIdSocket && part == "BULLRUN_RULES") {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -101,7 +101,7 @@ export default function BullrunRules() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "BULL_RUN_RULES" && raceId == raceIdSocket && !movedToNext) {
+                if (part == "BULLRUN_RULES" && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
@@ -155,7 +155,7 @@ export default function BullrunRules() {
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "BULL_RUN_RULES") {
+                if (screen !== "BULLRUN_RULES") {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -177,8 +177,8 @@ export default function BullrunRules() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN_RULES" });
-            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_RULES" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULLRUN_RULES" });
+            socket.emit("get-latest-screen", { raceId, part: "BULLRUN_RULES" });
         }
     }, [smartAccountAddress, socket, raceId]);
     

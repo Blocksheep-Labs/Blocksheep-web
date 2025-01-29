@@ -31,8 +31,8 @@ export default function BullrunCover() {
         });
 
 
-        socket.emit('minimize-live-game', { part: 'BULL_RUN_PREVIEW', raceId });
-        navigate(generateLink("BULL_RUN_RULES", Number(raceId)));
+        socket.emit('minimize-live-game', { part: 'BULLRUN_PREVIEW', raceId });
+        navigate(generateLink("BULLRUN_RULES", Number(raceId)));
     };
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -63,7 +63,7 @@ export default function BullrunCover() {
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "BULL_RUN_PREVIEW") {
+                if (raceId == raceIdSocket && part == "BULLRUN_PREVIEW") {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -77,7 +77,7 @@ export default function BullrunCover() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "BULL_RUN_PREVIEW" && raceId == raceIdSocket && !movedToNext) {
+                if (part == "BULLRUN_PREVIEW" && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
@@ -131,7 +131,7 @@ export default function BullrunCover() {
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "BULL_RUN_PREVIEW") {
+                if (screen !== "BULLRUN_PREVIEW") {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -153,8 +153,8 @@ export default function BullrunCover() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULL_RUN_PREVIEW" });
-            socket.emit("get-latest-screen", { raceId, part: "BULL_RUN_PREVIEW" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULLRUN_PREVIEW" });
+            socket.emit("get-latest-screen", { raceId, part: "BULLRUN_PREVIEW" });
         }
     }, [smartAccountAddress, socket, raceId]);
     

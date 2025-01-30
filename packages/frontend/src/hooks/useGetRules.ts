@@ -16,8 +16,6 @@ export const useGetRules = (contractName: string,  raceId: number) => {
             args: [contractName, raceId],
         });
     
-        console.log({ returnData });
-    
         if (!returnData) {
             throw new Error("Empty or invalid result received.");
         }

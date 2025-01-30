@@ -1,26 +1,26 @@
 import { ethers } from "ethers";
-import { useReadRegisteredContract } from "./useReadRegisteredContract";
+import { config } from "@/config/wagmi";
+import { BLOCK_SHEEP_CONTRACT } from "@/config/constants";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
+import { readContract } from "@wagmi/core"
 
 export const GET_WINNER_SELECTOR = ethers.utils.id("getWinner(uint256)");
 export const GET_WINNER_TYPES = ["uint256"];
 
-export const useGetWinner = (contractName: string, raceId: number) => {
-    const { processTransaction: read } = useReadRegisteredContract();
-
+export const useGetWinner = (
+    contractName: string, raceId: number
+) => {
     const processTransaction = async() => {
-        const result = await read(
-            contractName, 
-            ethers.utils.defaultAbiCoder.encode(
-                GET_WINNER_TYPES,
-                [raceId]
-            )
-        );
+        const returnData = await readContract(config, {
+            address: BLOCK_SHEEP_CONTRACT,
+            abi: BlockSheepAbi,
+            functionName: "getWinner",
+            args: [contractName, raceId],
+        });
 
-        return ethers.utils.defaultAbiCoder.decode(
-            ["address[], address[]"],
-            result
-        );
+        return returnData;
     }
 
     return { getWinner: processTransaction };
 }
+

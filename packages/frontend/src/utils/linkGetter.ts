@@ -1,5 +1,6 @@
 
 export type TFlowPhases = 
+    "DRIVERS" |
     "STORY_INTRO" | 
     "RACE_START" | 
     "UNDERDOG_PREVIEW" |
@@ -30,6 +31,7 @@ export type TFlowPhases =
 
 export default function generateLink(phase: TFlowPhases, raceId: number) {
     switch (phase) {
+        case "DRIVERS": return `/race/${raceId}/drivers`
         case "STORY_INTRO": return `/race/${raceId}/story/intro`
 
         case "RACE_START": return `/race/${raceId}/countdown`

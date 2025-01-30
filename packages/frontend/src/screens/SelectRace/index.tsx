@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../components/RibbonLabel";
 import RaceItem from "@/components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
-import { getTestETH } from "../../utils/contract-functions";
+import { getRaceById, getTestETH } from "../../utils/contract-functions";
 import RegisteringModal from "../../components/modals/RegisteringModal";
 import RegisteredModal from "../../components/modals/RegisteredModal";
 import { socket } from "../../utils/socketio";
@@ -54,11 +54,10 @@ function SelectRaceScreen() {
     localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
 
     
+    
     /*
-      getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
-        updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/bullrun/rules`);
-      });
+      updateGameState(race, progress, undefined);
+      navigate(`/race/${raceId}/underdog/rules`);
       return;
     */
 

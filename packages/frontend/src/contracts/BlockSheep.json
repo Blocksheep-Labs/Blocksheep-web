@@ -40,30 +40,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "string",
-				"name": "contractName",
-				"type": "string"
-			},
-			{
-				"internalType": "bytes",
-				"name": "data",
-				"type": "bytes"
-			}
-		],
-		"name": "callFunctionAtRegisteredContract",
-		"outputs": [
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
@@ -77,24 +53,69 @@
 	{
 		"inputs": [
 			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
 				"internalType": "uint256",
 				"name": "raceId",
 				"type": "uint256"
 			},
 			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
 			}
 		],
-		"name": "getScoreAtRaceOfUser",
-		"outputs": [
+		"name": "distribute",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
 			{
-				"internalType": "int256",
-				"name": "",
-				"type": "int256"
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceid",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
 			}
 		],
+		"name": "initRace",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			}
+		],
+		"name": "makeMove",
+		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
@@ -144,6 +165,24 @@
 	{
 		"inputs": [
 			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "refundBalance",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
 				"name": "token",
 				"type": "address"
@@ -170,24 +209,6 @@
 		],
 		"name": "OwnershipTransferred",
 		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			}
-		],
-		"name": "refundBalance",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
 	},
 	{
 		"inputs": [
@@ -317,6 +338,35 @@
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "getPoints",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
 			}
 		],
 		"stateMutability": "view",
@@ -483,6 +533,112 @@
 				"internalType": "struct BlockSheep.RaceInfo[]",
 				"name": "",
 				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "getRules",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getScoreAtRaceOfUser",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserChoices",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "getWinner",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			},
+			{
+				"internalType": "int256[]",
+				"name": "",
+				"type": "int256[]"
 			}
 		],
 		"stateMutability": "view",

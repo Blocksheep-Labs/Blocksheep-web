@@ -23,15 +23,14 @@ import StoryScreen from "./screens/addons/StoryScreen";
 import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
 import AccountScreen from "./screens/basic/Account";
 import LevelUpdateScreen from "./screens/addons/LevelUpdate";
+import DriversScreen from "./screens/drivers/SelectColor";
 
 function App() {
-  import('eruda').then(eruda => eruda.default.init());
+  import("eruda").then((eruda) => eruda.default.init());
 
-  
   useEffect(() => {
     socket.connect();
   }, [socket]);
-  
 
   return (
     <Routes>
@@ -55,20 +54,20 @@ function App() {
           }
         />
 
-        <Route 
+        <Route
           path="race/:raceId/race-update/:board"
           element={
             <ProtectedRoute>
-              <RaceUpdateScreen/>
+              <RaceUpdateScreen />
             </ProtectedRoute>
           }
         />
 
-        <Route 
+        <Route
           path="race/:raceId/story/:part"
           element={
             <ProtectedRoute>
-              <StoryScreen/>
+              <StoryScreen />
             </ProtectedRoute>
           }
         />
@@ -122,7 +121,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* RABBIT HOLE GAME */}
         <Route
           path="race/:raceId/rabbit-hole/:version"
@@ -193,6 +192,16 @@ function App() {
           }
         />
 
+        {/* RACE DRIVERS */}
+        <Route
+          path="race/:raceId/drivers"
+          element={
+            <ProtectedRoute>
+              <DriversScreen />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="account"
           element={
@@ -203,12 +212,7 @@ function App() {
         />
 
         {/* admin panel */}
-        <Route 
-          path="admin"
-          element={
-            <AdminScreen/>
-          }
-        />
+        <Route path="admin" element={<AdminScreen />} />
       </Route>
     </Routes>
   );
@@ -217,7 +221,10 @@ function App() {
 function Layout() {
   const { pathname } = useLocation();
   return (
-    <div className={`relative m-auto w-full bg-black sm:max-w-sm`} style={{ height: `${window.innerHeight}px` }}>
+    <div
+      className={`relative m-auto w-full bg-black sm:max-w-sm`}
+      style={{ height: `${window.innerHeight}px` }}
+    >
       {["/select"].includes(pathname) && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}

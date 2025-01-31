@@ -8,8 +8,6 @@ import Drivers from "../assets/images/drivers-sheep.png";
 import AreYouSmarter from "../assets/images/areyousmarter.png";
 import SHEEP_ICONS from "../assets/select-sheep-arr.json";
 
-// /frontend/src/screens/drivers/assets/images/sheep/20.png
-// /frontend/src/screens/drivers/SelectColor/index.tsx
 function DriversScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
   const navigate = useNavigate();
@@ -29,15 +27,8 @@ function DriversScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleStep1Click = () => {
-    console.log("Step 1 confirmed");
-    setStep(2);
-  };
-
-  const handleStep2Click = () => {
-    console.log("Step 2 confirmed");
-    setStep(1);
-  };
+  const handleStep1Click = () => setStep(2);
+  const handleStep2Click = () => setStep(1);
 
   const handleIconClick = (iconName: string, isAvailable: boolean) => {
     if (isAvailable) setSelectedIcon(iconName);
@@ -45,7 +36,7 @@ function DriversScreen() {
 
   return (
     <div
-      className={`mx-auto flex w-full flex-col bg-race_bg bg-cover bg-bottom justify-center`}
+      className={`mx-auto flex w-full flex-col bg-divers_bg bg-contain bg-bottom justify-center`}
       style={{ height: `${window.innerHeight}px` }}
     >
       <div className="relative w-[280px] h-[410px] mx-auto p-1 mb-3 mt-16">

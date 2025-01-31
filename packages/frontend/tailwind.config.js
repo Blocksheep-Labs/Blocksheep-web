@@ -14,6 +14,7 @@ module.exports = {
         bullrun_cover_bg: 'url("/bgs/bullrun-cover-bg.jpg")',
         bullrun_rules_bg: 'url("/bgs/bullrun-rules-bg.jpg")',
         bullrun_next_bg: 'url("/bgs/bullrun-next-round-bg.png")',
+        divers_bg: 'url("/bgs/drivers-bg.gif")',
       },
     },
   },

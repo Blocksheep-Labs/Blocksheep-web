@@ -17,6 +17,7 @@ export const useMakeMove = (contractName: string, raceId: number) => {
     const processTransaction = async(
         data: string,
     ) => {
+        console.log({contractName, raceId, data})
         const hash = await smartAccountClient.sendTransaction({
             account: smartAccountClient.account!,
             chain: SELECTED_NETWORK,

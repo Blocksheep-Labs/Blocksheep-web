@@ -63,7 +63,7 @@ function SelectRaceScreen() {
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress, undefined);
-      navigate(generateLink("RACE_START", rIdNumber));
+      navigate(generateLink(race?.screens?.[0] as TFlowPhases, rIdNumber));
     //});
   }, [raceId, race]);
 

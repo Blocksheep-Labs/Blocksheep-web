@@ -18,7 +18,6 @@ import LoseModal from "@/components/modals/LoseModal";
 import { waitForTransactionReceipt } from '@wagmi/core';
 import { config } from "@/config/wagmi";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { finishTunnelGame, getRaceById, submitFuel } from "@/utils/contract-functions";
 
 // Socket and HTTP
 import { socket } from "@/utils/socketio";
@@ -38,6 +37,15 @@ import WhiteSheep from "../assets/images/sheeepy.png";
 import BG_Carrots from "../assets/images/backgroundcarrot.jpg";
 import CarrotSlider from "./components/slider";
 import CarrotBasket from "./components/basket";
+import { useMakeMove } from "@/hooks/useMakeMove";
+import { useGetUserPoints } from "@/hooks/useGetPoints";
+import { useDistribute } from "@/hooks/useDistribute";
+import { useGetRules } from "@/hooks/useGetRules";
+import { useRaceById } from "@/hooks/useRaceById";
+import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
+import { build as buildDistributeData } from "./arguments-builder/distribute";
+
+const REGISTERED_CONTRACT_NAME = "RABBITHOLE";
 
 export type ConnectedUser = {
     id: number;
@@ -58,6 +66,7 @@ function RabbitHoleGame() {
   const { gameState } = useGameContext();
   const navigate = useNavigate();
   const { raceId, version } = useParams();
+  const { race } = useRaceById(Number(raceId));
 
   // Game state
   const [phase, setPhase] = useState<RabbitHolePhases>("Default");
@@ -65,6 +74,7 @@ function RabbitHoleGame() {
   const [gameOver, setGameOver] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [roundIsFinished, setRoundIsFinsihed] = useState(false);
+  const [roundIndex, setRoundIndex] = useState(0);
 
   // Player states
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
@@ -88,10 +98,13 @@ function RabbitHoleGame() {
 
   // Transaction tracking
   const [pendingTransactions, setPendingTransactions] = useState<Set<string>>(new Set());
-
   const [animationsTriggered, setAnimationsTriggered] = useState(false);
-
   const [playersNextClicked, setPlayersNextClicked] = useState<Set<string>>(new Set());
+
+  const { makeMove } = useMakeMove(REGISTERED_CONTRACT_NAME, Number(raceId));
+  const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
+  const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
+  const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
 
   
   const time = new Date();
@@ -374,13 +387,7 @@ function RabbitHoleGame() {
 
         if (progress.property === "game2-complete") {
           if (amountOfComplteted + 1 >= amountOfConnected) {
-            await finishTunnelGame(Number(raceId), true, smartAccountClient, amountOfAllocatedPoints).then(async data => {
-              await waitForTransactionReceipt(config, {
-                hash: data,
-                confirmations: 0,
-                pollingInterval: 300,
-              });
-            });
+            await distribute(buildDistributeData());
           } else {
             setAmountOfComplteted(amountOfComplteted + 1);
           }
@@ -571,21 +578,17 @@ function RabbitHoleGame() {
 
   // CHECK USER TO BE REGISTERED
   useEffect(() => {
-    if (raceId?.length && smartAccountAddress) {
-      getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then(data => {
-        if (data) {
-          // VALIDATE USER FOR BEING REGISTERED
-          if (!data.registeredUsers.includes(smartAccountAddress)) {
-            if (socket.connected) {
-              socket.disconnect();
-            }
-            alert('Not registered!');
-            navigate('/', { replace: true });
-          }
+    if (smartAccountAddress && race && socket) {
+      // VALIDATE USER FOR BEING REGISTERED
+      if (!race.registeredUsers.includes(smartAccountAddress)) {
+        if (socket.connected) {
+          socket.disconnect();
         }
-      });
+        alert('Not registered!');
+        navigate('/', { replace: true });
+      }
     }
-  }, [raceId, smartAccountAddress, socket]);
+  }, [race, smartAccountAddress, socket]);
 
 
   const triggerAnimations = () => {
@@ -694,20 +697,15 @@ function RabbitHoleGame() {
       try {
         await txAttempts(
           3,
-          async () => {
-            const data = await submitFuel(Number(raceId), displayNumber, maxFuel - displayNumber, smartAccountClient);
-            await waitForTransactionReceipt(config, {
-              hash: data,
-              confirmations: 0,
-              pollingInterval: 300,
-            });
-          },
+          async () => await makeMove(buildMakeMoveData(displayNumber, maxFuel - displayNumber, roundIndex)),
           3000
         );
       } catch (error) {
         console.error("Transaction failed:", error);
         setIsRolling(false); // Reset if transaction fails
       } finally {
+        // update round index for fuel submission
+        setRoundIndex(prev => prev + 1);
         setTimeout(() => {
           socket.emit("update-progress", {
             raceId,
@@ -768,15 +766,7 @@ function RabbitHoleGame() {
       // try to recall tx sending on error
       txAttempts(
         3, 
-        async () => {
-          return await finishTunnelGame(Number(raceId), isWon, smartAccountClient, amountOfPointsToAllocate).then(async data => {
-            await waitForTransactionReceipt(config, {
-              hash: data,
-              confirmations: 0,
-              pollingInterval: 300,
-            });
-          });
-        },
+        async() => await distribute(buildDistributeData()),
         3000
       )
       .catch(console.log)
@@ -1020,8 +1010,7 @@ function RabbitHoleGame() {
             secondsLeft={totlaSecondsToMoveNext}
             handleClose={closeWinLoseModal} 
             raceId={Number(raceId)} 
-            preloadedScore={amountOfAllocatedPoints} 
-            gameName="rabbit-hole"
+            getScoreOfTheUser={getPoints}
           />
         }
     </div>

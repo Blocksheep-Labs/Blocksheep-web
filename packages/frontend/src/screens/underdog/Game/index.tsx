@@ -31,8 +31,6 @@ import { build as buildDistributeData } from "./arguments-builder/distribute";
 // Assets
 import DogLoaderImage from "@/assets/underdog/background_head.webp";
 
-// Types
-import { TUnderdogQuestion } from "@/hooks/useCreateRace";
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
@@ -40,6 +38,14 @@ export interface SwipeSelectionAPI {
 }
 const REGISTERED_CONTRACT_NAME = "UNDERDOG";
 
+export type TQuestion = {
+  id: number;
+  info: {
+      imgUrl: string,
+      content: string,
+      answers: string[],
+  }
+}
 
 function UnderdogGame() {
   const {smartAccountAddress} = useSmartAccount();
@@ -58,7 +64,7 @@ function UnderdogGame() {
   // State for game progress and questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
-  const [questions, setQuestions] = useState<TUnderdogQuestion[]>([]);
+  const [questions, setQuestions] = useState<TQuestion[]>([]);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
 
   // State for player counts and answers
@@ -78,8 +84,8 @@ function UnderdogGame() {
   
   const [resultsTimeoutStarted, setResultsTimeoutStarted] = useState(false);
 
-  const { makeMove } = useMakeMove(REGISTERED_CONTRACT_NAME);
-  const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME);
+  const { makeMove } = useMakeMove(REGISTERED_CONTRACT_NAME, Number(raceId));
+  const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
   const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
   const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
   
@@ -100,8 +106,9 @@ function UnderdogGame() {
 
   useEffect(() => {
     getRules().then(data => {
-      setQuestions(data as any);
-    });
+      // @ts-ignore
+      setQuestions(data[0] as any);
+    }).catch(console.log);
   }, []);
 
   // after game finish
@@ -166,7 +173,7 @@ function UnderdogGame() {
     
     sendTx && txAttempts(
       5,
-      await makeMove(buildMakeMoveData(Number(raceId), currentQuestionIndex, 1)),
+      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 1)),
       3000
     ).catch(err => {
       //console.log(err);
@@ -210,7 +217,7 @@ function UnderdogGame() {
 
     sendTx && txAttempts(
       5,
-      await makeMove(buildMakeMoveData(Number(raceId), currentQuestionIndex, 0)),
+      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 0)),
       3000,
     ).catch(err => {
       //console.log(err);
@@ -671,6 +678,8 @@ function UnderdogGame() {
       }
     }, [socket, smartAccountAddress, raceId]);
 
+
+    console.log({questions})
   return (
     <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
       { 
@@ -720,8 +729,8 @@ function UnderdogGame() {
         !hideGameInterface &&
         <div className="m-auto mb-0 w-[65%] z-50">
           <SelectionBtnBox
-            leftLabel={questions?.[currentQuestionIndex]?.answers[0] || ""}
-            rightLabel={questions?.[currentQuestionIndex]?.answers[1] || ""}
+            leftLabel={questions?.[currentQuestionIndex]?.info.answers[0] || ""}
+            rightLabel={questions?.[currentQuestionIndex]?.info.answers[1] || ""}
             leftAction={onClickLike}
             rightAction={onClickDislike}
             disabled={modalIsOpen || submittingAnswer}
@@ -735,7 +744,7 @@ function UnderdogGame() {
       {
         distributePermanentlyOpened && 
         <LoadingModal 
-          distributeFunction={() => distribute(buildDistributeData(Number(raceId)))}
+          distributeFunction={() => distribute(buildDistributeData())}
           closeHandler={closeLoadingModal} 
         />
       }

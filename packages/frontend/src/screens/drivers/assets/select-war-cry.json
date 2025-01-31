@@ -1,0 +1,92 @@
+[
+  {
+    "name": "buffalo",
+    "image": "buffalo.png",
+    "sound": "buffalo.mp3"
+  },
+  {
+    "name": "frog",
+    "image": "frog.png",
+    "sound": "frog.mp3"
+  },
+  {
+    "name": "horse",
+    "image": "horse.png",
+    "sound": "horse.mp3"
+  },
+  {
+    "name": "pinguin",
+    "image": "pinguin.png",
+    "sound": "pinguin.mp3"
+  },
+  {
+    "name": "cock",
+    "image": "cock.png",
+    "sound": "cock.mp3"
+  },
+  {
+    "name": "chicken",
+    "image": "chicken.png",
+    "sound": "chicken.mp3"
+  },
+  {
+    "name": "sheep",
+    "image": "sheep.png",
+    "sound": "sheep.mp3"
+  },
+  {
+    "name": "wolf",
+    "image": "wolf.png",
+    "sound": "wolf.mp3"
+  },
+  {
+    "name": "snake",
+    "image": "snake.png",
+    "sound": "snake.mp3"
+  },
+  {
+    "name": "cow",
+    "image": "cow.png",
+    "sound": "cow.mp3"
+  },
+  {
+    "name": "pig",
+    "image": "pig.png",
+    "sound": "pig.mp3"
+  },
+  {
+    "name": "lion",
+    "image": "lion.png",
+    "sound": "lion.mp3"
+  },
+  {
+    "name": "dog",
+    "image": "dog.png",
+    "sound": "dog.mp3"
+  },
+  {
+    "name": "bear",
+    "image": "bear.png",
+    "sound": "bear.mp3"
+  },
+  {
+    "name": "vulture",
+    "image": "vulture.png",
+    "sound": "vulture.mp3"
+  },
+  {
+    "name": "elephant",
+    "image": "elephant.png",
+    "sound": "elephant.mp3"
+  },
+  {
+    "name": "donkey",
+    "image": "donkey.png",
+    "sound": "donkey.mp3"
+  },
+  {
+    "name": "dolphin",
+    "image": "dolphin.png",
+    "sound": "dolphin.mp3"
+  }
+]

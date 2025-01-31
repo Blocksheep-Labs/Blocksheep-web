@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import WAR_CRY_PAIRS from "../../assets/select-war-cry.json";
 
 type SelectWarCryProps = {
@@ -7,6 +7,11 @@ type SelectWarCryProps = {
 };
 
 const SelectWarCry: FC<SelectWarCryProps> = ({ selectedWarCry, setSelectedWarCry }) => {
+  const randomWarCries = useMemo(
+    () => [...WAR_CRY_PAIRS].sort(() => Math.random() - 0.5).slice(0, 9),
+    [],
+  );
+
   const handleWarCryClick = (warCryName: string, soundPath: string, isAvailable: boolean) => {
     if (!isAvailable) return;
     setSelectedWarCry(warCryName);
@@ -16,10 +21,12 @@ const SelectWarCry: FC<SelectWarCryProps> = ({ selectedWarCry, setSelectedWarCry
 
   return (
     <div className="grid grid-cols-3 gap-0.5 mt-[90px] px-10">
-      {WAR_CRY_PAIRS.slice(0, 9).map((warCry) => (
+      {randomWarCries.map((warCry) => (
         <div
           key={warCry.name}
-          className={`relative w-max mx-auto  flex justify-center items-center bg-white ${warCry.isAvailable ? "cursor-pointer" : "cursor-not-allowed"} ${selectedWarCry === warCry.name ? "border-[2px] border-green-500" : ""}`}
+          className={`relative w-max mx-auto flex justify-center items-center bg-white ${
+            warCry.isAvailable ? "cursor-pointer" : "cursor-not-allowed"
+          } ${selectedWarCry === warCry.name ? "border-[2px] border-green-500" : ""}`}
           onClick={() => handleWarCryClick(warCry.name, warCry.sound, warCry.isAvailable)}
         >
           <img

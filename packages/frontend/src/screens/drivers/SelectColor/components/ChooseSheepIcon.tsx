@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import SHEEP_ICONS from "../../assets/select-sheep-arr.json";
 
 interface ChooseSheepIconProps {
@@ -7,12 +7,18 @@ interface ChooseSheepIconProps {
 }
 
 const ChooseSheepIcon: FC<ChooseSheepIconProps> = ({ selectedIcon, onIconSelect }) => {
+  const randomSheepIcons = useMemo(() => {
+    return [...SHEEP_ICONS].sort(() => Math.random() - 0.5).slice(0, 16);
+  }, []);
+
   return (
     <div className="grid grid-cols-4 gap-0.5 mt-4 px-6">
-      {SHEEP_ICONS.map((icon) => (
+      {randomSheepIcons.map((icon) => (
         <div
           key={icon.name}
-          className={`relative w-max mx-auto py-0.5 flex justify-center items-center ${icon.name === selectedIcon ? "border-[2px] border-green-500" : ""} ${icon.isAvailable ? "cursor-pointer" : "cursor-not-allowed bg-white"}`}
+          className={`relative w-max mx-auto py-0.5 flex justify-center items-center ${
+            icon.name === selectedIcon ? "border-[2px] border-green-500" : ""
+          } ${icon.isAvailable ? "cursor-pointer" : "cursor-not-allowed bg-white"}`}
           onClick={() => onIconSelect(icon.name, icon.isAvailable)}
         >
           <img

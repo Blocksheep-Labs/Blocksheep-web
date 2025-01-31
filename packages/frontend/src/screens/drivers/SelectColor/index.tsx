@@ -9,6 +9,7 @@ import AreYouSmarter from "../assets/images/areyousmarter.png";
 import ChooseSheepIcon from "./components/ChooseSheepIcon";
 import SelectWarCry from "./components/SelectWarCry";
 import { userHasAdminAccess } from "../../../utils/contract-functions";
+import Players from "./components/Players";
 
 function DriversScreen() {
   const { smartAccountClient, smartAccountAddress } = useSmartAccount();
@@ -43,7 +44,11 @@ function DriversScreen() {
   const handleStep1Click = () => setStep(2);
   const handleStep2Click = () => setStep(3);
   const handleStep3Click = () => setStep(4);
-  const handleStep4Click = () => setStep(1);
+  const handleStep4Click = () => {
+    setSelectedIcon(null);
+    setSelectedWarCry(null);
+    setStep(1);
+  };
 
   const handleIconClick = (iconName: string, isAvailable: boolean) => {
     if (isAvailable) setSelectedIcon(iconName);
@@ -81,6 +86,7 @@ function DriversScreen() {
           {step === 3 && (
             <SelectWarCry selectedWarCry={selectedWarCry} setSelectedWarCry={setSelectedWarCry} />
           )}
+          {step === 4 && <Players />}
         </div>
       </div>
 

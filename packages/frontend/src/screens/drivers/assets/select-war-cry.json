@@ -1,0 +1,110 @@
+[
+  {
+    "name": "buffalo",
+    "image": "/src/assets/warcry/buffalo.png",
+    "sound": "/src/assets/warcry/buffalo.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "frog",
+    "image": "/src/assets/warcry/frog.png",
+    "sound": "/src/assets/warcry/frog.mp3",
+    "isAvailable": false
+  },
+  {
+    "name": "horse",
+    "image": "/src/assets/warcry/horse.png",
+    "sound": "/src/assets/warcry/horse.mp3",
+    "isAvailable": false
+  },
+  {
+    "name": "pinguin",
+    "image": "/src/assets/warcry/pinguin.png",
+    "sound": "/src/assets/warcry/pinguin.mp3",
+    "isAvailable": false
+  },
+  {
+    "name": "cock",
+    "image": "/src/assets/warcry/cock.png",
+    "sound": "/src/assets/warcry/cock.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "chicken",
+    "image": "/src/assets/warcry/chicken.png",
+    "sound": "/src/assets/warcry/chicken.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "sheep",
+    "image": "/src/assets/warcry/sheep.png",
+    "sound": "/src/assets/warcry/sheep.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "wolf",
+    "image": "/src/assets/warcry/wolf.png",
+    "sound": "/src/assets/warcry/wolf.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "snake",
+    "image": "/src/assets/warcry/snake.png",
+    "sound": "/src/assets/warcry/snake.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "cow",
+    "image": "/src/assets/warcry/cow.png",
+    "sound": "/src/assets/warcry/cow.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "pig",
+    "image": "/src/assets/warcry/pig.png",
+    "sound": "/src/assets/warcry/pig.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "lion",
+    "image": "/src/assets/warcry/lion.png",
+    "sound": "/src/assets/warcry/lion.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "dog",
+    "image": "/src/assets/warcry/dog.png",
+    "sound": "/src/assets/warcry/dog.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "bear",
+    "image": "/src/assets/warcry/bear.png",
+    "sound": "/src/assets/warcry/bear.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "vulture",
+    "image": "/src/assets/warcry/vulture.png",
+    "sound": "/src/assets/warcry/vulture.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "elephant",
+    "image": "/src/assets/warcry/elephant.png",
+    "sound": "/src/assets/warcry/elephant.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "donkey",
+    "image": "/src/assets/warcry/donkey.png",
+    "sound": "/src/assets/warcry/donkey.mp3",
+    "isAvailable": true
+  },
+  {
+    "name": "dolphin",
+    "image": "/src/assets/warcry/dolphin.png",
+    "sound": "/src/assets/warcry/dolphin.mp3",
+    "isAvailable": true
+  }
+]

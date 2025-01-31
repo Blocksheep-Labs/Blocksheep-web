@@ -10,21 +10,24 @@ export default defineConfig({
   },
   optimizeDeps: {
     esbuildOptions: {
-      target: "esnext", 
+      target: "esnext",
       // Node.js global to browser globalThis
       define: {
-        global: 'globalThis'
+        global: "globalThis",
       },
-      supported: { 
-        bigint: true 
+      supported: {
+        bigint: true,
       },
-    }
-  }, 
+    },
+  },
   build: {
-    target: ['esnext'],
+    target: ["esnext"],
     outDir: "./build",
+    sourcemap: false, // Disable source maps to save memory
+    minify: "terser", // More efficient minification
+    chunkSizeWarningLimit: 1000, // Increase
   },
   server: {
-    host: true
-  }
+    host: true,
+  },
 });

@@ -62,7 +62,7 @@ function DriversScreen() {
             <img src={AreYouSmarter} alt="are u smarter" className="w-[90%] mx-auto" />
           )}
           {step === 2 && (
-            <div className="grid grid-cols-4 gap-0.5 mt-4 px-5">
+            <div className="grid grid-cols-4 gap-0.5 mt-4 px-6">
               {SHEEP_ICONS.map((icon) => (
                 <div
                   key={icon.name}

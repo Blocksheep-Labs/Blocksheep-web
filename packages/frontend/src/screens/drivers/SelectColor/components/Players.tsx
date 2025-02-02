@@ -25,7 +25,7 @@ const Players: FC = () => {
           }}
         >
           <img
-            src={`/src/assets/sheep/${icon.name}`}
+            src={`/drivers/sheep/${icon.name}`}
             alt={icon.name}
             className={`absolute w-20 h-20 -translate-y-2 object-contain ${!icon.isAvailable && "opacity-30"}`}
           />

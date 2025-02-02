@@ -56,7 +56,7 @@ function DriversScreen() {
 
   return (
     <div
-      className={`mx-auto flex w-full flex-col bg-divers_bg bg-contain bg-bottom justify-center`}
+      className={`mx-auto flex w-full flex-col bg-divers_bg bg-cover bg-bottom justify-center`}
       style={{ height: `${window.innerHeight}px` }}
     >
       <div

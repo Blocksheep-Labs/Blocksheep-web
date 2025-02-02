@@ -22,7 +22,7 @@ const ChooseSheepIcon: FC<ChooseSheepIconProps> = ({ selectedIcon, onIconSelect 
           onClick={() => onIconSelect(icon.name, icon.isAvailable)}
         >
           <img
-            src={`/src/assets/sheep/${icon.name}`}
+            src={`/drivers/sheep/${icon.name}`}
             alt={icon.name}
             className={`w-12 h-12 object-contain ${!icon.isAvailable && "opacity-30"}`}
           />

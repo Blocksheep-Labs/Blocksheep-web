@@ -16,7 +16,7 @@ const SelectWarCry: FC<SelectWarCryProps> = ({ selectedWarCry, setSelectedWarCry
     if (!isAvailable) return;
     setSelectedWarCry(warCryName);
     const audio = new Audio(soundPath);
-    audio.play();
+    audio.play().catch((e) => console.error("Audio play failed:", e));
   };
 
   return (

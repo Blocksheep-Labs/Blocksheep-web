@@ -104,7 +104,7 @@ function RabbitHoleGame() {
   const { makeMove } = useMakeMove(REGISTERED_CONTRACT_NAME, Number(raceId));
   const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
   const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
-  const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
+  // const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
 
   
   const time = new Date();

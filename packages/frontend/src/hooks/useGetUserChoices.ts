@@ -10,10 +10,9 @@ export const GET_USER_CHOICES_TYPES = ["uint256", "address"];
 
 export const useGetUserChoices = (
     contractName: string, 
-    raceId: number, 
-    userAddress: string
+    raceId: number
 ) => {
-    const processTransaction = async() => {
+    const processTransaction = async(userAddress: string) => {
         const returnData = await readContract(config, {
             address: BLOCK_SHEEP_CONTRACT,
             abi: BlockSheepAbi,

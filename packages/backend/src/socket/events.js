@@ -4,33 +4,24 @@ const rabbitHoleBaseState = require("./default-states-by-games/rabbit-hole");
 const bullrunBaseState = require("./default-states-by-games/bullrun");
 const { finishRace } = require("../models/users/users.model");
 
-// { room: string, id: string, userAddress: string }
-let connectedUsers = [];
-// { room: string, userAddress: string, progress: ("countdown": number, "game-1": number, "board-1": number, "game-2": number) }
-let racesProgresses = [];
+const { 
+    ActivePlayer,
+    ConnectedUser,
+    QuestionsState,
+    RaceProgress,
+    Screen,
+    TunnelState,
+    WaitingPlayer,
+    PlayerPoints,
+} = require('../models/games-socket/index');
 
-// { raceId: string, screen: string }
-let screens = {};
-
-let roomsLatestScreen = [];
 
 // UNDERDOG
-// { 
-// 'room': string, 
-// 'index': number, 
-// 'secondsLeft': number,
-// }
 let questionsGameStates = [["answering", "submitting"], ["distributing", "distributed"]];
-let questionsState = [];
+
 
 // RABBIT_HOLE
-// { 
-// 'room': string, 
-// 'secondsLeft': number,
-// 'roundsPlayed': number,
-// }
 let tunnelGameStates = ["reset", "default", "close", "open"];
-let tunnelState = [];
 
 
 // BULLRUN
@@ -44,9 +35,6 @@ let gameCompletes = {};
 let inGamePlayers = {}; // Track players currently in a game by raceId
 
 
-// PLAYER IN-GAME POINTS
-let playerPoints = [];
-
 
 module.exports = (io) => {
     io.engine.on("connection_error", (err) => {
@@ -56,54 +44,41 @@ module.exports = (io) => {
         console.log(err.context);  // some additional error context
     });
 
-    io.on("connection", socket => { 
+    io.on("connection", async socket => { 
          // when user disconnects
-         socket.on('disconnect', () => {
+         socket.on('disconnect', async() => {
             // Find all rooms this socket was connected to before filtering
-            const userConnection = connectedUsers.find(i => i.id === socket.id);
-
-            // Log the disconnect attempt
-            /*
-            console.log("Disconnect attempt for socket:", {
-                socketId: socket.id,
-                foundUser: userConnection,
-                allConnectedUsers: connectedUsers.map(u => ({id: u.id, room: u.room, address: u.userAddress}))
-            });
-            */
+            const userConnection = await ConnectedUser.findOne({ id: socket.id });
             
             if (!userConnection) {
                 //console.log("No user active session, skip leave event");
                 return;
             }
 
+            const connectedUsers = await ConnectedUser.find();
+
             // Remove user from connected users
             if (userConnection) {
-                connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
 
-                const usersInRace = connectedUsers.filter(u => u.raceId == userConnection.raceId);
+                const usersInRace = connectedUsers.filter(u => (u.id !== socket.id) && (u.room == userConnection.room));
                 if (usersInRace.length == 0) {
                     //console.log("[alert] no users in game left!");
                     //console.log(userConnection)
-                    // Reset the latest screen to initial state when all users disconnect
-                    const roomScreenIndex = roomsLatestScreen.findIndex(i => i.raceId == userConnection.raceId);
-                    if (roomScreenIndex == -1) {
-                        //console.log("no screen found, set:", screens[0]);
-                        roomsLatestScreen.push({
-                            raceId: userConnection.raceId,
-                            screen: "RACE_START"
-                        });
-                    } else if (["UNDERDOG", "BULLRUN", "RABBIT_HOLE"].includes(roomsLatestScreen[roomScreenIndex].screen)) {
-                        const screen = roomsLatestScreen[roomScreenIndex].screen;
 
-                        const screenNamesPerUserConnection = screens[userConnection.room];
-                        const screenPos = screenNamesPerUserConnection.indexOf(screen);
+                    const roomScreenData = await Screen.findOne({ room: userConnection.room });
+
+                    if (roomScreenData && ["UNDERDOG", "BULLRUN", "RABBIT_HOLE"].includes(roomScreenData.latestScreen)) {
+                        const screenNamesPerUserConnection = await Screen.find({ room: userConnection.room });
+                        const screenPos = screenNamesPerUserConnection.indexOf(roomScreenData.latestScreen);
                         
 
                         if (screenNamesPerUserConnection.length - 1 >= screenPos + 1) {
-                            roomsLatestScreen[roomScreenIndex].screen = screenNamesPerUserConnection[screenPos + 1];
+                            roomScreenData.latestScreen = screenNamesPerUserConnection[screenPos + 1];
                         } else {
-                            roomsLatestScreen[roomScreenIndex].screen = screenNamesPerUserConnection[screenNamesPerUserConnection.length - 1];
+                            roomScreenData.latestScreen = screenNamesPerUserConnection[screenNamesPerUserConnection.length - 1];
                         }
+
+                        await roomScreenData.save();
                     }
                 }
                 
@@ -202,47 +177,33 @@ module.exports = (io) => {
         });
     
         // connect the live
-        socket.on('connect-live-game', ({ raceId, userAddress, part, screensOrder }) => {
+        socket.on('connect-live-game', async ({ raceId, userAddress, part, screensOrder }) => {
             const roomName = `race-${raceId}`;
+            let screensOrderDB = await Screen.findOne({ room: roomName });
 
-            if (!screens[roomName] && screensOrder) {
-                screens[roomName] = screensOrder;
+            if (!screensOrderDB && screensOrder) {
+                screensOrderDB = await Screen.create({ room: roomName, raceId, screens: screensOrder })
             }
             //console.log("Connect live game", roomName, userAddress, part);
 
             // Remove any existing connections for this user address
-            connectedUsers = connectedUsers.filter(user => 
-                !(user.userAddress === userAddress && user.room === roomName)
-            );
+            await ConnectedUser.deleteMany({ userAddress, room: roomName });
 
             // Add new connection with unique socket ID
-            connectedUsers.push({
-                room: roomName, 
-                id: socket.id,  // This should now be unique
-                userAddress, 
-                raceId, 
-                part 
+            const newUser = new ConnectedUser({
+                room: roomName,
+                id: socket.id,
+                userAddress,
             });
-
-            // Log current connections for debugging
-            /*
-            console.log("Current connections:", connectedUsers.map(u => ({
-                socketId: u.id,
-                address: u.userAddress,
-                room: u.room
-            })));
-            */
+            await newUser.save();
 
             // set latest screen
-            const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
-            if (roomScreenData && (screens[roomName].indexOf(roomScreenData.screen) < screens[roomName].indexOf(part))) {
+            if (screensOrderDB && (screensOrderDB.indexOf(screensOrderDB.latestScreen) < screensOrderDB.indexOf(part))) {
                 console.log({part});
-                roomScreenData.screen = part;
-                io.to(roomName).emit('screen-changed', { screen: part });
-            } else if (!roomScreenData) {
-                roomsLatestScreen.push({ raceId, screen: part });
-                io.to(roomName).emit('screen-changed', { screen: part });
+                screensOrderDB.latestScreen = part;
+                await screensOrderDB.save();
             }
+            io.to(roomName).emit('screen-changed', { screen: part });
 
             socket.join(roomName);
             io.to(roomName).emit('joined', {
@@ -253,29 +214,33 @@ module.exports = (io) => {
             });
         });
 
-        socket.on('get-latest-screen', ({ raceId }) => {
+        socket.on('get-latest-screen', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
+
+            const roomScreenData = await Screen.findOne({ raceId: raceId, room: roomName });
 
             let latestScreen = undefined;
             
-            if (roomScreenData?.screen) {
-                latestScreen = roomScreenData.screen;
+            if (roomScreenData?.latestScreen) {
+                latestScreen = roomScreenData.latestScreen;
             }
             
-            if (!screens[roomName]) {
+            if (!latestScreen) {
                 latestScreen = "UNKNOWN";
+                roomScreenData.latestScreen = latestScreen;
+                await roomScreenData.save();
             }
 
             io.to(socket.id).emit('latest-screen', { raceId, screen: latestScreen });
         });
     
         // minimize race (game)
-        socket.on('minimize-live-game', ({ part, raceId }) => {
+        socket.on('minimize-live-game', async({ part, raceId }) => {
             //console.log('mimized', { part, raceId })
+            const connectedUsers = await ConnectedUser.find({ room: `race-${raceId}` })
             const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
             // rm user
-            connectedUsers = connectedUsers.filter(i => i.id !== socket.id);
+            await ConnectedUser.deleteOne({ id: socket.id });
             
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {
@@ -285,15 +250,14 @@ module.exports = (io) => {
         });
     
         // Listen for 'update-progress' events
-        socket.on('update-progress', ({ raceId, userAddress, property, value, version }) => {
+        socket.on('update-progress', async ({ raceId, userAddress, property, value, version }) => {
             // console.log({ raceId, userAddress, property, value, version })
             const roomName = `race-${raceId}`;
             
-            // try to find existing progress
-            let rProgress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
+            let rProgress = await RaceProgress.findOne({ room: roomName, userAddress });
             
             if (!rProgress) {
-                rProgress = {
+                rProgress = new RaceProgress({
                     room: roomName,
                     userAddress,
                     progress: {
@@ -315,9 +279,9 @@ module.exports = (io) => {
                         ...rabbitHoleBaseState,
                         ...bullrunBaseState,
                     }
-                };
+                });
 
-                racesProgresses.push(rProgress);
+                await rProgress.save();
             }
 
             // clone to avoid issues
@@ -325,6 +289,9 @@ module.exports = (io) => {
 
 
             if (property === 'game2-eliminate') {
+                const racesProgresses = await RaceProgress.find({ room: roomName });
+                const connectedUsers = await ConnectedUser.find({ room: roomName });
+
                 // Set the fuel of all players who are not connected to 0
                 racesProgresses.forEach(progress => {
                     // Check if the player is not the eliminating player and is not connected
@@ -355,9 +322,11 @@ module.exports = (io) => {
 
             const updatedProgress = updateProgress(property, value, updatedRProgress, version);
 
-            // update rProgress by index
-            const index = racesProgresses.findIndex(i => i?.room === roomName && i?.userAddress === userAddress);
-            racesProgresses[index] = updatedProgress;
+            // Update the progress in MongoDB
+            await RaceProgress.updateOne(
+                { room: roomName, userAddress },
+                { $set: updatedProgress }
+            );
 
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });
@@ -366,20 +335,18 @@ module.exports = (io) => {
 
 
 
-        socket.on('set-questions-state', ({ raceId, newIndex, secondsLeft, state }) => {
+        socket.on('set-questions-state', async ({ raceId, newIndex, secondsLeft, state }) => {
             const roomName = `race-${raceId}`;
-            const currData = questionsState.find(i => i.room == roomName);
-            //console.log("Data:", currData)
+            let currData = await QuestionsState.findOne({ room: roomName });
+
             if (!currData) {
-                const newState = {
+                const newState = new QuestionsState({
                     room: roomName,
                     index: newIndex,
                     secondsLeft,
-                    state: 'answering'
-                };
-                questionsState.push(newState);
-                //console.log("New data:", newState)
-
+                    state: 'answering',
+                });
+                await newState.save();
                 io.to(roomName).emit('questions-state', { raceId, data: newState });
                 return;
             }
@@ -396,14 +363,18 @@ module.exports = (io) => {
                 currData.state = state;
             }
 
-            //console.log("Updated data:", currData)
+            // Update the state in MongoDB
+            await QuestionsState.updateOne(
+                { room: roomName },
+                { $set: { index: currData.index, secondsLeft: currData.secondsLeft, state } }
+            );
 
-            io.to(roomName).emit('questions-state', { raceId, data: currData })
+            io.to(roomName).emit('questions-state', { raceId, data: currData });
         });
 
-        socket.on('get-questions-state', ({ raceId }) => {
+        socket.on('get-questions-state', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const currData = questionsState.find(i => i.room == roomName);
+            const currData = await QuestionsState.findOne({ room: roomName });
 
             if (!currData) {
                 const newState = {
@@ -412,7 +383,7 @@ module.exports = (io) => {
                     secondsLeft: 10,
                     state: 'answering'
                 };
-                questionsState.push(newState);
+                await QuestionsState.create(newState);
                 io.to(socket.id).emit('questions-state', { raceId, data: newState });
                 return;
             }
@@ -423,22 +394,20 @@ module.exports = (io) => {
 
 
 
-        socket.on('set-tunnel-state', ({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished }) => {
+        socket.on('set-tunnel-state', async ({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished }) => {
             //console.log({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished })
             const roomName = `race-${raceId}`;
-            const currData = tunnelState.find(i => i.room == roomName);
-            //console.log("Data:", currData)
+            let currData = await TunnelState.findOne({ room: roomName });
+
             if (!currData) {
-                const newState = {
+                const newState = new TunnelState({
                     room: roomName,
                     secondsLeft: 10,
                     roundsPlayed: addRoundsPlayed,
                     gameState,
                     isFinished: false,
-                };
-                tunnelState.push(newState);
-                //console.log("New data:", newState)
-
+                });
+                await newState.save();
                 io.to(roomName).emit('tunnel-state', { raceId, data: newState });
                 return;
             }
@@ -457,14 +426,18 @@ module.exports = (io) => {
                 currData.isFinished = true;
             }
 
-            //console.log("Updated data:", currData)
+            // Update the tunnel state in MongoDB
+            await TunnelState.updateOne(
+                { room: roomName },
+                { $set: currData }
+            );
 
-            io.to(roomName).emit('tunnel-state', { raceId, data: currData })
+            io.to(roomName).emit('tunnel-state', { raceId, data: currData });
         });
 
-        socket.on('get-tunnel-state', ({ raceId }) => {
+        socket.on('get-tunnel-state', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const currData = tunnelState.find(i => i.room == roomName);
+            const currData = await TunnelState.findOne({ room: roomName });
 
             if (!currData) {
                 const newState = {
@@ -474,7 +447,8 @@ module.exports = (io) => {
                     gameState: "default",
                     isFinished: false,
                 };
-                tunnelState.push(newState);
+                await TunnelState.create(newState);
+
                 io.to(socket.id).emit('tunnel-state', { raceId, data: newState });
                 return;
             }
@@ -485,11 +459,13 @@ module.exports = (io) => {
 
     
         // get amount completed by raceId game gameId
-        socket.on('get-progress', ({ raceId, userAddress }) => {
+        socket.on('get-progress', async ({ raceId, userAddress }) => {
             const roomName = `race-${raceId}`;
+            const racesProgresses = await RaceProgress.findOne({ room: roomName });
             const progress = racesProgresses.find(i => i?.room === roomName && i?.userAddress === userAddress);
-            let questionsStateValue = questionsState.find(i => i?.room == roomName);
-            let tunnelStateValue = tunnelState.find(i => i?.room == roomName);
+          
+            let questionsStateValue = await QuestionsState.findOne({ room: roomName });
+            let tunnelStateValue = await TunnelState.findOne({ room: roomName });
 
             if (!questionsStateValue) {
                 const newState = {
@@ -498,8 +474,7 @@ module.exports = (io) => {
                     secondsLeft: 10,
                     state: 'answering'
                 };
-                questionsState.push(newState);
-                questionsStateValue = newState;
+                questionsStateValue = await QuestionsState.create(newState);
             }
 
             if (!tunnelStateValue) {
@@ -510,32 +485,31 @@ module.exports = (io) => {
                     gameState: "default",
                     isFinished: false,
                 };
-                tunnelState.push(newState);
-                tunnelStateValue = newState;
+                tunnelStateValue = await TunnelState.create(newState);
             }
 
-            const roomScreenData = roomsLatestScreen.find(i => i.raceId == raceId);
+            const roomScreenData = await Screen.findOne({ raceId, room: roomName });
 
             io.to(socket.id).emit('race-progress', { 
                 progress, 
-                latestScreen: roomScreenData ? roomScreenData.screen : undefined,
+                latestScreen: roomScreenData.latestScreen,
                 questionsState: questionsStateValue,
                 tunnelState: tunnelStateValue
             });
         });
     
         // get amount completed by raceId game gameId
-        socket.on('get-progress-all', ({ raceId }) => {
+        socket.on('get-progress-all', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const progress = racesProgresses.filter(i => i?.room === roomName);
+            const progress = await RaceProgress.find({ room: roomName });
             io.to(socket.id).emit('race-progress-all', { progress });
         });
 
     
         // get all progresses for tunnel game
-        socket.on('get-all-fuel-tunnel', ({ raceId }) => {
+        socket.on('get-all-fuel-tunnel', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const progresses = racesProgresses.filter(i => i.room == roomName);
+            const progresses = await RaceProgress.find({ room: roomName });
 
             /*
             console.log("PROGRESSES", raceId, roomName, progresses.map(i => {
@@ -574,7 +548,7 @@ module.exports = (io) => {
         // get users amount connected to the game
         socket.on('get-connected', ({ raceId }) => {
             const roomName = `race-${raceId}`;
-            const connectedInRoom = connectedUsers.filter(user => user.room === roomName);
+            const connectedInRoom = ConnectedUser.find({ room: roomName });
             io.to(socket.id).emit('amount-of-connected', { 
                 amount: connectedInRoom.length, 
                 raceId 
@@ -765,58 +739,62 @@ module.exports = (io) => {
             io.to(`race-${raceId}`).emit('bullrun-amount-of-completed-games', { gameCompletesAmount: gameCompletesAmount[raceId] });
         });
 
-        socket.on('player-add-points', ({ raceId, points, userAddress }) => {
-            if (!playerPoints[raceId]) {
-                playerPoints[raceId] = {};
+        socket.on('player-add-points', async ({ raceId, points, userAddress }) => {
+            const roomName = `room-${raceId}`;
+            let playerPoints = await PlayerPoints.findOne({ userAddress, room: roomName });
+
+            if (!playerPoints) {
+                playerPoints = await PlayerPoints.create({ 
+                    userAddress, room: 
+                    roomName, 
+                    points, 
+                    finished: false 
+                });
+            } else {
+                playerPoints.points += points;
+                await playerPoints.save();
             }
 
-            if (!playerPoints[raceId][userAddress]) {
-                playerPoints[raceId][userAddress] = { points, finished: false };
-            } else {
-                playerPoints[raceId][userAddress].points += points;
-            }
             console.log({ raceId, points, userAddress });
         });
 
-        socket.on('race-finish', ({raceId, userAddress}) => {
-            if (!playerPoints[raceId]) {
-                playerPoints[raceId] = {};
+        socket.on('race-finish', async ({raceId, userAddress}) => {
+            const roomName = `room-${raceId}`;
+
+            const playersPointsData = await PlayerPoints.find({ room: roomName });
+
+            if (!playersPointsData || playersPointsData.length === 0) {
+                return;
             }
 
-            const entries = Object.entries(playerPoints[raceId]);
+            // Sort players by points in descending order
+            playersPointsData.sort((a, b) => b.points - a.points);
 
-            // Sort entries by points in descending order
-            entries.sort((a, b) => b[1].points - a[1].points);
+            const centralIndex = Math.floor(playersPointsData.length / 2);
+            // const centralScore = playersPointsData[centralIndex]?.points || 0;
 
-            const centralIndex = Math.floor(entries.length / 2);
+            // Use Promise.all to handle multiple async operations
+            await Promise.all(playersPointsData.map(async (player, index) => {
+                player.finished = true;
+                await player.save();
 
-            const centralScore = entries[centralIndex]?.[1].points || 0; // Default to 0 if no score exists
-
-
-            entries.forEach((i, key) => {
-                if (!playerPoints[raceId][i[0]]) {
-                    playerPoints[raceId][i[0]] = { points: 0, finished: true };
-                } else {
-                    playerPoints[raceId][i[0]].finished = true;
-                }
-
-                let property = i[1].points >= centralScore ? "increment" : "decrement";
-                if (key >= centralIndex) {
-                    property = "decrement";
+                let property = "decrement";
+                if (index < centralIndex) {
+                    property = "increment";
                 }
 
                 console.log(
-                    i[0],
+                    player.userAddress,
                     property,
                     raceId
                 );
 
-                finishRace(
-                    i[0],
+                await finishRace(
+                    player.userAddress,
                     property,
                     raceId
                 );
-            });
+            }));
         });
     });
 

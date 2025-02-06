@@ -1,57 +1,57 @@
 const triggres = [
-    "game1-preview-complete", 
-    "game1-rules-complete", 
-    "game1++", 
-    "game1-wait-to-finish", 
-    "game1-distribute",
-    "game1-confirm-last-answer",
+    "underdog-preview-complete", 
+    "underdog-rules-complete", 
+    "underdog++", 
+    "underdog-wait-to-finish", 
+    "underdog-distribute",
+    "underdog-confirm-last-answer",
 ];
 
 
 const updateUnderdogProgress = (property, value, rProgress) => {
     switch (property) {
-        case "game1-preview-complete":
-            rProgress.progress.game1_preview = true;
+        case "underdog-preview-complete":
+            rProgress.progress.underdog_preview = true;
             break;
-        case "game1-rules-complete":
-            rProgress.progress.game1_rules = true;
+        case "underdog-rules-complete":
+            rProgress.progress.underdog_rules = true;
             break;
-        case "game1++":
+        case "underdog++":
             if (value.answer.toString().length) {
-                console.log("+ANSW", value.answer, rProgress.progress.game1.answers + value.answer)
-                rProgress.progress.game1 = {
-                    ...rProgress.progress.game1,
-                    completed: rProgress.progress.game1.completed + 1,
+                console.log("+ANSW", value.answer, rProgress.progress.underdog.answers + value.answer)
+                rProgress.progress.underdog = {
+                    ...rProgress.progress.underdog,
+                    completed: rProgress.progress.underdog.completed + 1,
                     of: value.of,
-                    answers: rProgress.progress.game1.answers + value.answer,
+                    answers: rProgress.progress.underdog.answers + value.answer,
                     lastAnswerIsConfirmed: false,
                 }
             } else {
-                rProgress.progress.game1 = {
-                    ...rProgress.progress.game1,
-                    completed: rProgress.progress.game1.completed + 1,
+                rProgress.progress.underdog = {
+                    ...rProgress.progress.underdog,
+                    completed: rProgress.progress.underdog.completed + 1,
                     of: value.of
                 }
             }
             break;
-        case "game1-confirm-last-answer": {
+        case "underdog-confirm-last-answer": {
             console.log("confirm", property, value)
-            rProgress.progress.game1 = {
-                ...rProgress.progress.game1,
+            rProgress.progress.underdog = {
+                ...rProgress.progress.underdog,
                 lastAnswerIsConfirmed: true,
             }
         }
-        case "game1-wait-to-finish": {
-            console.log("game1-wait-to-finish")
-            rProgress.progress.game1.waitingToFinish = true;
+        case "underdog-wait-to-finish": {
+            console.log("underdog-wait-to-finish")
+            rProgress.progress.underdog.waitingToFinish = true;
         }
-        case "game1-wait-after-finish": {
-            console.log("game1-wait-after-finish")
-            rProgress.progress.game1.waitingAfterFinish = true;
+        case "underdog-wait-after-finish": {
+            console.log("underdog-wait-after-finish")
+            rProgress.progress.underdog.waitingAfterFinish = true;
         }
-        case "game1-distribute":
-            rProgress.progress.game1 = {
-                ...rProgress.progress.game1,
+        case "underdog-distribute":
+            rProgress.progress.underdog = {
+                ...rProgress.progress.underdog,
                 isDistributed: true,
             }
             break;

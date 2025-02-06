@@ -1,5 +1,5 @@
 module.exports = {
-    game2: {
+    rabbithole: {
         v1: {
             preview: false,
             rules: false,

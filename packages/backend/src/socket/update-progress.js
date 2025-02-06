@@ -1,5 +1,5 @@
 const { triggers, updateBullrunProgress } = require("./update-progress-by-games/bullrun");
-const { triggers: rabbitHoleTriggers, updateRabbitHoleProgress } = require("./update-progress-by-games/rabbit-hole");
+const { triggers: rabbitHoleTriggers, updateRabbitHoleProgress } = require("./update-progress-by-games/rabbithole");
 const { triggres: underdogTriggers, updateUnderdogProgress } = require("./update-progress-by-games/underdog");
 
 

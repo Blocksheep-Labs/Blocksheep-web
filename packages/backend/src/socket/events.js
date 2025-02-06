@@ -1,27 +1,30 @@
 const updateProgress = require("./update-progress");
 const underdogBaseState = require("./default-states-by-games/underdog");
-const rabbitHoleBaseState = require("./default-states-by-games/rabbit-hole");
+const rabbitHoleBaseState = require("./default-states-by-games/rabbithole");
 const bullrunBaseState = require("./default-states-by-games/bullrun");
 const { finishRace } = require("../models/users/users.model");
 
+
+// games events
+const initUnderdog = require('./events-by-games/underdog');
+const initRabbithole = require('./events-by-games/rabbithole');
+const initBullrun = require('./events-by-games/bullrun');
+
 const { 
-    ActivePlayer,
-    ConnectedUser,
-    QuestionsState,
-    RaceProgress,
-    Screen,
-    TunnelState,
-    WaitingPlayer,
-    PlayerPoints,
+    default: {
+        ConnectedUser,
+        RaceProgress,
+        Screen,
+        PlayerPoints,
+    },
+    underdog: {
+        QuestionsState,
+    },
+    rabbithole: {
+        TunnelState,
+    }
 } = require('../models/games-socket/index');
 
-
-// UNDERDOG
-let questionsGameStates = [["answering", "submitting"], ["distributing", "distributed"]];
-
-
-// RABBIT_HOLE
-let tunnelGameStates = ["reset", "default", "close", "open"];
 
 
 // BULLRUN
@@ -45,8 +48,13 @@ module.exports = (io) => {
     });
 
     io.on("connection", async socket => { 
-         // when user disconnects
-         socket.on('disconnect', async() => {
+        // init games 
+        initUnderdog(socket, io);
+        initRabbithole(socket, io);
+        initBullrun(socket, io);
+
+        // when user disconnects
+        socket.on('disconnect', async() => {
             // Find all rooms this socket was connected to before filtering
             const userConnection = await ConnectedUser.findOne({ id: socket.id });
             
@@ -176,6 +184,8 @@ module.exports = (io) => {
             }
         });
     
+
+
         // connect the live
         socket.on('connect-live-game', async ({ raceId, userAddress, part, screensOrder }) => {
             const roomName = `race-${raceId}`;
@@ -214,6 +224,8 @@ module.exports = (io) => {
             });
         });
 
+
+
         socket.on('get-latest-screen', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
 
@@ -249,6 +261,8 @@ module.exports = (io) => {
             });
         });
     
+
+
         // Listen for 'update-progress' events
         socket.on('update-progress', async ({ raceId, userAddress, property, value, version }) => {
             // console.log({ raceId, userAddress, property, value, version })
@@ -288,7 +302,7 @@ module.exports = (io) => {
             const updatedRProgress = JSON.parse(JSON.stringify(rProgress));
 
 
-            if (property === 'game2-eliminate') {
+            if (property === 'rabbithole-eliminate') {
                 const racesProgresses = await RaceProgress.find({ room: roomName });
                 const connectedUsers = await ConnectedUser.find({ room: roomName });
 
@@ -296,10 +310,10 @@ module.exports = (io) => {
                 racesProgresses.forEach(progress => {
                     // Check if the player is not the eliminating player and is not connected
                     if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
-                        progress.progress.game2[version] = {
-                            ...progress.progress.game2[version],
+                        progress.progress.rabbithole[version] = {
+                            ...progress.progress.rabbithole[version],
                             game: {
-                                ...progress.progress.game2[version].game,
+                                ...progress.progress.rabbithole[version].game,
                                 fuel: 0, // Set fuel to 0 for players who are not connected
                             }
                         };
@@ -309,10 +323,10 @@ module.exports = (io) => {
                 // Set the fuel of the eliminating player to 0
                 const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
                 if (eliminatingPlayerProgress) {
-                    eliminatingPlayerProgress.progress.game2[version] = {
-                        ...eliminatingPlayerProgress.progress.game2[version],
+                    eliminatingPlayerProgress.progress.rabbithole[version] = {
+                        ...eliminatingPlayerProgress.progress.rabbithole[version],
                         game: {
-                            ...eliminatingPlayerProgress.progress.game2[version].game,
+                            ...eliminatingPlayerProgress.progress.rabbithole[version].game,
                             fuel: 0, // Set fuel to 0 for the eliminating player
                         }
                     };
@@ -333,131 +347,6 @@ module.exports = (io) => {
 
 
 
-
-
-        socket.on('set-questions-state', async ({ raceId, newIndex, secondsLeft, state }) => {
-            const roomName = `race-${raceId}`;
-            let currData = await QuestionsState.findOne({ room: roomName });
-
-            if (!currData) {
-                const newState = new QuestionsState({
-                    room: roomName,
-                    index: newIndex,
-                    secondsLeft,
-                    state: 'answering',
-                });
-                await newState.save();
-                io.to(roomName).emit('questions-state', { raceId, data: newState });
-                return;
-            }
-
-            if (currData.index < newIndex) {
-                currData.index = newIndex;
-            }
-
-            currData.secondsLeft = secondsLeft;
-
-            const newStateLevel = questionsGameStates.indexOf(i => i.includes(state));
-            const currStateLevel = questionsGameStates.indexOf(i => i.includes(currData.state));
-            if (newStateLevel >= currStateLevel) {
-                currData.state = state;
-            }
-
-            // Update the state in MongoDB
-            await QuestionsState.updateOne(
-                { room: roomName },
-                { $set: { index: currData.index, secondsLeft: currData.secondsLeft, state } }
-            );
-
-            io.to(roomName).emit('questions-state', { raceId, data: currData });
-        });
-
-        socket.on('get-questions-state', async ({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            const currData = await QuestionsState.findOne({ room: roomName });
-
-            if (!currData) {
-                const newState = {
-                    room: roomName,
-                    index: 0,
-                    secondsLeft: 10,
-                    state: 'answering'
-                };
-                await QuestionsState.create(newState);
-                io.to(socket.id).emit('questions-state', { raceId, data: newState });
-                return;
-            }
-            io.to(socket.id).emit('questions-state', { raceId, data: currData })
-        });
-
-
-
-
-
-        socket.on('set-tunnel-state', async ({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished }) => {
-            //console.log({ raceId, secondsLeft, addRoundsPlayed, gameState, isFinished })
-            const roomName = `race-${raceId}`;
-            let currData = await TunnelState.findOne({ room: roomName });
-
-            if (!currData) {
-                const newState = new TunnelState({
-                    room: roomName,
-                    secondsLeft: 10,
-                    roundsPlayed: addRoundsPlayed,
-                    gameState,
-                    isFinished: false,
-                });
-                await newState.save();
-                io.to(roomName).emit('tunnel-state', { raceId, data: newState });
-                return;
-            }
-
-            if (secondsLeft < currData.secondsLeft) {
-                currData.secondsLeft = secondsLeft;
-            }
-
-            currData.roundsPlayed += addRoundsPlayed;
-
-            if (gameState && tunnelGameStates.includes(gameState)) {
-                currData.gameState = gameState;
-            }
-
-            if (isFinished) {
-                currData.isFinished = true;
-            }
-
-            // Update the tunnel state in MongoDB
-            await TunnelState.updateOne(
-                { room: roomName },
-                { $set: currData }
-            );
-
-            io.to(roomName).emit('tunnel-state', { raceId, data: currData });
-        });
-
-        socket.on('get-tunnel-state', async ({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            const currData = await TunnelState.findOne({ room: roomName });
-
-            if (!currData) {
-                const newState = {
-                    room: roomName,
-                    secondsLeft: 10,
-                    roundsPlayed: 0,
-                    gameState: "default",
-                    isFinished: false,
-                };
-                await TunnelState.create(newState);
-
-                io.to(socket.id).emit('tunnel-state', { raceId, data: newState });
-                return;
-            }
-            io.to(socket.id).emit('tunnel-state', { raceId, data: currData })
-        });
-
-
-
-    
         // get amount completed by raceId game gameId
         socket.on('get-progress', async ({ raceId, userAddress }) => {
             const roomName = `race-${raceId}`;
@@ -498,6 +387,8 @@ module.exports = (io) => {
             });
         });
     
+
+
         // get amount completed by raceId game gameId
         socket.on('get-progress-all', async ({ raceId }) => {
             const roomName = `race-${raceId}`;
@@ -505,45 +396,6 @@ module.exports = (io) => {
             io.to(socket.id).emit('race-progress-all', { progress });
         });
 
-    
-        // get all progresses for tunnel game
-        socket.on('get-all-fuel-tunnel', async ({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            const progresses = await RaceProgress.find({ room: roomName });
-
-            /*
-            console.log("PROGRESSES", raceId, roomName, progresses.map(i => {
-                return {
-                    userAddress: i.userAddress,
-                    game2: {...i.progress.game2.v1.game}
-                }
-            }));
-            */
-            
-            io.to(socket.id).emit(`race-fuel-all-tunnel`, {
-                progresses: progresses.map(i => {
-                    return {
-                        userAddress: i.userAddress,
-                        ...i.progress.game2
-                    }
-                }),
-            });
-        });
-
-        socket.on('tunnel-started', ({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            io.to(roomName).emit('tunnel-started-on-client', { socketId: socket.id, raceId });
-        });
-
-        socket.on('rabbit-hole-results-shown', ({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            io.to(roomName).emit('rabbit-hole-results-shown-on-client', { socketId: socket.id, raceId });
-        });
-
-        socket.on('underdog-results-shown', ({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            io.to(roomName).emit('underdog-results-shown-on-client', { socketId: socket.id, raceId });
-        });
     
         // get users amount connected to the game
         socket.on('get-connected', ({ raceId }) => {
@@ -556,188 +408,6 @@ module.exports = (io) => {
         });
         
         
-        socket.on('bullrun-set-pending', ({ id, opponentId, userAddress, isPending, raceId }) => {
-            //console.log({ id, opponentId, userAddress, isPending, raceId })
-            //const playerToEmit = activePlayers[raceId]?.find(i => i.id == opponentId);
-
-            //if (playerToEmit) {
-                io.to(opponentId).emit('bullrun-pending', { id, userAddress, isPending, raceId });
-                io.to(socket.id).emit('bullrun-pending', { id, userAddress, isPending, raceId });
-            //}
-        });
-
-        socket.on('bullrun-win-modal-opened', async({ raceId }) => {
-            const roomName = `race-${raceId}`;
-            io.to(roomName).emit('bullrun-win-modal-opened-on-client', { raceId, socketId: socket.id });
-        });
-
-        socket.on('bullrun-join-game', async({ raceId, userAddress, amountOfGamesRequired }) => {
-            //console.log('bullrun-join-game', { raceId, userAddress, amountOfGamesRequired });
-            const roomName = `race-${raceId}`;
-            socket.join(roomName);
-        
-            // Initialize game data for the race if not already initialized
-            if (!gamesRequired[raceId]) {
-                gamesRequired[raceId] = {};      // Track required games per player
-                matchesPlayed[raceId] = {};      // Track matches each player has played
-                gameCounts[raceId] = {};         // Track how many games each player has completed
-                gameCompletesAmount[raceId] = 0; // Initialize completed games counter for race
-                activePlayers[raceId] = [];      // Track active players in the race
-                waitingPlayers[raceId] = [];     // Track players waiting for a match
-                gameCompletes[raceId] = {};      // Track game completes by player web3 address
-                inGamePlayers[raceId] = [];
-            }
-        
-            // Initialize game data for the player
-            function initializePlayer(playerAddress, socket) {
-                if (!matchesPlayed[raceId][playerAddress]) matchesPlayed[raceId][playerAddress] = [];
-                if (!gameCounts[raceId][playerAddress]) gameCounts[raceId][playerAddress] = 0;
-                if (!gamesRequired[raceId][playerAddress]) gamesRequired[raceId][playerAddress] = amountOfGamesRequired;
-
-                if (!inGamePlayers[raceId]) inGamePlayers[raceId] = [];
-
-                // Check if the player is not in inGamePlayers
-                if (!Array(inGamePlayers[raceId]).indexOf(i => i.userAddress == playerAddress)) {
-                        console.log("PUSH:", playerAddress)
-                    inGamePlayers[raceId].push(socket); 
-                }
-            }
-            socket.userAddress = userAddress; 
-            initializePlayer(userAddress, socket);
-        
-        
-            // get players from waiting queue
-            activePlayers[raceId] = [...(activePlayers[raceId] || []), ...(waitingPlayers[raceId] || [])];
-            waitingPlayers[raceId] = [];
-        
-            //console.log("ACTIVE BEFORE:", activePlayers[raceId].map(i => i.id));
-            if (!activePlayers[raceId].some(p => p.userAddress === userAddress)) {
-                activePlayers[raceId].push(socket); 
-            }
-            //console.log("UPDATED LIST OF ACTIVE PLAYERS:", activePlayers[raceId].map(i => ({id: i.id, address: i.userAddress})));
-        
-            // Pair players and start the game
-            function pairPlayers() {
-                //console.log("LIST OF ACTIVE PLAYERS...", activePlayers[raceId].map(i => i.id));
-            
-                let maxRetries = activePlayers[raceId].length * 2; // Limit retries to prevent infinite loops
-                let retries = 0;
-            
-                // Pair players only if we have at least 2 waiting players
-                while (activePlayers[raceId].length >= 2 && retries < maxRetries) {
-                    const player1 = activePlayers[raceId].shift();
-                    const player2 = activePlayers[raceId].shift();
-
-                    //console.log("TRYING TO PAIR...", player1.id, player2.id);
-            
-                    // Ensure player1 and player2 are not the same person
-                    if (player1.userAddress === player2.userAddress) {
-                        //console.log("ERROR: Trying to pair player with themselves!", player1.id);
-                        waitingPlayers[raceId].push(player1, player2); // Put both players back in waiting queue
-                        retries++;
-                        continue;
-                    }
-            
-                    // Ensure players can still play more games and haven't played each other yet
-                    if (
-                        gameCounts[raceId][player1.userAddress] < gamesRequired[raceId][player1.userAddress] &&
-                        gameCounts[raceId][player2.userAddress] < gamesRequired[raceId][player2.userAddress] &&
-                        !matchesPlayed[raceId][player1.userAddress].includes(player2.userAddress) &&
-                        !matchesPlayed[raceId][player2.userAddress].includes(player1.userAddress)
-                    ) {
-                        // Set up a room for this 1v1 match
-                        const roomName = `1v1-${player1.id}-${player2.id}`;
-                        player1.join(roomName);
-                        player2.join(roomName);
-            
-                        // Emit game start to both players, with their correct opponents
-                        io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
-                        io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
-            
-                        //console.log(`Pairing players: ${player1.id} vs ${player2.id}`);
-            
-                        // Track matches played
-                        matchesPlayed[raceId][player1.userAddress].push(player2.userAddress);
-                        matchesPlayed[raceId][player2.userAddress].push(player1.userAddress);
-            
-                        // Increment their game counts
-                        incrementGameCount(player1, player2);
-                    } else {
-                        //console.log("TRYING TO PAIR...", player1.id, player2.id, "FAILED!");
-                        // If pairing fails, put players back in the queue but rotate them
-                        waitingPlayers[raceId].push(player1);
-                        activePlayers[raceId].push(player2);
-                        retries++;
-                        continue;  // Continue to try pairing other players
-                    }
-                }
-            
-                // If only one player is left unpaired, move them to the waiting list
-                if (activePlayers[raceId].length === 1) {
-                    const remainingPlayer = activePlayers[raceId].shift();
-
-                    if (gameCounts[raceId][remainingPlayer.userAddress] >= gamesRequired[raceId][remainingPlayer.userAddress]) {
-                        io.to(remainingPlayer.id).emit('bullrun-game-complete', { 
-                            message: 'You have completed all your games', 
-                            raceId 
-                        });
-                        return;
-                    }
-
-                    waitingPlayers[raceId].push(remainingPlayer);
-                    const gamesPlayed = gameCounts[raceId][remainingPlayer.userAddress];
-                    io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
-                }
-            
-                if (retries >= maxRetries) {
-                    //console.log('Max retries reached, ending pairing attempts for now.');
-                }
-            }
-            
-
-            // Increment game count and handle completion checks
-            function incrementGameCount(player1, player2) {
-                gameCounts[raceId][player1.userAddress]++;
-                gameCounts[raceId][player2.userAddress]++;
-                //console.log(`Incremented gameCounts for players: ${player1.userAddress} (${gameCounts[raceId][player1.userAddress]}) and ${player2.userAddress} (${gameCounts[raceId][player2.userAddress]})`);
-            }
-        
-            pairPlayers();
-        });
-
-        socket.on('bullrun-curtains-closing', (data) => {
-            io.to(data.toId).emit('bullrun-curtains-closing', data);
-            io.to(socket.id).emit('bullrun-curtains-closing', data);
-        });
-
-        socket.on('bullrun-get-game-counts', ({ raceId, userAddress }) => {
-            io.to(socket.id).emit('bullrun-game-counts', {
-                raceId,
-                userAddress,
-                gameCounts: gameCounts[raceId][userAddress],
-                gameCompletesAmount: gameCompletesAmount[raceId],
-            });
-        });
-        
-        socket.on('bullrun-game-end', ({raceId}) => {
-            // Check if player completed all games
-            if (gameCounts[raceId][socket.userAddress] >= gamesRequired[raceId][socket.userAddress]) {
-                gameCompletes[raceId][socket.userAddress] = true;
-                gameCompletesAmount[raceId]++;
-                io.to(socket.id).emit('bullrun-game-complete', { 
-                    message: 'You have completed all your games', 
-                    raceId 
-                });
-            } else {
-                io.to(socket.id).emit('bullrun-game-continue', { 
-                    message: `You can contInue playing ${gameCounts[raceId][socket.userAddress]}/${gamesRequired[raceId][socket.userAddress]}`, 
-                    raceId 
-                });
-            }
-
-            // Emit the updated amount of completed games to the room
-            io.to(`race-${raceId}`).emit('bullrun-amount-of-completed-games', { gameCompletesAmount: gameCompletesAmount[raceId] });
-        });
 
         socket.on('player-add-points', async ({ raceId, points, userAddress }) => {
             const roomName = `room-${raceId}`;
@@ -757,6 +427,9 @@ module.exports = (io) => {
 
             console.log({ raceId, points, userAddress });
         });
+
+
+
 
         socket.on('race-finish', async ({raceId, userAddress}) => {
             const roomName = `room-${raceId}`;

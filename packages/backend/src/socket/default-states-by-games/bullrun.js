@@ -1,7 +1,7 @@
 module.exports = {
-    game3_preview: false,
-    game3_rules: false,
-    game3: {
+    bullrun_preview: false,
+    bullrun_rules: false,
+    bullrun: {
         gamesPlayed: 0,
         selectedItems: [],
         points: [],

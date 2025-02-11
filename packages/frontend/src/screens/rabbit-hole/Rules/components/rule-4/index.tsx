@@ -1,4 +1,4 @@
-import CarrotsBucketImage from "../../../assets/images/carrotbasket.png"
+import CarrotsBucketImage from "../../../assets/images/carrotbasket-static.png"
 
 export default function RHRule4() {
     return (

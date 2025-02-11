@@ -40,7 +40,8 @@ import BlackSheep from "../assets/images/blacksheep.png";
 import WhiteSheep from "../assets/images/sheeepy.png";
 import BG_Carrots from "../assets/images/backgroundcarrot.jpg";
 import CarrotSlider from "./components/slider";
-import CarrotBasket from "./components/basket";
+import { CarrotBasket, CarrotBasketIncrement } from "./components/basket";
+import { CircularProgress } from "./components/CircularProgress";
 
 export type ConnectedUser = {
     id: number;
@@ -56,10 +57,13 @@ export type ConnectedUser = {
 
 export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
 
+const delay = async (time: number) => await new Promise((resolve) => setTimeout(resolve, time));
+
 function RabbitHoleGame() {
   const { smartAccountAddress, smartAccountClient } = useSmartAccount();
   const { gameState } = useGameContext();
   const navigate = useNavigate();
+  // const navigate = (a: string, b?: any) => {}
   const { raceId, version } = useParams();
 
   // Game state
@@ -96,26 +100,30 @@ function RabbitHoleGame() {
 
   const [playersNextClicked, setPlayersNextClicked] = useState<Set<string>>(new Set());
 
+  const [whoStoleIsShowed, setWhoStoleIsShowed] = useState(false)
+  const [hourglassCounter, setHourglassCounter] = useState(10)
+  const [isCountingDown, setIsCountingDown] = useState(false)
+
   
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
-  console.log({phase})
+  useEffect(() => {
+    console.log({phase})
+  }, [phase])
 
   // after game finish
   const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
     expiryTimestamp: time,
     autoStart: false,
-    onExpire: () => {
-      closeWinLoseModal();
-    }
+    onExpire: () => closeWinLoseModal()
   });
 
   // in-game
   const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
-      handleTunnelChange();
+      handleTunnelChange(); 
     },
     autoStart: false,
   });
@@ -590,31 +598,50 @@ function RabbitHoleGame() {
     }
   }, [raceId, smartAccountAddress, socket]);
 
-
-  const triggerAnimations = () => {
+  const triggerAnimations = async () => {
     if (animationsTriggered) return;
     setAnimationsTriggered(true);
-
+  
     // Close tunnel: Head moves to swallow everything.
     socket.emit('set-tunnel-state', {
-      raceId, 
+      raceId,
       secondsLeft: 0,
       addRoundsPlayed: 1,
       gameState: "close",
     });
-    setPhase("CloseTunnel"); 
+    
+    
+    setPhase("CloseTunnel");
+    await delay(2000)
+    setIsCountingDown(true);
 
+    let countdownInterval = setInterval(() => {
+      setHourglassCounter((prev) => {
+        if (prev <= 1) {
+          console.log({ prev });
+          clearInterval(countdownInterval);
+          setIsCountingDown(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    await delay(10000)
+    
     // Open tunnel: cars get out
     setTimeout(() => {
+      clearInterval(countdownInterval);
+  
       socket.emit('set-tunnel-state', {
-        raceId, 
+        raceId,
         secondsLeft: 0,
         addRoundsPlayed: 0,
         gameState: "open",
       });
       socket.emit("get-all-fuel-tunnel", { raceId });
       setPhase("OpenTunnel");
-
+  
       // if user is one in race and eliminated, go on with animations without waiting for other (leaved) players
       if (amountOfConnected <= 1 && userIsLost) {
         console.log('user is one in race and eliminated, go on with animations without waiting for other (leaved) players');
@@ -622,8 +649,8 @@ function RabbitHoleGame() {
           triggerAnimationsOpen();
         }, 3500);
       }
-    }, 3000);
-  };
+    }, 200);
+  }; 
 
   // Reset animationsTriggered when a new round starts
   useEffect(() => {
@@ -641,6 +668,7 @@ function RabbitHoleGame() {
       gameState: "reset",
     });
     setPhase("Reset");
+    setWhoStoleIsShowed(true)
     
     setTimeout(() => {
       socket.emit('set-tunnel-state', {
@@ -653,7 +681,7 @@ function RabbitHoleGame() {
       setRoundIsFinsihed(true);
       setIsRolling(false);
       setPhase("Default");
-    }, 6000);
+    }, 3000);
   }
 
 
@@ -675,11 +703,11 @@ function RabbitHoleGame() {
     }
   }
 
-  const handleTunnelChange = async() => {
-    setIsRolling(true);
-    triggerAnimations();
+  const handleTunnelChange = async () => {
+    console.log("handleTunnelChange - start");
+    await triggerAnimations(); 
+    setIsRolling(true); 
 
-    pause();
     if (!gameOver) {
       //console.log("EMIT FUEL UPDATE!")
       socket.emit("update-progress", {
@@ -959,6 +987,7 @@ function RabbitHoleGame() {
   return (
     <div className="mx-auto flex w-full flex-col bg-cover bg-bottom relative" style={{ height: `${window.innerHeight}px` }}>
       <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Eliminated ☠️. Wait for next game!" : displayNumber}</p>
+      {phase === "Default" && !whoStoleIsShowed && <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[40%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80 w-2/3 mx-auto">{"Who stole my carrots?"}</p>}
       
      
       <div className="relative z-50 py-6">
@@ -978,6 +1007,12 @@ function RabbitHoleGame() {
           */
         }
         
+        {isCountingDown ? <div className="DEV absolute text-center text-white text-xl z-50 bottom-40" style={{ transform: 'translate(50%, -50%)' }}>
+          <CircularProgress value={hourglassCounter} outerStroke="#ffffff" innerStroke="#e11111" size={56} />
+          <p className="text-lg">DROP ENOUGH CARROTS</p>
+          <p className="text-sm">LAST ONE GETS ELIMINATED</p>
+        </div> : <></>}
+
         <div className="tunnel">
           <PlayerMovement 
             phase={phase} 
@@ -990,19 +1025,27 @@ function RabbitHoleGame() {
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />
 
-          <div className="absolute -bottom-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
-            <div className="mr-16">
-              <CarrotSlider 
+          <div className="absolute -bottom-52 w-full h-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
+              {/* <CarrotSlider 
                 min={0} 
                 max={maxFuel} 
                 setDisplayNumber={handleFuelUpdate} 
                 isRolling={totalSeconds === 0 || userIsLost}
+              /> */}
+
+            <div className="absolute z-10 bottom-4 right-10 w-44 mr-24">
+              <CarrotBasket fuelLeft={maxFuel - displayNumber} />
+            </div>
+
+            <div className="absolute z-10 bottom-4 right-0 w-44">
+              <CarrotBasketIncrement 
+                max={maxFuel} 
+                setDisplayNumber={handleFuelUpdate}
+                isRolling={isRolling} 
               />
             </div>
             
-            <div className="absolute -top-4 right-0">
-              <CarrotBasket fuelLeft={maxFuel - displayNumber}/>
-            </div>
+         
           </div>
         </div>
   

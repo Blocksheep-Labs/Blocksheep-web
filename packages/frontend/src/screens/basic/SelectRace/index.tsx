@@ -49,7 +49,7 @@ function SelectRaceScreen() {
     /*
       getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
         updateGameState(data, progress, undefined);
-        navigate(`/race/${raceId}/bullrun/rules`);
+        navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       });
       return;
     */

@@ -108,22 +108,22 @@ function RabbitHoleGame() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
-  console.log({phase})
+  useEffect(() => {
+    console.log({phase})
+  }, [phase])
 
   // after game finish
   const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
     expiryTimestamp: time,
     autoStart: false,
-    onExpire: () => {
-      closeWinLoseModal();
-    }
+    onExpire: () => closeWinLoseModal()
   });
 
   // in-game
   const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
     expiryTimestamp: time,
     onExpire: () => {
-      handleTunnelChange();
+      handleTunnelChange(); 
     },
     autoStart: false,
   });
@@ -610,8 +610,8 @@ function RabbitHoleGame() {
       gameState: "close",
     });
     
+    
     setPhase("CloseTunnel");
-
     await delay(2000)
     setIsCountingDown(true);
 
@@ -626,6 +626,8 @@ function RabbitHoleGame() {
         return prev - 1;
       });
     }, 1000);
+
+    await delay(10000)
     
     // Open tunnel: cars get out
     setTimeout(() => {
@@ -647,7 +649,7 @@ function RabbitHoleGame() {
           triggerAnimationsOpen();
         }, 3500);
       }
-    }, 10000);
+    }, 200);
   }; 
 
   // Reset animationsTriggered when a new round starts
@@ -679,7 +681,7 @@ function RabbitHoleGame() {
       setRoundIsFinsihed(true);
       setIsRolling(false);
       setPhase("Default");
-    }, 6000);
+    }, 3000);
   }
 
 
@@ -702,9 +704,9 @@ function RabbitHoleGame() {
   }
 
   const handleTunnelChange = async () => {
-    setIsRolling(true);
-    await triggerAnimations();
-    await delay(10000)
+    console.log("handleTunnelChange - start");
+    await triggerAnimations(); 
+    setIsRolling(true); 
 
     if (!gameOver) {
       //console.log("EMIT FUEL UPDATE!")
@@ -1037,10 +1039,9 @@ function RabbitHoleGame() {
 
             <div className="absolute z-10 bottom-4 right-0 w-44">
               <CarrotBasketIncrement 
-                min={0}
                 max={maxFuel} 
                 setDisplayNumber={handleFuelUpdate}
-                isRolling={totalSeconds === 0 || userIsLost} 
+                isRolling={isRolling} 
               />
             </div>
             

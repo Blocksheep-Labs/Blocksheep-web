@@ -4,8 +4,6 @@ import BasketCarrotIncrement from "../../../assets/images/carrot-increment.png";
 import BasketCarrotIncrementValue from "../../../assets/images/carrot-increment-value.png";
 
 export function CarrotBasket({fuelLeft}: {fuelLeft: number}) {
-    console.log("CarrotBasket",{fuelLeft});
-    
     return (
         <div className="relative">
             <img src={BasketCarrotImage} alt="basket" className="w-28"/>
@@ -14,12 +12,10 @@ export function CarrotBasket({fuelLeft}: {fuelLeft: number}) {
     );
 }
 
-export function CarrotBasketIncrement({ min, setDisplayNumber, isRolling, max }: { min: number; setDisplayNumber: (fuel: number) => void; isRolling: boolean; max: number }) {
+export function CarrotBasketIncrement({ setDisplayNumber, isRolling, max }: { setDisplayNumber: (fuel: number) => void; isRolling: boolean; max: number }) {
   const [value, setValue] = useState(0);
 
   const handleIncrease = () => {
-    console.log("handleIncrease", {value, max, min});
-    
     if (isRolling || value >= max) return;
     const newValue = Math.min(max, value + 1);
     setValue(newValue);

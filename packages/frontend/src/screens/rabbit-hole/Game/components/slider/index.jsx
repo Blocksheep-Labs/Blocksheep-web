@@ -74,6 +74,8 @@ const CarrotSlider = class extends React.Component {
               <div
                 className="knob"
                 style={{ left: knobPosition }}
+                // style={{ left: knobPosition, cursor: "url('../../assets/images/cursor-swipe.png'), auto" }}
+
                 onMouseDown={!this.props.isRolling ? this.startDrag : undefined}
                 onTouchStart={!this.props.isRolling ? this.startDrag : undefined}
                 

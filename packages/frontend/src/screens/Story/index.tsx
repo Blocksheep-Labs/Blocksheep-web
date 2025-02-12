@@ -177,8 +177,10 @@ export default function StoryScreen() {
                     userAddress: smartAccountAddress,
                     property: `story-${part}`,
                 });
+                // alert(`screen-changed = ${screen}`)
                 navigate(generateLink(screen, Number(raceId)));
             });
+            
             
             socket.on('latest-screen', ({ screen }) => {
                 if (screen !== getStoryPart(part as string)) {
@@ -187,9 +189,11 @@ export default function StoryScreen() {
                         userAddress: smartAccountAddress,
                         property: `story-${part}`,
                     });
+                    // alert(`latest-screen = ${screen}`)
                     navigate(generateLink(screen, Number(raceId)));
                 }
             });
+            
             
             return () => {
                 socket.off('screen-changed');
@@ -207,7 +211,7 @@ export default function StoryScreen() {
             setTimeout(() => {
                 console.log("Emitting connect live game event...");
                 socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
-                socket.emit("get-latest-screen", { raceId, part: getStoryPart(part) });
+                // socket.emit("get-latest-screen", { raceId, part: getStoryPart(part) });
             }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);

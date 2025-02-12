@@ -149,7 +149,7 @@ export default function RateScreen() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RATE" });
-            socket.emit("get-latest-screen", { raceId, part: "RATE" });
+            // socket.emit("get-latest-screen", { raceId, part: "RATE" });
         }
     }, [smartAccountAddress, socket, raceId]);
 

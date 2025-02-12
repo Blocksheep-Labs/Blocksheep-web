@@ -355,7 +355,7 @@ export default function Bullrun() {
         socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game3-complete",
+            property: "bullrun-complete",
         });
         setLatestInteractiveModalWasClosed(true);
     }
@@ -593,9 +593,9 @@ export default function Bullrun() {
 
             socket.on("progress-updated", async(progress) => {
                 console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
-                if (progress.property === "game3-complete") {
+                if (progress.property === "bullrun-complete") {
                     //alert(`COMPLETE++ ${amountOfConnected}, ${amountOfPlayersCompleted + 1}`);
-                    console.log( "game3-complete", amountOfConnected, amountOfPlayersCompleted + 1)
+                    console.log( "bullrun-complete", amountOfConnected, amountOfPlayersCompleted + 1)
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                     if (amountOfConnected <= amountOfPlayersCompleted + 1) {
                         //alert(31230);
@@ -615,8 +615,8 @@ export default function Bullrun() {
                 const completedAddrs: string[] = [];
         
                 progress.forEach((i: any) => {
-                    //console.log("progress:", i.progress.game3, i.userAddress)
-                    if (i.progress.game3.isCompleted) {
+                    //console.log("progress:", i.progress.bullrun, i.userAddress)
+                    if (i.progress.bullrun.isCompleted) {
                         // track by addresses to block click next btn
                         completedAddrs.push(i.userAddress);
                         completedAmount++;
@@ -712,7 +712,7 @@ export default function Bullrun() {
                     socket.emit("update-progress", {
                         raceId,
                         userAddress: smartAccountAddress,
-                        property: "game3-complete",
+                        property: "bullrun-complete",
                     });
                     navigate(generateLink(screen, Number(raceId)));
                 }
@@ -732,7 +732,7 @@ export default function Bullrun() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULLRUN" });
-            socket.emit("get-latest-screen", { raceId, part: "BULLRUN" });
+            // socket.emit("get-latest-screen", { raceId, part: "BULLRUN" });
             socket.emit("bullrun-get-game-counts", { raceId, userAddress: smartAccountAddress });
             socket.emit("get-progress-all", { raceId });
         }

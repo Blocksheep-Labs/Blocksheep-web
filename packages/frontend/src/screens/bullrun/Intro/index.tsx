@@ -154,7 +154,7 @@ export default function BullrunCover() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULLRUN_PREVIEW" });
-            socket.emit("get-latest-screen", { raceId, part: "BULLRUN_PREVIEW" });
+            //socket.emit("get-latest-screen", { raceId, part: "BULLRUN_PREVIEW" });
         }
     }, [smartAccountAddress, socket, raceId]);
     

@@ -251,7 +251,7 @@ function RaceUpdateScreen() {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getPart(board) });
-        socket.emit("get-latest-screen", { raceId, part: getPart(board) });
+        // socket.emit("get-latest-screen", { raceId, part: getPart(board) });
     }
   }, [smartAccountAddress, socket, raceId, board, race]);
 

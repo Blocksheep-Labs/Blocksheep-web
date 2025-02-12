@@ -163,7 +163,7 @@ function UnderdogGame() {
     console.log("UPDATE PROGRESS", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1++",
+      property: "underdog++",
       value: {
         completed: currentQuestionIndex + 1,
         of: Number(questions.length),
@@ -182,7 +182,7 @@ function UnderdogGame() {
       socket.emit('update-progress', {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game1++",
+        property: "underdog++",
         value: {
           completed: currentQuestionIndex + 1,
           of: Number(questions.length),
@@ -207,7 +207,7 @@ function UnderdogGame() {
     console.log("UPDATE PROGRESS", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1++",
+      property: "underdog++",
       value: {
         completed: currentQuestionIndex + 1,
         of: Number(questions.length),
@@ -226,7 +226,7 @@ function UnderdogGame() {
       socket.emit('update-progress', {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game1++",
+        property: "underdog++",
         value: {
           completed: currentQuestionIndex + 1,
           of: Number(questions.length),
@@ -257,7 +257,7 @@ function UnderdogGame() {
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1-distribute",
+      property: "underdog-distribute",
       value: {
         completed: Number(questions.length),
         of: Number(questions.length),
@@ -304,7 +304,7 @@ function UnderdogGame() {
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1-wait-after-finish",
+      property: "underdog-wait-after-finish",
     });
     setWaitingToFinishModalPermanentlyOpened(true);
     pause();
@@ -328,7 +328,7 @@ function UnderdogGame() {
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game1-confirm-last-answer",
+            property: "underdog-confirm-last-answer",
           });
           setSubmittingAnswer(false);
           
@@ -397,7 +397,7 @@ function UnderdogGame() {
         }
         console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
 
-        if (progress.property == "game1++") {
+        if (progress.property == "underdog++") {
           if (answersSubmittedBy.includes(progress.userAddress)) {
             return;
           }
@@ -425,7 +425,7 @@ function UnderdogGame() {
           }
         }
 
-        if (progress.property === "game1-distribute") {
+        if (progress.property === "underdog-distribute") {
           setAmountOfPlayersCompleted(prev => prev + 1);
           
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1);
@@ -435,7 +435,7 @@ function UnderdogGame() {
           }
         }
 
-        if (progress.property === "game1-wait-after-finish") {
+        if (progress.property === "underdog-wait-after-finish") {
           console.log("NEXT_CLICKED++")
           setAddressesCompleted([...addressesCompleted, progress.userAddress]);
           setWaitingAfterFinishPlayersCount(prev => prev + 1);
@@ -459,7 +459,7 @@ function UnderdogGame() {
         const playersClickedNextAddrs: string[] = [];
 
         progress.forEach((i: any) => {
-          if (i.progress.game1.isDistributed) {
+          if (i.progress.underdog.isDistributed) {
             isDistributedAmount++;
           }
 
@@ -469,13 +469,13 @@ function UnderdogGame() {
             waitingAfterFinishAmount++;
           }
 
-          if (i.progress.game1.waitingToFinish) {
+          if (i.progress.underdog.waitingToFinish) {
             waitingToFinishAmount++;
-            answers.push(i.progress.game1.answers);
+            answers.push(i.progress.underdog.answers);
           }
 
-          if (!i.progress.game1.lastAnswerIsConfirmed) {
-            const answers = i.progress.game1.answers;
+          if (!i.progress.underdog.lastAnswerIsConfirmed) {
+            const answers = i.progress.underdog.answers;
             if (answers.length) {
               const lastAnswer = Number(answers[answers.length - 1]);
 
@@ -512,7 +512,7 @@ function UnderdogGame() {
       });
 
       socket.on('race-progress', ({ progress, questionsState }) => {
-        const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, waitingAfterFinish, answers} = progress.progress.game1;
+        const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, waitingAfterFinish, answers} = progress.progress.underdog;
         
         /*
         // means that the player leaved on pulsating dog screen
@@ -550,7 +550,7 @@ function UnderdogGame() {
             socket.emit('update-progress', {
               raceId,
               userAddress: smartAccountAddress,
-              property: "game1++",
+              property: "underdog++",
               value: {
                 completed: currentQuestionIndex + 1,
                 of: Number(questions.length),
@@ -661,7 +661,7 @@ function UnderdogGame() {
         socket.connect();
       }
       socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
-      socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
+      // socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
     }
   }, [smartAccountAddress, socket, raceId, raceData]);
 

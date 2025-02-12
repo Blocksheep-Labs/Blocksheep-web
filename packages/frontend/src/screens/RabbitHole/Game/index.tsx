@@ -110,7 +110,7 @@ function RabbitHoleGame() {
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
-  console.log({phase})
+  console.log({phase, players})
 
   // after game finish
   const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
@@ -150,12 +150,12 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (totalSeconds > 0) {
-      socket.emit('set-tunnel-state', {
+      socket.emit('rabbithole-set-tunnel-state', {
         raceId, 
         secondsLeft: totalSeconds,
         addRoundsPlayed: 0,
       });
-      socket.emit("get-all-fuel-tunnel", { raceId });
+      socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
     }
   }, [totalSeconds]);
 
@@ -164,7 +164,7 @@ function RabbitHoleGame() {
     const tryToProcessAnimations = (pending: number, currentPhase: string) => {
       if (pending === 0 && currentPhase == "OpenTunnel") {
         console.log("All transactions processed.");
-        socket.emit("tunnel-started", { raceId });
+        socket.emit("rabbithole-tunnel-started", { raceId });
         triggerAnimationsOpen();
       }
     }
@@ -242,7 +242,7 @@ function RabbitHoleGame() {
           if (tunnelState.gameState !== "default") {
             // Wait for tunnel to return to default state before restarting
             const checkTunnelState = () => {
-              socket.emit("get-tunnel-state", { raceId }, (response: any) => {
+              socket.emit("rabbithole-get-tunnel-state", { raceId }, (response: any) => {
                 if (response.data.gameState === "default") {
                   // Restart timer and sync with other players
                   const time = new Date();
@@ -262,12 +262,12 @@ function RabbitHoleGame() {
         }
 
         // @ts-ignore
-        setDisplayNumber(progress?.progress?.game2?.[version]?.game?.fuel || 0);
+        setDisplayNumber(progress?.progress?.rabbithole?.[version]?.game?.fuel || 0);
         // @ts-ignore
-        setMaxFuel(progress?.progress?.game2?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
+        setMaxFuel(progress?.progress?.rabbithole?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
       });
 
-      socket.on("rabbit-hole-results-shown-on-client", ({ socketId, raceId }) => {
+      socket.on("rabbithole-results-shown-on-client", ({ socketId, raceId }) => {
         // means that some player got a win-lose modal opened, finished the game and ready to navigate to the next screen
         pause();
         if (!winModalPermanentlyOpened || !loseModalPermanentlyOpened || !modalIsOpen) {
@@ -279,7 +279,7 @@ function RabbitHoleGame() {
         }
       });
       
-      socket.on("race-fuel-all-tunnel", async(progress) => {
+      socket.on("rabbithole-race-fuel-all-tunnel", async(progress) => {
         const usersData = progress.progresses;
 
         let amountPendingPerGame2 = 0;
@@ -312,6 +312,7 @@ function RabbitHoleGame() {
 
         // set players list
         const usersDATADB = await httpGetRaceDataById(`race-${raceId}`);
+        alert("setPlayers")
         setPlayers(prevPlayers => {
           const updatedPlayers = [...prevPlayers];
           
@@ -348,7 +349,7 @@ function RabbitHoleGame() {
       
 
       socket.on("progress-updated", async(progress) => {
-        if (progress.property === "game2-eliminate") {
+        if (progress.property === "rabbithole-eliminate") {
           if (pendingTransactions.size > 0) {
             // remove from pending transactions
             const newSet = new Set(pendingTransactions);
@@ -363,7 +364,7 @@ function RabbitHoleGame() {
           }
         }
 
-        if (progress.property === "game2-set-fuel") {
+        if (progress.property === "rabbithole-set-fuel") {
           if (!isRolling) {
             return;
           }
@@ -385,7 +386,7 @@ function RabbitHoleGame() {
           }
         }
 
-        if (progress.property === "game2-complete") {
+        if (progress.property === "rabbithole-complete") {
           if (amountOfComplteted + 1 >= amountOfConnected) {
             await distribute(buildDistributeData());
           } else {
@@ -393,7 +394,7 @@ function RabbitHoleGame() {
           }
         }
 
-        if (progress.property === "game2-wait-to-finish") {
+        if (progress.property === "rabbithole-wait-to-finish") {
           // Check if the player has already clicked next
           if (!playersNextClicked.has(progress.userAddress)) {
             // Create a new Set to avoid mutating the existing state directly
@@ -426,7 +427,7 @@ function RabbitHoleGame() {
       });
 
 
-      socket.on('tunnel-started-on-client', ({ socketId, raceId: raceIdSocket }) => {
+      socket.on('rabbithole-tunnel-started-on-client', ({ socketId, raceId: raceIdSocket }) => {
         if (phase == "OpenTunnel" && raceId == raceIdSocket && pendingTransactions.size > 0) {
           console.log(`Trying to trigger animations as on one of clients (${socketId}) the tunnel was already started.`)
           setPendingTransactions(new Set());
@@ -438,7 +439,7 @@ function RabbitHoleGame() {
         let amountOfNextClicked = 0;
         const playersClickedNextAddrs: string[] = [];
         progress.forEach((i: any) => {
-          if (i.progress.game2.waitingToFinish) {
+          if (i.progress.rabbithole.waitingToFinish) {
             playersClickedNextAddrs.push(i.userAddress);
             amountOfNextClicked++;
           }
@@ -516,7 +517,7 @@ function RabbitHoleGame() {
               socket.emit("update-progress", {
                 raceId,
                 userAddress: smartAccountAddress,
-                property: "game2-complete",
+                property: "rabbithole-complete",
                 value: {
                   isWon: false,
                   pointsAllocated: 0,
@@ -541,10 +542,10 @@ function RabbitHoleGame() {
         socket.connect();
       }
       
-      socket.emit("game2-reach", { raceId, userAddress: smartAccountAddress })
+      socket.emit("rabbithole-reach", { raceId, userAddress: smartAccountAddress })
       socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
       socket.emit("get-progress-all", { raceId });
-      socket.emit("get-all-fuel-tunnel", { raceId });
+      socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
     }
   }, [smartAccountAddress, socket, raceId, gameState]);
 
@@ -555,7 +556,7 @@ function RabbitHoleGame() {
             socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
-        socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
+        // socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
     }
   }, [smartAccountAddress, socket, raceId]);
 
@@ -596,7 +597,7 @@ function RabbitHoleGame() {
     setAnimationsTriggered(true);
 
     // Close tunnel: Head moves to swallow everything.
-    socket.emit('set-tunnel-state', {
+    socket.emit('rabbithole-set-tunnel-state', {
       raceId, 
       secondsLeft: 0,
       addRoundsPlayed: 1,
@@ -606,13 +607,13 @@ function RabbitHoleGame() {
 
     // Open tunnel: cars get out
     setTimeout(() => {
-      socket.emit('set-tunnel-state', {
+      socket.emit('rabbithole-set-tunnel-state', {
         raceId, 
         secondsLeft: 0,
         addRoundsPlayed: 0,
         gameState: "open",
       });
-      socket.emit("get-all-fuel-tunnel", { raceId });
+      socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
       setPhase("OpenTunnel");
 
       // if user is one in race and eliminated, go on with animations without waiting for other (leaved) players
@@ -634,7 +635,7 @@ function RabbitHoleGame() {
 
   const triggerAnimationsOpen = () => {
     // reset and make calculations
-    socket.emit('set-tunnel-state', {
+    socket.emit('rabbithole-set-tunnel-state', {
       raceId, 
       secondsLeft: 0,
       addRoundsPlayed: 0,
@@ -643,7 +644,7 @@ function RabbitHoleGame() {
     setPhase("Reset");
     
     setTimeout(() => {
-      socket.emit('set-tunnel-state', {
+      socket.emit('rabbithole-set-tunnel-state', {
         raceId, 
         secondsLeft: 0,
         addRoundsPlayed: 0,
@@ -664,7 +665,7 @@ function RabbitHoleGame() {
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game2-set-fuel",
+        property: "rabbithole-set-fuel",
         value: {
           fuel: fuel,
           maxAvailableFuel: maxFuel - fuel,
@@ -685,7 +686,7 @@ function RabbitHoleGame() {
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game2-set-fuel",
+        property: "rabbithole-set-fuel",
         value: {
           fuel: displayNumber,
           maxAvailableFuel: maxFuel - displayNumber,
@@ -710,7 +711,7 @@ function RabbitHoleGame() {
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game2-set-fuel",
+            property: "rabbithole-set-fuel",
             value: {
               fuel: displayNumber,
               maxAvailableFuel: maxFuel - displayNumber,
@@ -750,7 +751,7 @@ function RabbitHoleGame() {
       socket.emit("update-progress", {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game2-complete",
+        property: "rabbithole-complete",
         value: {
           isWon,
           pointsAllocated: amountOfPointsToAllocate,
@@ -808,7 +809,7 @@ function RabbitHoleGame() {
           socket.emit("update-progress", {
             raceId,
             userAddress: player.address,
-            property: "game2-eliminate",
+            property: "rabbithole-eliminate",
             version,
           });
         }
@@ -818,7 +819,7 @@ function RabbitHoleGame() {
           socket.emit("update-progress", {
             raceId,
             userAddress: player.address,
-            property: "game2-complete",
+            property: "rabbithole-complete",
             value: {
               isWon: false,
               pointsAllocated: 0,
@@ -890,14 +891,14 @@ function RabbitHoleGame() {
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game2-wait-to-finish",
+      property: "rabbithole-wait-to-finish",
       version
     });
     setLatestInteractiveModalWasClosed(true);
   }
 
   function openWinModal() {
-    socket.emit('set-tunnel-state', {
+    socket.emit('rabbithole-set-tunnel-state', {
       raceId,
       secondsLeft: 0,
       addRoundsPlayed: 0,
@@ -917,7 +918,7 @@ function RabbitHoleGame() {
   }
 
   function openLoseModal() {
-    socket.emit('set-tunnel-state', {
+    socket.emit('rabbithole-set-tunnel-state', {
       raceId,
       secondsLeft: 0,
       addRoundsPlayed: 0,

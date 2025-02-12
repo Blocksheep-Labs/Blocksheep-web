@@ -43,7 +43,7 @@ function SelectRaceScreen() {
   //console.log({ETHBalance: ETHBalance?.formatted})
 
   const handleNavigate = useCallback((progress: any, screen: TFlowPhases) => {
-    console.log("NAVIGATE", amountOfConnected);
+    // console.log("NAVIGATE", amountOfConnected);
     console.log("PROGRESS-----------", progress);
     socket.emit('minimize-live-game', { part: 'RACE_SELECTION', raceId });
     
@@ -55,11 +55,11 @@ function SelectRaceScreen() {
 
     
     
-    /*
+    
       updateGameState(race, progress, undefined);
-      navigate(`/race/${raceId}/underdog/rules`);
+      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       return;
-    */
+    
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress, undefined);

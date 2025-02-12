@@ -655,8 +655,6 @@ function RabbitHoleGame() {
           }
         }, 200);
       }
-
-      console.log({isCountingDown, isRolling, gameOver});
       
       if (!isCountingDown && isRolling && !gameOver) {
         const execTx = async() => {
@@ -757,7 +755,6 @@ function RabbitHoleGame() {
 
   const handleFuelUpdate = (fuel: number) => {
     if (!isRolling && !gameOver && fuel <= maxFuel && isCountingDown) {
-      console.log("handleFuelUpdate",{fuel, isRolling, gameOver});
       
       setDisplayNumber(fuel);
       

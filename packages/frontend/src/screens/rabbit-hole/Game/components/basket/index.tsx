@@ -12,18 +12,18 @@ export function CarrotBasket({fuelLeft}: {fuelLeft: number}) {
     );
 }
 
-export function CarrotBasketIncrement({ setDisplayNumber, isRolling, max }: { setDisplayNumber: (fuel: number) => void; isRolling: boolean; max: number }) {
+export function CarrotBasketIncrement({ setDisplayNumber, disabled, max }: { setDisplayNumber: (fuel: number) => void; disabled: boolean; max: number }) {
   const [value, setValue] = useState(0);
 
   const handleIncrease = () => {
-    if (isRolling || value >= max) return;
+    if (disabled || value >= max) return;
     const newValue = Math.min(max, value + 1);
     setValue(newValue);
     setDisplayNumber(newValue);
   };
 
   return (
-    <div className={`relative ${isRolling ? "opacity-50" : ""}`}>
+    <div className={`relative ${disabled ? "opacity-50" : ""}`}>
       <img src={BasketCarrotIncrement} alt="basket z-10" className="w-24" />
       <img
         src={BasketCarrotIncrementValue}
@@ -40,7 +40,7 @@ export function CarrotBasketIncrement({ setDisplayNumber, isRolling, max }: { se
         className={`text-black absolute left-[28%] bottom-[21px] text-lg`}
         style={{ transform: "translate(-50%,-50%)" }}
         onClick={handleIncrease}
-        disabled={isRolling || value >= max}
+        disabled={disabled || value >= max}
       >
         DROP
       </button>

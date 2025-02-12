@@ -61,8 +61,8 @@ const delay = async (time: number) => await new Promise((resolve) => setTimeout(
 function RabbitHoleGame() {
   const { smartAccountAddress, smartAccountClient } = useSmartAccount();
   const { gameState } = useGameContext();
-  // const navigate = useNavigate();
-  const navigate = (a: string, b?: any) => {}
+  const navigate = useNavigate();
+  // const navigate = (a: string, b?: any) => {}
   const { raceId, version } = useParams();
 
   // Game state

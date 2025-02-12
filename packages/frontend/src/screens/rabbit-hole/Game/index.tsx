@@ -1031,7 +1031,7 @@ function RabbitHoleGame() {
         }
         
         <div className="tunnel">
-          {!isCountingDown ? <div className="absolute text-center text-white text-xl z-50" style={{ transform: 'translate(50%, 12%)' }}>
+          {isCountingDown ? <div className="absolute text-center text-white text-xl z-50" style={{ transform: 'translate(50%, 12%)' }}>
               <CircularProgress value={hourglassCounter} outerStroke="#ffffff" innerStroke="#e11111" size={56} />
               <p className="text-lg">DROP ENOUGH CARROTS</p>
               <p className="text-sm">LAST ONE GETS ELIMINATED</p>

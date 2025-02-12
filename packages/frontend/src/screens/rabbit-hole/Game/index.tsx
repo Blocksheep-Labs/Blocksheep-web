@@ -39,7 +39,6 @@ import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGameP
 import BlackSheep from "../assets/images/blacksheep.png";
 import WhiteSheep from "../assets/images/sheeepy.png";
 import BG_Carrots from "../assets/images/backgroundcarrot.jpg";
-import CarrotSlider from "./components/slider";
 import { CarrotBasket, CarrotBasketIncrement } from "./components/basket";
 import { CircularProgress } from "./components/CircularProgress";
 
@@ -632,10 +631,6 @@ function RabbitHoleGame() {
     clearInterval(countdownInterval);
   };
 
-
-  
-  
-
   // send tx after the 10sec timer on closed tunnel
   useEffect(() => {
       const openTunnel = () => {
@@ -660,7 +655,7 @@ function RabbitHoleGame() {
           }
         }, 200);
       }
-
+      
       if (!isCountingDown && isRolling && !gameOver) {
         const execTx = async() => {
           socket.emit("update-progress", {
@@ -725,8 +720,6 @@ function RabbitHoleGame() {
     smartAccountAddress 
   ]);
 
-
-
   // Reset animationsTriggered when a new round starts
   useEffect(() => {
     if (roundIsFinished) {
@@ -762,6 +755,7 @@ function RabbitHoleGame() {
 
   const handleFuelUpdate = (fuel: number) => {
     if (!isRolling && !gameOver && fuel <= maxFuel && isCountingDown) {
+      
       setDisplayNumber(fuel);
       
       socket.emit("update-progress", {
@@ -1016,7 +1010,6 @@ function RabbitHoleGame() {
       <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[30%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80">{userIsLost ? "Eliminated ☠️. Wait for next game!" : displayNumber}</p>
       {phase === "Default" && !whoStoleIsShowed && <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[40%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80 w-2/3 mx-auto">{"Who stole my carrots?"}</p>}
       
-     
       <div className="relative z-50 py-6">
         <Timer seconds={totalSeconds} />
         <div className="absolute right-4 top-6">
@@ -1034,13 +1027,14 @@ function RabbitHoleGame() {
           */
         }
         
-        {isCountingDown ? <div className="DEV absolute text-center text-white text-xl z-50 bottom-40" style={{ transform: 'translate(50%, -50%)' }}>
-          <CircularProgress value={hourglassCounter} outerStroke="#ffffff" innerStroke="#e11111" size={56} />
-          <p className="text-lg">DROP ENOUGH CARROTS</p>
-          <p className="text-sm">LAST ONE GETS ELIMINATED</p>
-        </div> : <></>}
-
         <div className="tunnel">
+          {isCountingDown ? <div className="absolute text-center text-white text-xl z-50" style={{ transform: 'translate(50%, 12%)' }}>
+              <CircularProgress value={hourglassCounter} outerStroke="#ffffff" innerStroke="#e11111" size={56} />
+              <p className="text-lg">DROP ENOUGH CARROTS</p>
+              <p className="text-sm">LAST ONE GETS ELIMINATED</p>
+            </div> : <></>
+          }
+
           <PlayerMovement 
             phase={phase} 
             players={players} 
@@ -1052,7 +1046,7 @@ function RabbitHoleGame() {
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />
 
-          <div className="absolute -bottom-52 w-full h-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
+          <div className="absolute -bottom-48 w-full h-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)' }}>
               {/* <CarrotSlider 
                 min={0} 
                 max={maxFuel} 
@@ -1068,11 +1062,9 @@ function RabbitHoleGame() {
               <CarrotBasketIncrement 
                 max={maxFuel} 
                 setDisplayNumber={handleFuelUpdate}
-                disabled={!isCountingDown} 
+                disabled={!isCountingDown || gameOver} 
               />
             </div>
-            
-         
           </div>
         </div>
   

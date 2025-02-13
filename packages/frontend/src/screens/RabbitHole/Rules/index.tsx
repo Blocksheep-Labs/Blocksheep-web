@@ -3,7 +3,7 @@ import { useTimer } from "react-timer-hook";
 import { socket } from "@/utils/socketio";
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGamePart";
@@ -11,6 +11,7 @@ import RHRule1 from "./components/rule-1";
 import RHRule2 from "./components/rule-2";
 import RHRule3 from "./components/rule-3";
 import RHRule4 from "./components/rule-4";
+import { useRaceById } from "@/hooks/useRaceById";
 
 
 export default function RabbitHoleRules() {
@@ -20,6 +21,7 @@ export default function RabbitHoleRules() {
     const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [secondsVisual, setSecondsVisual] = useState(1000);
+    const { race } = useRaceById(Number(raceId));
 
     const timeRemaining = version == "v1" ? (6 + 7) : (6 + 7 + 9)
     const time = new Date();
@@ -39,8 +41,7 @@ export default function RabbitHoleRules() {
             version
         });
 
-        let redirectLink = '/';
-
+        /*
         switch (version) {
             case "v1":
                 redirectLink = generateLink("RABBIT_HOLE", Number(raceId)); break;
@@ -49,8 +50,13 @@ export default function RabbitHoleRules() {
             default:
                 break;
         }
+        */
 
-        socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules"), raceId });
+        const rulesPart = rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules");
+
+        const currentScreenIndex = race?.screens.indexOf(rulesPart) as number;
+        const redirectLink = generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId));
+        socket.emit('minimize-live-game', { part: rulesPart, raceId });
         navigate(redirectLink);
     }
 

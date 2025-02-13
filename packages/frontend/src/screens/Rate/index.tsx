@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import RibbonLabel from "@/components/RibbonLabel";
 import { useNavigate, useParams } from "react-router-dom";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { socket } from "@/utils/socketio";
 import { useTimer } from "react-timer-hook";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
+import { useRaceById } from "@/hooks/useRaceById";
 
 const Rating = ({
     handleChange,
@@ -36,6 +37,8 @@ const Rating = ({
     );
 }
 
+const SCREEN_NAME = "RATE";
+
 export default function RateScreen() {
     const [underdogRate, setUnderdogRate] = useState(3);
     const [rabbitHoleRate, setRabbitHoleRate] = useState(3);
@@ -46,6 +49,7 @@ export default function RateScreen() {
     const {smartAccountAddress} = useSmartAccount();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [secondsVisual, setSecondsVisual] = useState(1000);
+    const {race} = useRaceById(Number(raceId));
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -62,8 +66,9 @@ export default function RateScreen() {
             property: `rate`,
         });
 
-        socket.emit('minimize-live-game', { part: "RATE", raceId });
-        navigate(generateLink("STORY_CONCLUSION", Number(raceId)));
+        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
     }
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -102,7 +107,7 @@ export default function RateScreen() {
 
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part: socketPart }) => {
                 console.log("JOINED", raceIdSocket, raceId);
-                if (raceId == raceIdSocket && socketPart == "RATE" ) {
+                if (raceId == raceIdSocket && socketPart == SCREEN_NAME ) {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -117,7 +122,7 @@ export default function RateScreen() {
 
             socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
                 console.log({ part: partSocket, raceId: raceIdSocket, movedToNext });
-                if (partSocket == "RATE" && raceId == raceIdSocket) {
+                if (partSocket == SCREEN_NAME && raceId == raceIdSocket) {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
@@ -148,8 +153,8 @@ export default function RateScreen() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RATE" });
-            // socket.emit("get-latest-screen", { raceId, part: "RATE" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+            // socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
         }
     }, [smartAccountAddress, socket, raceId]);
 
@@ -170,7 +175,7 @@ export default function RateScreen() {
             });
 
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "RATE") {
+                if (screen !== SCREEN_NAME) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,

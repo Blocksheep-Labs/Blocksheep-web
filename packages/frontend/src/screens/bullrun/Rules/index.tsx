@@ -4,15 +4,16 @@ import { socket } from "../../../utils/socketio";
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "../../../hooks/smartAccountProvider";
 import { BULLRUN_getPerksMatrix } from "../../../utils/contract-functions";
-import generateLink from "../../../utils/linkGetter";
+import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
 import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
 import { useGameContext } from "../../../utils/game-context";
 import BRule1 from "./components/rule-1";
 import BRule2 from "./components/rule-2";
 import BRule3 from "./components/rule-3";
 import BRule4 from "./components/rule-4";
+import { useRaceById } from "@/hooks/useRaceById";
 
-
+const SCREEN_NAME = "BULLRUN_RULES";
 
 export default function BullrunRules() {
     const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function BullrunRules() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
     const [secondsVisual, setSecondsVisual] = useState(1000);
+    const {race} = useRaceById(Number(raceId));
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -38,9 +40,9 @@ export default function BullrunRules() {
             property: "game3-rules-complete",
         });
         
-        socket.emit('minimize-live-game', { part: 'BULLRUN_RULES', raceId });
-        // alert(generateLink("BULLRUN", Number(raceId)))
-        navigate(generateLink("BULLRUN", Number(raceId)));
+        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
     };
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -87,7 +89,7 @@ export default function BullrunRules() {
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "BULLRUN_RULES") {
+                if (raceId == raceIdSocket && part == SCREEN_NAME) {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -101,7 +103,7 @@ export default function BullrunRules() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "BULLRUN_RULES" && raceId == raceIdSocket && !movedToNext) {
+                if (part == SCREEN_NAME && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
@@ -155,7 +157,7 @@ export default function BullrunRules() {
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "BULLRUN_RULES") {
+                if (screen !== SCREEN_NAME) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -177,8 +179,8 @@ export default function BullrunRules() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "BULLRUN_RULES" });
-            //socket.emit("get-latest-screen", { raceId, part: "BULLRUN_RULES" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+            //socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
         }
     }, [smartAccountAddress, socket, raceId]);
     

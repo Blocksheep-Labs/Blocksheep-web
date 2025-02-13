@@ -57,13 +57,13 @@ function SelectRaceScreen() {
     
     
       updateGameState(race, progress, undefined);
-      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
+      navigate(`/race/${raceId}/bullrun/preview`);
       return;
     
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress, undefined);
-      navigate(generateLink(race?.screens?.[0] as TFlowPhases, rIdNumber));
+      navigate(generateLink(screen, rIdNumber));
     //});
   }, [raceId, race]);
 
@@ -77,7 +77,7 @@ function SelectRaceScreen() {
 
 
   useEffect(() => {
-    if (smartAccountAddress) {
+    if (smartAccountAddress && race) {
       socket.on('race-progress', ({progress, latestScreen}) => {
         //alert(latestScreen)
         console.log("PROGRESS SET", progress)
@@ -85,6 +85,12 @@ function SelectRaceScreen() {
         console.log(latestScreen)
         if (progress?.progress) {
           setProgress(progress.progress);
+
+          // if we are on the first screen and not enough users connected (prevent connect without waiting for others)
+          if (race.screens.indexOf(latestScreen) == 0 && amountOfConnected != race?.numOfPlayersRequired) {
+            return;
+          }
+
           // if teh user left on not-playable screen, we have to navigate him to the actual screen
           if (!["UNDERDOG", "RABBIT_HOLE", "BULLRUN"].includes(latestScreen)) {
             handleNavigate(progress.progress, latestScreen);
@@ -137,6 +143,11 @@ function SelectRaceScreen() {
         if (raceIdSocket == raceId) {
           setIsOpen(false);
           setModalType(undefined);
+
+          // if we are on the first screen and not enough users connected (prevent connect without waiting for others)
+          if (race.screens.indexOf(screen) == 0 && amountOfConnected != race?.numOfPlayersRequired) {
+            return;
+          }
           
           if (!["UNDERDOG", "RABBIT_HOLE", "BULLRUN"].includes(screen)) {
             handleNavigate(progress, screen);
@@ -201,7 +212,8 @@ function SelectRaceScreen() {
     progress, 
     racesUserParticipatesIn, 
     modalType, 
-    modalIsOpen
+    modalIsOpen,
+    race
   ]);
 
 

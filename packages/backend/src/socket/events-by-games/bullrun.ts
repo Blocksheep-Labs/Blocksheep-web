@@ -79,10 +79,8 @@ export default (socket: any, io: any): void => {
         async function pairPlayers() {
             const activePlayers = await PlayersState.find({ raceId, status: 'active' });
 
-            let maxRetries = activePlayers.length * 2;
-            let retries = 0;
 
-            while (activePlayers.length >= 2 && retries < maxRetries) {
+            while (activePlayers.length >= 2) {
                 let player1: any = activePlayers.shift()!;
                 let player2: any = activePlayers.shift()!;
 
@@ -95,7 +93,6 @@ export default (socket: any, io: any): void => {
                 if (player1.userAddress === player2.userAddress) {
                     await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
                     await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'waiting' });
-                    retries++;
                     continue;
                 }
 
@@ -119,14 +116,12 @@ export default (socket: any, io: any): void => {
                     io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
                     io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
 
-                    await MatchesPlayed.updateOne(
-                        { raceId, userAddress: player1.userAddress },
-                        { $push: { matches: player2.userAddress } }
-                    );
-                    await MatchesPlayed.updateOne(
-                        { raceId, userAddress: player2.userAddress },
-                        { $push: { matches: player1.userAddress } }
-                    );
+
+                    await MatchesPlayed.create({
+                        raceId,
+                        player1: player1.userAddress,
+                        player2: player2.userAddress,
+                    });
 
                     await incrementGameCount(player1, player2);
 
@@ -135,7 +130,6 @@ export default (socket: any, io: any): void => {
                 } else {
                     await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
                     await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'active' });
-                    retries++;
                     continue;
                 }
             }
@@ -143,11 +137,11 @@ export default (socket: any, io: any): void => {
             if (activePlayers.length === 1) {
                 const remainingPlayer = activePlayers.shift()!;
 
-                const remainingGameCount = await GameCounts.findOne({ raceId, userAddress: remainingPlayer.userAddress });
+                const remainingGameCount = (await GameCounts.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.count || 0;
 
                 const requiredGames = (await GamesRequired.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.requiredGames || Infinity;
 
-                if (remainingGameCount!.count >= requiredGames) {
+                if (remainingGameCount >= requiredGames) {
                     io.to(remainingPlayer.id).emit('bullrun-game-complete', {
                         message: 'You have completed all your games',
                         raceId
@@ -156,20 +150,24 @@ export default (socket: any, io: any): void => {
                 }
 
                 await PlayersState.updateOne({ raceId, userAddress: remainingPlayer.userAddress }, { status: 'waiting' });
-                const gamesPlayed = remainingGameCount!.count;
+                const gamesPlayed = remainingGameCount;
                 io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
             }
         }
 
         async function incrementGameCount(player1: any, player2: any) {
+            console.log(`Increment game count for ${player1.userAddress} and ${player2.userAddress}`);
+
             await GameCounts.updateOne(
                 { raceId, userAddress: player1.userAddress },
-                { $inc: { count: 1 } }
+                { $inc: { count: 1 } },
+                { upsert: true }
             );
 
             await GameCounts.updateOne(
                 { raceId, userAddress: player2.userAddress },
-                { $inc: { count: 1 } }
+                { $inc: { count: 1 } },
+                { upsert: true }
             );
         }
 
@@ -182,7 +180,7 @@ export default (socket: any, io: any): void => {
     });
 
     socket.on('bullrun-get-game-counts', async ({ raceId, userAddress }: BullrunGetGameCountsData) => {
-        const gameCounts = await GameCounts.findOne({ raceId, userAddress });
+        const gameCounts = (await GameCounts.findOne({ raceId, userAddress }))?.count || 0;
         const gameCompletesAmount = (await GameCompletes.find({ raceId, completed: true })).length;
 
         io.to(socket.id).emit('bullrun-game-counts', {
@@ -194,10 +192,10 @@ export default (socket: any, io: any): void => {
     });
 
     socket.on('bullrun-game-end', async ({ raceId }: BullrunGameEndData) => {
-        const gameCount = await GameCounts.findOne({ raceId, userAddress: socket.userAddress });
-        const requiredGames = await GamesRequired.findOne({ raceId, userAddress: socket.userAddress });
+        const gameCount = (await GameCounts.findOne({ raceId, userAddress: socket.userAddress }))?.count || 0;
+        const requiredGames = (await GamesRequired.findOne({ raceId, userAddress: socket.userAddress }))?.requiredGames || Infinity;
 
-        if (gameCount!.count >= requiredGames!.requiredGames) {
+        if (gameCount >= requiredGames) {
             await GameCompletes.updateOne(
                 { raceId, userAddress: socket.userAddress },
                 { $set: { completed: true } }
@@ -209,7 +207,7 @@ export default (socket: any, io: any): void => {
             });
         } else {
             io.to(socket.id).emit('bullrun-game-continue', {
-                message: `You can continue playing ${gameCount!.count}/${requiredGames!.requiredGames}`,
+                message: `You can continue playing ${gameCount}/${requiredGames}`,
                 raceId
             });
         }

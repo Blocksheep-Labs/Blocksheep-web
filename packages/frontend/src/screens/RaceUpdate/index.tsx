@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "@/utils/socketio";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "@/utils/http-requests";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import { TRace, useRaceById } from "@/hooks/useRaceById";
@@ -40,6 +40,8 @@ function RaceUpdateScreen() {
   const [users, setUsers] = useState<any[]>([]);
   const [secondsVisual, setSecondsVisual] = useState(1000);
   const { race } = useRaceById(Number(raceId));
+
+  const SCREEN_NAME = getPart(board as string);
   
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
@@ -57,6 +59,7 @@ function RaceUpdateScreen() {
       value: true,
     });
     
+    /*
     let redirectLink = '/';
 
     switch (board) {
@@ -71,11 +74,15 @@ function RaceUpdateScreen() {
       default:
         break;
     }
+    */
 
-    console.log("REDIRECT:", {progressData: await getNewProgress(race as TRace)})
-    socket.emit('minimize-live-game', { part: getPart(board as string), raceId });
-    gameState && setGameStateObject({ ...gameState, raceProgressVisual: await getNewProgress(race as TRace, true) })
-    navigate(redirectLink);
+    console.log("REDIRECT:", {progressData: await getNewProgress(race as TRace)});
+    const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+
+    socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+    gameState && setGameStateObject({ ...gameState, raceProgressVisual: await getNewProgress(race as TRace, true) });
+    
+    navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
   };
 
   const getNewProgress = async(raceData: TRace, redirecting=false) => {
@@ -227,7 +234,7 @@ function RaceUpdateScreen() {
       });
       
       socket.on('latest-screen', ({ screen }) => {
-        if (screen !== getPart(board as string)) {
+        if (screen !== SCREEN_NAME) {
           socket.emit('update-progress', {
             raceId, 
             userAddress: smartAccountAddress,

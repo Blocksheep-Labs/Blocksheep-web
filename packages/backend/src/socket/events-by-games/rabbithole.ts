@@ -88,12 +88,12 @@ export default (socket: Socket, io: Server): void => {
 
     socket.on('rabbithole-get-all-fuel-tunnel', async ({ raceId }: { raceId: string }) => {
         const roomName = `race-${raceId}`;
-        const progresses = await RaceProgress.find({ room: roomName }) as RaceProgressData[];
+        const progresses = await RaceProgress.find({ room: roomName });
     
         io.to(socket.id).emit('rabbithole-race-fuel-all-tunnel', {
             progresses: progresses.map(i => ({
                 userAddress: i.userAddress,
-                ...i.progress.game2,
+                ...i.progress,
             })),
         });
     });

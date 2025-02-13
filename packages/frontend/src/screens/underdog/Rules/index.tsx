@@ -5,10 +5,12 @@ import RibbonLabel from "@/components/RibbonLabel";
 import Rule from "@/components/Rule";
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
+import { useRaceById } from "@/hooks/useRaceById";
 
+const SCREEN_NAME = "UNDERDOG_RULES";
 
 export default function UnderdogRules() {
     const navigate = useNavigate();
@@ -17,6 +19,7 @@ export default function UnderdogRules() {
     const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [seconds, setSeconds] = useState(1000);
+    const {race} = useRaceById(Number(raceId));
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 10);
@@ -33,8 +36,9 @@ export default function UnderdogRules() {
             property: "game1-rules-complete",
         });
 
-        socket.emit('minimize-live-game', { part: 'UNDERDOG_RULES', raceId });
-        navigate(generateLink("UNDERDOG", Number(raceId)));
+        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
     }
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -65,7 +69,7 @@ export default function UnderdogRules() {
             socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
                 console.log("JOINED", raceIdSocket, raceId);
 
-                if (raceId == raceIdSocket && part == "UNDERDOG_RULES") {
+                if (raceId == raceIdSocket && part == SCREEN_NAME) {
                     console.log("JOINED++")
                     /*
                     setAmountOfConnected(amountOfConnected + 1);
@@ -79,7 +83,7 @@ export default function UnderdogRules() {
             });
 
             socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-                if (part == "UNDERDOG_RULES" && raceId == raceIdSocket && !movedToNext) {
+                if (part == SCREEN_NAME && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
@@ -133,7 +137,7 @@ export default function UnderdogRules() {
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "UNDERDOG_RULES") {
+                if (screen !== SCREEN_NAME) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -155,8 +159,8 @@ export default function UnderdogRules() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG_RULES" });
-            // socket.emit("get-latest-screen", { raceId, part: "UNDERDOG_RULES" });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+            // socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
         }
     }, [smartAccountAddress, socket, raceId]);
     

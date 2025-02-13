@@ -24,7 +24,7 @@ import { socket } from "@/utils/socketio";
 import { httpGetRaceDataById } from "@/utils/http-requests";
 
 // Game Logic
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import { txAttempts } from "@/utils/txAttempts";
 import calculatePlayersV1 from "./calculations/v1";
 import calculatePlayersV2 from "./calculations/v2";
@@ -107,10 +107,20 @@ function RabbitHoleGame() {
   // const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
 
   
+  const GAME_PART = rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game");
+
+  const redirectToNextScreen = () => {
+    const currentScreenIndex = race?.screens.indexOf(GAME_PART) as number;
+    const redirectLink = generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId));
+
+    socket.emit('minimize-live-game', { part: GAME_PART, raceId });
+    navigate(redirectLink);
+  }
+
+
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
 
-  console.log({phase, players})
 
   // after game finish
   const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
@@ -287,39 +297,42 @@ function RabbitHoleGame() {
 
         usersData.forEach((i: {
           userAddress: string,
-          v1: {
-            fuel: number, 
-            maxAvailableFuel: number, 
-            gameReached: boolean, 
-            isPending: boolean, 
-            isCompleted: boolean
-          },
-          v2: {
-            fuel: number, 
-            maxAvailableFuel: number, 
-            gameReached: boolean, 
-            isPending: boolean, 
-            isCompleted: boolean
+          rabbithole: {
+            v1: {
+              fuel: number, 
+              maxAvailableFuel: number, 
+              gameReached: boolean, 
+              isPending: boolean, 
+              isCompleted: boolean
+            },
+            v2: {
+              fuel: number, 
+              maxAvailableFuel: number, 
+              gameReached: boolean, 
+              isPending: boolean, 
+              isCompleted: boolean
+            }
           }
         }) => {
+          console.log(i)
           // @ts-ignore
-          i[version].game.isPending && amountPendingPerGame2++;
+          i.rabbithole?.[version].game.isPending && amountPendingPerGame2++;
           // @ts-ignore
-          i[version].game.isCompleted && amountOfCompleted++;
+          i.rabbithole?.[version].game.isCompleted && amountOfCompleted++;
         });
 
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
         const usersDATADB = await httpGetRaceDataById(`race-${raceId}`);
-        alert("setPlayers")
+
         setPlayers(prevPlayers => {
           const updatedPlayers = [...prevPlayers];
           
           usersData.forEach((i: any) => {
             const user = usersDATADB.data.race.users.find((j: any) => j.address == i.userAddress);
             // @ts-ignore
-            const dataByTunnelVersion = i[version];
+            const dataByTunnelVersion = i.rabbithole?.[version];
             
             const existingPlayerIndex = updatedPlayers.findIndex(p => p.address === i.userAddress);
             const updatedPlayer = {
@@ -407,19 +420,7 @@ function RabbitHoleGame() {
             setAmountOfPlayersNextClicked(updatedPlayersNextClicked.size); // Use the size of the new Set
             
             if (updatedPlayersNextClicked.size >= amountOfConnected) { // Check against the updated count
-              let redirectLink = "/";
-  
-              switch (version) {
-                case "v1":
-                  redirectLink = generateLink("RACE_UPDATE_1", Number(raceId)); break;
-                case "v2":
-                  redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
-                default:
-                  break;
-              }
-  
-              socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
-              navigate(redirectLink);
+              redirectToNextScreen();
             }
           }
 
@@ -483,19 +484,7 @@ function RabbitHoleGame() {
   // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
   useEffect(() => {
     if (amountOfPlayersnextClicked >= amountOfConnected && amountOfPlayersnextClicked > 0 && amountOfConnected > 0) {
-      let redirectLink = "/";
-
-      switch (version) {
-        case "v1":
-          redirectLink = generateLink("RACE_UPDATE_1", Number(raceId)); break;
-        case "v2":
-          redirectLink = generateLink("RACE_UPDATE_4", Number(raceId)); break;
-        default:
-          break;
-      }
-
-      socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game"), raceId });
-      navigate(redirectLink);
+      redirectToNextScreen();
     }
   }, [ amountOfConnected, amountOfPlayersnextClicked ]);
   
@@ -513,7 +502,7 @@ function RabbitHoleGame() {
         });
 
         socket.on('latest-screen', ({ screen }) => {
-            if (screen !== rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game")) {
+            if (screen !== GAME_PART) {
               socket.emit("update-progress", {
                 raceId,
                 userAddress: smartAccountAddress,
@@ -555,7 +544,7 @@ function RabbitHoleGame() {
         if (!socket.connected) {
             socket.connect();
         }
-        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: GAME_PART });
         // socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game") });
     }
   }, [smartAccountAddress, socket, raceId]);
@@ -703,7 +692,7 @@ function RabbitHoleGame() {
         );
       } catch (error) {
         console.error("Transaction failed:", error);
-        setIsRolling(false); // Reset if transaction fails
+        // setIsRolling(false); // Reset if transaction fails
       } finally {
         // update round index for fuel submission
         setRoundIndex(prev => prev + 1);

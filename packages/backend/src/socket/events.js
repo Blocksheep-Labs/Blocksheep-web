@@ -77,14 +77,12 @@ export const applySocketEvents = (io) => {
                     const roomScreenData = await Screen.findOne({ room: userConnection.room });
 
                     if (roomScreenData && ["UNDERDOG", "BULLRUN", "RABBIT_HOLE"].includes(roomScreenData.latestScreen)) {
-                        const screenNamesPerUserConnection = await Screen.find({ room: userConnection.room });
-                        const screenPos = screenNamesPerUserConnection.indexOf(roomScreenData.latestScreen);
+                        const screenPos = roomScreenData.screens.indexOf(roomScreenData.latestScreen);
                         
-
-                        if (screenNamesPerUserConnection.length - 1 >= screenPos + 1) {
-                            roomScreenData.latestScreen = screenNamesPerUserConnection[screenPos + 1];
+                        if (roomScreenData.screens.length - 1 >= screenPos + 1) {
+                            roomScreenData.latestScreen = roomScreenData.screens[screenPos + 1];
                         } else {
-                            roomScreenData.latestScreen = screenNamesPerUserConnection[screenNamesPerUserConnection.length - 1];
+                            roomScreenData.latestScreen = roomScreenData.screens[roomScreenData.screens.length - 1];
                         }
 
                         await roomScreenData.save();
@@ -201,6 +199,7 @@ export const applySocketEvents = (io) => {
             const roomName = `race-${raceId}`;
             let screensOrderDB = await Screen.findOne({ room: roomName });
 
+            // console.log({screensOrderDB, screensOrder})
             if (!screensOrderDB && screensOrder) {
                 screensOrderDB = await Screen.create({ room: roomName, raceId, screens: screensOrder });
             }
@@ -224,11 +223,17 @@ export const applySocketEvents = (io) => {
             // console.log({ lenAfterCreate: await ConnectedUser.countDocuments() });
 
             // set latest screen
+            console.log({
+                latestScreenIndex: screensOrderDB.screens.indexOf(screensOrderDB.latestScreen),
+                newIndex: screensOrderDB.screens.indexOf(part)
+            });
+            
             if (screensOrderDB && (screensOrderDB.screens.indexOf(screensOrderDB.latestScreen) < screensOrderDB.screens.indexOf(part))) {
                 console.log({part});
                 screensOrderDB.latestScreen = part;
                 await screensOrderDB.save();
             }
+
             io.to(roomName).emit('screen-changed', { screen: screensOrderDB.latestScreen });
             io.to(socket.id).emit('latest-screen', { raceId, screen: screensOrderDB.latestScreen });
 

@@ -55,6 +55,8 @@ const positionsByLevel = {
     },
 }
 
+const SCREEN_NAME = "LEVEL_UPDATE";
+
 export default function LevelUpdateScreen() {
     const navigate = useNavigate();
     const {raceId} = useParams();

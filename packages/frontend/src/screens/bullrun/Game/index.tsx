@@ -18,7 +18,7 @@ import Timer from "@/components/Timer";
 
 // Utilities
 import shortenAddress from "@/utils/shortenAddress";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import { txAttempts } from "@/utils/txAttempts";
 import { httpGetRaceDataById } from "@/utils/http-requests";
 import { 
@@ -42,6 +42,7 @@ import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
 import { useGetUserPoints } from "@/hooks/useGetPoints";
 import { useGetRules } from "@/hooks/useGetRules";
 import { useGetUserChoices } from "@/hooks/useGetUserChoices";
+import { BigNumber } from "ethers";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 const REGISTERED_CONTRACT_NAME = "BULLRUN";
@@ -100,6 +101,13 @@ export default function Bullrun() {
     const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
     const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
     const { getUserChoices } = useGetUserChoices(REGISTERED_CONTRACT_NAME, Number(raceId));
+
+
+    const redirectToNextScreen = () => {
+        const currentScreenIndex = raceData?.screens.indexOf(REGISTERED_CONTRACT_NAME) as number;
+        socket.emit('minimize-live-game', { part: REGISTERED_CONTRACT_NAME, raceId });
+        navigate(generateLink(raceData?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+    }
 
 
     const time = new Date();
@@ -386,7 +394,11 @@ export default function Bullrun() {
     useEffect(() => {
         if (String(raceId).length && smartAccountAddress && raceData) {
             getRules().then(data => {
-                setPointsMatrix(data as number[][]);
+                data && setPointsMatrix(
+                    data[0].map((row: any[]) => 
+                        row.map((value: any) => BigNumber.from(value).toNumber())
+                    )
+                );
             });
             
             // On mount, join the game
@@ -599,7 +611,7 @@ export default function Bullrun() {
                     setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
                     if (amountOfConnected <= amountOfPlayersCompleted + 1) {
                         //alert(31230);
-                        navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
+                        redirectToNextScreen();
                     }
                 }
             });
@@ -628,7 +640,7 @@ export default function Bullrun() {
 
                 if (amountOfConnected <= amountOfPlayersCompleted && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
                     //alert(1133);
-                    navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
+                    redirectToNextScreen();
                 }
             });
 
@@ -654,9 +666,8 @@ export default function Bullrun() {
     // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
     useEffect(() => {
         if (amountOfPlayersCompleted >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
-          socket.emit('minimize-live-game', { part: 'BULLRUN', raceId });
           //alert("navigate in useEffect");
-          navigate(generateLink("RACE_UPDATE_3", Number(raceId)));
+          redirectToNextScreen();
         }
     }, [amountOfPlayersCompleted, amountOfConnected]);
 

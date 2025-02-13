@@ -6,10 +6,13 @@ import WhiteSheepImage from "./assets/images/sheeepy.png";
 import BlackSheepImage from "./assets/images/blacksheep.png";
 import { httpGetRaceDataById } from "@/utils/http-requests";
 import PodiumBGImage from "./assets/images/podiumbg.png";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import ArrowUpImage from "./assets/images/arrow-up.png";
 import ArrowDownImage from "./assets/images/arrow-down.png";
 import FlagsImage from "./assets/images/flags.png";
+import { useRaceById } from "@/hooks/useRaceById";
+
+const SCREEN_NAME = "PODIUM";
 
 export default function StatsScreen() {
     const navigate = useNavigate();
@@ -20,12 +23,13 @@ export default function StatsScreen() {
     const [showAverageLine, setShowAverageLine] = useState(false);
     const averageLineRef = useRef<HTMLDivElement | null>(null);
     const tableRef = useRef<HTMLDivElement | null>(null);
-
+    const {race} = useRaceById(Number(raceId));
     
     const date = new Date();
 
     const handleMoveToNext = () => {
-        navigate(generateLink("LEVEL_UPDATE", Number(raceId)));
+        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
     }
 
     useEffect(() => {

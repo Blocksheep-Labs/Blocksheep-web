@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "@/utils/socketio";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { useTimer } from "react-timer-hook";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import StoryVideo from "@/assets/stories/sh.mp4";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
@@ -51,6 +51,7 @@ export default function StoryScreen() {
     const [seconds, setSeconds] = useState(1000);
     const { race } = useRaceById(Number(raceId));
 
+    const SCREEN_NAME = getStoryPart(part as string);
     const time = new Date();
     time.setSeconds(time.getSeconds() + 6);
 
@@ -66,6 +67,7 @@ export default function StoryScreen() {
             property: `story-${part}`,
         });
 
+        /*
         let redirectLink = "/";
      
         switch (part) {
@@ -91,10 +93,11 @@ export default function StoryScreen() {
             default:
                 break;
         }
-   
+        */
         
-        socket.emit('minimize-live-game', { part: getStoryPart(part as string), raceId });
-        navigate(redirectLink);
+        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
     }
 
     const { totalSeconds, restart, pause } = useTimer({
@@ -183,7 +186,7 @@ export default function StoryScreen() {
             
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== getStoryPart(part as string)) {
+                if (screen !== SCREEN_NAME) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,

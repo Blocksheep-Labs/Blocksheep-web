@@ -23,7 +23,7 @@ import { useRaceById } from "@/hooks/useRaceById";
 
 // Utilities
 import { socket } from "@/utils/socketio";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import { txAttempts } from "@/utils/txAttempts";
 import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
@@ -88,6 +88,12 @@ function UnderdogGame() {
   const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
   const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
   const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
+
+  const navigateToNextScreen = () => {
+    const currentScreenIndex = raceData?.screens.indexOf(REGISTERED_CONTRACT_NAME) as number;
+    socket.emit('minimize-live-game', { part: REGISTERED_CONTRACT_NAME, raceId });
+    navigate(generateLink(raceData?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+  }
   
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
@@ -441,8 +447,7 @@ function UnderdogGame() {
           setWaitingAfterFinishPlayersCount(prev => prev + 1);
           if (amountOfConnected <= waitingAfterFinishPlayersCount + 1) {
             console.log("MOVE FORWARD")
-            socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-            navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
+            navigateToNextScreen();
           }
         }
       });
@@ -616,8 +621,7 @@ function UnderdogGame() {
   // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
   useEffect(() => {
     if (waitingAfterFinishPlayersCount >= amountOfConnected && waitingAfterFinishPlayersCount > 0 && amountOfConnected > 0) {
-      socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-      navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
+      navigateToNextScreen();
     }
   }, [amountOfConnected, waitingAfterFinishPlayersCount]);
   

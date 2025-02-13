@@ -4,11 +4,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { socket } from "@/utils/socketio";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "@/utils/http-requests";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import Countdown321 from "@/components/3-2-1-go/3-2-1-go";
 import { useGameContext } from "@/utils/game-context";
 import { useRaceById } from "@/hooks/useRaceById";
 
+const SCREEN_NAME = "RACE_START";
 
 function CountDownScreen() {
   const { gameState, setGameStateObject } = useGameContext();
@@ -36,7 +37,9 @@ function CountDownScreen() {
       value: true,
     });
 
-    socket.emit('minimize-live-game', { part: 'RACE_START', raceId });
+    const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+
+    socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
     gameState && setGameStateObject({ ...gameState, raceProgressVisual: race?.progress.map((i: { user: string, progress: number }) => {
         return { 
           curr: 0, 
@@ -44,8 +47,9 @@ function CountDownScreen() {
           address: i.user 
         };
       })  
-    } as any)
-    navigate(generateLink("RABBIT_HOLE_PREVIEW", Number(raceId)));
+    } as any);
+
+    navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
   };
 
   useEffect(() => {
@@ -108,14 +112,14 @@ function CountDownScreen() {
       socket.on('joined', ({ raceId: raceIdSocket, userAddress, part }) => {
           console.log("JOINED", raceIdSocket, raceId, part);
   
-          if (raceId == raceIdSocket && part == "RACE_START") {
+          if (raceId == raceIdSocket && part == SCREEN_NAME) {
             console.log("JOINED++")
             socket.emit("get-connected", { raceId });
           }
       });
 
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-        if (part == "RACE_START" && raceIdSocket == raceId && !movedToNext) {
+        if (part == SCREEN_NAME && raceIdSocket == raceId && !movedToNext) {
           
           if (!movedToNext) {
             console.log("LEAVED")
@@ -147,8 +151,8 @@ function CountDownScreen() {
         if (!socket.connected) {
           socket.connect();
         }
-        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RACE_START" });
-        // socket.emit("get-latest-screen", { raceId, part: "RACE_START" });
+        socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+        // socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
     }
   }, [smartAccountAddress, socket, raceId]);
 
@@ -169,7 +173,7 @@ function CountDownScreen() {
           });
 
           socket.on('latest-screen', ({ screen }) => {
-            if (screen !== "RACE_START") {
+            if (screen !== SCREEN_NAME) {
               socket.emit('update-progress', {
                 raceId, 
                 userAddress: smartAccountAddress,

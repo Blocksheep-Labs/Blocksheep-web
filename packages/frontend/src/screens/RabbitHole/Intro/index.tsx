@@ -3,10 +3,11 @@ import { useTimer } from "react-timer-hook";
 import { socket } from "@/utils/socketio";
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import generateLink from "@/utils/linkGetter";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGamePart";
+import { useRaceById } from "@/hooks/useRaceById";
 
 
 export default function RabbitHoleCover() {
@@ -16,6 +17,7 @@ export default function RabbitHoleCover() {
     const { gameState } = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [secondsVisual, setSecondsVisual] = useState(1000);
+    const { race } = useRaceById(Number(raceId));
 
     const time = new Date();
     time.setSeconds(time.getSeconds() + 3);
@@ -35,8 +37,8 @@ export default function RabbitHoleCover() {
             version
         });
 
-        let redirectLink = '/';
 
+        /*
         switch (version) {
             case "v1":
                 redirectLink = generateLink("RABBIT_HOLE_RULES", Number(raceId)); break;
@@ -45,8 +47,14 @@ export default function RabbitHoleCover() {
             default:
                 break;
         }
+        */
 
-        socket.emit('minimize-live-game', { part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview"), raceId });
+
+        const introPart = rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview");
+
+        const currentScreenIndex = race?.screens.indexOf(introPart) as number;
+        const redirectLink = generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId));
+        socket.emit('minimize-live-game', { part: introPart, raceId });
         navigate(redirectLink);
     }
 

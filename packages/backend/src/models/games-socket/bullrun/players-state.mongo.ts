@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 interface IPlayerState extends Document {
-    raceId: mongoose.Schema.Types.ObjectId;
+    raceId: string;
     userAddress: string;
     status: 'active' | 'waiting';
     createdAt?: Date;
@@ -9,7 +9,7 @@ interface IPlayerState extends Document {
 }
 
 const PlayerStateSchema = new Schema<IPlayerState>({
-    raceId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    raceId: { type: String, required: true },
     userAddress: { type: String, required: true },
     status: { type: String, enum: ['active', 'waiting'], required: true },
 }, { timestamps: true });

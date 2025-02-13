@@ -724,28 +724,26 @@ function UnderdogGame() {
           )
           : null
       }
-{/* 
 
-    {/* Only show pulsive overlay if selectedAnswer is true, and LoseTears/Firework aren't shown */}
-    {
-      selectedAnswer && 
-      !(
-        (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
-        (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
-      ) && 
-      !(amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
-      ? (
-        <>
-          <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
-          <img 
-            src={DogLoaderImage} 
-            alt="pulse-bg" 
-            className="absolute inset-0 z-50 w-full h-full object-cover animate-pulse"
-          />
-        </>
-      ) : null
-    }
-
+      {/* Only show pulsive overlay if selectedAnswer is true, and LoseTears/Firework aren't shown */}
+      {
+        selectedAnswer && 
+        !(
+          (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
+          (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
+        ) && 
+        !(amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+        ? (
+          <>
+            <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
+            <img 
+              src={DogLoaderImage} 
+              alt="pulse-bg" 
+              className="absolute inset-0 z-50 w-full h-full object-cover animate-pulse"
+            />
+          </>
+        ) : null
+      }
       
       <div className="relative my-4">
         {!submittingAnswer && !modalIsOpen && <Timer seconds={totalSeconds} />}

@@ -18,6 +18,8 @@ import { txAttempts } from "../../../utils/txAttempts";
 import DogLoaderImage from "../../../assets/underdog/background_head.webp";
 import Firework from "../../../components/firework/firework";
 import { GameState, useGameContext } from "../../../utils/game-context";
+import LoseTears from "../../../assets/win/LoseTears.png";
+import WinHat from "../../../assets/win/WinHat.png";
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
@@ -30,6 +32,7 @@ type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-aft
 function UnderdogGame() {
   const {smartAccountAddress} = useSmartAccount();
   const navigate = useNavigate();
+  // const navigate = (a: string, b?: any) => {}
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
   const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -329,7 +332,7 @@ function UnderdogGame() {
   
   // handle socket events
   useEffect(() => {
-    if (smartAccountAddress && raceData) {
+    if (smartAccountAddress && raceData) {      
       const setupTimeout = () => {
         console.log("Setting timeout...");
         setResultsTimeoutStarted(true);
@@ -694,27 +697,53 @@ function UnderdogGame() {
 
   return (
     <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
-      { 
+      {
         (
           (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
           (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
         ) 
-        &&
+        && 
         (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
-        &&
-        <Firework/>
+          &&  
+          <>
+            <Firework/>
+            <img src={WinHat} alt="WinHat" className="absolute w-[230px] h-[158px] top-[0px] right-1/2 translate-x-[53%]"/>
+          </>
       }
-      {(selectedAnswer) && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
-      )}
 
-      {(selectedAnswer) && (
-        <img 
-          src={DogLoaderImage} 
-          alt="pulse-bg" 
-          className="absolute inset-0 z-50 w-full h-full object-cover animate-pulse"
-        />
-      )}
+      {
+          !(
+            (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
+            (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
+          ) &&
+          (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+          ? (
+            <div className="tears z-50 absolute w-[198px] h-[150px] top-[148px] right-1/2 translate-x-[50%]">
+              <img src={LoseTears} alt="LoseTears" className="w-full h-full"/>
+            </div>
+          )
+          : null
+      }
+
+      {/* Only show pulsive overlay if selectedAnswer is true, and LoseTears/Firework aren't shown */}
+      {
+        selectedAnswer && 
+        !(
+          (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
+          (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
+        ) && 
+        !(amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+        ? (
+          <>
+            <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
+            <img 
+              src={DogLoaderImage} 
+              alt="pulse-bg" 
+              className="absolute inset-0 z-50 w-full h-full object-cover animate-pulse"
+            />
+          </>
+        ) : null
+      }
       
       <div className="relative my-4">
         {!submittingAnswer && !modalIsOpen && <Timer seconds={totalSeconds} />}
@@ -787,7 +816,8 @@ function UnderdogGame() {
           handleClose={closeWinModal} 
           raceId={Number(raceId)} 
           gameIndex={currentGameIndex} 
-          gameName="underdog"/>
+          gameName="underdog"
+        />
       }
     </div>
   );

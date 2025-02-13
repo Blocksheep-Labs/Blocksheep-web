@@ -262,3 +262,69 @@ body{
     margin-top: -120px; /* Adjust this value as needed */
   }
 }
+
+/* TEARS DOG */
+/* TEARS DOG */
+/* TEARS DOG */
+
+.tears {
+  z-index: 10
+}
+
+.tears::before, .tears::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 12px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: 0 0 rgba(124, 185, 232, 0.8);
+  background: rgba(124, 185, 232, 0.8);
+  top: 40%;
+  left: 50%;
+  animation: 
+    2s gentleBang ease-out infinite,
+    2s fall ease-in infinite;
+  animation-delay: -4s, -2s;
+}
+
+.tears::after {
+  animation-delay: -3.75s, -1.75s;
+}
+
+@keyframes gentleBang {
+  0%, 20% {
+    box-shadow: 0 0 #7cb9e8;
+  }
+  100% {
+    box-shadow: 
+      251px -108px #7cb9e8,
+      -122px -201px #7cb9e8,
+      150px -152px #7cb9e8,
+      -156px -95px #7cb9e8,
+      -73px -105px #7cb9e8,
+      -126px -195px #7cb9e8,
+      -177px -197px #7cb9e8,
+      42px -141px #7cb9e8,
+      -114px -89px #7cb9e8,
+      177px -187px #7cb9e8,
+      150px -152px #7cb9e8,
+      -156px -195px #7cb9e8,
+      -114px -89px #7cb9e8,
+      177px -187px #7cb9e8,
+      -73px -105px #7cb9e8,
+      -126px -195px #7cb9e8,
+      42px -141px #7cb9e8,
+      -177px -197px #7cb9e8;
+  }
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(800px);
+    opacity: 0;
+  }
+}

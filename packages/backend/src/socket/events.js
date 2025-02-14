@@ -225,7 +225,10 @@ export const applySocketEvents = (io) => {
             // set latest screen
             console.log({
                 latestScreenIndex: screensOrderDB.screens.indexOf(screensOrderDB.latestScreen),
-                newIndex: screensOrderDB.screens.indexOf(part)
+                newIndex: screensOrderDB.screens.indexOf(part),
+                //screensOrderDB,
+                //screensOrder,
+                //part
             });
             
             if (screensOrderDB && (screensOrderDB.screens.indexOf(screensOrderDB.latestScreen) < screensOrderDB.screens.indexOf(part))) {
@@ -259,11 +262,13 @@ export const applySocketEvents = (io) => {
                 latestScreen = roomScreenData.latestScreen;
             }
             
+            /*
             if (!latestScreen) {
                 latestScreen = "UNKNOWN";
                 roomScreenData.latestScreen = latestScreen;
                 await roomScreenData.save();
             }
+            */
 
             io.to(socket.id).emit('latest-screen', { raceId, screen: latestScreen });
         });

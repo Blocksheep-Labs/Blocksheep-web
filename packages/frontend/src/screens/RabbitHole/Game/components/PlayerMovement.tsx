@@ -27,7 +27,7 @@ const PlayerMovement = ({
   // Sort players and update refs when players change
   useEffect(() => {
       // Check if the phase is not 'Default' before sorting
-      if (phase == 'CloseTunnel') {
+      if (phase == 'OpenTunnel') {
         const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
         setSortedPlayers(sorted);
       } else {

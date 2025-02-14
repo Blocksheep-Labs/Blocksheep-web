@@ -63,7 +63,13 @@ function SelectRaceScreen() {
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress, undefined);
-      navigate(generateLink(screen, rIdNumber));
+
+      if (screen) {
+        navigate(generateLink(screen, rIdNumber));
+        return;
+      }
+
+      navigate(generateLink(race?.screens?.[0] as TFlowPhases, rIdNumber))
     //});
   }, [raceId, race]);
 
@@ -87,7 +93,7 @@ function SelectRaceScreen() {
           setProgress(progress.progress);
 
           // if we are on the first screen and not enough users connected (prevent connect without waiting for others)
-          if (race.screens.indexOf(latestScreen) == 0 && amountOfConnected != race?.numOfPlayersRequired) {
+          if (race.screens.indexOf(latestScreen) == -1 && amountOfConnected != race?.numOfPlayersRequired) {
             return;
           }
 
@@ -145,7 +151,7 @@ function SelectRaceScreen() {
           setModalType(undefined);
 
           // if we are on the first screen and not enough users connected (prevent connect without waiting for others)
-          if (race.screens.indexOf(screen) == 0 && amountOfConnected != race?.numOfPlayersRequired) {
+          if (race.screens.indexOf(screen) == -1 && amountOfConnected != race?.numOfPlayersRequired) {
             return;
           }
           

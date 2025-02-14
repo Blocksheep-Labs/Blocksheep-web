@@ -1,7 +1,7 @@
 import { ConnectedUser } from "..";
 
 export default function calculatePlayersV1(players: ConnectedUser[]) {
-    const actualListOfPlayers = players.filter(i => !i.isCompleted && !i.isEliminated);
+    const actualListOfPlayers = players.filter(i => !i.isEliminated) // !i.isCompleted && !i.isEliminated;
     // const submittedFuelIsSimilar = actualListOfPlayers.every(i => i.Fuel === actualListOfPlayers[0].Fuel);
     // console.log({submittedFuelIsSimilar});
 

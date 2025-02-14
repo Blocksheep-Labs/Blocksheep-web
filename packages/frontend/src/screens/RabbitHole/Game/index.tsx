@@ -400,11 +400,11 @@ function RabbitHoleGame() {
         }
 
         if (progress.property === "rabbithole-complete") {
-          if (amountOfComplteted + 1 >= amountOfConnected) {
-            await distribute(buildDistributeData());
-          } else {
+          //if (amountOfComplteted + 1 >= amountOfConnected) {
+          //  await distribute(buildDistributeData());
+          //} else {
             setAmountOfComplteted(amountOfComplteted + 1);
-          }
+          //}
         }
 
         if (progress.property === "rabbithole-wait-to-finish") {

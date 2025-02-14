@@ -181,7 +181,7 @@ export default (socket: any, io: any): void => {
 
     socket.on('bullrun-get-game-counts', async ({ raceId, userAddress }: BullrunGetGameCountsData) => {
         const gameCounts = (await GameCounts.findOne({ raceId, userAddress }))?.count || 0;
-        const gameCompletesAmount = (await GameCompletes.find({ raceId, completed: true })).length;
+        const gameCompletesAmount = await GameCompletes.countDocuments({ raceId, completed: true });
 
         io.to(socket.id).emit('bullrun-game-counts', {
             raceId,
@@ -198,7 +198,8 @@ export default (socket: any, io: any): void => {
         if (gameCount >= requiredGames) {
             await GameCompletes.updateOne(
                 { raceId, userAddress: socket.userAddress },
-                { $set: { completed: true } }
+                { $set: { completed: true } },
+                { upsert: true }
             );
 
             io.to(socket.id).emit('bullrun-game-complete', {
@@ -212,7 +213,7 @@ export default (socket: any, io: any): void => {
             });
         }
 
-        const completedGamesAmount = (await GameCompletes.find({ raceId, completed: true })).length;
+        const completedGamesAmount = await GameCompletes.countDocuments({ raceId, completed: true });
         io.to(`race-${raceId}`).emit('bullrun-amount-of-completed-games', { gameCompletesAmount: completedGamesAmount });
     });
 };

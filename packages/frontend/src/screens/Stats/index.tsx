@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
 import {useEffect, useState, useRef} from "react";
-import {getRaceById} from "@/utils/contract-functions";
 import {useSmartAccount} from "@/hooks/smartAccountProvider";
 import WhiteSheepImage from "./assets/images/sheeepy.png";
 import BlackSheepImage from "./assets/images/blacksheep.png";
@@ -11,6 +10,7 @@ import ArrowUpImage from "./assets/images/arrow-up.png";
 import ArrowDownImage from "./assets/images/arrow-down.png";
 import FlagsImage from "./assets/images/flags.png";
 import { useRaceById } from "@/hooks/useRaceById";
+import { socket } from "@/utils/socketio";
 
 const SCREEN_NAME = "PODIUM";
 
@@ -33,7 +33,7 @@ export default function StatsScreen() {
     }
 
     useEffect(() => {
-        if (raceId?.length && smartAccountAddress) {
+        if (raceId?.length && smartAccountAddress && race) {
             /*
             setUsers([
                 {
@@ -62,33 +62,25 @@ export default function StatsScreen() {
             ])
             */
 
-            Promise.all([
-                getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
-                httpGetRaceDataById(`race-${raceId}`),
-            ]).then(data => {
-                return {
-                    contractData: data[0],
-                    serverData: data[1].data,
-                }
-            }).then(data => {
+            httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
                 console.log({data});
-                // VALIDATE USER FOR BEING REGISTERED
-                if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
-                    //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
+
+                if (!race.registeredUsers.includes(smartAccountAddress)) {
                     navigate('/', { replace: true });
+                    return;
                 }
 
-                let newProgress: { curr: number; address: string }[] = data.contractData.progress.map(i => {
+                let newProgress: { curr: number; address: string }[] = race.progress.map(i => {
                     return { curr: Number(i.progress), address: i.user };
                 });
                 setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
 
                 console.log("PROGRESS:", newProgress);
                 
-                setUsers(data.serverData.race.users);
+                setUsers(data.race.users);
             });
         }
-    }, [raceId, smartAccountAddress]);
+    }, [raceId, smartAccountAddress, race]);
 
     useEffect(() => {
         const tableObj = tableRef.current;
@@ -100,6 +92,64 @@ export default function StatsScreen() {
             }, 1400);
         }
     }, [stats, tableRef]);
+
+    useEffect(() => {
+        if(smartAccountAddress && String(raceId).length) {
+            // setModalIsOpen(true);
+            // setModalType("waiting");
+            if (!socket.connected) {
+                socket.connect();
+            }
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+            // socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
+        }
+    }, [smartAccountAddress, socket, raceId]);
+
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: `rate`,
+                });
+                
+                navigate(generateLink(screen, Number(raceId)));
+            });
+
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== SCREEN_NAME) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `rate`,
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+                socket.off('latest-screen');
+            }
+        }
+    }, [raceId, socket]);
+
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
 
     const scoreAboveAverage = (score: number, index: number) => {
         if (!stats) {

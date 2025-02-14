@@ -2,55 +2,47 @@
 import { useEffect, useState } from "react";
 import WinMain from "../../assets/win/win-main.webp";
 import NextFlag from "../../assets/common/flag.png";
-import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../../utils/contract-functions";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { socket } from "../../utils/socketio";
 
 export type WinModalProps = {
   handleClose: () => void;
-  raceId?: number;
-  gameIndex?: number;
-  preloadedScore?: number;
-  gameName: string;
+  getScoreOfTheUser: () => Promise<any>;
   secondsLeft: number;
+  raceId: number;
 };
 
-function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName, secondsLeft }: WinModalProps) {
+function WinModal({ handleClose, getScoreOfTheUser, secondsLeft, raceId }: WinModalProps) {
   const { smartAccountAddress } = useSmartAccount();
   const [score, setScore] = useState<null | number>(null);
 
   useEffect(() => {
-    if (raceId?.toString() && gameIndex?.toString() && smartAccountAddress && !preloadedScore) {
-      getScoreAtGameOfUser(raceId, gameIndex, smartAccountAddress as `0x${string}`, gameName)
+    if (smartAccountAddress) {
+      getScoreOfTheUser()
         .then(data => {
           console.log("Get score:", data);
-          // wait for tx to finish
           setScore(Number(data));
-        });
+        })
     }
-  }, [raceId, gameIndex, smartAccountAddress, preloadedScore]);
+  }, [smartAccountAddress]);
 
   // add user points on server side
   useEffect(() => {
-    if ((preloadedScore !== undefined || score) && smartAccountAddress) {
+    if (score && smartAccountAddress) {
       socket.emit('player-add-points', {
         raceId,
         userAddress: smartAccountAddress,
-        points: preloadedScore || score,
+        points: score,
       });
     }
-  }, [preloadedScore, score, smartAccountAddress]);
+  }, [score, smartAccountAddress]);
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%] relative">
         <img src={WinMain} alt="loading-bg" />
         { 
-          preloadedScore == undefined || !String(preloadedScore).length
-          ?
           <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">{score?.toString().length ? `+${score}` : "Pls wait..."}</p>
-          :
-          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+{preloadedScore}</p>
         }
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">

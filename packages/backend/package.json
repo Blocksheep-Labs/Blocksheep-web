@@ -5,9 +5,9 @@
   "author": "bada9te",
   "license": "MIT",
   "scripts": {
-    "start-dev": "nodemon ./index.js",
-    "start": "node ./index.js",
-    "build": "echo 'no build is needed'"
+    "start": "node ./dist/index.js",
+    "start-dev": "nodemon ./src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
@@ -17,5 +17,11 @@
     "mongoose-autopopulate": "^1.1.0",
     "nodemon": "^3.1.4",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   }
 }

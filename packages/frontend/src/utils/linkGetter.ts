@@ -13,9 +13,9 @@ export type TFlowPhases =
     "RABBIT_HOLE" | 
     "RACE_UPDATE_2" |
     "STORY_PART_2" | 
-    "BULL_RUN_PREVIEW" |
-    "BULL_RUN_RULES" |  
-    "BULL_RUN" | 
+    "BULLRUN_PREVIEW" |
+    "BULLRUN_RULES" |  
+    "BULLRUN" | 
     "RACE_UPDATE_3" |
     "STORY_PART_3" | 
     "RABBIT_HOLE_V2_PREVIEW" |
@@ -50,9 +50,9 @@ export default function generateLink(phase: TFlowPhases, raceId: number) {
         case "RACE_UPDATE_2": return `/race/${raceId}/race-update/board2`
         case "STORY_PART_2": return `/race/${raceId}/story/part2`
 
-        case "BULL_RUN_PREVIEW": return `/race/${raceId}/bullrun/preview`
-        case "BULL_RUN_RULES": return `/race/${raceId}/bullrun/rules`
-        case "BULL_RUN": return `/race/${raceId}/bullrun`
+        case "BULLRUN_PREVIEW": return `/race/${raceId}/bullrun/preview`
+        case "BULLRUN_RULES": return `/race/${raceId}/bullrun/rules`
+        case "BULLRUN": return `/race/${raceId}/bullrun`
 
         case "RACE_UPDATE_3": return `/race/${raceId}/race-update/board3`
         case "STORY_PART_3": return `/race/${raceId}/story/part3`

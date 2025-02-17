@@ -1,77 +1,107 @@
-import SelectionBtnBox from "./components/SelectionBtnBox";
-import SwipeSelection from "./components/SwipeSelection";
-import UserCount from "../../../components/UserCount";
+// External libraries
 import { RefObject, useEffect, useRef, useState } from "react";
-import LoadingModal from "../../../components/modals/LoadingModal";
-import WinModal from "../../../components/modals/WinModal";
-import Timer from "../../../components/Timer";
-import { useTimer } from "react-timer-hook";
 import { useNavigate, useParams } from "react-router-dom";
-import { getRaceById, submitUserAnswer } from "../../../utils/contract-functions";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { config } from "../../../config/wagmi";
-import { socket } from "../../../utils/socketio";
-import WaitingForPlayersModal from "../../../components/modals/WaitingForPlayersModal";
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
-import generateLink from "../../../utils/linkGetter";
-import { txAttempts } from "../../../utils/txAttempts";
-import DogLoaderImage from "../../../assets/underdog/background_head.webp";
-import Firework from "../../../components/firework/firework";
-import { GameState, useGameContext } from "../../../utils/game-context";
-import LoseTears from "../../../assets/win/LoseTears.png";
-import WinHat from "../../../assets/win/WinHat.png";
+import { useTimer } from "react-timer-hook";
+
+// Components
+import UserCount from "@/components/UserCount";
+import LoadingModal from "@/components/modals/LoadingModal";
+import WinModal from "@/components/modals/WinModal";
+import Timer from "@/components/Timer";
+import WaitingForPlayersModal from "@/components/modals/WaitingForPlayersModal";
+import Firework from "@/components/firework/firework";
+import SwipeSelection from "./components/SwipeSelection";
+import SelectionBtnBox from "./components/SelectionBtnBox";
+
+// Hooks
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
+import { useMakeMove } from "@/hooks/useMakeMove";
+import { useDistribute } from "@/hooks/useDistribute";
+import { useGetUserPoints } from "@/hooks/useGetPoints";
+import { useGetRules } from "@/hooks/useGetRules";
+import { useRaceById } from "@/hooks/useRaceById";
+
+// Utilities
+import { socket } from "@/utils/socketio";
+import generateLink, { TFlowPhases } from "@/utils/linkGetter";
+import { txAttempts } from "@/utils/txAttempts";
+import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
+import { build as buildDistributeData } from "./arguments-builder/distribute";
+
+// Assets
+import DogLoaderImage from "../assets/dog-loader.png";
+
+import LoseTears from "../assets/LoseTears.png";
+import WinHat from "../assets/WinHat.png";
+
 
 export interface SwipeSelectionAPI {
   swipeLeft: () => void;
   swipeRight: () => void;
 }
+const REGISTERED_CONTRACT_NAME = "UNDERDOG";
 
-
-type ModalType = "ready" | "loading" | "win" | "race" | "waiting" | "waiting-after-finish" | "waiting-before-finish";
+export type TQuestion = {
+  id: number;
+  info: {
+      imgUrl: string,
+      content: string,
+      answers: string[],
+  }
+}
 
 function UnderdogGame() {
   const {smartAccountAddress} = useSmartAccount();
   const navigate = useNavigate();
   // const navigate = (a: string, b?: any) => {}
   const ref: RefObject<SwipeSelectionAPI> = useRef(null);
-  const [modalType, setModalType] = useState<ModalType | undefined>(undefined);
-  const [modalIsOpen, setIsOpen] = useState(false);
   const [flipState, setFlipState] = useState(true);
   const {raceId} = useParams();
-  const {gameState} = useGameContext();
-  const [currentGameIndex, setCurrentGameIndex] = useState(0);
+  const { race: raceData } = useRaceById(Number(raceId));
+
+  // State for modal visibility
+  const [modalIsOpen, setIsOpen] = useState(false);
+  const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
+  const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
+  const [waitingToFinishModalPermanentlyOpened, setWaitingToFinishModalPermanentlyOpened] = useState(false);
+
+  // State for game progress and questions
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittingAnswer, setSubmittingAnswer] = useState(false);
-  const [distributePermanentlyOpened, setDistributePermanentlyOpened] = useState(false);
-  const [waitingToFinishModalPermanentlyOpened, setWaitingToFinishModalPermanentlyOpened] = useState(false);
-  const [winModalPermanentlyOpened, setWinModalPermanentlyOpened] = useState(false);
+  const [questions, setQuestions] = useState<TQuestion[]>([]);
+  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
 
-  const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
-  const questions = gameState?.questionsByGames[currentGameIndex];
-  const { questionsByGames, progress } = gameState as GameState;
-
+  // State for player counts and answers
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  //const [finished, setFinished] = useState(questions.length <= progress?.game1?.completed || false);
   const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
-  const { smartAccountClient } = useSmartAccount();
-  const [raceData, setRaceData] = useState<any>(undefined);
-
-  const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | "unknown" | null>(null);
   const [amountOfAnswersLeft, setAmountOfAnswersLeft] = useState(0);
   const [amountOfAnswersRight, setAmountOfAnswersRight] = useState(0);
   const [amountOfAnswersUnknwon, setAmountOfAnswersUnknown] = useState(0);
-  const [resultsTimeoutStarted, setResultsTimeoutStarted] = useState(false);
+  const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
   const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
   const [answersSubmittedBy, setAnswersSubmittedBy] = useState<string[]>([]);
 
-  const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
-  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
+  // State for answer selection
+  const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | "unknown" | null>(null);
   const [hideGameInterface, setHideGameInterface] = useState(false);
+  const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
+  
+  const [resultsTimeoutStarted, setResultsTimeoutStarted] = useState(false);
 
+  const { makeMove } = useMakeMove(REGISTERED_CONTRACT_NAME, Number(raceId));
+  const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
+  const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
+  const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
 
+  const navigateToNextScreen = () => {
+    const currentScreenIndex = raceData?.screens.indexOf(REGISTERED_CONTRACT_NAME) as number;
+    socket.emit('minimize-live-game', { part: REGISTERED_CONTRACT_NAME, raceId });
+    navigate(generateLink(raceData?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+  }
+  
   const time = new Date();
   time.setSeconds(time.getSeconds() + 10);
-
+  
   useEffect(() => {
     if (!modalIsOpen && !distributePermanentlyOpened) {
       console.log("flipState set time ", flipState);
@@ -83,6 +113,13 @@ function UnderdogGame() {
       pause();
     }
   }, [flipState, modalIsOpen, distributePermanentlyOpened]);
+
+  useEffect(() => {
+    getRules().then(data => {
+      // @ts-ignore
+      setQuestions(data[0] as any);
+    }).catch(console.log);
+  }, []);
 
   // after game finish
   const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
@@ -105,7 +142,7 @@ function UnderdogGame() {
           secondsLeft: 0,
           state: "submitting",
         });
-        flipState ? onClickLike(currentGameIndex) : onClickDislike(currentGameIndex);
+        flipState ? onClickLike() : onClickDislike();
       }
     },
   });
@@ -121,18 +158,8 @@ function UnderdogGame() {
       });
     }
   }, [totalSeconds]);
-
-  // updates global questions state
-  const updateProgress = () => {
-    getRaceById(Number(raceId), smartAccountAddress as `0x${string}`).then((data) => {
-      if (data) {
-        console.log("SET RACE DATA", {data})
-        setRaceData(data);
-      }
-    });
-  };
   
-  const onClickLike = async(qIndex: number, sendTx=true) => {
+  const onClickLike = async(sendTx=true) => {
     // Prevent multiple submissions for the same question
     if (submittingAnswer || answeredQuestions.has(currentQuestionIndex)) {
       return;
@@ -146,7 +173,7 @@ function UnderdogGame() {
     console.log("UPDATE PROGRESS", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1++",
+      property: "underdog++",
       value: {
         completed: currentQuestionIndex + 1,
         of: Number(questions.length),
@@ -156,21 +183,7 @@ function UnderdogGame() {
     
     sendTx && txAttempts(
       5,
-      async () => {
-        return await submitUserAnswer(
-          Number(raceId), 
-          currentGameIndex, 
-          currentQuestionIndex,
-          0,
-          smartAccountClient
-        ).then(async hash => {
-          await waitForTransactionReceipt(config, {
-            hash,
-            confirmations: 0,
-            pollingInterval: 300,
-          });
-        })
-      },
+      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 1)),
       3000
     ).catch(err => {
       //console.log(err);
@@ -179,7 +192,7 @@ function UnderdogGame() {
       socket.emit('update-progress', {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game1++",
+        property: "underdog++",
         value: {
           completed: currentQuestionIndex + 1,
           of: Number(questions.length),
@@ -190,7 +203,7 @@ function UnderdogGame() {
   };
 
 
-  const onClickDislike = async(qIndex: number, sendTx=true) => {
+  const onClickDislike = async(sendTx=true) => {
     // Prevent multiple submissions for the same question
     if (submittingAnswer || answeredQuestions.has(currentQuestionIndex)) {
       return;
@@ -204,7 +217,7 @@ function UnderdogGame() {
     console.log("UPDATE PROGRESS", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1++",
+      property: "underdog++",
       value: {
         completed: currentQuestionIndex + 1,
         of: Number(questions.length),
@@ -214,21 +227,7 @@ function UnderdogGame() {
 
     sendTx && txAttempts(
       5,
-      async () => {
-        return await submitUserAnswer(
-          Number(raceId), 
-          currentGameIndex, 
-          currentQuestionIndex,
-          1,
-          smartAccountClient
-        ).then(async hash => {
-          await waitForTransactionReceipt(config, {
-            hash,
-            confirmations: 0,
-            pollingInterval: 300,
-          });
-        });
-      },
+      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 0)),
       3000,
     ).catch(err => {
       //console.log(err);
@@ -237,7 +236,7 @@ function UnderdogGame() {
       socket.emit('update-progress', {
         raceId,
         userAddress: smartAccountAddress,
-        property: "game1++",
+        property: "underdog++",
         value: {
           completed: currentQuestionIndex + 1,
           of: Number(questions.length),
@@ -265,11 +264,10 @@ function UnderdogGame() {
     console.log("loading modal closed")
     setDistributePermanentlyOpened(false);
     setIsOpen(false);
-    setModalType(undefined);
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1-distribute",
+      property: "underdog-distribute",
       value: {
         completed: Number(questions.length),
         of: Number(questions.length),
@@ -306,7 +304,6 @@ function UnderdogGame() {
     console.log("win modal closed");
     setWinModalPermanentlyOpened(false);
     setIsOpen(false);
-    setModalType(undefined);
     openWaitingAfterFinishModal();
     pause();
     setLatestInteractiveModalWasClosed(true);
@@ -317,7 +314,7 @@ function UnderdogGame() {
     socket.emit("update-progress", {
       raceId,
       userAddress: smartAccountAddress,
-      property: "game1-wait-after-finish",
+      property: "underdog-wait-after-finish",
     });
     setWaitingToFinishModalPermanentlyOpened(true);
     pause();
@@ -341,7 +338,7 @@ function UnderdogGame() {
           socket.emit("update-progress", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game1-confirm-last-answer",
+            property: "underdog-confirm-last-answer",
           });
           setSubmittingAnswer(false);
           
@@ -410,7 +407,7 @@ function UnderdogGame() {
         }
         console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
 
-        if (progress.property == "game1++") {
+        if (progress.property == "underdog++") {
           if (answersSubmittedBy.includes(progress.userAddress)) {
             return;
           }
@@ -438,7 +435,7 @@ function UnderdogGame() {
           }
         }
 
-        if (progress.property === "game1-distribute") {
+        if (progress.property === "underdog-distribute") {
           setAmountOfPlayersCompleted(prev => prev + 1);
           
           console.log("GAME1 DISTRIBUTE:", amountOfPlayersCompleted + 1);
@@ -448,14 +445,13 @@ function UnderdogGame() {
           }
         }
 
-        if (progress.property === "game1-wait-after-finish") {
+        if (progress.property === "underdog-wait-after-finish") {
           console.log("NEXT_CLICKED++")
           setAddressesCompleted([...addressesCompleted, progress.userAddress]);
           setWaitingAfterFinishPlayersCount(prev => prev + 1);
           if (amountOfConnected <= waitingAfterFinishPlayersCount + 1) {
             console.log("MOVE FORWARD")
-            socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-            navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
+            navigateToNextScreen();
           }
         }
       });
@@ -472,7 +468,7 @@ function UnderdogGame() {
         const playersClickedNextAddrs: string[] = [];
 
         progress.forEach((i: any) => {
-          if (i.progress.game1.isDistributed) {
+          if (i.progress.underdog.isDistributed) {
             isDistributedAmount++;
           }
 
@@ -482,13 +478,13 @@ function UnderdogGame() {
             waitingAfterFinishAmount++;
           }
 
-          if (i.progress.game1.waitingToFinish) {
+          if (i.progress.underdog.waitingToFinish) {
             waitingToFinishAmount++;
-            answers.push(i.progress.game1.answers);
+            answers.push(i.progress.underdog.answers);
           }
 
-          if (!i.progress.game1.lastAnswerIsConfirmed) {
-            const answers = i.progress.game1.answers;
+          if (!i.progress.underdog.lastAnswerIsConfirmed) {
+            const answers = i.progress.underdog.answers;
             if (answers.length) {
               const lastAnswer = Number(answers[answers.length - 1]);
 
@@ -509,7 +505,7 @@ function UnderdogGame() {
         setAmountOfAnswersLeft(amountOfAnswersLeftServer);
         setAmountOfAnswersRight(amountOfAnswersRightServer);
 
-        if (amountOfAnswersLeftServer + amountOfAnswersRightServer == raceData.numberOfPlayersRequired) {
+        if (amountOfAnswersLeftServer + amountOfAnswersRightServer == raceData.numOfPlayersRequired) {
           console.log({amountOfAnswersLeftServer, amountOfAnswersRightServer})
           socket.emit('underdog-results-shown', { raceId });
           setupTimeout();
@@ -525,7 +521,7 @@ function UnderdogGame() {
       });
 
       socket.on('race-progress', ({ progress, questionsState }) => {
-        const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, waitingAfterFinish, answers} = progress.progress.game1;
+        const {isDistributed, of, completed, waitingToFinish, lastAnswerIsConfirmed, waitingAfterFinish, answers} = progress.progress.underdog;
         
         /*
         // means that the player leaved on pulsating dog screen
@@ -563,7 +559,7 @@ function UnderdogGame() {
             socket.emit('update-progress', {
               raceId,
               userAddress: smartAccountAddress,
-              property: "game1++",
+              property: "underdog++",
               value: {
                 completed: currentQuestionIndex + 1,
                 of: Number(questions.length),
@@ -629,8 +625,7 @@ function UnderdogGame() {
   // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
   useEffect(() => {
     if (waitingAfterFinishPlayersCount >= amountOfConnected && waitingAfterFinishPlayersCount > 0 && amountOfConnected > 0) {
-      socket.emit('minimize-live-game', { part: 'UNDERDOG', raceId });
-      navigate(generateLink("RACE_UPDATE_2", Number(raceId)));
+      navigateToNextScreen();
     }
   }, [amountOfConnected, waitingAfterFinishPlayersCount]);
   
@@ -645,8 +640,7 @@ function UnderdogGame() {
   }, [socket, smartAccountAddress, raceData]); 
 
 
-  
-    useEffect(() => {
+  useEffect(() => {
     if (raceId && socket) {
       if (!socket.connected) {
         socket.connect();
@@ -657,31 +651,28 @@ function UnderdogGame() {
       });
 
       socket.on('latest-screen', ({ screen }) => {
-          if (screen !== "UNDERDOG") {
-            navigate(generateLink(screen, Number(raceId)));
-          }
+        if (screen !== "UNDERDOG") {
+          navigate(generateLink(screen, Number(raceId)));
+        }
       });
   
       return () => {
-          socket.off('screen-changed');
-          socket.off('latest-screen');
-        }
+        socket.off('screen-changed');
+        socket.off('latest-screen');
       }
-    }, [raceId, socket]);
+    }
+  }, [raceId, socket]);
         
-    useEffect(() => {
-      if(smartAccountAddress && String(raceId).length && raceData) {
-          if (!socket.connected) {
-            socket.connect();
-          }
-          socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
-          socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
+  useEffect(() => {
+    if (smartAccountAddress && String(raceId).length && raceData) {
+      if (!socket.connected) {
+        socket.connect();
       }
-    }, [smartAccountAddress, socket, raceId, raceData]);
-  
-    useEffect(() => {
-      updateProgress();
-    }, []);
+      socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "UNDERDOG" });
+      // socket.emit("get-latest-screen", { raceId, part: "UNDERDOG" });
+    }
+  }, [smartAccountAddress, socket, raceId, raceData]);
+
 
     // kick player if page chnages (closes)
     useEffect(() => {
@@ -695,6 +686,8 @@ function UnderdogGame() {
       }
     }, [socket, smartAccountAddress, raceId]);
 
+
+    console.log({questions})
   return (
     <div className="relative mx-auto flex w-full flex-col bg-underdog_bg bg-cover bg-center" style={{ height: `${window.innerHeight}px` }}>
       {
@@ -703,7 +696,7 @@ function UnderdogGame() {
           (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
         ) 
         && 
-        (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+        (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numOfPlayersRequired || 9)) 
           &&  
           <>
             <Firework/>
@@ -716,7 +709,7 @@ function UnderdogGame() {
             (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
             (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
           ) &&
-          (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+          (amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numOfPlayersRequired || 9)) 
           ? (
             <div className="tears z-50 absolute w-[198px] h-[150px] top-[148px] right-1/2 translate-x-[50%]">
               <img src={LoseTears} alt="LoseTears" className="w-full h-full"/>
@@ -732,7 +725,7 @@ function UnderdogGame() {
           (selectedAnswer == "left" && amountOfAnswersLeft < amountOfAnswersRight) ||
           (selectedAnswer == "right" && amountOfAnswersRight < amountOfAnswersLeft)
         ) && 
-        !(amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numberOfPlayersRequired || 9)) 
+        !(amountOfAnswersLeft + amountOfAnswersRight >= (raceData?.numOfPlayersRequired || 9)) 
         ? (
           <>
             <div className="absolute inset-0 bg-black bg-opacity-50 z-40" />
@@ -748,7 +741,7 @@ function UnderdogGame() {
       <div className="relative my-4">
         {!submittingAnswer && !modalIsOpen && <Timer seconds={totalSeconds} />}
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numberOfPlayersRequired || 9}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numOfPlayersRequired || 9}/>
         </div>
       </div>
       {
@@ -775,7 +768,6 @@ function UnderdogGame() {
             leftAction={onClickLike}
             rightAction={onClickDislike}
             disabled={modalIsOpen || submittingAnswer}
-            currentQuestionIndex={currentQuestionIndex}
             selectedAnswer={selectedAnswer}
             leftCount={amountOfAnswersLeft}
             rightCount={amountOfAnswersRight}
@@ -783,40 +775,26 @@ function UnderdogGame() {
         </div>
       }
       
-
-      {modalIsOpen && (
-        <>
-          {
-            modalType === "loading" &&
-            <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={[]}/>
-          }
-          {
-            modalType === "waiting" && !latestInteractiveModalWasClosed &&
-            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9}/> 
-          }
-          {
-            modalType && ["waiting-after-finish", "waiting-before-finish"].includes(modalType) && !latestInteractiveModalWasClosed &&
-            <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
-          }
-        </>
-      )}
-
       {
         distributePermanentlyOpened && 
-        <LoadingModal closeHandler={closeLoadingModal} raceId={Number(raceId)} gameIndex={currentGameIndex} questionIndexes={Array.from(Array(Number(questions.length)).keys())} answers={[]}/>
+        <LoadingModal 
+          distributeFunction={() => distribute(buildDistributeData())}
+          closeHandler={closeLoadingModal} 
+        />
       }
+
       {
         waitingToFinishModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
-        <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numberOfPlayersRequired || 9} replacedText="..."/> 
+        <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numOfPlayersRequired || 9} replacedText="..."/> 
       }
+
       {
         winModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
         <WinModal 
+          raceId={Number(raceId)}
           secondsLeft={totlaSecondsToMoveNext}
           handleClose={closeWinModal} 
-          raceId={Number(raceId)} 
-          gameIndex={currentGameIndex} 
-          gameName="underdog"
+          getScoreOfTheUser={getPoints}
         />
       }
     </div>

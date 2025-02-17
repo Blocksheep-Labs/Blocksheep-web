@@ -7,10 +7,9 @@ import Crown from "../../assets/crown.png";
 export type SelectionBtnBoxProps = {
   leftLabel: string;
   rightLabel: string;
-  leftAction: (a: number) => Promise<void>;
-  rightAction: (a: number) => Promise<void>;
+  leftAction: () => Promise<void>;
+  rightAction: () => Promise<void>;
   disabled: boolean;
-  currentQuestionIndex: number;
   selectedAnswer: "left" | "right" | "unknown" | null;
   leftCount: number;
   rightCount: number;
@@ -21,7 +20,6 @@ function SelectionBtnBox({
   leftAction,
   rightAction,
   disabled,
-  currentQuestionIndex,
   selectedAnswer,
   leftCount,
   rightCount,
@@ -44,7 +42,7 @@ function SelectionBtnBox({
             <img src={LeftArrow} alt="" className={`min-w-60`} />
             <button 
               className={`${selectedAnswer == "left" && 'z-50'} absolute top-12 left-16 w-28 text-center bottom-40 font-[Berlin] text-xl text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`} 
-              onClick={() => leftAction(currentQuestionIndex)} 
+              onClick={leftAction} 
               disabled={disabled}
             >
               {leftLabel}
@@ -67,7 +65,7 @@ function SelectionBtnBox({
             <img src={RightArrow} alt="" className={`min-w-60`} />
             <button 
               className={`${selectedAnswer == "right" && 'z-50'} absolute top-12 right-16 w-28 text-center bottom-40 font-[Berlin] text-xl text-[#18243F] hover:text-white disabled:text-gray-400 disabled:hover:text-gray-400`} 
-              onClick={() => rightAction(currentQuestionIndex)} 
+              onClick={rightAction} 
               disabled={disabled}
             >
               {rightLabel}

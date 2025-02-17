@@ -2,110 +2,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "_underlying",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_cost",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "AccessDenied",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "gameName",
-				"type": "string"
-			}
-		],
-		"name": "addGameName",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "content",
-						"type": "string"
-					},
-					{
-						"internalType": "string[]",
-						"name": "answers",
-						"type": "string[]"
-					},
-					{
-						"internalType": "string",
-						"name": "imgUrl",
-						"type": "string"
-					}
-				],
-				"internalType": "struct BlockSheep.QuestionInfo",
-				"name": "params",
-				"type": "tuple"
-			}
-		],
-		"name": "addQuestion",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "content",
-						"type": "string"
-					},
-					{
-						"internalType": "string[]",
-						"name": "answers",
-						"type": "string[]"
-					},
-					{
-						"internalType": "string",
-						"name": "imgUrl",
-						"type": "string"
-					}
-				],
-				"internalType": "struct BlockSheep.QuestionInfo[]",
-				"name": "_questions",
-				"type": "tuple[]"
-			}
-		],
-		"name": "addQuestions",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
 				"internalType": "uint64",
 				"name": "hoursBeforeFinish",
 				"type": "uint64"
@@ -116,125 +12,27 @@
 				"type": "uint8"
 			},
 			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "gameId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "questionIds",
-						"type": "uint256[]"
-					}
-				],
-				"internalType": "struct BlockSheep.GameParams[]",
-				"name": "games",
-				"type": "tuple[]"
+				"internalType": "uint8",
+				"name": "storyKey",
+				"type": "uint8"
 			},
 			{
-				"internalType": "int256[3][3]",
-				"name": "points",
-				"type": "int256[3][3]"
+				"internalType": "string[]",
+				"name": "screens",
+				"type": "string[]"
+			},
+			{
+				"internalType": "bytes",
+				"name": "initStateForBullrun",
+				"type": "bytes"
+			},
+			{
+				"internalType": "bytes",
+				"name": "initStateForUnderdog",
+				"type": "bytes"
 			}
 		],
 		"name": "addRace",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "target",
-				"type": "address"
-			}
-		],
-		"name": "AddressEmptyCode",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "AddressInsufficientBalance",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "AlreadyAnswered",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "AlreadyDistributed",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "AlreadyRegistered",
-		"type": "error"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "opponentAddress",
-				"type": "address"
-			}
-		],
-		"name": "BULLRUN_distribute",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "perkIndex",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "opponentAddress",
-				"type": "address"
-			}
-		],
-		"name": "BULLRUN_makeChoice",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "int256[3][3]",
-				"name": "points",
-				"type": "int256[3][3]"
-			}
-		],
-		"name": "BULLRUN_setPointsPerPerksForRace",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -255,98 +53,92 @@
 	{
 		"inputs": [
 			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
 				"internalType": "uint256",
 				"name": "raceId",
 				"type": "uint256"
 			},
 			{
-				"internalType": "uint8",
-				"name": "gameIndex",
-				"type": "uint8"
-			},
-			{
-				"internalType": "uint8[]",
-				"name": "qIndexes",
-				"type": "uint8[]"
-			},
-			{
-				"internalType": "bool",
-				"name": "isDraw",
-				"type": "bool"
-			},
-			{
-				"internalType": "address",
-				"name": "distributer",
-				"type": "address"
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
 			}
 		],
-		"name": "distributeReward",
+		"name": "distribute",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "EmptyQuestions",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "FailedInnerCall",
-		"type": "error"
 	},
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "isWon",
-				"type": "bool"
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
 			},
 			{
 				"internalType": "uint256",
-				"name": "pointsToAllocate",
+				"name": "raceid",
 				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
 			}
 		],
-		"name": "finishTunnelGame",
+		"name": "initRace",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "GameIsNotComplted",
-		"type": "error"
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes",
+				"name": "data",
+				"type": "bytes"
+			}
+		],
+		"name": "makeMove",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "InvalidGameIndex",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "InvalidRaceId",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "InvalidTimestamp",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "LengthMismatch",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "NotRegistered",
-		"type": "error"
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_underlying",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_cost",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
 	},
 	{
 		"inputs": [
@@ -371,9 +163,22 @@
 		"type": "error"
 	},
 	{
-		"inputs": [],
-		"name": "RaceIsFull",
-		"type": "error"
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "refundBalance",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -384,11 +189,6 @@
 			}
 		],
 		"name": "SafeERC20FailedOperation",
-		"type": "error"
-	},
-	{
-		"inputs": [],
-		"name": "Timeout",
 		"type": "error"
 	},
 	{
@@ -414,16 +214,11 @@
 		"inputs": [
 			{
 				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
 				"name": "raceId",
 				"type": "uint256"
 			}
 		],
-		"name": "refundBalance",
+		"name": "register",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -431,12 +226,17 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "contractAddress",
+				"type": "address"
 			}
 		],
-		"name": "register",
+		"name": "registerContract",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -488,57 +288,6 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint8",
-				"name": "gameIndex",
-				"type": "uint8"
-			},
-			{
-				"internalType": "uint8",
-				"name": "qIndex",
-				"type": "uint8"
-			},
-			{
-				"internalType": "uint8",
-				"name": "aId",
-				"type": "uint8"
-			}
-		],
-		"name": "submitAnswer",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "fuelSubmision",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "fuelLeft",
-				"type": "uint256"
-			}
-		],
-		"name": "submitFuel",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "newOwner",
 				"type": "address"
@@ -582,155 +331,6 @@
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "BULLRUN_gameParticipants",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			}
-		],
-		"name": "BULLRUN_getAmountOfPointsPerGame",
-		"outputs": [
-			{
-				"internalType": "int256",
-				"name": "",
-				"type": "int256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			}
-		],
-		"name": "BULLRUN_getPerksMatrix",
-		"outputs": [
-			{
-				"internalType": "int256[3][3]",
-				"name": "perksMatrix",
-				"type": "int256[3][3]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "BULLRUN_getUserChoicesIndexes",
-		"outputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "",
-				"type": "uint256[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			}
-		],
-		"name": "BULLRUN_getWinnersPerGame",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "user1",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "user2",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "user3",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "BULLRUN_pointsPerPerks",
-		"outputs": [
-			{
-				"internalType": "int256",
-				"name": "",
-				"type": "int256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "COST",
 		"outputs": [
@@ -744,85 +344,29 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "feeCollected",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			}
-		],
-		"name": "getGameNames",
-		"outputs": [
 			{
 				"internalType": "string",
-				"name": "",
+				"name": "gameName",
 				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
 			{
 				"internalType": "uint256",
 				"name": "raceId",
 				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "gameId",
-				"type": "uint256"
 			}
 		],
-		"name": "getQuestions",
+		"name": "getPoints",
 		"outputs": [
 			{
-				"components": [
-					{
-						"internalType": "uint256",
-						"name": "id",
-						"type": "uint256"
-					},
-					{
-						"components": [
-							{
-								"internalType": "string",
-								"name": "content",
-								"type": "string"
-							},
-							{
-								"internalType": "string[]",
-								"name": "answers",
-								"type": "string[]"
-							},
-							{
-								"internalType": "string",
-								"name": "imgUrl",
-								"type": "string"
-							}
-						],
-						"internalType": "struct BlockSheep.QuestionInfo",
-						"name": "info",
-						"type": "tuple"
-					}
-				],
-				"internalType": "struct BlockSheep.QuestionInfoReturnType[]",
+				"internalType": "int256",
 				"name": "",
-				"type": "tuple[]"
+				"type": "int256"
 			}
 		],
 		"stateMutability": "view",
@@ -841,99 +385,59 @@
 				"type": "address"
 			}
 		],
-		"name": "getRaces",
+		"name": "getRace",
 		"outputs": [
-			{
-				"internalType": "string",
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"internalType": "uint64",
-				"name": "startAt",
-				"type": "uint64"
-			},
-			{
-				"internalType": "uint8",
-				"name": "numOfGames",
-				"type": "uint8"
-			},
-			{
-				"internalType": "uint8",
-				"name": "numOfQuestions",
-				"type": "uint8"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "games",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "gamesCompletedPerUser",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256",
-				"name": "raceDuration",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bool",
-				"name": "refunded",
-				"type": "bool"
-			},
-			{
-				"internalType": "address[]",
-				"name": "registeredUsers",
-				"type": "address[]"
-			},
 			{
 				"components": [
 					{
+						"internalType": "bool",
+						"name": "refunded",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "registered",
+						"type": "bool"
+					},
+					{
+						"internalType": "uint8",
+						"name": "storyKey",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "numOfPlayersRequired",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint64",
+						"name": "endAt",
+						"type": "uint64"
+					},
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string[]",
+						"name": "screens",
+						"type": "string[]"
+					},
+					{
 						"internalType": "address[]",
-						"name": "usersAddresses",
+						"name": "registeredUsers",
 						"type": "address[]"
 					},
 					{
-						"internalType": "uint256[]",
-						"name": "fuelSubmissions",
-						"type": "uint256[]"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "fuelLeft",
-						"type": "uint256[]"
-					},
-					{
-						"internalType": "address[]",
-						"name": "finishedBy",
-						"type": "address[]"
-					},
-					{
-						"internalType": "address",
-						"name": "winner",
-						"type": "address"
-					},
-					{
-						"internalType": "address[]",
-						"name": "pointsAddresses",
-						"type": "address[]"
-					},
-					{
-						"internalType": "uint256[]",
-						"name": "pointsAmount",
-						"type": "uint256[]"
+						"internalType": "enum BlockSheep.RaceStatus",
+						"name": "status",
+						"type": "uint8"
 					}
 				],
-				"internalType": "struct BlockSheep.RabbitTunnel",
-				"name": "rabbitTunnel",
+				"internalType": "struct BlockSheep.RaceInfo",
+				"name": "raceInfo",
 				"type": "tuple"
-			},
-			{
-				"internalType": "uint8",
-				"name": "numOfPlayersRequired",
-				"type": "uint8"
 			}
 		],
 		"stateMutability": "view",
@@ -981,24 +485,9 @@
 			{
 				"components": [
 					{
-						"internalType": "string",
-						"name": "name",
-						"type": "string"
-					},
-					{
-						"internalType": "uint64",
-						"name": "startAt",
-						"type": "uint64"
-					},
-					{
-						"internalType": "uint8",
-						"name": "numOfGames",
-						"type": "uint8"
-					},
-					{
-						"internalType": "uint8",
-						"name": "numOfQuestions",
-						"type": "uint8"
+						"internalType": "bool",
+						"name": "refunded",
+						"type": "bool"
 					},
 					{
 						"internalType": "bool",
@@ -1006,29 +495,29 @@
 						"type": "bool"
 					},
 					{
-						"internalType": "enum BlockSheep.RaceStatus",
-						"name": "status",
+						"internalType": "uint8",
+						"name": "storyKey",
 						"type": "uint8"
 					},
 					{
-						"internalType": "uint256[]",
-						"name": "games",
-						"type": "uint256[]"
+						"internalType": "uint8",
+						"name": "numOfPlayersRequired",
+						"type": "uint8"
 					},
 					{
-						"internalType": "uint256[]",
-						"name": "gamesCompletedPerUser",
-						"type": "uint256[]"
+						"internalType": "uint64",
+						"name": "endAt",
+						"type": "uint64"
 					},
 					{
 						"internalType": "uint256",
-						"name": "raceDuration",
+						"name": "id",
 						"type": "uint256"
 					},
 					{
-						"internalType": "bool",
-						"name": "refunded",
-						"type": "bool"
+						"internalType": "string[]",
+						"name": "screens",
+						"type": "string[]"
 					},
 					{
 						"internalType": "address[]",
@@ -1036,50 +525,8 @@
 						"type": "address[]"
 					},
 					{
-						"components": [
-							{
-								"internalType": "address[]",
-								"name": "usersAddresses",
-								"type": "address[]"
-							},
-							{
-								"internalType": "uint256[]",
-								"name": "fuelSubmissions",
-								"type": "uint256[]"
-							},
-							{
-								"internalType": "uint256[]",
-								"name": "fuelLeft",
-								"type": "uint256[]"
-							},
-							{
-								"internalType": "address[]",
-								"name": "finishedBy",
-								"type": "address[]"
-							},
-							{
-								"internalType": "address",
-								"name": "winner",
-								"type": "address"
-							},
-							{
-								"internalType": "address[]",
-								"name": "pointsAddresses",
-								"type": "address[]"
-							},
-							{
-								"internalType": "uint256[]",
-								"name": "pointsAmount",
-								"type": "uint256[]"
-							}
-						],
-						"internalType": "struct BlockSheep.RabbitTunnel",
-						"name": "rabbitTunnel",
-						"type": "tuple"
-					},
-					{
-						"internalType": "uint8",
-						"name": "numOfPlayersRequired",
+						"internalType": "enum BlockSheep.RaceStatus",
+						"name": "status",
 						"type": "uint8"
 					}
 				],
@@ -1094,32 +541,22 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "gameIndex",
-				"type": "uint256"
-			},
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
 				"internalType": "string",
 				"name": "gameName",
 				"type": "string"
-			}
-		],
-		"name": "getScoreAtGameOfUser",
-		"outputs": [
+			},
 			{
 				"internalType": "uint256",
-				"name": "",
+				"name": "raceId",
 				"type": "uint256"
+			}
+		],
+		"name": "getRules",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
 			}
 		],
 		"stateMutability": "view",
@@ -1141,9 +578,91 @@
 		"name": "getScoreAtRaceOfUser",
 		"outputs": [
 			{
-				"internalType": "uint256",
+				"internalType": "int256",
 				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
 				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getUserChoices",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
+		"name": "getWinner",
+		"outputs": [
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			},
+			{
+				"internalType": "int256[]",
+				"name": "",
+				"type": "int256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "player",
+				"type": "address"
+			}
+		],
+		"name": "isPlayerRegistered",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
@@ -1183,17 +702,46 @@
 				"type": "uint256"
 			}
 		],
-		"name": "questions",
+		"name": "races",
 		"outputs": [
 			{
-				"internalType": "string",
-				"name": "content",
-				"type": "string"
+				"internalType": "uint8",
+				"name": "storyKey",
+				"type": "uint8"
 			},
 			{
+				"internalType": "uint8",
+				"name": "numOfPlayersRequired",
+				"type": "uint8"
+			},
+			{
+				"internalType": "uint64",
+				"name": "endAt",
+				"type": "uint64"
+			},
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "string",
-				"name": "imgUrl",
+				"name": "",
 				"type": "string"
+			}
+		],
+		"name": "targetContracts",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -1228,24 +776,6 @@
 				"type": "bool"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "raceId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "gameName",
-				"type": "string"
-			}
-		],
-		"name": "validateGameCompletion",
-		"outputs": [],
 		"stateMutability": "view",
 		"type": "function"
 	},

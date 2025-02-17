@@ -1,49 +1,22 @@
 import { useEffect } from "react";
 import LoadingBackground from "../../assets/loading/loading-bg.jpg";
-import { distributeRewardOfTheGame } from "../../utils/contract-functions";
-import { config } from "../../config/wagmi";
-import { waitForTransactionReceipt  } from '@wagmi/core';
-import { useSmartAccount } from "../../hooks/smartAccountProvider";
+
 
 function LoadingModal({
-  raceId, gameIndex, questionIndexes, closeHandler, answers
+  closeHandler, distributeFunction
 }: {
-  raceId: number,
-  gameIndex: number,
-  questionIndexes: number[],
   closeHandler: () => void;
-  answers: any[];
+  distributeFunction: () => Promise<void>;
 }) {
-  const { smartAccountClient, smartAccountAddress } = useSmartAccount();
-
   useEffect(() => {
-    if (raceId.toString() && gameIndex.toString() && questionIndexes) {
-      console.log("ANSWERS", { answers, answersAreSimilar: new Set(answers).size === 1 });
-      distributeRewardOfTheGame(
-        raceId, 
-        gameIndex, 
-        questionIndexes, 
-        smartAccountClient, 
-        new Set(answers).size === 1, 
-        smartAccountAddress
-      )
-        .then(data => {
-          console.log("Distribute reward:", data);
-          // wait for tx to finish before finalizing scores on next modal (win / lose modal)
-          const waitForTx = async(hash: `0x${string}`) => {
-            await waitForTransactionReceipt(config, {
-              confirmations: 0,
-              pollingInterval: 300,
-              hash,
-            });
-            closeHandler();
-          }
-          waitForTx(data);
-        }).catch(err => {
-          console.log("Distribute reward error:", err);
-          closeHandler();
-        });
-    }
+    distributeFunction()
+      .then(data => {
+        console.log("Distribute reward:", data);
+        closeHandler();
+      }).catch(err => {
+        console.log("Distribute reward error:", err);
+        closeHandler();
+      });
   }, []);
 
   return (

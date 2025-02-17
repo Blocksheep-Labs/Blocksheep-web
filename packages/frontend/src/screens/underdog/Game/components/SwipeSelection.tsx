@@ -1,6 +1,7 @@
 import TinderCard from "react-tinder-card";
 import { RefObject, forwardRef, useImperativeHandle, useRef } from "react";
 import LazyImage from "./image-loading/lazy-image";
+import { TQuestion } from "..";
 
 type Direction = "left" | "right" | "up" | "down";
 
@@ -17,9 +18,9 @@ const Content = ({ question }: { question: string }) => (
 
 export type SwipeSelectionProps = {
   onFinish: () => void;
-  leftAction: (qIndex: number) => void;
-  rightAction: (qIndex: number) => void;
-  questions: any[]; // Array of questions
+  leftAction: () => void;
+  rightAction: () => void;
+  questions: TQuestion[]; // Array of questions
   currentQuestionIndex: number; // Index of the current question
   disabled: boolean;
   answeredQuestions: Set<number>;
@@ -46,9 +47,9 @@ const SwipeSelection = forwardRef<unknown, SwipeSelectionProps>(
 
       // Handle swipe direction
       if (direction === "left") {
-        leftAction(index);
+        leftAction();
       } else if (direction === "right") {
-        rightAction(index);
+        rightAction();
       }
     };
 

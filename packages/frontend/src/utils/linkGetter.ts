@@ -1,5 +1,6 @@
 
 export type TFlowPhases = 
+    "DRIVERS" |
     "STORY_INTRO" | 
     "RACE_START" | 
     "UNDERDOG_PREVIEW" |
@@ -24,11 +25,13 @@ export type TFlowPhases =
     "STORY_PART_4" | 
     "STORY_CONCLUSION" |
     "RATE" | 
-    "PODIUM"
+    "PODIUM" | 
+    "LEVEL_UPDATE"
 ;
 
 export default function generateLink(phase: TFlowPhases, raceId: number) {
     switch (phase) {
+        case "DRIVERS": return `/race/${raceId}/drivers`
         case "STORY_INTRO": return `/race/${raceId}/story/intro`
 
         case "RACE_START": return `/race/${raceId}/countdown`
@@ -63,6 +66,8 @@ export default function generateLink(phase: TFlowPhases, raceId: number) {
         case "STORY_CONCLUSION": return `/race/${raceId}/story/conclusion`
         case "RATE": return `/race/${raceId}/rate`
         case "PODIUM": return `/race/${raceId}/stats`
+
+        case "LEVEL_UPDATE": return `/race/${raceId}/level-update`
 
         default: return "/"
     }

@@ -10,9 +10,13 @@ import {
   ENTRYPOINT_ADDRESS_V07,
 } from "permissionless";
 import { EntryPoint } from "permissionless/types";
-import { createPimlicoBundlerClient, createPimlicoPaymasterClient } from "permissionless/clients/pimlico";
+import { 
+  createPimlicoBundlerClient, 
+  createPimlicoPaymasterClient,  
+} from "permissionless/clients/pimlico";
 import { PIMLICO_BUNDLER_URL, PIMLICO_PAYMASTER_URL, SELECTED_NETWORK } from "../config/constants";
-console.log("SELECTED NETWORK:", SELECTED_NETWORK);
+
+
 /** Interface returned by custom `useSmartAccount` hook */
 interface SmartAccountInterface {
   /** Privy embedded wallet, used as a signer for the smart account */
@@ -97,20 +101,21 @@ export const SmartAccountProvider = ({
         {
           signer: customSigner,
           safeVersion: '1.4.1',
-          entryPoint: ENTRYPOINT_ADDRESS_V07
+          entryPoint: ENTRYPOINT_ADDRESS_V07,
         }
       );
 
       const pimlicoPaymaster = createPimlicoPaymasterClient({
-        chain: SELECTED_NETWORK,
+        //chain: SELECTED_NETWORK,
         transport: http(PIMLICO_PAYMASTER_URL),
         entryPoint: ENTRYPOINT_ADDRESS_V07,
       });
 
       const pimlicoBundler = createPimlicoBundlerClient({
+        //chain: SELECTED_NETWORK,
         transport: http(PIMLICO_PAYMASTER_URL),
         entryPoint: ENTRYPOINT_ADDRESS_V07,
-      })
+      });
 
       const smartAccountClient = createSmartAccountClient({
         account: safeAccount,

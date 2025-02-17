@@ -26,9 +26,14 @@ const createRace = async(raceId, storyKey) => {
     return await Race.insertMany([ {raceId, storyKey} ]);
 }
 
+const getUserParticipatesIn = async(userAddress) => {
+    return await Race.find({ users: userAddress });
+}
+
 
 module.exports = {
     insertUser,
     getRaceDataById,
     createRace,
+    getUserParticipatesIn,
 }

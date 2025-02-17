@@ -125,7 +125,8 @@ export default function StoryScreen() {
                 redirectLink = generateLink("BULL_RUN_PREVIEW", Number(raceId)); 
                 break;
             case "part3": 
-                redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                // redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
+                redirectLink = generateLink("RATE", Number(raceId));
                 break;
             case "part4":
                 redirectLink = generateLink("RATE", Number(raceId));
@@ -150,15 +151,13 @@ export default function StoryScreen() {
 
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 6);
             setSeconds(6);
             restart(time);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
     // handle socket events
     useEffect(() => {
@@ -196,12 +195,14 @@ export default function StoryScreen() {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
+                        /*
                         if (!modalIsOpen) {
                             setModalIsOpen(true);
                         }
                         setModalType("waiting");
+                        */
                     } else {
-                        setTimeout(handleExpire, 2000);
+                        handleExpire();
                     }
                 }
             });
@@ -214,6 +215,40 @@ export default function StoryScreen() {
         }
     }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState, part]);
 
+    
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: `story-${part}`,
+                });
+                navigate(generateLink(screen, Number(raceId)));
+            });
+            
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== getStoryPart(part as string)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `story-${part}`,
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+            
+            return () => {
+                socket.off('screen-changed');
+                socket.off('latest-screen');
+            }
+        }
+    }, [raceId, socket]);
+    
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {
             httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
@@ -229,9 +264,22 @@ export default function StoryScreen() {
             setTimeout(() => {
                 console.log("Emitting connect live game event...");
                 socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getStoryPart(part) });
+                socket.emit("get-latest-screen", { raceId, part: getStoryPart(part) });
             }, 700);
         }
     }, [smartAccountAddress, socket, raceId, part]);
+    
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
 
     return (
         <div className="bg-white relative" style={{ height: `${window.innerHeight}px` }}>

@@ -5,6 +5,8 @@ const racesRouter = express.Router();
 
 racesRouter.get('/id', racesController.getRaceDataById);
 
+racesRouter.get('/participates', racesController.getUserParticipatesIn);
+
 racesRouter.post('/insert-user', racesController.insertUser);
 
 racesRouter.post('/create', racesController.createRace);

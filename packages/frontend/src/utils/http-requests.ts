@@ -46,3 +46,17 @@ export const httpCreateRace = async(raceId: string, storyKey: number) => {
         raceId, storyKey
     });
 }
+
+export const httpGetRacesUserParticipatesIn = async(address: string) => {
+    /*
+    return await axios.get(`${SERVER_BASE}/races/participates`, {
+        params: {
+            address,
+        }
+    });
+    */
+    
+    const racesWhereUserParticipates = JSON.parse((localStorage.getItem("races")) as string) || [];
+
+    return { data: { races: racesWhereUserParticipates } };
+}

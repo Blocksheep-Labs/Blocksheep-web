@@ -11,7 +11,7 @@ function Timer({ seconds }: TimerProps) {
     <div className="mx-auto flex w-[54%] flex-col items-center">
       <img src={Clock} alt="" className="mb-2 w-4" />
       <div className="w-full bg-white">
-        <img src={ProgressGradient} alt="" style={{ width: `${seconds * 10}%`, height: 7 }} />
+        <img src={ProgressGradient} className="transition-all duration-500" alt="" style={{ width: `${seconds * 10}%`, height: 7 }} />
       </div>
     </div>
   );

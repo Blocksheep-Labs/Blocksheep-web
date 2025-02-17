@@ -46,8 +46,6 @@ export default function RateScreen() {
     const {raceId} = useParams();
     const {smartAccountAddress} = useSmartAccount();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [modalType, setModalType] = useState<"waiting" | "leaving" | undefined>(undefined);
     const [secondsVisual, setSecondsVisual] = useState(1000);
 
     const time = new Date();
@@ -77,16 +75,13 @@ export default function RateScreen() {
 
 
     useEffect(() => {
-        if (gameState && amountOfConnected >= gameState.amountOfRegisteredUsers) {    
-          
+        if (gameState) {    
             const time = new Date();
             time.setSeconds(time.getSeconds() + 10);
             restart(time);
             setSecondsVisual(10);
-        } else {
-            pause();
         }
-    }, [amountOfConnected, gameState]);
+    }, [gameState]);
 
 
     // handle socket events
@@ -97,10 +92,12 @@ export default function RateScreen() {
                 if (raceId === raceIdSocket) {
                     setAmountOfConnected(amount);
                     // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
-                    if (amount === gameState.amountOfRegisteredUsers) {
+                    /*
+                    if (amount) {
                         setModalIsOpen(false);
                         setModalType(undefined);
                     }
+                    */
                 }
             });
 
@@ -125,12 +122,14 @@ export default function RateScreen() {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
+                        /*
                         if (!modalIsOpen) {
                             setModalIsOpen(true);
                         }
                         setModalType("waiting");
+                        */
                     } else {
-                        setTimeout(handleExpire, 2000);
+                        handleExpire();
                     }
                 }
             });
@@ -145,15 +144,61 @@ export default function RateScreen() {
 
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length) {
-            setModalIsOpen(true);
-            setModalType("waiting");
+            // setModalIsOpen(true);
+            // setModalType("waiting");
             if (!socket.connected) {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RATE" });
+            socket.emit("get-latest-screen", { raceId, part: "RATE" });
         }
     }, [smartAccountAddress, socket, raceId]);
 
+    useEffect(() => {
+        if (raceId && socket) {
+            if (!socket.connected) {
+                socket.connect();
+            }
+            
+            socket.on('screen-changed', ({ screen }) => {
+                socket.emit('update-progress', {
+                    raceId,
+                    userAddress: smartAccountAddress,
+                    property: `rate`,
+                });
+                
+                navigate(generateLink(screen, Number(raceId)));
+            });
+
+            socket.on('latest-screen', ({ screen }) => {
+                if (screen !== "RATE") {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `rate`,
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
+            });
+    
+            return () => {
+                socket.off('screen-changed');
+                socket.off('latest-screen');
+            }
+        }
+    }, [raceId, socket]);
+
+    // kick player if page chnages (closes)
+    useEffect(() => {
+        const handleTabClosing = (e: any) => {
+            e.preventDefault();
+            socket.disconnect();
+        }
+        window.addEventListener('unload', handleTabClosing);
+        return () => {
+            window.removeEventListener('unload', handleTabClosing);
+        }
+    }, [socket, smartAccountAddress, raceId]);
 
 
     return (

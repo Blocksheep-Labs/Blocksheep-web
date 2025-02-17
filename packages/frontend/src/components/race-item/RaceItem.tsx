@@ -41,10 +41,11 @@ type RaceItemProps = {
   race: Race;
   onClickJoin: (a: number) => void;
   onClickRegister: (id: number , questionsCount: number) => Promise<void>;
-  cost: number
+  cost: number;
+  participatesIn: string[];
 };
 
-function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
+function RaceItem({ race, onClickJoin, onClickRegister, cost, participatesIn }: RaceItemProps) {
   const { smartAccountClient } = useSmartAccount();
   // const { contract: blockSheep } = useContract(BLOCK_SHEEP_CONTRACT);
   // const { mutateAsync: register } = useContractWrite(blockSheep, "register");
@@ -59,7 +60,8 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
     console.log("Withdraw balance hash:", hash);
     await waitForTransactionReceipt(config, {
       hash,
-      confirmations: 2
+      confirmations: 0,
+      pollingInterval: 300,
     });
     setLoading(false);
   }
@@ -83,6 +85,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
       clearInterval(intId);
     }
   }, []);
+
 
   return (
     <div className="outerLayer BaseLayer">
@@ -121,13 +124,13 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
               </div>
 
               <div className="gridItem">
-                <div className="timerBox">
+                <div className="timerBox max-w-[78px] overflow-hidden">
                   <img
                     src={TimerIcon}
                     alt="Timer Icon"
                     className="timerIcon"
                   />
-                  <span>
+                  <span className="">
                     {
                       timeLeft < 0
                       ?
@@ -173,7 +176,7 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
                       return (
                         race.registered 
                         ? 
-                        <div className="buttonBox joinButton" onClick={() => onClickJoin(race.id)}>Join</div> 
+                        <div className="buttonBox joinButton" onClick={() => onClickJoin(race.id)}>{participatesIn.map(i => Number(i)).includes(race.id) ? 'Rejoin' : 'Join'}</div> 
                         : 
                         <div className="buttonBox joinButton" onClick={() => handleRegister(race.id)}>Enroll</div>
                       );
@@ -205,8 +208,10 @@ function RaceItem({ race, onClickJoin, onClickRegister, cost }: RaceItemProps) {
           />
         </div>
       </div>
-
-      <button onClick={() => onClickJoin(race.id)}>Force join</button>
+                
+      {
+         <button onClick={() => onClickJoin(race.id)}>Force join</button>
+      }
     </div>
   );
 }

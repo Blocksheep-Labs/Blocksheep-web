@@ -4,7 +4,6 @@ import MockUsdcAbi from "../contracts/MockUSDC.json";
 import { readContract, readContracts } from '@wagmi/core';
 import { config } from "../config/wagmi";
 import { encodeFunctionData } from "viem";
-import { title } from "process";
 
 const SELECTED_CHAIN = SELECTED_NETWORK;
 
@@ -70,8 +69,14 @@ export const getRacesWithPagination = async(userAddr: `0x${string}`, from: numbe
 
     // @ts-ignore
     data = data.filter(r => {
+
         // if not refunced
         if (!r.refunded) {
+            // user not registered and it is 2/2 or 9/9 players in game
+            if (!r.registered && r.registeredUsers.length == r.numOfPlayersRequired) {
+                return false;
+            }
+
             // user was regiistered into the race
             if (r.registered && ([1,2,3,4].includes(Number(r.status)))) {
                 //console.log(r)
@@ -110,7 +115,7 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
     const data = await readContract(config, {
         ...BLOCK_SHEEP_BASE_CONFIG,
         functionName: "getRaces",
-        args: [BigInt(raceId), userAddr]
+        args: [BigInt(raceId), userAddr],
     });
 
     // @ts-ignore
@@ -171,12 +176,12 @@ export const getRaceById = async(raceId: number, userAddr: `0x${string}`) => {
 // enter the race
 export const registerOnTheRace = async(raceId: number, numberOfQuestions: number, smartAccountClient: any, smartAccountAddress: any) => {
     const COST = await retreiveCOST();
-    const decimals = await getTokenDecimals();
-   
     
     const userBalance = await getUserBalance(smartAccountAddress);
 
-    const needToDeposit = numberOfQuestions * Number(COST);
+
+    const decimals = await getTokenDecimals();
+    const needToDeposit = 30 * 10 * 10**Number(decimals);
 
     console.log({userBalance, needToDeposit, isEnough: Number(userBalance) >= needToDeposit});
 
@@ -479,6 +484,27 @@ export const buyTokens = async(amount: number, smartAccountClient: any, smartAcc
     console.log("DEPOSIT:", depositHash);
     return depositHash;
 } 
+
+export const getTestETH = async(amount: number, smartAccountClient: any, smartAccountAddress: any, currentETHBlance: number) => {
+    const decimals = await getTokenDecimals();
+    const needToDeposit = amount * 10 * 10**Number(decimals);
+
+    console.log(currentETHBlance, 0.0012, currentETHBlance < 0.0012)
+    if (!currentETHBlance || currentETHBlance < 0.0012) {
+        console.log('getting test ETH...');
+        const mintHash = await smartAccountClient.sendTransaction({
+            account: smartAccountClient.account!,
+            chain: SELECTED_CHAIN,
+            to: USDC_ADDR,
+            data: encodeFunctionData({
+                abi: MockUsdcAbi,
+                functionName: "mint",
+                args: [smartAccountAddress, needToDeposit, (!currentETHBlance || currentETHBlance < 0.0012)]
+            }),
+        });
+        console.log("MINT:", mintHash);
+    }
+}
 
 export const withdrawTokens = async(amount: number, smartAccountClient: any) => {
     const withdrawHash = await smartAccountClient.sendTransaction({

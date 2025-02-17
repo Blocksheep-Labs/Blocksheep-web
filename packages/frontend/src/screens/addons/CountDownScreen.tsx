@@ -15,7 +15,7 @@ import { useGameContext } from "../../utils/game-context";
 function CountDownScreen() {
   const { gameState, setGameStateObject } = useGameContext();
   const { smartAccountAddress } = useSmartAccount();
-  const [seconds, setSeconds] = useState(5);
+  const [seconds, setSeconds] = useState(7);
   const navigate = useNavigate();
   const {raceId} = useParams();
   const [progress, setProgress] = useState<{ curr: number; delta: number; address: string }[]>([]);
@@ -97,24 +97,24 @@ function CountDownScreen() {
   }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
-    if (data && amountOfConnected >= data.numberOfPlayersRequired) {
+    if (data) {
       const interval = setInterval(() => {
-        setSeconds((old) => (old > 0 ? old - 1 : 0));
+        setSeconds((old) => old - 1);
       }, 1000);
 
       return () => {
-        setSeconds(5);
+        setSeconds(7);
         clearInterval(interval);
       };
     }
-  }, [amountOfConnected, data]);
+  }, [data]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
-    if (seconds === 0 && data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (seconds === -1 && data) {
       handleClose();
     }
-  }, [seconds, amountOfConnected, data]);
+  }, [seconds, data]);
 
   // handle socket events
   useEffect(() => {
@@ -136,25 +136,25 @@ function CountDownScreen() {
   
           if (raceId == raceIdSocket && part == "RACE_START") {
             console.log("JOINED++")
-            /*
-            setAmountOfConnected(amountOfConnected + 1);
-            if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
-              setModalIsOpen(false);
-              setModalType(undefined);
-            }
-            */
             socket.emit("get-connected", { raceId });
           }
       });
 
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == "RACE_START" && raceIdSocket == raceId && !movedToNext) {
-          console.log("LEAVED")
-          setAmountOfConnected(amountOfConnected - 1);
+          
+          if (!movedToNext) {
+            console.log("LEAVED")
+            setAmountOfConnected(amountOfConnected - 1);
+          } else {
+            handleClose();
+          }
+          /*
           if (!modalIsOpen) {
             setModalIsOpen(true);
           }
           setModalType("waiting");
+          */
         }
       });
 
@@ -182,9 +182,56 @@ function CountDownScreen() {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: "RACE_START" });
+        socket.emit("get-latest-screen", { raceId, part: "RACE_START" });
     }
   }, [smartAccountAddress, socket, raceId]);
 
+  useEffect(() => {
+      if (raceId && socket) {
+          if (!socket.connected) {
+              socket.connect();
+          }
+          
+          socket.on('screen-changed', ({ screen }) => {
+              socket.emit('update-progress', {
+                raceId, 
+                userAddress: smartAccountAddress,
+                property: "countdown",
+                value: true,
+              });
+              navigate(generateLink(screen, Number(raceId)));
+          });
+
+          socket.on('latest-screen', ({ screen }) => {
+            if (screen !== "RACE_START") {
+              socket.emit('update-progress', {
+                raceId, 
+                userAddress: smartAccountAddress,
+                property: "countdown",
+                value: true,
+              });
+              navigate(generateLink(screen, Number(raceId)));
+            }
+          });
+  
+          return () => {
+              socket.off('screen-changed');
+              socket.off('latest-screen');
+          }
+      }
+  }, [raceId, socket]);
+
+  // kick player if page chnages (closes)
+  useEffect(() => {
+      const handleTabClosing = (e: any) => {
+          e.preventDefault();
+          socket.disconnect();
+      }
+      window.addEventListener('unload', handleTabClosing);
+      return () => {
+          window.removeEventListener('unload', handleTabClosing);
+      }
+  }, [socket, smartAccountAddress, raceId]);
 
   return (
     <>
@@ -192,16 +239,18 @@ function CountDownScreen() {
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           <RaceBoard progress={progress} users={users}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">
-            { seconds <= 4 && <Countdown321/> }
+            { seconds <= 5 && <Countdown321/> }
           </div>
         </div>
       </div>
       {
+        /*
         modalIsOpen && modalType === "waiting" && 
           <WaitingForPlayersModal 
             numberOfPlayers={amountOfConnected} 
             numberOfPlayersRequired={data?.numberOfPlayersRequired || 9}
           />
+        */
       }
     </>
   );

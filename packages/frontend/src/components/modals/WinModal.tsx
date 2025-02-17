@@ -4,6 +4,7 @@ import WinMain from "../../assets/win/win-main.webp";
 import NextFlag from "../../assets/common/flag.png";
 import { getScoreAtGameOfUser, getScoreAtRaceOfUser } from "../../utils/contract-functions";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { socket } from "../../utils/socketio";
 
 export type WinModalProps = {
   handleClose: () => void;
@@ -11,9 +12,10 @@ export type WinModalProps = {
   gameIndex?: number;
   preloadedScore?: number;
   gameName: string;
+  secondsLeft: number;
 };
 
-function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName }: WinModalProps) {
+function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName, secondsLeft }: WinModalProps) {
   const { smartAccountAddress } = useSmartAccount();
   const [score, setScore] = useState<null | number>(null);
 
@@ -26,7 +28,18 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName }: 
           setScore(Number(data));
         });
     }
-  }, [raceId, gameIndex, smartAccountAddress, preloadedScore])
+  }, [raceId, gameIndex, smartAccountAddress, preloadedScore]);
+
+  // add user points on server side
+  useEffect(() => {
+    if ((preloadedScore !== undefined || score) && smartAccountAddress) {
+      socket.emit('player-add-points', {
+        raceId,
+        userAddress: smartAccountAddress,
+        points: preloadedScore || score,
+      });
+    }
+  }, [preloadedScore, score, smartAccountAddress]);
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
@@ -42,10 +55,10 @@ function WinModal({ handleClose, raceId, gameIndex, preloadedScore, gameName }: 
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">
         <button
-          className="absolute mt-[5%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[36px] text-[#18243F] hover:text-white"
+          className="absolute mt-[10%] w-full -rotate-12 text-center font-[Berlin-Bold] text-[23px] text-[#18243F] hover:text-white"
           onClick={handleClose}
         >
-          Next
+          Next ({secondsLeft}s)
         </button>
         <img src={NextFlag} alt="next-flag" />
       </div>

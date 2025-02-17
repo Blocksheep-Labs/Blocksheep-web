@@ -1,33 +1,33 @@
-import SelectRaceScreen from "./screens/basic/SelectRaceScreen";
+import SelectRaceScreen from "./screens/basic/SelectRace";
 import BottomTab from "./components/BottomTab";
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
-import UnderdogGame from "./screens/underdog/Underdog";
+import UnderdogGame from "./screens/underdog/Game";
 import CountDownScreen from "./screens/addons/CountDownScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
-import AccountScreen from "./screens/basic/AccountScreen";
-import RabbitHoleGame from "./screens/rabbit-hole/RabbitHole";
+import RabbitHoleGame from "./screens/rabbit-hole/Game";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
-import HomeScreen from "./screens/basic/HomeScreen";
-import AdminScreen from "./screens/basic/AdminScreen";
-import UnderdogCover from "./screens/underdog/UnderdogCover";
-import UnderdogRules from "./screens/underdog/UnderdogRules";
-import RabbitHoleRules from "./screens/rabbit-hole/RabbitHoleRules";
-import RabbitHoleCover from "./screens/rabbit-hole/RabbitHoleCover";
-import StatsScreen from "./screens/addons/StatsScreen";
+import HomeScreen from "./screens/basic/Home";
+import AdminScreen from "./screens/basic/Admin/AdminScreen";
+import UnderdogCover from "./screens/underdog/Intro";
+import UnderdogRules from "./screens/underdog/Rules";
+import RabbitHoleRules from "./screens/rabbit-hole/Rules";
+import RabbitHoleCover from "./screens/rabbit-hole/Intro";
+import StatsScreen from "./screens/addons/Stats";
 import RateScreen from "./screens/addons/RateScreen";
-import BullrunCover from "./screens/bullrun/BullrunCover";
-import BullrunRules from "./screens/bullrun/BullrunRules";
-import Bullrun from "./screens/bullrun/Bullrun";
+import BullrunCover from "./screens/bullrun/Intro";
+import BullrunRules from "./screens/bullrun/Rules";
+import Bullrun from "./screens/bullrun/Game";
 import StoryScreen from "./screens/addons/StoryScreen";
 import RaceUpdateScreen from "./screens/addons/RaceUpdateScreen";
-
+import AccountScreen from "./screens/basic/Account";
+import LevelUpdateScreen from "./screens/addons/LevelUpdate";
+import DriversScreen from "./screens/drivers/SelectColor";
 
 function App() {
-  import('eruda').then(eruda => eruda.default.init());
+  import("eruda").then((eruda) => eruda.default.init());
 
-  
   useEffect(() => {
     socket.connect();
   }, [socket]);
@@ -54,20 +54,20 @@ function App() {
           }
         />
 
-        <Route 
+        <Route
           path="race/:raceId/race-update/:board"
           element={
             <ProtectedRoute>
-              <RaceUpdateScreen/>
+              <RaceUpdateScreen />
             </ProtectedRoute>
           }
         />
 
-        <Route 
+        <Route
           path="race/:raceId/story/:part"
           element={
             <ProtectedRoute>
-              <StoryScreen/>
+              <StoryScreen />
             </ProtectedRoute>
           }
         />
@@ -121,7 +121,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* RABBIT HOLE GAME */}
         <Route
           path="race/:raceId/rabbit-hole/:version"
@@ -182,6 +182,26 @@ function App() {
           }
         />
 
+        {/* RACE LEVEL UPDATE */}
+        <Route
+          path="race/:raceId/level-update"
+          element={
+            <ProtectedRoute>
+              <LevelUpdateScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RACE DRIVERS */}
+        <Route
+          path="race/:raceId/drivers"
+          element={
+            <ProtectedRoute>
+              <DriversScreen />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="account"
           element={
@@ -192,12 +212,7 @@ function App() {
         />
 
         {/* admin panel */}
-        <Route 
-          path="admin"
-          element={
-            <AdminScreen/>
-          }
-        />
+        <Route path="admin" element={<AdminScreen />} />
       </Route>
     </Routes>
   );
@@ -206,7 +221,10 @@ function App() {
 function Layout() {
   const { pathname } = useLocation();
   return (
-    <div className={`relative m-auto w-full bg-black sm:max-w-sm`} style={{ height: `${window.innerHeight}px` }}>
+    <div
+      className={`relative m-auto w-full bg-black sm:max-w-sm`}
+      style={{ height: `${window.innerHeight}px` }}
+    >
       {["/select"].includes(pathname) && <Header />}
       <Outlet />
       {pathname === "play" && <BottomTab />}

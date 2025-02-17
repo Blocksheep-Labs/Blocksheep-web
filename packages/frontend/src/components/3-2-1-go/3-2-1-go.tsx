@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import "./3-2-1-go.css";
 
 const Countdown321 = () => {
-  const [count, setCount] = useState(3);
-  const [message, setMessage] = useState('3');
+  const [message, setMessage] = useState('5');
 
   useEffect(() => {
     startCountdown();
   }, []);
 
   const startCountdown = () => {
-    let countdownValue = count;
+    let countdownValue = 5;
 
     const interval = setInterval(() => {
       if (countdownValue > 1) {
@@ -18,8 +17,8 @@ const Countdown321 = () => {
         setMessage(countdownValue.toString());
       } else if (countdownValue === 1) {
         setMessage('Go!');
-        countdownValue--;
       } else {
+        countdownValue--;
         clearInterval(interval);
       }
     }, 1000);
@@ -29,9 +28,24 @@ const Countdown321 = () => {
     <div style={styles.container}>
       <div
         className={`countdown-text ${message === 'Go!' ? 'go-style' : 'count-style'}`}
-        key={message}
+        key={Number(message) <= 3 ? message : "text-key"}
       >
-        {message}
+        {
+          (() => {
+            if (Number(message) > 3) {
+              return (
+                <div className="intro-container">
+                  <div className="intro-line">WIN THE MINI GAMES</div>
+                  <div className="intro-line">TO ADVANCE THE RACE</div>
+                </div>
+              );
+            } else {
+              return (
+                <>{message}</>
+              );
+            }
+          })()
+        }
       </div>
     </div>
   );

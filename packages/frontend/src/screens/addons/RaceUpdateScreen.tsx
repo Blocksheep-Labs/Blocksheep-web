@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import RaceBoard from "../../components/RaceBoard";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getRaceById } from "../../utils/contract-functions";
 import { socket } from "../../utils/socketio";
-import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { httpGetRaceDataById } from "../../utils/http-requests";
 import generateLink from "../../utils/linkGetter";
@@ -140,6 +139,11 @@ function RaceUpdateScreen() {
 
           // SERVER DATA
           setUsers(data?.serverData?.race?.users || []);
+
+          // means that all the games were passed, we have to distribute level and so on...
+          if (board == "board3") {
+            socket.emit('race-finish', { raceId, userAddress: smartAccountAddress });
+          }
         }
       });
 
@@ -147,7 +151,7 @@ function RaceUpdateScreen() {
   }, [raceId, smartAccountAddress]);
 
   useEffect(() => {
-    if (data && amountOfConnected === data.numberOfPlayersRequired) {
+    if (data) {
       setSecondsVisual(10);
       const interval = setInterval(() => {
         setSeconds((old) => (old > 0 ? old - 1 : 0));
@@ -158,19 +162,19 @@ function RaceUpdateScreen() {
         clearInterval(interval);
       };
     }
-  }, [amountOfConnected, data]);
+  }, [data]);
 
   useEffect(() => {
     // eslint-disable-next-line no-undef
     let timer: NodeJS.Timeout;
-    if (seconds === 0 && data && amountOfConnected >= data.numberOfPlayersRequired) {
+    if (seconds === 0 && data) {
       timer = setTimeout(handleClose, 1000);
       handleClose();
     }
     return () => {
       clearTimeout(timer);
     };
-  }, [seconds, amountOfConnected, data]);
+  }, [seconds, data]);
 
   // handle socket events
   useEffect(() => {
@@ -208,12 +212,18 @@ function RaceUpdateScreen() {
 
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
         if (part == getPart(board) && raceId == raceIdSocket && !movedToNext) {
-          console.log("LEAVED")
-          setAmountOfConnected(amountOfConnected - 1);
+          if (!movedToNext) {
+            console.log("LEAVED")
+            setAmountOfConnected(amountOfConnected - 1);
+          } else {
+            handleClose();
+          }
+          /*
           if (!modalIsOpen) {
             setModalIsOpen(true);
           }
           setModalType("waiting");
+          */
         }
       });
 
@@ -239,14 +249,64 @@ function RaceUpdateScreen() {
     }
   }, [socket, raceId, smartAccountAddress, data]);
 
+  
+  
+  useEffect(() => {
+    if (raceId && socket) {
+      if (!socket.connected) {
+        socket.connect();
+      }
+      
+      socket.on('screen-changed', ({ screen }) => {
+        socket.emit('update-progress', {
+          raceId, 
+          userAddress: smartAccountAddress,
+          property: board,
+          value: true,
+        });
+        navigate(generateLink(screen, Number(raceId)));
+      });
+      
+      socket.on('latest-screen', ({ screen }) => {
+        if (screen !== getPart(board as string)) {
+          socket.emit('update-progress', {
+            raceId, 
+            userAddress: smartAccountAddress,
+            property: board,
+            value: true,
+          });
+          navigate(generateLink(screen, Number(raceId)));
+        }
+      });
+      
+      return () => {
+        socket.off('screen-changed');
+        socket.off('latest-screen');
+      }
+    }
+  }, [raceId, socket]);
+  
   useEffect(() => {
     if(smartAccountAddress && String(raceId).length && board && data) {
         if (!socket.connected) {
           socket.connect();
         }
         socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: getPart(board) });
+        socket.emit("get-latest-screen", { raceId, part: getPart(board) });
     }
   }, [smartAccountAddress, socket, raceId, board, data]);
+
+  // kick player if page chnages (closes)
+  useEffect(() => {
+      const handleTabClosing = (e: any) => {
+          e.preventDefault();
+          socket.disconnect();
+      }
+      window.addEventListener('unload', handleTabClosing);
+      return () => {
+          window.removeEventListener('unload', handleTabClosing);
+      }
+  }, [socket, smartAccountAddress, raceId]);
 
 
   return (
@@ -255,7 +315,7 @@ function RaceUpdateScreen() {
         <TopPageTimer duration={secondsVisual * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           { 
-            <RaceBoard progress={progress} users={users}/> 
+            <RaceBoard progress={progress} users={users}/>
           }
         </div>
       </div>

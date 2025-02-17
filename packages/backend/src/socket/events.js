@@ -57,10 +57,12 @@ export const applySocketEvents = (io) => {
         // when user disconnects
         socket.on('disconnect', async() => {
             // Find all rooms this socket was connected to before filtering
+            console.log(`User ${socket.id} disconnecting...`);
             const userConnection = await ConnectedUser.findOne({ id: socket.id });
+            console.log(`Connection instance id: ${userConnection?._id}, addr: ${userConnection?.userAddress}`);
             
             if (!userConnection) {
-                //console.log("No user active session, skip leave event");
+                console.log("No user active session, player-leave cleanup skipped.");
                 return;
             }
 
@@ -68,7 +70,7 @@ export const applySocketEvents = (io) => {
 
             // Remove user from connected users
             if (userConnection) {
-
+                console.log({ userConnection });
                 const usersInRace = connectedUsers.filter(u => (u.id !== socket.id) && (u.room == userConnection.room));
                 if (usersInRace.length == 0) {
                     //console.log("[alert] no users in game left!");
@@ -90,8 +92,16 @@ export const applySocketEvents = (io) => {
                 }
                 
                 // Leave rooms and emit events
-                
                 socket.leave(userConnection.room);
+                /*
+                console.log("Emitting leaved event: ", {
+                    socketId: socket.id,
+                    userAddress: userConnection.userAddress,
+                    raceId: userConnection.raceId,
+                    movedToNext: false,
+                    part: userConnection.part
+                });
+                */
                 io.to(userConnection.room).emit('leaved', {
                     socketId: socket.id,
                     userAddress: userConnection.userAddress,
@@ -122,10 +132,10 @@ export const applySocketEvents = (io) => {
                     })));
                     */
 
-          const remainingPlayersCount = remainingPlayers.length;
+                    const remainingPlayersCount = remainingPlayers.length;
 
-          // Calculate new required games based on remaining players
-          const newRequiredGames = Math.max(0, remainingPlayersCount - 1);
+                    // Calculate new required games based on remaining players
+                    const newRequiredGames = Math.max(0, remainingPlayersCount - 1);
 
                     // For each remaining player
                     remainingPlayers.forEach(async player => {
@@ -168,7 +178,7 @@ export const applySocketEvents = (io) => {
                         raceId: userConnection.raceId,
                     });
 
-                    const currentGameAndUserCounts = (await GameCounts.findOne({ raceId: userConnection.raceId })).count;
+                    const currentGameAndUserCounts = (await GameCounts.findOne({ raceId: userConnection.raceId }))?.count || 0;
                     const currentRaceGameCompletes = await GameCompletes.countDocuments({ raceId: userConnection.raceId });
 
                     // Emit updated game counts to all remaining players
@@ -182,13 +192,7 @@ export const applySocketEvents = (io) => {
                     });
                 }
 
-        /*
-                console.log("User disconnected:", {
-                    socketId: socket.id,
-                    userAddress: userConnection.userAddress,
-                    rooms: roomsToEmitDisconnectEvent
-                });
-                */
+                await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
             }
         });
     
@@ -216,6 +220,8 @@ export const applySocketEvents = (io) => {
                 room: roomName,
                 id: socket.id,
                 userAddress,
+                part,
+                raceId,
             };
             // console.log("create one", newUser)
             await ConnectedUser.create(newUser);
@@ -240,14 +246,14 @@ export const applySocketEvents = (io) => {
             io.to(roomName).emit('screen-changed', { screen: screensOrderDB.latestScreen });
             io.to(socket.id).emit('latest-screen', { raceId, screen: screensOrderDB.latestScreen });
 
-      socket.join(roomName);
-      io.to(roomName).emit("joined", {
-        socketId: socket.id,
-        userAddress,
-        raceId,
-        part,
-      });
-    });
+            socket.join(roomName);
+            io.to(roomName).emit("joined", {
+                socketId: socket.id,
+                userAddress,
+                raceId,
+                part,
+            });
+        });
 
 
 
@@ -280,7 +286,7 @@ export const applySocketEvents = (io) => {
             const roomsToEmitDisconnectEvent = connectedUsers.filter(i => i.id === socket.id).map(i => i.room);
             // rm user
             // console.log("rm on minimize")
-            await ConnectedUser.deleteOne({ id: socket.id });
+            await ConnectedUser.deleteMany({ userAddress: socket.userAddress });
             
             // send the socket events
             roomsToEmitDisconnectEvent.forEach(roomName => {

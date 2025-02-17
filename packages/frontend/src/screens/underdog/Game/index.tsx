@@ -29,10 +29,10 @@ import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
 
 // Assets
-import DogLoaderImage from "@/assets/underdog/background_head.webp";
+import DogLoaderImage from "../assets/dog-loader.png";
 
-import LoseTears from "../../../assets/win/LoseTears.png";
-import WinHat from "../../../assets/win/WinHat.png";
+import LoseTears from "../assets/LoseTears.png";
+import WinHat from "../assets/WinHat.png";
 
 
 export interface SwipeSelectionAPI {

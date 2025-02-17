@@ -1,17 +1,20 @@
 import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "@/config/constants";
-import { getUserBalance, retreiveCOST } from "@/utils/contract-functions";
+
 import { useSmartAccount } from "./smartAccountProvider";
 import { encodeFunctionData } from "viem";
 import BlockSheepAbi from "@/contracts/BlockSheep.json";
 import MockUsdcAbi from "@/contracts/MockUSDC.json";
+import { useUserGameBalance } from "./useUserGameBalance";
+import { useRaceEntryCOST } from "./useRaceEntryCost";
 
 
 export const useRegisterOnTheRace = () => {
-    const { smartAccountClient, smartAccountAddress } = useSmartAccount();
+    const { smartAccountClient } = useSmartAccount();
+    const userBalance = useUserGameBalance();
+    const entryCost = useRaceEntryCOST();
 
     const processTransaction = async(raceId: number) => {
-        const needToDeposit = Number(await retreiveCOST());
-        const userBalance = await getUserBalance(smartAccountAddress as string);
+        const needToDeposit = Number(entryCost);
 
         console.log({userBalance, needToDeposit, isEnough: Number(userBalance) >= needToDeposit});
 

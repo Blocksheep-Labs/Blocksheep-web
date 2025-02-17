@@ -3,7 +3,6 @@ import { useTimer } from "react-timer-hook";
 import { socket } from "../../../utils/socketio";
 import { useEffect, useState } from "react";
 import { useSmartAccount } from "../../../hooks/smartAccountProvider";
-import { BULLRUN_getPerksMatrix } from "../../../utils/contract-functions";
 import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
 import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
 import { useGameContext } from "../../../utils/game-context";
@@ -21,7 +20,6 @@ export default function BullrunRules() {
     const {smartAccountAddress} = useSmartAccount();
     const {gameState} = useGameContext();
     const [amountOfConnected, setAmountOfConnected] = useState(0);
-    const [pointsMatrix, setPointsMatrix] = useState<number[][]>([[0,0,0], [0,0,0], [0,0,0]]);
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const {race} = useRaceById(Number(raceId));
 
@@ -59,15 +57,6 @@ export default function BullrunRules() {
             setSecondsVisual(10);
         }
     }, [gameState]);
-
-    // fetch points matrix
-    useEffect(() => {
-        if (String(raceId).length) {
-            BULLRUN_getPerksMatrix(Number(raceId)).then(data => {
-                setPointsMatrix(data as number[][]);
-            });
-        }
-    }, [raceId]);
 
     // handle socket events
     useEffect(() => {

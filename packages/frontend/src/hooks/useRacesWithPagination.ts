@@ -1,5 +1,4 @@
-import { getRacesStatusesByIds } from "../utils/contract-functions";
-import { readContract } from "@wagmi/core";
+import { readContract, readContracts } from "@wagmi/core";
 import { config } from "../config/wagmi";
 import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
 import BlockSheepAbi from "../contracts/BlockSheep.json";
@@ -13,6 +12,22 @@ export const useRacesWithPagination = (from: number) => {
     const { smartAccountAddress } = useSmartAccount();
     const [ races, setRaces ] = useState<undefined | TRace[]>(undefined);
     const { rid: nextGameId } = useNextGameId();
+
+    const getRacesStatusesByIds = async(ids: number[]) => {
+        const data = await readContracts(config, {
+            // @ts-ignore
+            contracts: ids.map(raceId => {
+                return {
+                    address: BLOCK_SHEEP_CONTRACT,
+                    abi: BlockSheepAbi,
+                    functionName: "getRaceStatus",
+                    args: [BigInt(raceId)]
+                }
+            })
+        });
+    
+        return data.map(i => i.result);
+    } 
 
     const fetchRaces = async() => {
         if (Number(nextGameId) < from || Number(nextGameId) === 0) {

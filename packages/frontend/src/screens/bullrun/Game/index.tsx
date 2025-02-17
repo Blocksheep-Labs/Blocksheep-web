@@ -21,9 +21,6 @@ import shortenAddress from "@/utils/shortenAddress";
 import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import { txAttempts } from "@/utils/txAttempts";
 import { httpGetRaceDataById } from "@/utils/http-requests";
-import { 
-    
-} from "@/utils/contract-functions";
 
 // Assets
 import Shield from "../assets/defence.png";

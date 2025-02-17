@@ -122,8 +122,11 @@ function RabbitHoleGame() {
     navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
   }
   
-  const time = new Date();
-  time.setSeconds(time.getSeconds() + 10);
+  const time_5 = new Date();
+  time_5.setSeconds(time_5.getSeconds() + 5);
+
+  const time_10 = new Date();
+  time_10.setSeconds(time_10.getSeconds() + 10);
 
   useEffect(() => {
     console.log({phase, players})
@@ -131,14 +134,14 @@ function RabbitHoleGame() {
 
   // after game finish
   const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
-    expiryTimestamp: time,
+    expiryTimestamp: time_10,
     autoStart: false,
     onExpire: () => closeWinLoseModal()
   });
 
   // in-game
   const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
-    expiryTimestamp: time,
+    expiryTimestamp: time_5,
     onExpire: () => {
       handleTunnelChange(); 
     },
@@ -208,27 +211,25 @@ function RabbitHoleGame() {
       });
 
       socket.on('leaved', (data) => {
+        alert(`LEAVED: ${data.raceId} | ${raceId} ${data.raceId == raceId} | in: ${["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part)}`)
         if (data.raceId == raceId && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part)) {
-          
-          if (raceId == data.raceId) {
-            setAmountOfPending(prev => Math.max(0, prev - 1));
-            setAmountOfConnected(prev => Math.max(0, prev - 1));
-            setAmountOfPlayersNextClicked(prev => Math.max(0, prev - 1));
+          setAmountOfPending(prev => Math.max(0, prev - 1));
+          setAmountOfConnected(prev => Math.max(0, prev - 1));
+          setAmountOfPlayersNextClicked(prev => Math.max(0, prev - 1));
 
-            if (pendingTransactions.size > 0) {
-              // remove from pending transactions
-              const newSet = new Set(pendingTransactions);
-              newSet.delete(data?.userAddress);
-              setPendingTransactions(newSet);
-  
-              // check if all transactions are processed
-              const pendingCount = newSet.size;
-              console.log("Pending transactions:", pendingCount);
+          if (pendingTransactions.size > 0) {
+            // remove from pending transactions
+            const newSet = new Set(pendingTransactions);
+            newSet.delete(data?.userAddress);
+            setPendingTransactions(newSet);
 
-              tryToProcessAnimations(pendingCount, phase);
-            }
-            socket.emit("get-connected", { raceId });
+            // check if all transactions are processed
+            const pendingCount = newSet.size;
+            console.log("Pending transactions:", pendingCount);
+
+            tryToProcessAnimations(pendingCount, phase);
           }
+          socket.emit("get-connected", { raceId });
         }
       });
 
@@ -262,7 +263,7 @@ function RabbitHoleGame() {
                 if (response.data.gameState === "default") {
                   // Restart timer and sync with other players
                   const time = new Date();
-                  time.setSeconds(time.getSeconds() + 10); // Reset to 10 seconds
+                  time.setSeconds(time.getSeconds() + 5); // Reset to 5 seconds
                   restart(time);
                 } else {
                   // Check again in 700ms if not in default state
@@ -916,7 +917,7 @@ function RabbitHoleGame() {
         if (newListOfPlayers.length > 1) {
           console.log("next round... time reset");
           const time = new Date();
-          time.setSeconds(time.getSeconds() + 10);
+          time.setSeconds(time.getSeconds() + 5);
           restart(time);
         }
       }, 6000);
@@ -988,7 +989,7 @@ function RabbitHoleGame() {
       {phase === "Default" && !whoStoleIsShowed && <p style={{ transform: 'translate(-50%, -50%)' }} className="absolute text-center text-xl font-bold text-white top-[40%] left-[50%] z-50 bg-black p-2 rounded-2xl opacity-80 w-2/3 mx-auto">{"Who stole my carrots?"}</p>}
       
       <div className="relative z-50 py-6">
-        <Timer seconds={totalSeconds} />
+        <Timer seconds={totalSeconds} percentageRate={20}/>
         <div className="absolute right-4 top-6">
           <UserCount currentAmount={amountOfConnected} requiredAmount={gameState?.amountOfRegisteredUsers}/>
         </div>

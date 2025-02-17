@@ -1,38 +1,17 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { socket } from "../../../utils/socketio";
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
-import { useGameContext } from "../../../utils/game-context";
 import Button from "./components/Button";
 import Drivers from "../assets/images/drivers-sheep.png";
 import AreYouSmarter from "../assets/images/areyousmarter.png";
 import ChooseSheepIcon from "./components/ChooseSheepIcon";
 import SelectWarCry from "./components/SelectWarCry";
-import { userHasAdminAccess } from "../../../utils/contract-functions";
 import Players from "./components/Players";
 
 function DriversScreen() {
-  const { smartAccountClient, smartAccountAddress } = useSmartAccount();
-  const navigate = useNavigate();
-  const { updateGameState, gameState } = useGameContext();
-  const [raceId, setRaceId] = useState<number | null>(null);
-  const [cost, setCost] = useState(0);
-  const [amountOfConnected, setAmountOfConnected] = useState(0);
-
   const [step, setStep] = useState(1);
   const [dots, setDots] = useState(".");
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [selectedWarCry, setSelectedWarCry] = useState<string | null>(null);
-  const [isUserAdmin, setIsUserAdmin] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (smartAccountClient) {
-      userHasAdminAccess(smartAccountClient).then((data) => {
-        // console.log({ data });
-        if (!!data) setIsUserAdmin(!!data);
-      });
-    }
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -112,7 +91,7 @@ function DriversScreen() {
         WAITING FOR ALL PLAYERS TO JOIN<span className="inline-block w-4 text-left">{dots}</span>
       </div>
 
-      {step === 4 && isUserAdmin && (
+      {step === 4 && (
         <Button text="Start" className="mt-2" onClick={handleStep4Click} />
       )}
     </div>

@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import "./assets/css/jumps.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { getRaceById } from "@/utils/contract-functions";
 import { httpGetRaceDataById, httpGetUserDataByAddress } from "@/utils/http-requests";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import levelsData from "@/config/levels.json";
+import { useRaceById } from "@/hooks/useRaceById";
 
 // bottom - px, left - %
 const positionsByLevel = {
@@ -63,6 +63,7 @@ export default function LevelUpdateScreen() {
     const {smartAccountAddress} = useSmartAccount();
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const [level, setLevel] = useState<number | null>(null);
+    const { race } = useRaceById(Number(raceId));
 
     const tipRefAbove = useRef<HTMLDivElement>(null);
     const tipRefBelow = useRef<HTMLDivElement>(null);
@@ -142,24 +143,15 @@ export default function LevelUpdateScreen() {
 
     
     useEffect(() => {
-        if (raceId?.length && smartAccountAddress && sheepRef.current) {
-            Promise.all([
-                getRaceById(Number(raceId), smartAccountAddress as `0x${string}`),
-                httpGetRaceDataById(`race-${raceId}`),
-            ]).then(data => {
-                return {
-                    contractData: data[0],
-                    serverData: data[1].data,
-                }
-            }).then(data => {
+        if (raceId?.length && smartAccountAddress && sheepRef.current && race) {
+            httpGetRaceDataById(`race-${raceId}`)
+            .then(({data}) => {
                 console.log({data});
                 // VALIDATE USER FOR BEING REGISTERED
-                if (!data.contractData.registeredUsers.includes(smartAccountAddress)) {
+                if (!race.registeredUsers.includes(smartAccountAddress)) {
                     //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
                     navigate('/', { replace: true });
                 }
-
-
                 /*
                 const myPoints = newProgress.find(i => i.address == smartAccountAddress)?.curr || 0;
                 const total = newProgress.reduce((sum, stat) => sum + stat.curr, 0);
@@ -180,7 +172,7 @@ export default function LevelUpdateScreen() {
                 }, 10 * 1000);
             });
         }
-    }, [raceId, smartAccountAddress]);
+    }, [raceId, smartAccountAddress, race]);
 
     return (
         <div className="relative w-full h-full bg-gradient-to-b from-[#5861c8] to-[#84bbf4]">

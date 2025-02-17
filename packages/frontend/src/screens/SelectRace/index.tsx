@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../components/RibbonLabel";
 import RaceItem from "@/components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
-import { getRaceById, getTestETH } from "../../utils/contract-functions";
+
 import RegisteringModal from "../../components/modals/RegisteringModal";
 import RegisteredModal from "../../components/modals/RegisteredModal";
 import { socket } from "../../utils/socketio";
@@ -16,12 +16,14 @@ import SynchronizingModal from "@/components/modals/SynchronizingModal";
 import { useRegisterOnTheRace } from "../../hooks/useRegisterOnTheRace";
 import { useRaceById } from "../../hooks/useRaceById";
 import { useRacesWithPagination } from "../../hooks/useRacesWithPagination";
+import { useMintTestETH } from "@/hooks/useMintTestETH";
 
 
 function SelectRaceScreen() {
-  const { smartAccountClient, smartAccountAddress } = useSmartAccount();
+  const { smartAccountAddress } = useSmartAccount();
 
   const { processTransaction } = useRegisterOnTheRace();
+  const { processTransaction: mintTestETH } = useMintTestETH();
   const navigate = useNavigate();
   const { updateGameState } = useGameContext();
 
@@ -55,11 +57,11 @@ function SelectRaceScreen() {
 
     
     
-    /*
+    
       updateGameState(race, progress, undefined);
       navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       return;
-    */
+    
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress, undefined);
@@ -289,7 +291,7 @@ function SelectRaceScreen() {
     setIsOpen(true);
     setModalType("registering");
     console.log('Requesting test ETH if needed.');
-    await getTestETH(30, smartAccountClient, smartAccountAddress, Number(ETHBalance?.formatted))
+    await mintTestETH(30, Number(ETHBalance?.formatted))
         .then(() => {
           console.log('Got test ETH!')
         })

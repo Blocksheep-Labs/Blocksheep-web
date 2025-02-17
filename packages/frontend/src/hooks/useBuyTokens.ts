@@ -1,19 +1,19 @@
 import { encodeFunctionData } from "viem";
 import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "@/config/constants";
-import { getTokenDecimals } from "@/utils/contract-functions";
 import MockUsdcAbi from "@/contracts/MockUSDC.json";
 import BlockSheepAbi from "@/contracts/BlockSheep.json";
 import { useSmartAccount } from "./smartAccountProvider";
+import { useUSDCDecimals } from "./useUSDCDecimals";
 
 
 export const useBuyTokens = () => {
     const { smartAccountAddress, smartAccountClient } = useSmartAccount();
+    const decimals = useUSDCDecimals();
 
     const processTransaction = async(
         amount: number, 
         currentETHBlance: number
     ) => {
-        const decimals = await getTokenDecimals();
         const needToDeposit = amount * 10 * 10**Number(decimals);
         console.log({decimals, needToDeposit, account: smartAccountClient.account, currentETHBlance});
 

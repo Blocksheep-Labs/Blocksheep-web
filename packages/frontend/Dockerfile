@@ -14,19 +14,19 @@ ARG VITE_ENVIRONMENT
 WORKDIR /app
 
 # Copy monorepo package.json and yarn.lock first
-COPY package.json yarn.lock ./
+COPY package.json ./
 
 # Install all dependencies for the monorepo
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Change to frontend workspace
 WORKDIR /app/packages/frontend
 
 # Copy frontend code separately
-COPY packages/frontend ./
+COPY ./ ./
 
 # Install frontend-specific dependencies (optional, but ensures correctness)
-RUN yarn install --frozen-lockfile
+RUN yarn install
 
 # Build the frontend
 RUN yarn build

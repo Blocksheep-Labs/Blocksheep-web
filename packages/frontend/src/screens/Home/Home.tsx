@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
 import { useNavigate } from "react-router-dom";
-import FrameEdges from "./components/frame-edges";
-import UniqueRaceAnimation from "./components/race-animation";
+//import FrameEdges from "./components/frame-edges";
+//import UniqueRaceAnimation from "./components/race-animation";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
 import { SELECTED_NETWORK } from "../../config/constants";
 import { httpGetUserDataByAddress, httpSetNameByAddress } from "../../utils/http-requests";
-import SetNicknameModal from "../../components/modals/SetNicknameModal";
+//import SetNicknameModal from "../../components/modals/SetNicknameModal";
 
 
 function HomeScreen() {
@@ -97,25 +97,28 @@ function HomeScreen() {
         }, 500);
     }    
 
-
+    
     return (
         <div className="bg-transparent" style={{ height: `${window.innerHeight}px` }}>
-            { nicknameModalIsOpen && <SetNicknameModal handleClose={handleCloseNicknameModal}/> }
-            <UniqueRaceAnimation 
-                handleClick={() => {
-                    if (!smartAccountAddress || !smartAccountClient) {
-                        handleLoginClick();
-                    } else {
-                        linkAccount();
-                    }
-                }}
-            />
             {
-                smartAccountAddress && smartAccountClient &&
-                <div className="absolute top-0 left-0 z-[9999] text-xl text-white bg-black p-3 py-1 rounded-br-xl" onClick={logout}>Logout</div>
+                /*
+                    { nicknameModalIsOpen && <SetNicknameModal handleClose={handleCloseNicknameModal}/> }
+                    <UniqueRaceAnimation 
+                        handleClick={() => {
+                            if (!smartAccountAddress || !smartAccountClient) {
+                                handleLoginClick();
+                            } else {
+                                linkAccount();
+                            }
+                        }}
+                    />
+                    {
+                        smartAccountAddress && smartAccountClient &&
+                        <div className="absolute top-0 left-0 z-[9999] text-xl text-white bg-black p-3 py-1 rounded-br-xl" onClick={logout}>Logout</div>
+                    }
+                    <FrameEdges/>
+                */
             }
-            <FrameEdges/>
-            
         </div>
     );
 }

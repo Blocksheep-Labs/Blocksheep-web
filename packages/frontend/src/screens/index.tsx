@@ -1,7 +1,7 @@
 import SelectRaceScreen from "./select-race/SelectRace";
 import CountDownScreen from "./countdown/Countdown";
 //import RabbitHoleGame from "./rabbithole/game/Rabbithole";
-import HomeScreen from "./home/Home";
+//import HomeScreen from "./home/Home";
 import AdminScreen from "./admin/Admin";
 //import RabbitHoleRules from "./rabbithole/rules/Rules";
 //import RabbitHoleCover from "./rabbithole/intro/Intro";
@@ -18,6 +18,8 @@ import DriversScreen from "./drivers/Drivers";
 //import UnderdogGame from "./underdog/game/Game";
 //import UnderdogCover from "./underdog/intro/Intro";
 //import UnderdogRules from "./underdog/rules/Rules";
+
+const HomeScreen = () => (<></>);
 
 const RabbitHoleGame = () => (<></>);
 const RabbitHoleRules = () => (<></>);

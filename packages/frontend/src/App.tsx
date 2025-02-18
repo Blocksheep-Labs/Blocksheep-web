@@ -25,7 +25,7 @@ import {
   UnderdogGame,
   UnderdogCover,
   UnderdogRules,
-} from "./screens/screens";
+} from "./screens";
 
 
 function App() {

@@ -5,7 +5,7 @@ import CountDownScreen from "./countdown/Countdown";
 //import AdminScreen from "./admin/Admin";
 //import RabbitHoleRules from "./rabbithole/rules/Rules";
 //import RabbitHoleCover from "./rabbithole/intro/Intro";
-import StatsScreen from "./stats/Stats";
+//import StatsScreen from "./stats/Stats";
 import RateScreen from "./rate/Rate";
 //import BullrunCover from "./bullrun/intro/Intro";
 //import BullrunRules from "./bullrun/rules/Rules";
@@ -32,6 +32,8 @@ const BullrunRules = () => (<></>);
 const Bullrun = () => (<></>);
 
 const UnderdogGame = () => (<></>);
+
+const StatsScreen = () => (<></>);
 
 
 export {

@@ -1,4 +1,4 @@
-import { ConnectedUser } from "..";
+import { ConnectedUser } from "../Rabbithole";
 
 export default function calculatePlayersV1(players: ConnectedUser[]) {
     const actualListOfPlayers = players.filter(i => !i.isEliminated) // !i.isCompleted && !i.isEliminated;

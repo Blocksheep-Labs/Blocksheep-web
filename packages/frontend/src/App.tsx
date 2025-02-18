@@ -1,32 +1,29 @@
 import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { socket } from "./utils/socketio";
+import SelectRaceScreen from "./screens/SelectRace";
+import BottomTab from "./components/BottomTab";
+import UnderdogGame from "./screens/Underdog/Game";
+import CountDownScreen from "./screens/Countdown";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
-import BottomTab from "./components/BottomTab";
-import {
-  SelectRaceScreen,
-  CountDownScreen,
-  RabbitHoleGame,
-  HomeScreen,
-  AdminScreen,
-  RabbitHoleRules,
-  RabbitHoleCover,
-  StatsScreen,
-  RateScreen,
-  BullrunCover,
-  BullrunRules,
-  Bullrun,
-  StoryScreen,
-  RaceUpdateScreen,
-  AccountScreen,
-  LevelUpdateScreen,
-  DriversScreen,
-  UnderdogGame,
-  UnderdogCover,
-  UnderdogRules,
-} from "./screens";
-
+import RabbitHoleGame from "./screens/RabbitHole/Game";
+import HomeScreen from "./screens/Home";
+import AdminScreen from "./screens/Admin";
+import UnderdogCover from "./screens/Underdog/Intro";
+import UnderdogRules from "./screens/Underdog/Rules";
+import RabbitHoleRules from "./screens/RabbitHole/Rules";
+import RabbitHoleCover from "./screens/RabbitHole/Intro";
+import StatsScreen from "./screens/Stats";
+import RateScreen from "./screens/Rate";
+import BullrunCover from "./screens/Bullrun/Intro";
+import BullrunRules from "./screens/Bullrun/Rules";
+import Bullrun from "./screens/Bullrun/Game";
+import StoryScreen from "./screens/Story";
+import RaceUpdateScreen from "./screens/RaceUpdate";
+import AccountScreen from "./screens/Account";
+import LevelUpdateScreen from "./screens/LevelUpdate";
+import DriversScreen from "./screens/Drivers/SelectColor";
 
 function App() {
   import("eruda").then((eruda) => eruda.default.init());
@@ -84,7 +81,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-         
 
         {/* UNDERDOG RULES */}
         <Route
@@ -95,7 +91,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-         
 
         {/* UNDERDOG GAME */}
         <Route
@@ -106,7 +101,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-         
 
         {/* RABBIT HOLE COVER */}
         <Route

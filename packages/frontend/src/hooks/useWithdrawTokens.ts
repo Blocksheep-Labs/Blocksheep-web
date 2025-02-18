@@ -1,6 +1,6 @@
 import { encodeFunctionData } from "viem";
-import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK } from "../config/constants";
-import BlockSheepAbi from "../contracts/BlockSheep.json";
+import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK } from "@/config/constants";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
 import { useSmartAccount } from "./smartAccountProvider";
 
 

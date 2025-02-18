@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 import { waitForTransactionReceipt } from "@wagmi/core";
-import { config } from "../config/wagmi";
-import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
-import { SELECTED_NETWORK } from "../config/constants";
+import { config } from "@/config/wagmi";
+import { BLOCK_SHEEP_CONTRACT } from "@/config/constants";
+import { SELECTED_NETWORK } from "@/config/constants";
 import { encodeFunctionData } from "viem";
 import { useSmartAccount } from "./smartAccountProvider";
-import BlockSheepAbi from "../contracts/BlockSheep.json";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
 
 export const DISTRIBUTE_SELECTOR = ethers.utils.id("distribute(uint256,bytes)").slice(0, 10);
 export const DISTRIBUTE_TYPES = ['bytes4', 'uint256', 'bytes'];

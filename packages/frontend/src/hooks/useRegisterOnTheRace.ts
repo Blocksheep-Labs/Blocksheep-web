@@ -1,9 +1,9 @@
-import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "../config/constants";
+import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "@/config/constants";
 
 import { useSmartAccount } from "./smartAccountProvider";
 import { encodeFunctionData } from "viem";
-import BlockSheepAbi from "../contracts/BlockSheep.json";
-import MockUsdcAbi from "../contracts/MockUSDC.json";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
+import MockUsdcAbi from "@/contracts/MockUSDC.json";
 import { useUserGameBalance } from "./useUserGameBalance";
 import { useRaceEntryCOST } from "./useRaceEntryCost";
 

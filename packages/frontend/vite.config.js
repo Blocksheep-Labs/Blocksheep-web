@@ -1,5 +1,5 @@
 import react from "@vitejs/plugin-react";
-import { resolve } from 'path';
+import path from "path";
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
@@ -9,16 +9,11 @@ export default defineConfig({
   define: {
     "process.env": {},
   },
-  /*
   resolve: {
-    alias: [
-      {
-        find: '@',
-        replacement: resolve(__dirname, './src'),
-      },
-    ],
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    }
   },
-  */
   optimizeDeps: {
     esbuildOptions: {
       target: "esnext",

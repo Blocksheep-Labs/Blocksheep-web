@@ -1,8 +1,8 @@
-import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK } from "../config/constants";
+import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK } from "@/config/constants";
 import { useSmartAccount } from "./smartAccountProvider";
 import { encodeFunctionData } from "viem";
-import BlockSheepAbi from "../contracts/BlockSheep.json";
-import { config } from "../config/wagmi";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
+import { config } from "@/config/wagmi";
 import { waitForTransactionReceipt } from "@wagmi/core";
 
 export const useRefundOnCanceledRace = () => {

@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import { readContract } from "@wagmi/core";
-import { config } from "../config/wagmi";
-import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
-import BlockSheepAbi from "../contracts/BlockSheep.json";
+import { config } from "@/config/wagmi";
+import { BLOCK_SHEEP_CONTRACT } from "@/config/constants";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
 
 
 

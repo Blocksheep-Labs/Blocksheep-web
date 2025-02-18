@@ -1,3 +1,4 @@
+"use client"
 import LoseMain from "../../assets/lose/lose-main.webp";
 import NextFlag from "../../assets/common/flag.png";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";

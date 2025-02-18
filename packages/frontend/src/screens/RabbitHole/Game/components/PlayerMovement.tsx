@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ConnectedUser, RabbitHolePhases } from "../Rabbithole";
+import { ConnectedUser, RabbitHolePhases } from "..";
 import calculatePlayersV1 from "../calculations/v1";
 import calculatePlayersV2 from "../calculations/v2";
 

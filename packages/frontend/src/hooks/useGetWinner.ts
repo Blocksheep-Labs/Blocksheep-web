@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import { config } from "../config/wagmi";
-import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
-import BlockSheepAbi from "../contracts/BlockSheep.json";
+import { config } from "@/config/wagmi";
+import { BLOCK_SHEEP_CONTRACT } from "@/config/constants";
+import BlockSheepAbi from "@/contracts/BlockSheep.json";
 import { readContract } from "@wagmi/core"
 
 export const GET_WINNER_SELECTOR = ethers.utils.id("getWinner(uint256)");

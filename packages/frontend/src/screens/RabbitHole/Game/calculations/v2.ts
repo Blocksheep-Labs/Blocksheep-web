@@ -1,4 +1,4 @@
-import { ConnectedUser } from "../Rabbithole";
+import { ConnectedUser } from "..";
 
 // last one doesn’t get eliminated if difference with second-to-last one is > 4. They get +3 fuel bonus.
 // Second-to-last one doesn’t consume fuel. second-to-last one = предпоследний

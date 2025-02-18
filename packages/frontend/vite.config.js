@@ -29,9 +29,9 @@ export default defineConfig({
   build: {
     target: ["esnext"],
     outDir: "./build",
-    sourcemap: false, // Disable source maps to save memory
-    minify: "terser", // More efficient minification
-    chunkSizeWarningLimit: 1000, // Increase
+    // sourcemap: false, // Disable source maps to save memory
+    // minify: "terser", // More efficient minification
+    // chunkSizeWarningLimit: 1000, // Increase
   },
   server: {
     host: true,

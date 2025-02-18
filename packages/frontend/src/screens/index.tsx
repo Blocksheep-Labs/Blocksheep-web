@@ -3,7 +3,7 @@ import CountDownScreen from "./countdown/Countdown";
 //import RabbitHoleGame from "./rabbithole/game/Rabbithole";
 //import HomeScreen from "./home/Home";
 //import AdminScreen from "./admin/Admin";
-import RabbitHoleRules from "./rabbithole/rules/Rules";
+//import RabbitHoleRules from "./rabbithole/rules/Rules";
 // import RabbitHoleCover from "./rabbithole/intro/Intro";
 //import StatsScreen from "./stats/Stats";
 import RateScreen from "./rate/Rate";
@@ -25,7 +25,7 @@ const AdminScreen = () => (<></>);
 const AccountScreen = () => (<></>);
 
 const RabbitHoleGame = () => (<></>);
-//const RabbitHoleRules = () => (<></>);
+const RabbitHoleRules = () => (<></>);
 const RabbitHoleCover = () => (<></>);
 //const BullrunCover = () => (<></>);
 const BullrunRules = () => (<></>);

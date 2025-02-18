@@ -57,10 +57,11 @@ function SelectRaceScreen() {
 
     
     
-    
+    /*
       updateGameState(race, progress, undefined);
       navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       return;
+    */
     
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {

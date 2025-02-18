@@ -1,9 +1,9 @@
 FROM node:21-alpine3.20 AS builder
 WORKDIR /app
 COPY package.json ./
-RUN yarn install
+RUN npm install
 COPY . .
-RUN yarn run build
+RUN npm run build
 
 FROM busybox:1.30 AS runner
 WORKDIR /app

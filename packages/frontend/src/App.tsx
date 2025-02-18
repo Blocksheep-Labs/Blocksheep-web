@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { socket } from "./utils/socketio";
 import SelectRaceScreen from "./screens/SelectRace";
 import BottomTab from "./components/BottomTab";
-import UnderdogGame from "./screens/Underdog/Game";
 import CountDownScreen from "./screens/Countdown";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Header from "./components/Header";
@@ -24,6 +23,7 @@ import RaceUpdateScreen from "./screens/RaceUpdate";
 import AccountScreen from "./screens/Account";
 import LevelUpdateScreen from "./screens/LevelUpdate";
 import DriversScreen from "./screens/Drivers/SelectColor";
+import UnderdogGame from "./screens/Underdog/Game";
 
 function App() {
   import("eruda").then((eruda) => eruda.default.init());

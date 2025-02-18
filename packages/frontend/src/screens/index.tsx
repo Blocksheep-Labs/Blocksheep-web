@@ -17,7 +17,7 @@ import CountDownScreen from "./countdown/Countdown";
 import DriversScreen from "./drivers/Drivers";
 //import UnderdogGame from "./underdog/game/Game";
 //import UnderdogCover from "./underdog/intro/Intro";
-//import UnderdogRules from "./underdog/rules/Rules";
+import UnderdogRules from "./underdog/rules/Rules";
 
 const HomeScreen = () => (<></>);
 const AdminScreen = () => (<></>);
@@ -37,7 +37,7 @@ const BullrunRules = () => (<></>);
 const Bullrun = () => (<></>);
 const UnderdogGame = () => (<></>);
 const UnderdogCover = () => (<></>);
-const UnderdogRules = () => (<></>);
+
 
 export {
     SelectRaceScreen,

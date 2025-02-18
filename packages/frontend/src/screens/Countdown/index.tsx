@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import RaceBoard from "@/components/RaceBoard";
 import { useNavigate, useParams } from "react-router-dom";
-import { socket } from "@/utils/socketio";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { httpGetRaceDataById } from "@/utils/http-requests";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
-import Countdown321 from "@/components/3-2-1-go/3-2-1-go";
-import { useGameContext } from "@/utils/game-context";
-import { useRaceById } from "@/hooks/useRaceById";
+import { useGameContext } from "../../utils/game-context";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useRaceById } from "../../hooks/useRaceById";
+import { socket } from "../../utils/socketio";
+import generateLink, { TFlowPhases } from "../../utils/linkGetter";
+import { httpGetRaceDataById } from "../../utils/http-requests";
+import RaceBoard from "../../components/RaceBoard";
+import Countdown321 from "../../components/3-2-1-go/3-2-1-go";
+
+
 
 const SCREEN_NAME = "RACE_START";
 

@@ -1,15 +1,17 @@
-import { USDC_MULTIPLIER } from "@/config/constants";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { useUserBalance } from "@/hooks/useUserBalance";
-import shortenAddress from "@/utils/shortenAddress";
-import NextFlag from "@/assets/common/flag.png";
+import NextFlag from "../../assets/common/flag.png";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import SelectAmountModal from "@/components/SelectAmountModal";
 import { usePrivy } from "@privy-io/react-auth";
 import { useBalance } from "wagmi";
-import { useBuyTokens } from "@/hooks/useBuyTokens";
-import { useWithdrawTokens } from "@/hooks/useWithdrawTokens";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useUserBalance } from "../../hooks/useUserBalance";
+import { useBuyTokens } from "../../hooks/useBuyTokens";
+import { useWithdrawTokens } from "../../hooks/useWithdrawTokens";
+import shortenAddress from "../../utils/shortenAddress";
+import { useUSDCDecimals } from "../../hooks/useUSDCDecimals";
+import SelectAmountModal from "../../components/SelectAmountModal";
+
+
 
 
 const ProfileButton = ({text, onClick, bgColors, icon}: {text: string; onClick?: () => void; bgColors: string, icon: React.ReactNode}) => {
@@ -37,6 +39,7 @@ function AccountScreen() {
   const { data: ETHBalance } = useBalance({
     address: smartAccountAddress
   });
+  const decimals = useUSDCDecimals();
   const { processTransaction: buyTokens } = useBuyTokens();
   const { processTransaction: withdrawTokens } = useWithdrawTokens();
 
@@ -96,7 +99,7 @@ function AccountScreen() {
             `Balance: 
             ${userBalance ? `${
               (() => {
-                let money = (Number(userBalance) / USDC_MULTIPLIER).toString();
+                let money = (Number(userBalance) / Number(decimals)).toString();
                 money = money.slice(0, money.indexOf('.')) + money.slice(money.indexOf('.'), money.length - 3);
                 return money;
               })()

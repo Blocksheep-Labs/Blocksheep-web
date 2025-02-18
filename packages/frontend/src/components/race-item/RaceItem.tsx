@@ -3,17 +3,14 @@ import { useEffect, useState } from "react";
 import SheepIcon from "../../assets/common/sheeepy.png";
 import TimerIcon from "../../assets/common/timer.png";
 import msToTime from "../../utils/msToTime";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { config } from "../../config/wagmi";
-import { useSmartAccount } from "../../hooks/smartAccountProvider";
 
 import BullRunIcon from "../../assets/common/bullrun-icon.jpg";
 import RabbitHoleIcon from "../../assets/common/rabbithole-icon.jpg";
 import UnderdogIcon from "../../assets/common/underdog-icon.jpg";
 import GamePreview from "../../assets/common/game-preview.jpg";
 import USDCIcon from "../../assets/common/usdc.png";
-import { TRace } from "@/hooks/useRaceById";
-import { useRefundOnCanceledRace } from "@/hooks/useRefundOnCanceledRace";
+import { TRace } from "../../hooks/useRaceById";
+import { useRefundOnCanceledRace } from "../../hooks/useRefundOnCanceledRace";
 
 
 

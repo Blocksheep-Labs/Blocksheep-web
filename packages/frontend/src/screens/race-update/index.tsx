@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import RaceBoard from "@/components/RaceBoard";
 import { useNavigate, useParams } from "react-router-dom";
-import { socket } from "@/utils/socketio";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { httpGetRaceDataById } from "@/utils/http-requests";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
-import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
-import { useGameContext } from "@/utils/game-context";
-import { TRace, useRaceById } from "@/hooks/useRaceById";
+import { useGameContext } from "../../utils/game-context";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { TRace, useRaceById } from "../../hooks/useRaceById";
+import { socket } from "../../utils/socketio";
+import generateLink, { TFlowPhases } from "../../utils/linkGetter";
+import { httpGetRaceDataById } from "../../utils/http-requests";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+import RaceBoard from "../../components/RaceBoard";
+
 
 const getPart = (board: string) => {
   let selectedPart = "";

@@ -1,9 +1,9 @@
 import { useSmartAccount } from "./smartAccountProvider"
 import MockUSDCAbi from "../contracts/MockUSDC.json";
 import { useUSDCDecimals } from "./useUSDCDecimals";
-import { SELECTED_NETWORK, USDC_ADDR } from "@/config/constants";
+import { SELECTED_NETWORK, USDC_ADDR } from "../config/constants";
 import { encodeFunctionData } from "viem";
-import { config } from "@/config/wagmi";
+import { config } from "../config/wagmi";
 import { waitForTransactionReceipt } from "@wagmi/core";
 
 

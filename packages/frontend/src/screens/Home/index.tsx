@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useLinkWithSiwe, useLogin, usePrivy } from "@privy-io/react-auth";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { SELECTED_NETWORK } from "@/config/constants";
 import { useNavigate } from "react-router-dom";
-import SetNicknameModal from "@/components/modals/SetNicknameModal";
-import { httpGetUserDataByAddress, httpSetNameByAddress } from "@/utils/http-requests";
 import FrameEdges from "./components/frame-edges";
 import UniqueRaceAnimation from "./components/race-animation";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { SELECTED_NETWORK } from "../../config/constants";
+import { httpGetUserDataByAddress, httpSetNameByAddress } from "../../utils/http-requests";
+import SetNicknameModal from "../../components/modals/SetNicknameModal";
 
 
 function HomeScreen() {

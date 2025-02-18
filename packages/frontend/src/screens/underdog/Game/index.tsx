@@ -4,27 +4,27 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 
 // Components
-import UserCount from "@/components/UserCount";
-import LoadingModal from "@/components/modals/LoadingModal";
-import WinModal from "@/components/modals/WinModal";
-import Timer from "@/components/Timer";
-import WaitingForPlayersModal from "@/components/modals/WaitingForPlayersModal";
-import Firework from "@/components/firework/firework";
+import UserCount from "../../../components/UserCount";
+import LoadingModal from "../../../components/modals/LoadingModal";
+import WinModal from "../../../components/modals/WinModal";
+import Timer from "../../../components/Timer";
+import WaitingForPlayersModal from "../../../components/modals/WaitingForPlayersModal";
+import Firework from "../../../components/firework/firework";
 import SwipeSelection from "./components/SwipeSelection";
 import SelectionBtnBox from "./components/SelectionBtnBox";
 
 // Hooks
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { useMakeMove } from "@/hooks/useMakeMove";
-import { useDistribute } from "@/hooks/useDistribute";
-import { useGetUserPoints } from "@/hooks/useGetPoints";
-import { useGetRules } from "@/hooks/useGetRules";
-import { useRaceById } from "@/hooks/useRaceById";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
+import { useMakeMove } from "../../../hooks/useMakeMove";
+import { useDistribute } from "../../../hooks/useDistribute";
+import { useGetUserPoints } from "../../../hooks/useGetPoints";
+import { useGetRules } from "../../../hooks/useGetRules";
+import { useRaceById } from "../../../hooks/useRaceById";
 
 // Utilities
-import { socket } from "@/utils/socketio";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
-import { txAttempts } from "@/utils/txAttempts";
+import { socket } from "../../../utils/socketio";
+import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
+import { txAttempts } from "../../../utils/txAttempts";
 import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
 

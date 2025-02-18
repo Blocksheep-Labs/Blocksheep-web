@@ -5,11 +5,12 @@ import { useEffect, useRef, useState } from "react";
 
 import "./assets/css/jumps.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { httpGetRaceDataById, httpGetUserDataByAddress } from "@/utils/http-requests";
-import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
-import levelsData from "@/config/levels.json";
-import { useRaceById } from "@/hooks/useRaceById";
+import levelsData from "../../config/levels.json";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useRaceById } from "../../hooks/useRaceById";
+import { httpGetRaceDataById, httpGetUserDataByAddress } from "../../utils/http-requests";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
+
 
 // bottom - px, left - %
 const positionsByLevel = {

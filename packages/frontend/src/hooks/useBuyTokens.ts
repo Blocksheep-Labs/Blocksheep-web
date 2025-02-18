@@ -1,7 +1,7 @@
 import { encodeFunctionData } from "viem";
-import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "@/config/constants";
-import MockUsdcAbi from "@/contracts/MockUSDC.json";
-import BlockSheepAbi from "@/contracts/BlockSheep.json";
+import { BLOCK_SHEEP_CONTRACT, SELECTED_NETWORK, USDC_ADDR } from "../config/constants";
+import MockUsdcAbi from "../contracts/MockUSDC.json";
+import BlockSheepAbi from "../contracts/BlockSheep.json";
 import { useSmartAccount } from "./smartAccountProvider";
 import { useUSDCDecimals } from "./useUSDCDecimals";
 

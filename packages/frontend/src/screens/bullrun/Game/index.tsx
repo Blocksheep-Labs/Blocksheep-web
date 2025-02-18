@@ -4,23 +4,23 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
 
 // Third-party library imports
-import { socket } from "@/utils/socketio";
+import { socket } from "../../../utils/socketio";
 
 // Custom hooks and context
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import { useGameContext } from "@/utils/game-context";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
+import { useGameContext } from "../../../utils/game-context";
 
 // Components
 import BullrunRulesModal from "./components/BullrunRulesModal";
-import WaitingForPlayersModal from "@/components/modals/WaitingForPlayersModal";
-import WinModal from "@/components/modals/WinModal";
-import Timer from "@/components/Timer";
+import WaitingForPlayersModal from "../../../components/modals/WaitingForPlayersModal";
+import WinModal from "../../../components/modals/WinModal";
+import Timer from "../../../components/Timer";
 
 // Utilities
-import shortenAddress from "@/utils/shortenAddress";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
-import { txAttempts } from "@/utils/txAttempts";
-import { httpGetRaceDataById } from "@/utils/http-requests";
+import shortenAddress from "../../../utils/shortenAddress";
+import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
+import { txAttempts } from "../../../utils/txAttempts";
+import { httpGetRaceDataById } from "../../../utils/http-requests";
 
 // Assets
 import Shield from "../assets/defence.png";
@@ -31,15 +31,15 @@ import BlackSheep from "../assets/blacksheep.png";
 import Horns from "../assets/bullhorns.png";
 import LeftCurtain from "../assets/bullrun-next-round-bg-left.png";
 import RightCurtain from "../assets/bullrun-next-round-bg-right.png";
-import { useRaceById } from "@/hooks/useRaceById";
-import { useDistribute } from "@/hooks/useDistribute";
-import { useMakeMove } from "@/hooks/useMakeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
 import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
-import { useGetUserPoints } from "@/hooks/useGetPoints";
-import { useGetRules } from "@/hooks/useGetRules";
-import { useGetUserChoices } from "@/hooks/useGetUserChoices";
 import { BigNumber } from "ethers";
+import { useRaceById } from "../../../hooks/useRaceById";
+import { useDistribute } from "../../../hooks/useDistribute";
+import { useMakeMove } from "../../../hooks/useMakeMove";
+import { useGetUserPoints } from "../../../hooks/useGetPoints";
+import { useGetRules } from "../../../hooks/useGetRules";
+import { useGetUserChoices } from "../../../hooks/useGetUserChoices";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 const REGISTERED_CONTRACT_NAME = "BULLRUN";

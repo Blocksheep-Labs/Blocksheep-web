@@ -1,13 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useTimer } from "react-timer-hook";
-import { socket } from "@/utils/socketio";
 import { useEffect, useState } from "react";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
-import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
-import { useGameContext } from "@/utils/game-context";
 import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGamePart";
-import { useRaceById } from "@/hooks/useRaceById";
+import { useGameContext } from "../../../utils/game-context";
+import { useSmartAccount } from "../../../hooks/smartAccountProvider";
+import { useRaceById } from "../../../hooks/useRaceById";
+import { socket } from "../../../utils/socketio";
+import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
+import TopPageTimer from "../../../components/top-page-timer/TopPageTimer";
 
 
 export default function RabbitHoleCover() {

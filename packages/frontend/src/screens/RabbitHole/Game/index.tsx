@@ -38,13 +38,13 @@ import BG_Carrots from "../assets/images/backgroundcarrot.jpg";
 
 import { CarrotBasket, CarrotBasketIncrement } from "./components/basket";
 import { CircularProgress } from "./components/CircularProgress";
-import { useMakeMove } from "@/hooks/useMakeMove";
-import { useDistribute } from "@/hooks/useDistribute";
-import { useGetUserPoints } from "@/hooks/useGetPoints";
-import { useGetRules } from "@/hooks/useGetRules";
-import { useRaceById } from "@/hooks/useRaceById";
 import { build as buildmakeMoveData } from "./arguments-builder/makeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
+import { useRaceById } from "../../../hooks/useRaceById";
+import { useMakeMove } from "../../../hooks/useMakeMove";
+import { useDistribute } from "../../../hooks/useDistribute";
+import { useGetUserPoints } from "../../../hooks/useGetPoints";
+import { useGetRules } from "../../../hooks/useGetRules";
 
 
 export type ConnectedUser = {

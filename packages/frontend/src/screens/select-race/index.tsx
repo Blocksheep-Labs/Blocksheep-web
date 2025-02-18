@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import RibbonLabel from "../../components/RibbonLabel";
-import RaceItem from "@/components/race-item/RaceItem";
 import { useNavigate } from "react-router-dom";
 
 import RegisteringModal from "../../components/modals/RegisteringModal";
@@ -12,11 +11,12 @@ import generateLink, { TFlowPhases } from "../../utils/linkGetter";
 import { useGameContext } from "../../utils/game-context";
 import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
 import { useBalance } from "wagmi";
-import SynchronizingModal from "@/components/modals/SynchronizingModal";
 import { useRegisterOnTheRace } from "../../hooks/useRegisterOnTheRace";
 import { useRaceById } from "../../hooks/useRaceById";
 import { useRacesWithPagination } from "../../hooks/useRacesWithPagination";
-import { useMintTestETH } from "@/hooks/useMintTestETH";
+import { useMintTestETH } from "../../hooks/useMintTestETH";
+import RaceItem from "../../components/race-item/RaceItem";
+import SynchronizingModal from "../../components/modals/SynchronizingModal";
 
 
 function SelectRaceScreen() {

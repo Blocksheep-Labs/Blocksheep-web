@@ -9,6 +9,7 @@ export default defineConfig({
   define: {
     "process.env": {},
   },
+  /*
   resolve: {
     alias: [
       {
@@ -17,6 +18,7 @@ export default defineConfig({
       },
     ],
   },
+  */
   optimizeDeps: {
     esbuildOptions: {
       target: "esnext",

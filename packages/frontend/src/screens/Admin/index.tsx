@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { httpCreateRace } from "@/utils/http-requests";
-import { txAttempts } from "@/utils/txAttempts";
-import { TUnderdogQuestion, useAdminCreateRace } from "@/hooks/useCreateRace";
-import { useCheckAdminAccess } from "@/hooks/useCheckAdminAccess";
 import ReordableList from "./components/reordable-list/reordable-list";
-import possibleScreensArray from "@/config/possible-screens.json";
-import possibleQuestions from "@/config/questions.json";
-import { useNextGameId } from "@/hooks/useNextGameId";
-
+import { TUnderdogQuestion, useAdminCreateRace } from "../../hooks/useCreateRace";
+import { useCheckAdminAccess } from "../../hooks/useCheckAdminAccess";
+import { useNextGameId } from "../../hooks/useNextGameId";
+import possibleScreensArray from "../../config/possible-screens.json";
+import possibleQuestions from "../../config/questions.json";
+import { txAttempts } from "../../utils/txAttempts";
+import { httpCreateRace } from "../../utils/http-requests";
 
 export default function AdminScreen() {
     const navigate = useNavigate();

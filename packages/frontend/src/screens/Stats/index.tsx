@@ -1,16 +1,16 @@
 import { useNavigate, useParams } from "react-router-dom";
 import {useEffect, useState, useRef} from "react";
-import {useSmartAccount} from "@/hooks/smartAccountProvider";
 import WhiteSheepImage from "./assets/images/sheeepy.png";
 import BlackSheepImage from "./assets/images/blacksheep.png";
-import { httpGetRaceDataById } from "@/utils/http-requests";
 import PodiumBGImage from "./assets/images/podiumbg.png";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import ArrowUpImage from "./assets/images/arrow-up.png";
 import ArrowDownImage from "./assets/images/arrow-down.png";
 import FlagsImage from "./assets/images/flags.png";
-import { useRaceById } from "@/hooks/useRaceById";
-import { socket } from "@/utils/socketio";
+import generateLink, { TFlowPhases } from "../../utils/linkGetter";
+import { useRaceById } from "../../hooks/useRaceById";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { httpGetRaceDataById } from "../../utils/http-requests";
+import { socket } from "../../utils/socketio";
 
 const SCREEN_NAME = "PODIUM";
 

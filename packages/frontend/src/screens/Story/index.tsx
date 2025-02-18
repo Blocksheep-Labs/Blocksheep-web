@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { socket } from "@/utils/socketio";
-import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { useTimer } from "react-timer-hook";
-import generateLink, { TFlowPhases } from "@/utils/linkGetter";
-import StoryVideo from "@/assets/stories/sh.mp4";
-import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
-import { useGameContext } from "@/utils/game-context";
-import storiesData from "@/config/stories.json";
-import { useRaceById } from "@/hooks/useRaceById";
+import StoryVideo from "../../assets/stories/sh.mp4";
+import { useGameContext } from "../../utils/game-context";
+import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useRaceById } from "../../hooks/useRaceById";
+import { socket } from "../../utils/socketio";
+import generateLink, { TFlowPhases } from "../../utils/linkGetter";
+import TopPageTimer from "../../components/top-page-timer/TopPageTimer";
 
 
 const videos = [

@@ -10,7 +10,7 @@ import BRule1 from "./components/rule-1";
 import BRule2 from "./components/rule-2";
 import BRule3 from "./components/rule-3";
 import BRule4 from "./components/rule-4";
-import { useRaceById } from "@/hooks/useRaceById";
+import { useRaceById } from "../../../hooks/useRaceById";
 
 const SCREEN_NAME = "BULLRUN_RULES";
 

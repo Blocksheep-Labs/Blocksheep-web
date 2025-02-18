@@ -1,4 +1,3 @@
-"use client"
 import { useEffect, useState } from "react";
 import WinMain from "../../assets/win/win-main.webp";
 import NextFlag from "../../assets/common/flag.png";

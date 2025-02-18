@@ -3,12 +3,12 @@ import CountDownScreen from "./countdown/Countdown";
 //import RabbitHoleGame from "./rabbithole/game/Rabbithole";
 //import HomeScreen from "./home/Home";
 //import AdminScreen from "./admin/Admin";
-//import RabbitHoleRules from "./rabbithole/rules/Rules";
-//import RabbitHoleCover from "./rabbithole/intro/Intro";
+import RabbitHoleRules from "./rabbithole/rules/Rules";
+import RabbitHoleCover from "./rabbithole/intro/Intro";
 //import StatsScreen from "./stats/Stats";
 import RateScreen from "./rate/Rate";
-//import BullrunCover from "./bullrun/intro/Intro";
-//import BullrunRules from "./bullrun/rules/Rules";
+import BullrunCover from "./bullrun/intro/Intro";
+import BullrunRules from "./bullrun/rules/Rules";
 //import Bullrun from "./bullrun/game/Game";
 import StoryScreen from "./story/Story";
 import RaceUpdateScreen from "./race-update/RaceUpdate";
@@ -25,15 +25,14 @@ const AdminScreen = () => (<></>);
 const AccountScreen = () => (<></>);
 
 const RabbitHoleGame = () => (<></>);
-const RabbitHoleRules = () => (<></>);
-const RabbitHoleCover = () => (<></>);
-const BullrunCover = () => (<></>);
-const BullrunRules = () => (<></>);
+//const RabbitHoleRules = () => (<></>);
+//const RabbitHoleCover = () => (<></>);
+//const BullrunCover = () => (<></>);
+//const BullrunRules = () => (<></>);
 const Bullrun = () => (<></>);
 
-const UnderdogGame = () => (<></>);
-
 const StatsScreen = () => (<></>);
+const UnderdogGame = () => (<></>);
 
 
 export {

@@ -8,7 +8,7 @@ import RabbitHoleRules from "./rabbithole/rules/Rules";
 //import StatsScreen from "./stats/Stats";
 import RateScreen from "./rate/Rate";
 import BullrunCover from "./bullrun/intro/Intro";
-import BullrunRules from "./bullrun/rules/Rules";
+//import BullrunRules from "./bullrun/rules/Rules";
 //import Bullrun from "./bullrun/game/Game";
 import StoryScreen from "./story/Story";
 import RaceUpdateScreen from "./race-update/RaceUpdate";
@@ -28,7 +28,7 @@ const RabbitHoleGame = () => (<></>);
 //const RabbitHoleRules = () => (<></>);
 const RabbitHoleCover = () => (<></>);
 //const BullrunCover = () => (<></>);
-//const BullrunRules = () => (<></>);
+const BullrunRules = () => (<></>);
 const Bullrun = () => (<></>);
 
 const StatsScreen = () => (<></>);

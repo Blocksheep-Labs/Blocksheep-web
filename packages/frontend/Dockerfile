@@ -1,11 +1,17 @@
-FROM node:21-alpine3.20 AS builder
-WORKDIR /app
-COPY package.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+FROM node:18-alpine
 
-FROM busybox:1.30 AS runner
 WORKDIR /app
-COPY --from=builder /app/dist .
-CMD ["busybox", "httpd", "-f", "-v", "-p", "8080"]
+
+COPY package.json .
+
+RUN yarn install
+
+RUN yarn global add serve
+
+COPY . .
+
+RUN yarn build
+
+EXPOSE 3000
+
+CMD [ "serve", "-s", "dist" ]

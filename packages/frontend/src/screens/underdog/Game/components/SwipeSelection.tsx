@@ -1,9 +1,17 @@
 import TinderCard from "react-tinder-card";
 import { RefObject, forwardRef, useImperativeHandle, useRef } from "react";
 import LazyImage from "./image-loading/lazy-image";
-import { TQuestion } from "..";
 
 type Direction = "left" | "right" | "up" | "down";
+
+type TQuestion = {
+  id: number;
+  info: {
+      imgUrl: string,
+      content: string,
+      answers: string[],
+  }
+}
 
 export interface API {
   swipe(dir?: Direction): Promise<void>;

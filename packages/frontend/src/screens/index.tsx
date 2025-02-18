@@ -14,7 +14,7 @@ import CountDownScreen from "./countdown/Countdown";
 //import RaceUpdateScreen from "./race-update/RaceUpdate";
 //import AccountScreen from "./account/Account";
 //import LevelUpdateScreen from "./level-update/LevelUpdate";
-//import DriversScreen from "./drivers/Drivers";
+import DriversScreen from "./drivers/Drivers";
 //import UnderdogGame from "./underdog/game/Game";
 //import UnderdogCover from "./underdog/intro/Intro";
 //import UnderdogRules from "./underdog/rules/Rules";
@@ -28,7 +28,6 @@ const StoryScreen = () => (<></>);
 const RaceUpdateScreen = () => (<></>);
 const AccountScreen = () => (<></>);
 const LevelUpdateScreen = () => (<></>);
-const DriversScreen = () => (<></>);
 
 const RabbitHoleGame = () => (<></>);
 const RabbitHoleRules = () => (<></>);

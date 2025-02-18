@@ -15,7 +15,7 @@ import CountDownScreen from "./countdown/Countdown";
 //import AccountScreen from "./account/Account";
 import LevelUpdateScreen from "./level-update/LevelUpdate";
 import DriversScreen from "./drivers/Drivers";
-//import UnderdogGame from "./underdog/game/Game";
+import UnderdogGame from "./underdog/game/Game";
 import UnderdogCover from "./underdog/intro/Intro";
 import UnderdogRules from "./underdog/rules/Rules";
 
@@ -34,7 +34,6 @@ const RabbitHoleCover = () => (<></>);
 const BullrunCover = () => (<></>);
 const BullrunRules = () => (<></>);
 const Bullrun = () => (<></>);
-const UnderdogGame = () => (<></>);
 
 
 export {

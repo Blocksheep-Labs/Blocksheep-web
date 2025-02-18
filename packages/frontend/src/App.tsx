@@ -9,8 +9,6 @@ import Header from "./components/Header";
 import RabbitHoleGame from "./screens/RabbitHole/Game";
 import HomeScreen from "./screens/Home";
 import AdminScreen from "./screens/Admin";
-import UnderdogCover from "./screens/Underdog/Intro";
-import UnderdogRules from "./screens/Underdog/Rules";
 import RabbitHoleRules from "./screens/RabbitHole/Rules";
 import RabbitHoleCover from "./screens/RabbitHole/Intro";
 import StatsScreen from "./screens/Stats";
@@ -23,7 +21,9 @@ import RaceUpdateScreen from "./screens/RaceUpdate";
 import AccountScreen from "./screens/Account";
 import LevelUpdateScreen from "./screens/LevelUpdate";
 import DriversScreen from "./screens/Drivers/SelectColor";
-import UnderdogGame from "./screens/Underdog/Game";
+//import UnderdogGame from "./screens/Underdog/Game";
+//import UnderdogCover from "./screens/Underdog/Intro";
+//import UnderdogRules from "./screens/Underdog/Rules";
 
 function App() {
   import("eruda").then((eruda) => eruda.default.init());
@@ -73,34 +73,46 @@ function App() {
         />
 
         {/* UNDERDOG COVER */}
-        <Route
-          path="race/:raceId/underdog/preview"
-          element={
-            <ProtectedRoute>
-              <UnderdogCover />
-            </ProtectedRoute>
-          }
-        />
+        {
+          /*
+            <Route
+              path="race/:raceId/underdog/preview"
+              element={
+                <ProtectedRoute>
+                  <UnderdogCover />
+                </ProtectedRoute>
+              }
+            />
+          */
+        }
 
         {/* UNDERDOG RULES */}
-        <Route
-          path="race/:raceId/underdog/rules"
-          element={
-            <ProtectedRoute>
-              <UnderdogRules />
-            </ProtectedRoute>
-          }
-        />
+        {
+          /*
+            <Route
+              path="race/:raceId/underdog/rules"
+              element={
+                <ProtectedRoute>
+                  <UnderdogRules />
+                </ProtectedRoute>
+              }
+            />
+          */
+        }
 
         {/* UNDERDOG GAME */}
-        <Route
-          path="race/:raceId/underdog"
-          element={
-            <ProtectedRoute>
-              <UnderdogGame />
-            </ProtectedRoute>
-          }
-        />
+        {
+          /*
+            <Route
+              path="race/:raceId/underdog"
+              element={
+                <ProtectedRoute>
+                  <UnderdogGame />
+                </ProtectedRoute>
+              }
+            />
+          */
+        }
 
         {/* RABBIT HOLE COVER */}
         <Route

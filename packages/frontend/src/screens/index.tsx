@@ -12,7 +12,7 @@ import BullrunCover from "./bullrun/intro/Intro";
 //import Bullrun from "./bullrun/game/Game";
 import StoryScreen from "./story/Story";
 import RaceUpdateScreen from "./race-update/RaceUpdate";
-//import AccountScreen from "./account/Account";
+import AccountScreen from "./account/Account";
 import LevelUpdateScreen from "./level-update/LevelUpdate";
 import DriversScreen from "./drivers/Drivers";
 // import UnderdogGame from "./underdog/game/Game";
@@ -21,8 +21,6 @@ import UnderdogRules from "./underdog/rules/Rules";
 
 const HomeScreen = () => (<></>);
 const AdminScreen = () => (<></>);
-
-const AccountScreen = () => (<></>);
 
 const RabbitHoleGame = () => (<></>);
 const RabbitHoleRules = () => (<></>);

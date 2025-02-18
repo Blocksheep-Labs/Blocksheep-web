@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import SHEEP_ICONS from "../../assets/select-sheep-arr.json";
+import SHEEP_ICONS from "../assets/select-sheep-arr.json";
 
 interface ChooseSheepIconProps {
   selectedIcon: string | null;

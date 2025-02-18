@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import WAR_CRY_PAIRS from "../../assets/select-war-cry.json";
+import WAR_CRY_PAIRS from "../assets/select-war-cry.json";
 
 type SelectWarCryProps = {
   selectedWarCry: string | null;

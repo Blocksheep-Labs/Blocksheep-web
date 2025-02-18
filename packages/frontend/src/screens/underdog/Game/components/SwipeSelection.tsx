@@ -1,7 +1,7 @@
 import TinderCard from "react-tinder-card";
 import { RefObject, forwardRef, useImperativeHandle, useRef } from "react";
 import LazyImage from "./image-loading/lazy-image";
-import { TQuestion } from "..";
+import { TQuestion } from "../../game";
 
 type Direction = "left" | "right" | "up" | "down";
 

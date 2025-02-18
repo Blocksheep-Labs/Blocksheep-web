@@ -1,5 +1,5 @@
 import { FC } from "react";
-import SHEEP_ICONS from "../../assets/select-sheep-arr.json";
+import SHEEP_ICONS from "../assets/select-sheep-arr.json";
 
 const players = [
   { name: "Player1", level: 5 },

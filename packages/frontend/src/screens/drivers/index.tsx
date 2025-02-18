@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Button from "./components/Button";
-import Drivers from "../assets/images/drivers-sheep.png";
-import AreYouSmarter from "../assets/images/areyousmarter.png";
+import Drivers from "./assets/images/drivers-sheep.png";
+import AreYouSmarter from "./assets/images/areyousmarter.png";
 import ChooseSheepIcon from "./components/ChooseSheepIcon";
 import SelectWarCry from "./components/SelectWarCry";
 import Players from "./components/Players";

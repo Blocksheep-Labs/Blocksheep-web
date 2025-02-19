@@ -59,7 +59,7 @@ function SelectRaceScreen() {
     
     /*
       updateGameState(race, progress, undefined);
-      navigate(`/race/${raceId}/stats`);
+      navigate(`/race/${raceId}/bullrun/preview`);
       return;
     */
     

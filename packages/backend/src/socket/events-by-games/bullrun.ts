@@ -43,66 +43,54 @@ export default (socket: any, io: any): void => {
     socket.on('bullrun-join-game', async ({ raceId, userAddress, amountOfGamesRequired }: BullrunJoinGameData) => {
         const roomName = `race-${raceId}`;
         socket.join(roomName);
-
+    
         const gamesRequired = await GamesRequired.findOne({ raceId, userAddress });
-        const inGamePlayers = await InGamePlayers.find({ raceId });
-
+    
         async function initializePlayer(playerAddress: string, socket: Socket) {
             if (!gamesRequired) {
-                await GamesRequired.create({ raceId, userAddress, requiredGames: amountOfGamesRequired });
-            }
-
-            if (!inGamePlayers.map(i => i.userAddress.toString()).includes(playerAddress)) {
-                await InGamePlayers.create({ raceId, userAddress: playerAddress });
+                await GamesRequired.create({ raceId, userAddress: playerAddress, requiredGames: amountOfGamesRequired });
             }
         }
-
+    
         socket.userAddress = userAddress;
         await initializePlayer(userAddress, socket);
 
-        const existingPlayerState = await PlayersState.findOne({ raceId, userAddress });
-        if (!existingPlayerState) {
-            await PlayersState.create({ raceId, userAddress, status: 'waiting' });
+        await PlayersState.updateMany({ raceId }, { status: 'active' });
+        let activePlayers = await PlayersState.find({ raceId, status: 'active' });
+
+        if (!activePlayers.some(pl => pl.userAddress == userAddress)) {
+            const newPlayer = await PlayersState.create({ raceId, userAddress, status: 'active' });
+            activePlayers.push(newPlayer);
         }
-
-        const waitingPlayers = await PlayersState.find({ raceId, status: 'waiting' });
-        if (waitingPlayers.length >= 2) {
-            await PlayersState.updateMany({ raceId, status: 'waiting' }, { status: 'active' });
-        }
-
-        const activePlayers = await PlayersState.find({ raceId, status: 'active' });
-
-        if (!activePlayers.some(p => p.userAddress === userAddress)) {
-            await PlayersState.updateOne({ raceId, userAddress: userAddress }, { status: 'active' });
-        }
-
+        
+    
         async function pairPlayers() {
-            const activePlayers = await PlayersState.find({ raceId, status: 'active' });
-
-
-            while (activePlayers.length >= 2) {
-                let player1: any = activePlayers.shift()!;
-                let player2: any = activePlayers.shift()!;
-
+            let maxRetries = activePlayers.length * 2; // Limit retries to prevent infinite loops
+            let retries = 0;
+    
+            while (activePlayers.length >= 2 && retries < maxRetries) {
+                const player1_DB: any = activePlayers.shift()!;
+                const player2_DB: any = activePlayers.shift()!;
+    
                 const connectedUsers = Array.from(io.sockets.sockets.values());
-
-                player1 = connectedUsers.find((i: any) => i.userAddress == player1.userAddress);
-                player2 = connectedUsers.find((i: any) => i.userAddress == player2.userAddress);
-
-
+    
+                let player1: any = connectedUsers.find((i: any) => i.userAddress == player1_DB.userAddress);
+                let player2: any = connectedUsers.find((i: any) => i.userAddress == player2_DB.userAddress);
+    
                 if (player1.userAddress === player2.userAddress) {
                     await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
                     await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'waiting' });
+                    retries++;
                     continue;
                 }
-
+    
                 const gameCount1 = (await GameCounts.findOne({ raceId, userAddress: player1.userAddress }))?.count || 0;
                 const gameCount2 = (await GameCounts.findOne({ raceId, userAddress: player2.userAddress }))?.count || 0;
                 const matchesPlayed1 = await MatchesPlayed.find({ raceId, $or: [{ player1: player1.userAddress }, { player2: player1.userAddress }] });
                 const matchesPlayed2 = await MatchesPlayed.find({ raceId, $or: [{ player1: player2.userAddress }, { player2: player2.userAddress }] });
                 const requiredGamesPlayer1 = (await GamesRequired.findOne({ raceId, userAddress: player1.userAddress }))?.requiredGames || Infinity;
                 const requiredGamesPlayer2 = (await GamesRequired.findOne({ raceId, userAddress: player2.userAddress }))?.requiredGames || Infinity;
-
+    
                 if (
                     gameCount1 < requiredGamesPlayer1 &&
                     gameCount2 < requiredGamesPlayer2 &&
@@ -112,35 +100,39 @@ export default (socket: any, io: any): void => {
                     const roomName = `1v1-${player1.id}-${player2.id}`;
                     player1.join(roomName);
                     player2.join(roomName);
-
+    
                     io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
                     io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
-
-
+    
                     await MatchesPlayed.create({
                         raceId,
                         player1: player1.userAddress,
                         player2: player2.userAddress,
                     });
-
+    
                     await incrementGameCount(player1, player2);
-
-                    await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'active' });
-                    await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'active' });
+    
+                    await PlayersState.deleteOne({ raceId, userAddress: player1.userAddress });
+                    await PlayersState.deleteOne({ raceId, userAddress: player2.userAddress });
                 } else {
                     await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
                     await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'active' });
+                    retries++;
                     continue;
                 }
             }
 
+            activePlayers = await PlayersState.find({ raceId, status: 'active' });
+            
+            console.log({activePlayers});
+
             if (activePlayers.length === 1) {
                 const remainingPlayer = activePlayers.shift()!;
-
+    
                 const remainingGameCount = (await GameCounts.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.count || 0;
-
+    
                 const requiredGames = (await GamesRequired.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.requiredGames || Infinity;
-
+    
                 if (remainingGameCount >= requiredGames) {
                     io.to(remainingPlayer.id).emit('bullrun-game-complete', {
                         message: 'You have completed all your games',
@@ -148,29 +140,30 @@ export default (socket: any, io: any): void => {
                     });
                     return;
                 }
-
+    
                 await PlayersState.updateOne({ raceId, userAddress: remainingPlayer.userAddress }, { status: 'waiting' });
                 const gamesPlayed = remainingGameCount;
+                console.log("EMIT waiting", remainingPlayer.id)
                 io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
             }
         }
-
+    
         async function incrementGameCount(player1: any, player2: any) {
             console.log(`Increment game count for ${player1.userAddress} and ${player2.userAddress}`);
-
+    
             await GameCounts.updateOne(
                 { raceId, userAddress: player1.userAddress },
                 { $inc: { count: 1 } },
                 { upsert: true }
             );
-
+    
             await GameCounts.updateOne(
                 { raceId, userAddress: player2.userAddress },
                 { $inc: { count: 1 } },
                 { upsert: true }
             );
         }
-
+    
         pairPlayers();
     });
 

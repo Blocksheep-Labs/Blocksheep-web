@@ -1,8 +1,8 @@
 import { ethers } from "ethers"
 
-export const build = (opponentAddress: string) => {
+export const build = (opponentAddress: string, userAddress: string) => {
     return ethers.utils.defaultAbiCoder.encode(
-        ["address"],
-        [opponentAddress]
+        ["address", "address"],
+        [opponentAddress, userAddress]
     )
 }

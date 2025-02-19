@@ -371,10 +371,14 @@ export const applySocketEvents = (io) => {
             const updatedProgress = updateProgress(property, value, updatedRProgress, version);
 
             // Update the progress in MongoDB
-            await RaceProgress.updateOne(
-                { room: roomName, userAddress },
-                { $set: updatedProgress }
-            );
+            try {
+                await RaceProgress.updateOne(
+                    { room: roomName, userAddress },
+                    { $set: updatedProgress }
+                );
+            } catch (error) {
+                console.log("[!] Update progress error", error);
+            }
 
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });

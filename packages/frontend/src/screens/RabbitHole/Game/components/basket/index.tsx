@@ -12,13 +12,10 @@ export function CarrotBasket({fuelLeft}: {fuelLeft: number}) {
     );
 }
 
-export function CarrotBasketIncrement({ setDisplayNumber, disabled, max }: { setDisplayNumber: (fuel: number) => void; disabled: boolean; max: number }) {
-  const [value, setValue] = useState(0);
-
+export function CarrotBasketIncrement({ setDisplayNumber, disabled, max, displayNumber }: { setDisplayNumber: (fuel: number) => void; disabled: boolean; max: number; displayNumber: number }) {
   const handleIncrease = () => {
-    if (disabled || value >= max) return;
-    const newValue = Math.min(max, value + 1);
-    setValue(newValue);
+    if (disabled || displayNumber >= max) return;
+    const newValue = Math.min(max, displayNumber + 1);
     setDisplayNumber(newValue);
   };
 
@@ -34,13 +31,13 @@ export function CarrotBasketIncrement({ setDisplayNumber, disabled, max }: { set
         className="text-black absolute left-[17.5%] bottom-[62px] text-lg -z-10"
         style={{ transform: "translate(-50%,-50%)" }}
       >
-        {value}
+        {displayNumber}
       </span>
       <button
         className={`text-black absolute left-[28%] bottom-[21px] text-lg`}
         style={{ transform: "translate(-50%,-50%)" }}
         onClick={handleIncrease}
-        disabled={disabled || value >= max}
+        disabled={disabled || displayNumber >= max}
       >
         DROP
       </button>

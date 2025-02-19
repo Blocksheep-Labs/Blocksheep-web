@@ -79,181 +79,19 @@ body{
   url('./assets/common/grass.png') bottom center;
  
 }
-.app-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: fit-content;
-  margin: 0;
-  padding:0;
-  position: relative;
-  
-}
 
 
-.tunnel {
-  position: relative; 
-  z-index: 1; 
-  height: 175px;
-  width: 100%;
-  background: url('./assets/rabbit-hole/tunnel-light.png') no-repeat center;
-}
-
-#StartTunnel{
-  width:200px;
-}
-
-.darkness {
-  position: absolute;
-  top: -5px;
-  left: 100%;
-  height: 140px;
-  width: 125%;
-  background: url('./assets/rabbit-hole/tunnel-dark.png');  
-  transition: width 1.5s ease-in-out, left 1.5s ease-in-out;
-  z-index: 10;
-}
-
-.rabbit-head, .rabbit-tail {
-  position: absolute;
-  transition: transform 1.5s ease-in-out;
-  z-index: 4;
-  
-}
-
-.rabbit-head {
-  right: -180px;
-  height: 300px;
-  top:-120px;
-  z-index: 30;
-}
-
-.rabbit-tail {
-  left: 100%;
-  height: 150px;
-  z-index: 20;
-}
-
-
-
-.player-container div {
-  transition: all 0.5s ease-out;
-  height: 50px;
-  width: 50px;
-  left:0px;
-}
-
-.player-container img {
-  transition: all 0.5s ease-out;
-  height: 50px;
-  left:0px;
-}
-
-.player-container .fuel-text {
-  transition: all 0.5s ease-out;
-  position: absolute;
-  z-index: 3;
-  left:-10px;
-}
 
 /* /////////// */
-
-
-.control-panels{
-  z-index: 200;
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.panel{
-  background: url('./assets/rabbit-hole/box-1.png') no-repeat center center;
-  background-size: cover;
-  border:0;
-  width: 100px;
-  height: 100px;
-  margin: 0 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-}
-
-
-
-.lever-container {
-  background: url('./assets/rabbit-hole/Lever-Base.png') no-repeat center center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100px;
-  width:100px;
-}
-
-/* Styles for the number display */
-.number-display {
-  
-  color: white; 
-  font-size: 48px; 
-  padding: 20px;
-  user-select: none; 
- 
-}
-
-.gasoline-gauge {
-  width: 80%;
-  background-position: bottom;
-  transition: height 0.5s ease-out;
-  background: linear-gradient(orange, rgb(255, 224, 168));
-  position:absolute;
-  top: 12px;
-  max-height: 75px;
-}
-
-.win-modal{
+.win-modal {
   z-index: 99;
 }
-.loading-modal{
+.loading-modal {
   z-index: 99;
 
 }
-.race-board{
+.race-board {
   z-index: 99;
-}
-
-#carrot_fuel{
-  position:absolute;
-}
-
-
-.fuel-bar-container {
-  position: absolute;
-  top: 0;
-  width: calc(100%); /* Adjust based on your margin needs */
-  height: 50px; /* Adjust as needed */
-}
-
-.fuel-line {
-  position: absolute;
-  width: 100%;
-  height: 5px; /* Adjust as needed */
-  background-color: black;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.fuel-circle {
-  position: absolute;
-  width: 20px; 
-  height: 20px; 
-  border-radius: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
 }
 
 

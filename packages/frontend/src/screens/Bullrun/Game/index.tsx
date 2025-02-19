@@ -245,7 +245,7 @@ export default function Bullrun() {
 
             txAttempts(
                 3,
-                async() => await distribute(buildDistributeData(opponent?.userAddress as string)),
+                async() => await distribute(buildDistributeData(opponent?.userAddress as string, smartAccountAddress as string)),
                 3000
             )
             .catch(console.log)
@@ -343,7 +343,7 @@ export default function Bullrun() {
 
         txAttempts(
             3,
-            async() => await makeMove(buildMakeMoveData(perk, opponent?.userAddress as string)),
+            async() => await makeMove(buildMakeMoveData(perk, opponent?.userAddress as string, smartAccountAddress as string)),
             3000
         )
         .catch(console.log)

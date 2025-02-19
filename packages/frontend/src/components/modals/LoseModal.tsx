@@ -2,42 +2,50 @@
 import LoseMain from "../../assets/lose/lose-main.webp";
 import NextFlag from "../../assets/common/flag.png";
 import { useSmartAccount } from "../../hooks/smartAccountProvider";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../../utils/socketio";
 
 export type LoseModalProps = {
   handleClose: () => void;
-  raceId?: number;
-  gameIndex?: number;
-  preloadedScore?: number;
+  getScoreOfTheUser: () => Promise<any>;
   secondsLeft: number;
+  raceId: number;
 };
 
-function LoseModal({ handleClose, raceId, gameIndex, preloadedScore, secondsLeft }: LoseModalProps) {
-  const { smartAccountAddress } = useSmartAccount();
-
-  // add user points on server side
-  useEffect(() => {
-    if (preloadedScore !== undefined && smartAccountAddress) {
-      socket.emit('player-add-points', {
-        raceId,
-        userAddress: smartAccountAddress,
-        points: preloadedScore,
-      });
-    }
-  }, [preloadedScore, smartAccountAddress]);
+function LoseModal({ handleClose, raceId, secondsLeft, getScoreOfTheUser }: LoseModalProps) {
+    const { smartAccountAddress } = useSmartAccount();
+    const [score, setScore] = useState<null | number>(null);
+  
+    useEffect(() => {
+      if (smartAccountAddress) {
+        getScoreOfTheUser()
+          .then(data => {
+            console.log("Get score:", data);
+            setScore(Number(data));
+          })
+      }
+    }, [smartAccountAddress]);
+  
+    // add user points on server side
+    useEffect(() => {
+      if (score && smartAccountAddress) {
+        socket.emit('player-add-points', {
+          raceId,
+          userAddress: smartAccountAddress,
+          points: score,
+        });
+      }
+    }, [score, smartAccountAddress]);
 
   return (
     <div className="win-modal absolute inset-0 bg-[rgb(0,0,0,0.75)]">
       <div className="mx-[10%] mb-[40%] mt-[30%] relative">
         <img src={LoseMain} alt="loading-bg" />
+         
         { 
-          !preloadedScore
-          ?
-          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+0</p>
-          :
-          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-25px] text-center">+{preloadedScore}</p>
+          <p className="text-4xl uppercase text-[#285E19] font-bold w-full mt-10 absolute top-[-20px] text-center">{score?.toString().length ? `+${score}` : "Pls wait..."}</p>
         }
+        
       </div>
       <div className="absolute bottom-0 right-0 w-[40%]">
         <button

@@ -14,11 +14,12 @@ export const useRegisterOnTheRace = () => {
     const entryCost = useRaceEntryCOST();
 
     const processTransaction = async(raceId: number) => {
-        const needToDeposit = Number(entryCost);
-
+        const needToDeposit = 30000000; // Number(entryCost);
+        
+        console.log(entryCost, Number(entryCost))
         console.log({userBalance, needToDeposit, isEnough: Number(userBalance) >= needToDeposit});
 
-        if (Number(userBalance) < needToDeposit) {
+        //if ((Number(userBalance) < needToDeposit) || (!userBalance && !entryCost)) {
             const amountToDepositAccordingToUserBalance = needToDeposit - Number(userBalance);
             const approveHash = await smartAccountClient.sendTransaction({
                 account: smartAccountClient.account!,
@@ -43,7 +44,7 @@ export const useRegisterOnTheRace = () => {
                 }),
             });
             console.log("Deposit:", depositHash);
-        }
+        //}
         
 
         const registerHash = await smartAccountClient.sendTransaction({

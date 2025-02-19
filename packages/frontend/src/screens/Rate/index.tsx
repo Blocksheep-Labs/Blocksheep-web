@@ -165,6 +165,7 @@ export default function RateScreen() {
             }
             
             socket.on('screen-changed', ({ screen }) => {
+                
                 socket.emit('update-progress', {
                     raceId,
                     userAddress: smartAccountAddress,

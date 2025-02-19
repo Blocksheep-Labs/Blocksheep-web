@@ -51,6 +51,8 @@ export default function StoryScreen() {
     const [seconds, setSeconds] = useState(1000);
     const { race } = useRaceById(Number(raceId));
 
+    console.log({gameState})
+
     const SCREEN_NAME = getStoryPart(part as string);
     const time = new Date();
     time.setSeconds(time.getSeconds() + 6);

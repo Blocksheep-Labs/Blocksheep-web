@@ -1,3 +1,8 @@
-export const build = () => {
-    return "0x"
+import { ethers } from "ethers"
+
+export const build = (userAddress: string) => {
+    return ethers.utils.defaultAbiCoder.encode(
+        ["address"],
+        [userAddress]
+    )
 }

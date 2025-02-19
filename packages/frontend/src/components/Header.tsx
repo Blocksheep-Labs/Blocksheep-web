@@ -6,6 +6,7 @@ import shortenAddress from "../utils/shortenAddress";
 import { useUserBalance } from "../hooks/useUserBalance";
 import { USDC_MULTIPLIER } from "../config/constants";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
+import { useUserGameBalance } from "@/hooks/useUserGameBalance";
 
 
 function Header() {
@@ -13,7 +14,9 @@ function Header() {
   const { logout } = usePrivy();
   const navigate = useNavigate();
   
-  const userBalance = useUserBalance(smartAccountAddress as `0x${string}`);
+  const userBalance = useUserGameBalance();
+
+  console.log({userBalance})
 
   const handleLogout = () => {
     if (smartAccountAddress) {

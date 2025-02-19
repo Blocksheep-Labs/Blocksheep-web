@@ -33,15 +33,7 @@ export default defineConfig({
     minify: "terser", // More efficient minification
     chunkSizeWarningLimit: 1000, // Increase
   },
-
-  preview: {
-    port: 8080,
-    strictPort: true,
-  },
   server: {
-    port: 8080,
-    strictPort: true,
     host: true,
-    origin: "http://0.0.0.0:8080",
   },
 });

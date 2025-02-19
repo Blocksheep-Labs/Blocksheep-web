@@ -101,6 +101,7 @@ export default function StatsScreen() {
                 socket.connect();
             }
             socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+            socket.emit("race-finish", { raceId, userAddress: smartAccountAddress });
             // socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
         }
     }, [smartAccountAddress, socket, raceId]);

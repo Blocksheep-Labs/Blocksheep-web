@@ -26,12 +26,12 @@ export default function BullrunCover() {
         console.log("UPDATE PROGRESS", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game3-preview-complete",
+            property: "bullrun-preview-complete",
         });
         socket.emit('update-progress', {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game3-preview-complete",
+            property: "bullrun-preview-complete",
         });
 
         const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
@@ -129,8 +129,9 @@ export default function BullrunCover() {
                 socket.emit('update-progress', {
                     raceId,
                     userAddress: smartAccountAddress,
-                    property: "game3-preview-complete",
+                    property: "bullrun-preview-complete",
                 });
+                console.log("NAVIGATE_1")
                 navigate(generateLink(screen, Number(raceId)));
             });
             
@@ -139,8 +140,9 @@ export default function BullrunCover() {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
-                        property: "game3-preview-complete",
+                        property: "bullrun-preview-complete",
                     });
+                    console.log("NAVIGATE_2")
                     navigate(generateLink(screen, Number(raceId)));
                 }
             });

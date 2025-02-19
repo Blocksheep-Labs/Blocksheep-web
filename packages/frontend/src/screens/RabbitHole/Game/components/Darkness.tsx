@@ -15,8 +15,10 @@ function Darkness({ phase }) {
         darkness.style.left = '-140%'
       }, 4000);
     } else if (phase === 'Reset') {
-      darkness.style.visibility = 'hidden';
-      darkness.style.left = '100%';
+      setTimeout(() => {
+        darkness.style.visibility = 'hidden';
+        darkness.style.left = '100%';
+      }, 4000);
     }
   }, [phase]);
 

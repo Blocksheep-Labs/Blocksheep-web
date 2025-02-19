@@ -6,7 +6,7 @@ export const useUSDCDecimals = () => {
     const {data: decimals} = useReadContract({
         address: USDC_ADDR,
         abi: MockUSDC,
-        functionName: 'balanceOf',
+        functionName: 'decimals',
     });
 
     return decimals;

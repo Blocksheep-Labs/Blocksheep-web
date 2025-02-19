@@ -29,7 +29,7 @@ import { build as buildMakeMoveData } from "./arguments-builder/makeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
 
 // Assets
-import DogLoaderImage from "../assets/dog-loader.png";
+import DogLoaderImage from "../assets/background_head.webp";
 
 import LoseTears from "../assets/LoseTears.png";
 import WinHat from "../assets/WinHat.png";
@@ -183,7 +183,7 @@ function UnderdogGame() {
     
     sendTx && txAttempts(
       5,
-      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 1)),
+      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 1, smartAccountAddress as string)),
       3000
     ).catch(err => {
       //console.log(err);
@@ -227,7 +227,7 @@ function UnderdogGame() {
 
     sendTx && txAttempts(
       5,
-      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 0)),
+      async() => await makeMove(buildMakeMoveData(currentQuestionIndex, 0, smartAccountAddress as string)),
       3000,
     ).catch(err => {
       //console.log(err);

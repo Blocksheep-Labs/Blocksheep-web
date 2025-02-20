@@ -59,6 +59,8 @@ const updateRabbitHoleProgress = (
             break;
         case "rabbithole-set-fuel":
             // @ts-ignore
+            console.log("rabbithole-set-fuel", value.fuel, rProgress.userAddress);
+            // @ts-ignore
             rProgress.progress.rabbithole[version] = {
                 // @ts-ignore
                 ...rProgress.progress.rabbithole[version],

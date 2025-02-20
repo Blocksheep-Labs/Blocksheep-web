@@ -603,13 +603,18 @@ export default function Bullrun() {
             socket.on("progress-updated", async(progress) => {
                 console.log("PROGRESS UPDATED SOCKET EVENT:", progress)
                 if (progress.property === "bullrun-complete") {
-                    //alert(`COMPLETE++ ${amountOfConnected}, ${amountOfPlayersCompleted + 1}`);
-                    console.log( "bullrun-complete", amountOfConnected, amountOfPlayersCompleted + 1)
-                    setAmountOfPlayersCompleted(amountOfPlayersCompleted + 1);
-                    if (amountOfConnected <= amountOfPlayersCompleted + 1) {
-                        //alert(31230);
-                        redirectToNextScreen();
-                    }
+                    // Use functional update to ensure we're working with the latest state
+                    setAmountOfPlayersCompleted(prevAmount => {
+                        const newAmount = prevAmount + 1;
+                        console.log("bullrun-complete", amountOfConnected, newAmount);
+                        
+                        // Check if all players have completed
+                        if (amountOfConnected <= newAmount) {
+                            redirectToNextScreen();
+                        }
+                        
+                        return newAmount;
+                    });
                 }
             });
 
@@ -688,8 +693,8 @@ export default function Bullrun() {
             setPerksLocked(false);
 
             setPreviewPerk(null);
-            //setOpponent(undefined);
-
+            
+            // setOpponent(undefined);
             socket.emit('bullrun-game-end', { raceId });
             
             setGamesPlayed(prev => prev + 1);
@@ -932,13 +937,13 @@ export default function Bullrun() {
                     }
                     <img 
                         src={Swords} alt="swords" 
-                        className={`z-10 absolute w-16 h-16 ${(perksLocked || status !== "playing") && 'opacity-50'}`}
+                        className={`z-10 absolute w-16 h-16 ${(perksLocked || status !== "playing" || totalSeconds == 0) && 'opacity-50'}`}
 
-                        onClick={(!perksLocked && status == "playing") ? () => setPreviewPerk(0) : undefined}
-                        onMouseDown={(!perksLocked && status == "playing" && previewPerk === 0) ? () => handleMouseDown(0) : undefined} 
-                        onMouseUp={(!perksLocked && status == "playing" && previewPerk === 0) ? handleMouseUp : undefined} 
-                        onTouchStart={(!perksLocked && status == "playing" && previewPerk === 0) ? () => handleMouseDown(0) : undefined} 
-                        onTouchEnd={(!perksLocked && status == "playing" && previewPerk === 0) ? handleMouseUp : undefined} 
+                        onClick={(!perksLocked && totalSeconds > 0 && status == "playing") ? () => setPreviewPerk(0) : undefined}
+                        onMouseDown={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 0) ? () => handleMouseDown(0) : undefined} 
+                        onMouseUp={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 0) ? handleMouseUp : undefined} 
+                        onTouchStart={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 0) ? () => handleMouseDown(0) : undefined} 
+                        onTouchEnd={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 0) ? handleMouseUp : undefined} 
                     />
                     {
                         previewPerk === 0 &&
@@ -973,13 +978,13 @@ export default function Bullrun() {
                     }
                     <img 
                         src={Shield} alt="shield" 
-                        className={`z-10 absolute top-2 w-16 h-16 ${(perksLocked || status !== "playing") && 'opacity-50'}`}
+                        className={`z-10 absolute top-2 w-16 h-16 ${(perksLocked || status !== "playing" || totalSeconds == 0) && 'opacity-50'}`}
 
-                        onClick={(!perksLocked && status == "playing") ? () => setPreviewPerk(1) : undefined}
-                        onMouseDown={(!perksLocked && status == "playing" && previewPerk === 1) ? () => handleMouseDown(1) : undefined}
-                        onMouseUp={(!perksLocked && status == "playing" && previewPerk === 1) ? handleMouseUp : undefined} 
-                        onTouchStart={(!perksLocked && status == "playing" && previewPerk === 1) ? () => handleMouseDown(1) : undefined} 
-                        onTouchEnd={(!perksLocked && status == "playing" && previewPerk === 1) ? handleMouseUp : undefined} 
+                        onClick={(!perksLocked && totalSeconds > 0 && status == "playing") ? () => setPreviewPerk(1) : undefined}
+                        onMouseDown={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 1) ? () => handleMouseDown(1) : undefined}
+                        onMouseUp={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 1) ? handleMouseUp : undefined} 
+                        onTouchStart={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 1) ? () => handleMouseDown(1) : undefined} 
+                        onTouchEnd={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 1) ? handleMouseUp : undefined} 
                     
                     />
                     {
@@ -1017,13 +1022,13 @@ export default function Bullrun() {
                         src={BullHead} 
                         alt="run"
                         className={`z-10 absolute top-1 w-16 h-16 
-                                    ${(perksLocked || status !== "playing") ? 'opacity-50' : ''}`}
+                                    ${(perksLocked || status !== "playing" || totalSeconds == 0) ? 'opacity-50' : ''}`}
                                     
-                        onClick={(!perksLocked && status == "playing") ? () => setPreviewPerk(2) : undefined}
-                        onMouseDown={(!perksLocked && status == "playing" && previewPerk === 2) ? () => handleMouseDown(2) : undefined} 
-                        onMouseUp={(!perksLocked && status == "playing" && previewPerk === 2) ? handleMouseUp : undefined} 
-                        onTouchStart={(!perksLocked && status == "playing" && previewPerk === 2) ? () => handleMouseDown(2) : undefined} 
-                        onTouchEnd={(!perksLocked && status == "playing" && previewPerk === 2) ? handleMouseUp : undefined}
+                        onClick={(!perksLocked && totalSeconds > 0 && status == "playing") ? () => setPreviewPerk(2) : undefined}
+                        onMouseDown={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 2) ? () => handleMouseDown(2) : undefined} 
+                        onMouseUp={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 2) ? handleMouseUp : undefined} 
+                        onTouchStart={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 2) ? () => handleMouseDown(2) : undefined} 
+                        onTouchEnd={(!perksLocked && totalSeconds > 0 && status == "playing" && previewPerk === 2) ? handleMouseUp : undefined}
                     />
                     {
                         previewPerk === 2 && (

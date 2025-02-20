@@ -70,7 +70,7 @@ export const applySocketEvents = (io) => {
 
             // Remove user from connected users
             if (userConnection) {
-                console.log({ userConnection });
+                // console.log({ userConnection });
                 const usersInRace = connectedUsers.filter(u => (u.id !== socket.id) && (u.room == userConnection.room));
                 if (usersInRace.length == 0) {
                     //console.log("[alert] no users in game left!");
@@ -302,38 +302,41 @@ export const applySocketEvents = (io) => {
             // console.log({ raceId, userAddress, property, value, version })
             const roomName = `race-${raceId}`;
             
-            let rProgress = await RaceProgress.findOne({ room: roomName, userAddress });
-            
-            if (!rProgress) {
-                rProgress = new RaceProgress({
-                    room: roomName,
-                    userAddress,
-                    progress: {
-                        countdown: false,
-                        board1: false,
-                        board2: false,
-                        board3: false,
-                        board4: false,
-                        nicknameSet: false,
-                        story: {
-                            intro: false,
-                            part1: false,
-                            part2: false,
-                            part3: false,
-                            part4: false,
-                            conclusion: false,
-                        },
-                        ...underdogBaseState,
-                        ...rabbitHoleBaseState,
-                        ...bullrunBaseState,
+            let rProgress = await RaceProgress.findOneAndUpdate(
+                { 
+                    room: roomName, 
+                    userAddress 
+                },
+                {
+                    $setOnInsert: {
+                        room: roomName,
+                        userAddress,
+                        progress: {
+                            countdown: false,
+                            board1: false,
+                            board2: false,
+                            board3: false,
+                            board4: false,
+                            nicknameSet: false,
+                            story: {
+                                intro: false,
+                                part1: false,
+                                part2: false,
+                                part3: false,
+                                part4: false,
+                                conclusion: false,
+                            },
+                            ...underdogBaseState,
+                            ...rabbitHoleBaseState,
+                            ...bullrunBaseState,
+                        }
                     }
-                });
-
-                await rProgress.save();
-            }
-
-        // clone to avoid issues
-        const updatedRProgress = JSON.parse(JSON.stringify(rProgress));
+                },
+                { 
+                    new: true,
+                    upsert: true 
+                }
+            );
 
 
             if (property === 'rabbithole-eliminate') {
@@ -341,7 +344,7 @@ export const applySocketEvents = (io) => {
                 const connectedUsers = await ConnectedUser.find({ room: roomName });
 
                 // Set the fuel of all players who are not connected to 0
-                racesProgresses.forEach(progress => {
+                await Promise.all(racesProgresses.map(async progress => {
                     // Check if the player is not the eliminating player and is not connected
                     if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
                         progress.progress.rabbithole[version] = {
@@ -351,8 +354,10 @@ export const applySocketEvents = (io) => {
                                 fuel: 0, // Set fuel to 0 for players who are not connected
                             }
                         };
+            
+                        await progress.save();
                     }
-                });
+                }));
 
                 // Set the fuel of the eliminating player to 0
                 const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
@@ -364,21 +369,27 @@ export const applySocketEvents = (io) => {
                             fuel: 0, // Set fuel to 0 for the eliminating player
                         }
                     };
+                    await eliminatingPlayerProgress.save();
                 }
             }
             
+            const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
+            const updatedProgress = updateProgress(property, value, progressToUpdate, version);
 
-            const updatedProgress = updateProgress(property, value, updatedRProgress, version);
+            // update event sender progress
+            // await updatedProgress.save();
 
             // Update the progress in MongoDB
             try {
                 await RaceProgress.updateOne(
                     { room: roomName, userAddress },
-                    { $set: updatedProgress }
+                    { $set: updatedProgress },
+                    { upsert: true }
                 );
             } catch (error) {
                 console.log("[!] Update progress error", error);
             }
+            
 
             io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
         });

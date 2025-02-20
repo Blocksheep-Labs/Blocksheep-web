@@ -185,7 +185,7 @@ function RabbitHoleGame() {
       console.log("Try to process reset animations...", { pending, currentPhase, canExecute: pending === 0 && currentPhase == "CloseTunnel" })
       if (pending === 0 && currentPhase == "CloseTunnel") {
         console.log("All transactions processed.");
-        socket.emit("tunnel-started", { raceId });
+        socket.emit("rabbithole-tunnel-started", { raceId });
         triggerAnimationsReset();
       }
     }
@@ -601,7 +601,8 @@ function RabbitHoleGame() {
       gameState: "close",
     });
     
-    
+    console.log("CLOSE_TUNNEL");
+
     setPhase("CloseTunnel");
     await delay(2000)
     setIsCountingDown(true);
@@ -697,6 +698,10 @@ function RabbitHoleGame() {
 
   const triggerAnimationsReset = async() => {
     setRoundIndex(prev => prev + 1);
+    socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
+
+    await delay(1500);
+
     // Open tunnel: cars get out
     socket.emit('rabbithole-set-tunnel-state', {
       raceId,
@@ -704,7 +709,7 @@ function RabbitHoleGame() {
       addRoundsPlayed: 0,
       gameState: "open",
     });
-    socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
+    console.log("OPEN_TUNNEL");
     setPhase("OpenTunnel");
     
 
@@ -716,6 +721,7 @@ function RabbitHoleGame() {
         addRoundsPlayed: 0,
         gameState: "reset",
       });
+      console.log("RESET_TUNNEL");
       setPhase("Reset");
       setWhoStoleIsShowed(true)
       
@@ -729,10 +735,11 @@ function RabbitHoleGame() {
     
         setRoundIsFinsihed(true);
         setIsRolling(false);
+        console.log("DEFAULT_TUNNEL");
         setPhase("Default");
       }, 5000);
       
-    }, 3000);
+    }, 5000);
   }
 
 
@@ -772,9 +779,7 @@ function RabbitHoleGame() {
   const handleFinishTunnelGame = async(
     raceId: string, 
     isWon: boolean, 
-    playersLeft: number, 
     amountOfPointsToAllocate: number, 
-    finishPermanently?: boolean
   ) => {
     setAmountOfAllocatedPoints(amountOfPointsToAllocate);
     
@@ -896,14 +901,14 @@ function RabbitHoleGame() {
           console.log("YOU LOSE :(");
           if (!isGameOver) {
               const amountOfPointsToAllocate = Math.max(0, 3 - remainingPlayersCount);
-              handleFinishTunnelGame(raceId as string, false, remainingPlayersCount, amountOfPointsToAllocate);
+              handleFinishTunnelGame(raceId as string, false, amountOfPointsToAllocate);
           }
           setIsRolling(false);
       }
 
       if (userWon) {
           console.log("YOU WIN!");
-          handleFinishTunnelGame(raceId as string, true, remainingPlayersCount, 3);
+          handleFinishTunnelGame(raceId as string, true, 3);
           setIsRolling(false);
           return;
       }

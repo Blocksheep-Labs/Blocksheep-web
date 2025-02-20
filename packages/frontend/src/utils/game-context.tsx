@@ -1,19 +1,17 @@
 import React, { createContext, useContext, useState } from 'react';
 
-export type TStep = "questions" | "board" | "start";
 
 export type GameState = {
   questionsByGames: any;
   amountOfRegisteredUsers: number;
   progress: any;
-  step?: TStep;
   raceProgressVisual: any[];
 };
 
 // context
 const GameContext = createContext<{ 
   gameState: GameState | null; 
-  updateGameState: (data: any, progress: any, step?: TStep) => void; 
+  updateGameState: (data: any, progress: any) => void; 
   setGameStateObject: (state: GameState) => void;
 } | null>(null);
 
@@ -30,8 +28,8 @@ export const useGameContext = () => {
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
 
-  const updateGameState = (data: any, progress: any, step?: TStep) => {
-    const state = generateStateObjectForGame(data, progress, step);
+  const updateGameState = (data: any, progress: any) => {
+    const state = generateStateObjectForGame(data, progress);
     setGameState(state);
   };
   
@@ -47,12 +45,11 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 
-const generateStateObjectForGame = (data: any, progress: any, step?: TStep) => {
+const generateStateObjectForGame = (data: any, progress: any) => {
   return {
     questionsByGames: data.questionsByGames, 
     amountOfRegisteredUsers: data.registeredUsers.length, 
     progress,
-    step,
     raceProgressVisual: [],
   }
 }

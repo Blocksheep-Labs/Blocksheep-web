@@ -83,7 +83,8 @@ export default function AdminScreen() {
     }
 
     return (
-        <div className="bg-white p-8 overflow-y-auto" style={{ height: `${window.innerHeight}px` }}>
+        <div className="bg-white p-8 overflow-y-auto relative" style={{ height: `${window.innerHeight}px` }}>
+            <button onClick={() => navigate('/select')} className="absolute top-2 right-2">{'<< Go back'}</button>
             <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
 
                 <span className="text-3xl">New race</span>

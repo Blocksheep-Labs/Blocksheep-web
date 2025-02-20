@@ -65,7 +65,7 @@ function SelectRaceScreen() {
     
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
-      updateGameState(race, progress, undefined);
+      updateGameState(race, progress);
 
       if (screen) {
         navigate(generateLink(screen, rIdNumber));
@@ -262,7 +262,7 @@ function SelectRaceScreen() {
   }, [isJoining, smartAccountAddress, socket, race])
 
   useEffect(() => {
-    if (socket && raceId !== null && smartAccountAddress && race) {
+    if (socket && raceId !== null && smartAccountAddress && race && modalType == "waiting") {
       const handler = () => {
         if (document.hidden) {
           console.log('Tab is hidden, browser might be going idle.');
@@ -286,7 +286,7 @@ function SelectRaceScreen() {
         document.removeEventListener('visibilitychange', handler);
       } 
     }
-  }, [raceId, socket, smartAccountAddress, race]);
+  }, [raceId, socket, smartAccountAddress, race, modalType]);
 
   const onClickRegister = useCallback(async(id: number) => {
     setIsOpen(true);

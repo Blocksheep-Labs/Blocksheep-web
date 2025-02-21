@@ -442,6 +442,7 @@ export default function Bullrun() {
 
             socket.on('bullrun-game-continue', ({ message }) => {
                 console.log({message});
+                
                 socket.emit('bullrun-join-game', { 
                     raceId, 
                     userAddress: smartAccountAddress, 

@@ -40,6 +40,8 @@ export default (socket: any, io: any): void => {
         io.to(roomName).emit('bullrun-win-modal-opened-on-client', { raceId, socketId: socket.id });
     });
 
+    const isPairing = new Map();
+
     socket.on('bullrun-join-game', async ({ raceId, userAddress, amountOfGamesRequired }: BullrunJoinGameData) => {
         const roomName = `race-${raceId}`;
         socket.join(roomName);
@@ -54,8 +56,7 @@ export default (socket: any, io: any): void => {
     
         socket.userAddress = userAddress;
         await initializePlayer(userAddress, socket);
-
-        await PlayersState.updateMany({ raceId }, { status: 'active' });
+        await PlayersState.updateMany({ raceId, status: 'waiting' }, { status: 'active' });
         let activePlayers = await PlayersState.find({ raceId, status: 'active' });
 
         if (!activePlayers.some(pl => pl.userAddress == userAddress)) {
@@ -63,88 +64,102 @@ export default (socket: any, io: any): void => {
             activePlayers.push(newPlayer);
         }
         
-    
         async function pairPlayers() {
-            let maxRetries = activePlayers.length * 2; // Limit retries to prevent infinite loops
-            let retries = 0;
-    
-            while (activePlayers.length >= 2 && retries < maxRetries) {
-                const player1_DB: any = activePlayers.shift()!;
-                const player2_DB: any = activePlayers.shift()!;
-    
-                const connectedUsers = Array.from(io.sockets.sockets.values());
-    
-                let player1: any = connectedUsers.find((i: any) => i.userAddress == player1_DB.userAddress);
-                let player2: any = connectedUsers.find((i: any) => i.userAddress == player2_DB.userAddress);
-    
-                if (player1.userAddress === player2.userAddress) {
-                    await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
-                    await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'waiting' });
-                    retries++;
-                    continue;
-                }
-    
-                const gameCount1 = (await GameCounts.findOne({ raceId, userAddress: player1.userAddress }))?.count || 0;
-                const gameCount2 = (await GameCounts.findOne({ raceId, userAddress: player2.userAddress }))?.count || 0;
-                const matchesPlayed1 = await MatchesPlayed.find({ raceId, $or: [{ player1: player1.userAddress }, { player2: player1.userAddress }] });
-                const matchesPlayed2 = await MatchesPlayed.find({ raceId, $or: [{ player1: player2.userAddress }, { player2: player2.userAddress }] });
-                const requiredGamesPlayer1 = (await GamesRequired.findOne({ raceId, userAddress: player1.userAddress }))?.requiredGames || Infinity;
-                const requiredGamesPlayer2 = (await GamesRequired.findOne({ raceId, userAddress: player2.userAddress }))?.requiredGames || Infinity;
-    
-                if (
-                    gameCount1 < requiredGamesPlayer1 &&
-                    gameCount2 < requiredGamesPlayer2 &&
-                    !matchesPlayed1.some(match => match.player1 === player2.userAddress || match.player2 === player2.userAddress) &&
-                    !matchesPlayed2.some(match => match.player1 === player1.userAddress || match.player2 === player1.userAddress)
-                ) {
-                    const roomName = `1v1-${player1.id}-${player2.id}`;
-                    player1.join(roomName);
-                    player2.join(roomName);
-    
-                    io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
-                    io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
-    
-                    await MatchesPlayed.create({
-                        raceId,
-                        player1: player1.userAddress,
-                        player2: player2.userAddress,
-                    });
-    
-                    await incrementGameCount(player1, player2);
-    
-                    await PlayersState.deleteOne({ raceId, userAddress: player1.userAddress });
-                    await PlayersState.deleteOne({ raceId, userAddress: player2.userAddress });
-                } else {
-                    await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
-                    await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'active' });
-                    retries++;
-                    continue;
-                }
+            if (isPairing.get(raceId) == true) {
+                return;
             }
+            isPairing.set(raceId, true);
 
-            activePlayers = await PlayersState.find({ raceId, status: 'active' });
-            
-            console.log({activePlayers});
-
-            if (activePlayers.length === 1) {
-                const remainingPlayer = activePlayers.shift()!;
+            try {
+                let maxRetries = activePlayers.length * 2; // Limit retries to prevent infinite loops
+                let retries = 0;
+        
+                while (activePlayers.length >= 2 && retries < maxRetries) {
+                    const player1_DB: any = activePlayers.shift()!;
+                    const player2_DB: any = activePlayers.shift()!;
+        
+                    const connectedUsers = Array.from(io.sockets.sockets.values());
+        
+                    let player1: any = connectedUsers.find((i: any) => i.userAddress == player1_DB.userAddress);
+                    let player2: any = connectedUsers.find((i: any) => i.userAddress == player2_DB.userAddress);
+        
+                    if (player1.userAddress === player2.userAddress) {
+                        await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
+                        await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'waiting' });
+                        retries++;
+                        continue;
+                    }
+        
+                    const gameCount1 = (await GameCounts.findOne({ raceId, userAddress: player1.userAddress }))?.count || 0;
+                    const gameCount2 = (await GameCounts.findOne({ raceId, userAddress: player2.userAddress }))?.count || 0;
+                    const matchesPlayed1 = await MatchesPlayed.find({ raceId, $or: [{ player1: player1.userAddress }, { player2: player1.userAddress }] });
+                    const matchesPlayed2 = await MatchesPlayed.find({ raceId, $or: [{ player1: player2.userAddress }, { player2: player2.userAddress }] });
+                    const requiredGamesPlayer1 = (await GamesRequired.findOne({ raceId, userAddress: player1.userAddress }))?.requiredGames || Infinity;
+                    const requiredGamesPlayer2 = (await GamesRequired.findOne({ raceId, userAddress: player2.userAddress }))?.requiredGames || Infinity;
+        
+                    if (
+                        gameCount1 < requiredGamesPlayer1 &&
+                        gameCount2 < requiredGamesPlayer2 &&
+                        !matchesPlayed1.some(match => match.player1 === player2.userAddress || match.player2 === player2.userAddress) &&
+                        !matchesPlayed2.some(match => match.player1 === player1.userAddress || match.player2 === player1.userAddress)
+                    ) {
+                        await PlayersState.deleteOne({ raceId, userAddress: player1.userAddress });
+                        await PlayersState.deleteOne({ raceId, userAddress: player2.userAddress });
+                        
+                        const roomName = `1v1-${player1.id}-${player2.id}`;
+                        player1.join(roomName);
+                        player2.join(roomName);
+        
+                        io.to(player1.id).emit('bullrun-game-start', { players: [player1.id, player2.id], opponent: { id: player2.id, userAddress: player2.userAddress } });
+                        io.to(player2.id).emit('bullrun-game-start', { players: [player2.id, player1.id], opponent: { id: player1.id, userAddress: player1.userAddress } });
+        
+                        await MatchesPlayed.create({
+                            raceId,
+                            player1: player1.userAddress,
+                            player2: player2.userAddress,
+                        });
+        
+                        await incrementGameCount(player1, player2);
     
-                const remainingGameCount = (await GameCounts.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.count || 0;
-    
-                const requiredGames = (await GamesRequired.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.requiredGames || Infinity;
-    
-                if (remainingGameCount >= requiredGames) {
-                    io.to(remainingPlayer.id).emit('bullrun-game-complete', {
-                        message: 'You have completed all your games',
-                        raceId
-                    });
-                    return;
+                    } else {
+                        await PlayersState.updateOne({ raceId, userAddress: player1.userAddress }, { status: 'waiting' });
+                        await PlayersState.updateOne({ raceId, userAddress: player2.userAddress }, { status: 'active' });
+                        retries++;
+                        continue;
+                    }
                 }
     
-                await PlayersState.updateOne({ raceId, userAddress: remainingPlayer.userAddress }, { status: 'waiting' });
-                const gamesPlayed = remainingGameCount;
-                console.log("EMIT waiting", remainingPlayer.id)
-                io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
+                activePlayers = await PlayersState.find({ raceId, status: 'active' });
+                
+                // console.log({activePlayers});
+    
+                if (activePlayers.length === 1) {
+                    let remainingPlayer: any = activePlayers.shift()!;
+    
+                    const connectedUsers = Array.from(io.sockets.sockets.values());
+                    remainingPlayer = connectedUsers.find((i: any) => i.userAddress == remainingPlayer.userAddress);
+        
+                    const remainingGameCount = (await GameCounts.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.count || 0;
+        
+                    const requiredGames = (await GamesRequired.findOne({ raceId, userAddress: remainingPlayer.userAddress }))?.requiredGames || Infinity;
+        
+                    if (remainingGameCount >= requiredGames) {
+                        io.to(remainingPlayer.id).emit('bullrun-game-complete', {
+                            message: 'You have completed all your games',
+                            raceId
+                        });
+                        return;
+                    }
+        
+                    await PlayersState.updateOne({ raceId, userAddress: remainingPlayer.userAddress }, { status: 'waiting' });
+                    const gamesPlayed = remainingGameCount;
+                    console.log("EMIT waiting", remainingPlayer.userAddress)
+                    io.to(remainingPlayer.id).emit('bullrun-waiting', { message: `Waiting for an opponent, games played: ${gamesPlayed}`, raceId });
+                }
+            } catch (error) {
+                
+            } finally {
+                isPairing.set(raceId, false);
             }
         }
     

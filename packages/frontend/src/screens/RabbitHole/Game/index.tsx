@@ -62,9 +62,8 @@ export type ConnectedUser = {
 
 export type RabbitHolePhases = "Default" | "CloseTunnel" | "OpenTunnel" | "Reset" | "Fall";
 
-const delay = async (time: number) => await new Promise((resolve) => setTimeout(resolve, time));
-
 const REGISTERED_CONTRACT_NAME = "RABBITHOLE";
+
 
 function RabbitHoleGame() {
   const { smartAccountAddress, smartAccountClient } = useSmartAccount();
@@ -109,7 +108,6 @@ function RabbitHoleGame() {
   const [playersNextClicked, setPlayersNextClicked] = useState<Set<string>>(new Set());
 
   const [whoStoleIsShowed, setWhoStoleIsShowed] = useState(false);
-  const [hourglassCounter, setHourglassCounter] = useState(10);
   const [isCountingDown, setIsCountingDown] = useState(false);
 
   const { makeMove } = useMakeMove(REGISTERED_CONTRACT_NAME, Number(raceId));
@@ -146,6 +144,24 @@ function RabbitHoleGame() {
     expiryTimestamp: time_5,
     onExpire: () => {
       handleTunnelChange(); 
+    },
+    autoStart: false,
+  });
+
+
+  // in-game timer 10s on closedTunnel
+  const { 
+    totalSeconds: totalSecondsOnClosedTimer, 
+    restart: restartTimerOnClosedTunnel, 
+    start: startTimerOnClosedTunnel, 
+    pause: pauseTimerOnClosedTunnel, 
+    resume: resumeTimerOnClosedTunnel, 
+    isRunning: timerOnClosedTunnelIsRunning 
+  } = useTimer({
+    expiryTimestamp: time_10,
+    onExpire: () => {
+      setIsCountingDown(false);
+      setIsRolling(true); 
     },
     autoStart: false,
   });
@@ -602,26 +618,16 @@ function RabbitHoleGame() {
     });
     
     console.log("CLOSE_TUNNEL");
-
     setPhase("CloseTunnel");
-    await delay(2000)
-    setIsCountingDown(true);
+    
+    setTimeout(() => {
+      setIsCountingDown(true);
 
-    let countdownInterval = setInterval(() => {
-      setHourglassCounter((prev) => {
-        if (prev <= 1) {
-          //console.log({ prev });
-          clearInterval(countdownInterval);
-          setIsCountingDown(false);
-          setHourglassCounter(10);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+      const time_10 = new Date();
+      time_10.setSeconds(time_10.getSeconds() + 10);
 
-    await delay(10000);
-    clearInterval(countdownInterval);
+      restartTimerOnClosedTunnel(time_10);
+    }, 2000);
   };
 
   // send tx after the 10sec timer on closed tunnel
@@ -700,51 +706,52 @@ function RabbitHoleGame() {
     setRoundIndex(prev => prev + 1);
     socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
 
-    await delay(1500);
-
-    // Open tunnel: cars get out
-    socket.emit('rabbithole-set-tunnel-state', {
-      raceId,
-      secondsLeft: 0,
-      addRoundsPlayed: 0,
-      gameState: "open",
-    });
-    console.log("OPEN_TUNNEL");
-    setPhase("OpenTunnel");
-    
-
     setTimeout(() => {
-      // reset and make calculations
+      // Open tunnel: cars get out
       socket.emit('rabbithole-set-tunnel-state', {
-        raceId, 
+        raceId,
         secondsLeft: 0,
         addRoundsPlayed: 0,
-        gameState: "reset",
+        gameState: "open",
       });
-      console.log("RESET_TUNNEL");
-      setPhase("Reset");
-      setWhoStoleIsShowed(true)
+      console.log("OPEN_TUNNEL");
+      setPhase("OpenTunnel");
       
+  
       setTimeout(() => {
+        // reset and make calculations
         socket.emit('rabbithole-set-tunnel-state', {
           raceId, 
           secondsLeft: 0,
           addRoundsPlayed: 0,
-          gameState: "default",
+          gameState: "reset",
         });
-    
-        setRoundIsFinsihed(true);
-        setIsRolling(false);
-        console.log("DEFAULT_TUNNEL");
-        setPhase("Default");
-      }, 5000);
+        console.log("RESET_TUNNEL");
+        setPhase("Reset");
+        setWhoStoleIsShowed(true)
+        
+        setTimeout(() => {
+          socket.emit('rabbithole-set-tunnel-state', {
+            raceId, 
+            secondsLeft: 0,
+            addRoundsPlayed: 0,
+            gameState: "default",
+          });
       
-    }, 5000);
+          setRoundIsFinsihed(true);
+          setIsRolling(false);
+          console.log("DEFAULT_TUNNEL");
+          setPhase("Default");
+        }, 5000);
+        
+      }, 5000);
+    }, 1500);
   }
 
 
   const handleFuelUpdate = (fuel: number) => {
-    if (!isRolling && !gameOver && fuel <= maxFuel && isCountingDown) {
+                                                    // && isCountingDown
+    if (!isRolling && !gameOver && fuel <= maxFuel) {
       
       setDisplayNumber(fuel);
       
@@ -765,7 +772,6 @@ function RabbitHoleGame() {
   const handleTunnelChange = async () => {
     //console.log("handleTunnelChange - start");
     await triggerAnimations(); 
-    setIsRolling(true); 
   };
 
   useEffect(() => {
@@ -1012,7 +1018,7 @@ function RabbitHoleGame() {
         
         <div className="tunnel">
           {isCountingDown ? <div className="absolute text-center text-white text-xl z-50" style={{ transform: 'translate(50%, 12%)' }}>
-              <CircularProgress value={hourglassCounter} outerStroke="#ffffff" innerStroke="#e11111" size={56} />
+              <CircularProgress value={totalSecondsOnClosedTimer} outerStroke="#ffffff" innerStroke="#e11111" size={56} />
               <p className="text-lg">DROP ENOUGH CARROTS</p>
               <p className="text-sm">LAST ONE GETS ELIMINATED</p>
             </div> : <></>

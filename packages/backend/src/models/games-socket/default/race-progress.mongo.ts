@@ -8,7 +8,7 @@ interface IRaceProgress extends Document {
 
 const RaceProgressSchema: Schema<IRaceProgress> = new Schema({
     room: String,
-    userAddress: { type: String, unique: true },
+    userAddress: String,
     progress: Object,
 });
 

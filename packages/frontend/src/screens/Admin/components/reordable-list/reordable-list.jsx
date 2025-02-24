@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import "./reordable-list.css";
+import defaultScreenTimings from "@/config/default_screen_timings.json";
 
 export default function ReordableList(props) {
-    const { items, setItems, toggledItems, setToggledItems } = props;
+    const { items, setItems, toggledItems, setToggledItems, timingsMap, setTimingsMap } = props;
 
     const draggingItemRef = useRef(null);
     const dragOverItemRef = useRef(null);
@@ -18,6 +19,20 @@ export default function ReordableList(props) {
             const reorderedItems = [...items];
             const [draggedItem] = reorderedItems.splice(draggingItemRef.current, 1);
             reorderedItems.splice(index, 0, draggedItem);
+
+            // Reorder timingsMap as well
+            setTimingsMap(prev => {
+                const newMap = new Map(prev);
+                const draggedTime = newMap.get(draggedItem);
+                newMap.delete(draggedItem);
+
+                const reorderedMap = new Map();
+                reorderedItems.forEach((item) => {
+                    reorderedMap.set(item, newMap.has(item) ? newMap.get(item) : draggedTime);
+                });
+
+                return reorderedMap;
+            });
 
             setItems(reorderedItems);
             draggingItemRef.current = index;
@@ -57,6 +72,20 @@ export default function ReordableList(props) {
         const [movedItem] = updatedItems.splice(index, 1);
         updatedItems.splice(newIndex, 0, movedItem);
 
+        // Sync timingsMap with new order
+        setTimingsMap(prev => {
+            const newMap = new Map(prev);
+            const movedTime = newMap.get(movedItem);
+            newMap.delete(movedItem);
+
+            const reorderedMap = new Map();
+            updatedItems.forEach((item) => {
+                reorderedMap.set(item, newMap.has(item) ? newMap.get(item) : movedTime);
+            });
+
+            return reorderedMap;
+        });
+
         setItems(updatedItems);
     };
 
@@ -64,12 +93,20 @@ export default function ReordableList(props) {
         let updatedToggles = [...toggledItems];
 
         if (updatedToggles.includes(screenName)) {
-            updatedToggles = updatedToggles.filter(i => i != screenName)
+            updatedToggles = updatedToggles.filter(i => i !== screenName);
         } else {
             updatedToggles.push(screenName);
         }
-        
+
         setToggledItems(updatedToggles);
+    };
+
+    const handleScreenTimeChange = (seconds, screen) => {
+        setTimingsMap(prev => {
+            const newMap = new Map(prev);
+            newMap.set(screen, Number(seconds));
+            return newMap;
+        });
     };
 
     return (
@@ -78,7 +115,6 @@ export default function ReordableList(props) {
                 <li
                     key={index}
                     className={`item ${!toggledItems.includes(item) ? "toggled" : ""}`}
-                    // draggable={!!toggledItems.includes(item)}
                     onDragStart={() => handleDragStart(index)}
                     onDragEnter={() => handleDragEnter(index)}
                     onDragEnd={handleDragEnd}
@@ -87,19 +123,32 @@ export default function ReordableList(props) {
                     onTouchEnd={handleTouchEnd}
                 >
                     <div className="cont">
-                        <label className="switch">
+                        <label className="pr-2">
                             <input 
                                 type="checkbox" 
                                 checked={toggledItems.includes(item)} 
-                                onChange={() => toggleItem(items[index])} 
+                                onChange={() => toggleItem(item)} 
                             />
                             <span className="slider"></span>
                         </label>
                         <span>{item}</span>
-                        <div className="buttons">
-                            <button onClick={() => moveItem(index, -1)}>UP</button>
-                            <button onClick={() => moveItem(index, 1)}>DOWN</button>
-                        </div>
+                    </div>
+
+                    <div className="buttons">
+                        <button type="button" onClick={() => moveItem(index, -1)}>UP</button>
+                        <button type="button" onClick={() => moveItem(index, 1)}>DOWN</button>
+                    </div>
+
+                    <div className="duration-input-box">
+                        <div>Duration:</div>
+                        <input 
+                            className="number" 
+                            type="number" 
+                            value={timingsMap.get(item)}
+                            disabled={!defaultScreenTimings[item]?.editable}
+                            onChange={e => handleScreenTimeChange(e.target.value, item)}
+                        />
+                        <div>sec.</div>
                     </div>
                 </li>
             ))}

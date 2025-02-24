@@ -9,6 +9,9 @@ import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import storiesData from "@/config/stories.json";
 import { useRaceById } from "@/hooks/useRaceById";
+import { httpGetRaceDataById } from "@/utils/http-requests";
+import defaultScreenTimings from "@/config/default_screen_timings.json";
+import getScreenTime from "@/utils/getScreenTime";
 
 
 const videos = [
@@ -54,8 +57,7 @@ export default function StoryScreen() {
     console.log({gameState})
 
     const SCREEN_NAME = getStoryPart(part as string);
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 6);
+
 
     const handleExpire = () => {
         console.log("UPDATE PROGRESS", {
@@ -103,20 +105,27 @@ export default function StoryScreen() {
     }
 
     const { totalSeconds, restart, pause } = useTimer({
-        expiryTimestamp: time,
+        expiryTimestamp: new Date(),
         onExpire: handleExpire,
-        autoStart: true
+        autoStart: false
     });
 
-
+    // setups the timer
     useEffect(() => {
-        if (gameState) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 6);
-            setSeconds(6);
-            restart(time);
+        if (race && SCREEN_NAME) {
+            httpGetRaceDataById(`race-${race.id}`)
+                .then(({data}) => {
+                    const time = new Date();
+                    // @ts-ignore
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+                    time.setSeconds(time.getSeconds() + expectedTime);
+                    
+                    setSeconds(expectedTime);
+                    restart(time);
+                });
         }
-    }, [gameState]);
+    }, [race, SCREEN_NAME]);
+
 
     // handle socket events
     useEffect(() => {

@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 interface IRace extends Document {
     raceId: string;
     users: mongoose.Types.ObjectId[];
+    screenTimings: Record<string, any>;
 }
 
 const racesSchema: Schema<IRace> = new Schema({
@@ -11,6 +12,7 @@ const racesSchema: Schema<IRace> = new Schema({
         required: true,
         unique: true,
     },
+    screenTimings: Object,
     users: {
         type: [{
             type: mongoose.Schema.Types.ObjectId,

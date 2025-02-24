@@ -8,6 +8,7 @@ import ReordableList from "./components/reordable-list/reordable-list";
 import possibleScreensArray from "@/config/possible-screens.json";
 import possibleQuestions from "@/config/questions.json";
 import { useNextGameId } from "@/hooks/useNextGameId";
+import defaultScreenTimings from "@/config/default_screen_timings.json";
 
 
 export default function AdminScreen() {
@@ -17,7 +18,14 @@ export default function AdminScreen() {
     const { rid, loading: rIdLoading } = useNextGameId();
     const [ screensOrder, setScreensOrder ] = useState<string[]>(possibleScreensArray);
     const [ toggledOffScreens, setToggledOffScreens ] = useState<string[]>(possibleScreensArray);
-    
+    const [ timingsMap, setTimingsMap ] = useState(
+        new Map(possibleScreensArray.map(screenEntry => {
+            // @ts-ignore
+            return [screenEntry, Number(defaultScreenTimings?.[screenEntry]?.time)];
+        }))
+    );
+
+
     useEffect(() => {
         if (!loading && !hasAccess) {
             alert("You are not an admin!");
@@ -59,6 +67,7 @@ export default function AdminScreen() {
             questions,
             perksPoints,
             screensToWriteIntoContract,
+            timingsMap
         });
 
 
@@ -78,7 +87,7 @@ export default function AdminScreen() {
         )
         .catch(console.log)
         .then(async() => {
-            await httpCreateRace(`race-${rid}`);
+            await httpCreateRace(`race-${rid}`, Object.fromEntries(timingsMap));
         });
     }
 
@@ -102,6 +111,8 @@ export default function AdminScreen() {
                         setItems={setScreensOrder} 
                         toggledItems={toggledOffScreens}
                         setToggledItems={setToggledOffScreens}
+                        timingsMap={timingsMap}
+                        setTimingsMap={setTimingsMap}
                     />
                 </div>
                 <hr/>

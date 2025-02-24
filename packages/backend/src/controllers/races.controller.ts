@@ -34,10 +34,10 @@ export const getRaceDataById = async (req: Request, res: Response) => {
 };
 
 export const createRace = async (req: Request, res: Response) => {
-    const { raceId } = req.body;
+    const { raceId, screenTimings } = req.body;
 
     try {
-        const race = await racesModel.createRace(raceId);
+        const race = await racesModel.createRace(raceId, screenTimings);
         return res.status(200).json({
             ok: true,
             race,

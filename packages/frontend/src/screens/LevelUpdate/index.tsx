@@ -10,6 +10,7 @@ import { httpGetRaceDataById, httpGetUserDataByAddress } from "@/utils/http-requ
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import levelsData from "@/config/levels.json";
 import { useRaceById } from "@/hooks/useRaceById";
+import getScreenTime from "@/utils/getScreenTime";
 
 // bottom - px, left - %
 const positionsByLevel = {
@@ -164,12 +165,14 @@ export default function LevelUpdateScreen() {
                     setAverageStatus("above");
                 }
                 */
-
-                setSecondsVisual(10);
-
-                setTimeout(() => {
-                    navigate('/select');
-                }, 10 * 1000);
+                httpGetRaceDataById(`race-${race.id}`).then(({data}) => {
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+                    setSecondsVisual(expectedTime);
+    
+                    setTimeout(() => {
+                        navigate('/select');
+                    }, expectedTime * 1000);
+                });
             });
         }
     }, [raceId, smartAccountAddress, race]);

@@ -11,6 +11,8 @@ import BRule2 from "./components/rule-2";
 import BRule3 from "./components/rule-3";
 import BRule4 from "./components/rule-4";
 import { useRaceById } from "@/hooks/useRaceById";
+import { httpGetRaceDataById } from "@/utils/http-requests";
+import getScreenTime from "@/utils/getScreenTime";
 
 const SCREEN_NAME = "BULLRUN_RULES";
 
@@ -23,8 +25,6 @@ export default function BullrunRules() {
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const {race} = useRaceById(Number(raceId));
 
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
 
     const handleExpire = () => {
         console.log("UPDATE PROGRESS", {
@@ -44,19 +44,23 @@ export default function BullrunRules() {
     };
 
     const { totalSeconds, restart, pause } = useTimer({
-        expiryTimestamp: time,
+        expiryTimestamp: new Date(),
         onExpire: handleExpire,
-        autoStart: true
+        autoStart: false
     });
 
     useEffect(() => {
-        if (gameState) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
-            restart(time);
-            setSecondsVisual(10);
+        if (race && SCREEN_NAME) {  
+            httpGetRaceDataById(`race-${race.id}`)
+                .then(({data}) => {
+                    const time = new Date();
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+                    time.setSeconds(time.getSeconds() + expectedTime);
+                    restart(time);
+                    setSecondsVisual(expectedTime);
+                });
         }
-    }, [gameState]);
+    }, [race, SCREEN_NAME]);
 
     // handle socket events
     useEffect(() => {

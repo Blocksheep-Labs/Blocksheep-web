@@ -1049,7 +1049,7 @@ function RabbitHoleGame() {
 
             <div className="absolute z-10 bottom-4 right-0 w-44">
               <CarrotBasketIncrement 
-                max={maxFuel} 
+                MAX_CARROTS={maxFuel} 
                 displayNumber={displayNumber}
                 setDisplayNumber={handleFuelUpdate}
                 disabled={!isCountingDown || gameOver} 

@@ -9,7 +9,7 @@ export default function calculatePlayersV1(players: ConnectedUser[]) {
 
     let newListOfPlayers;
     // if (!submittedFuelIsSimilar) {
-      const sorted = actualListOfPlayers.toSorted((a, b) => a.id - b.id).toSorted((a, b) => a.Fuel - b.Fuel);
+      const sorted = actualListOfPlayers.toSorted((a, b) => a.address.localeCompare(b.address)).toSorted((a, b) => a.Fuel - b.Fuel);
       console.log({actualListOfPlayers});
       newListOfPlayers = sorted.slice(1, actualListOfPlayers.length);
     // } else {

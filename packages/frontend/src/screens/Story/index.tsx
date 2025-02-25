@@ -116,7 +116,6 @@ export default function StoryScreen() {
             httpGetRaceDataById(`race-${race.id}`)
                 .then(({data}) => {
                     const time = new Date();
-                    // @ts-ignore
                     const expectedTime = getScreenTime(data, SCREEN_NAME);
                     time.setSeconds(time.getSeconds() + expectedTime);
                     

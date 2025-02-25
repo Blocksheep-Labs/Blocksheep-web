@@ -8,6 +8,8 @@ import { useTimer } from "react-timer-hook";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import { useRaceById } from "@/hooks/useRaceById";
+import getScreenTime from "@/utils/getScreenTime";
+import { httpGetRaceDataById } from "@/utils/http-requests";
 
 const Rating = ({
     handleChange,
@@ -51,9 +53,7 @@ export default function RateScreen() {
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const {race} = useRaceById(Number(raceId));
 
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 10);
-
+    
     const handleExpire = () => {
         console.log("UPDATE PROGRESS", {
             raceId,
@@ -72,20 +72,26 @@ export default function RateScreen() {
     }
 
     const { totalSeconds, restart, pause } = useTimer({
-        expiryTimestamp: time,
+        expiryTimestamp: new Date(),
         onExpire: handleExpire,
-        autoStart: true
+        autoStart: false
     });
 
-
+    // setups the timer
     useEffect(() => {
-        if (gameState) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 10);
-            restart(time);
-            setSecondsVisual(10);
+        if (race && SCREEN_NAME) {    
+            httpGetRaceDataById(`race-${race.id}`)
+                .then(({ data }) => {
+                    const time = new Date();
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+
+                    time.setSeconds(time.getSeconds() + expectedTime);
+
+                    setSecondsVisual(expectedTime);
+                    restart(time);
+                });
         }
-    }, [gameState]);
+    }, [race, SCREEN_NAME]);
 
 
     // handle socket events

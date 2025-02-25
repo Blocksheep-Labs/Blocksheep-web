@@ -16,14 +16,12 @@ import SynchronizingModal from "@/components/modals/SynchronizingModal";
 import { useRegisterOnTheRace } from "../../hooks/useRegisterOnTheRace";
 import { useRaceById } from "../../hooks/useRaceById";
 import { useRacesWithPagination } from "../../hooks/useRacesWithPagination";
-import { useMintTestETH } from "@/hooks/useMintTestETH";
 
 
 function SelectRaceScreen() {
   const { smartAccountAddress } = useSmartAccount();
 
   const { processTransaction } = useRegisterOnTheRace();
-  const { processTransaction: mintTestETH } = useMintTestETH();
   const navigate = useNavigate();
   const { updateGameState } = useGameContext();
 
@@ -291,12 +289,6 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number) => {
     setIsOpen(true);
     setModalType("registering");
-    console.log('Requesting test ETH if needed.');
-    await mintTestETH(30, Number(ETHBalance?.formatted))
-        .then(() => {
-          console.log('Got test ETH!')
-        })
-        .catch(console.error);
     
     processTransaction(id).then(async _ => {
       console.log("REGISTERED, fetching list of races...");

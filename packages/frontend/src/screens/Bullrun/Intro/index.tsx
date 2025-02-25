@@ -7,6 +7,8 @@ import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import { useRaceById } from "@/hooks/useRaceById";
+import { httpGetRaceDataById } from "@/utils/http-requests";
+import getScreenTime from "@/utils/getScreenTime";
 
 const SCREEN_NAME = "BULLRUN_PREVIEW";
 
@@ -19,8 +21,6 @@ export default function BullrunCover() {
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const { race } = useRaceById(Number(raceId));
 
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 3);
 
     const handleExpire = () => {
         console.log("UPDATE PROGRESS", {
@@ -40,19 +40,23 @@ export default function BullrunCover() {
     };
 
     const { totalSeconds, restart, pause } = useTimer({
-        expiryTimestamp: time,
+        expiryTimestamp: new Date(),
         onExpire: handleExpire,
-        autoStart: true
+        autoStart: false
     });
 
     useEffect(() => {
-        if (gameState) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 3);
-            restart(time);
-            setSecondsVisual(3);
-        }
-    }, [gameState]);
+        if (race && SCREEN_NAME) {  
+            httpGetRaceDataById(`race-${race.id}`)
+                .then(({data}) => {
+                    const time = new Date();
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+                    time.setSeconds(time.getSeconds() + expectedTime);
+                    restart(time);
+                    setSecondsVisual(expectedTime);
+                });
+            }
+    }, [race, SCREEN_NAME]);
 
     // handle socket events
     useEffect(() => {

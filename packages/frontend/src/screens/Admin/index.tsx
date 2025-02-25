@@ -25,6 +25,7 @@ export default function AdminScreen() {
         }))
     );
 
+    const [isProcessingTX, setIsProcessingTX] = useState(false);
 
     useEffect(() => {
         if (!loading && !hasAccess) {
@@ -36,6 +37,8 @@ export default function AdminScreen() {
 
     const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setIsProcessingTX(true);
+
 
         // Create a new FormData object from the form element
         const formData = new FormData(e.currentTarget);
@@ -87,7 +90,11 @@ export default function AdminScreen() {
         )
         .catch(console.log)
         .then(async() => {
-            await httpCreateRace(`race-${rid}`, Object.fromEntries(timingsMap));
+            await httpCreateRace(`race-${rid}`, Object.fromEntries(timingsMap)).then(() => {
+                alert("Race created");
+            });
+        }).finally(() => {
+            setIsProcessingTX(false);
         });
     }
 
@@ -133,7 +140,13 @@ export default function AdminScreen() {
                 <span className="text-yellow-600">[[-1, -2, 3], [1, 0, 0], [-1, 1, 1]]</span>
                 <hr/>
 
-                <button type="submit" className="btn border-[2px] border-black h-12 disabled:opacity-30" disabled={rIdLoading}>Create race</button>
+                <button 
+                    type="submit" 
+                    className="btn border-[2px] border-black h-12 disabled:opacity-30" 
+                    disabled={rIdLoading || isProcessingTX}
+                >
+                    {isProcessingTX ? "Creating..." : "Create race"}
+                </button>
             </form>
         </div>
     );

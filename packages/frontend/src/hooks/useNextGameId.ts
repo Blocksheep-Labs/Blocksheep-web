@@ -24,7 +24,7 @@ export const useNextGameId = () => {
             }).catch(() => {
                 console.log("The next game id can not be read.")
             });
-        }, 5000);
+        }, 2000);
 
         return () => {
             clearInterval(interval);

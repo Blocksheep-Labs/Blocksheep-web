@@ -8,6 +8,8 @@ import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGamePart";
 import { useRaceById } from "@/hooks/useRaceById";
+import { httpGetRaceDataById } from "@/utils/http-requests";
+import getScreenTime from "@/utils/getScreenTime";
 
 
 export default function RabbitHoleCover() {
@@ -19,21 +21,20 @@ export default function RabbitHoleCover() {
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const { race } = useRaceById(Number(raceId));
 
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 3);
+    const SCREEN_NAME = rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview");
 
     const handleExpire = () => {
         console.log("UPDATE PROGRESS", {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game2-preview-complete",
+            property: "rabbithole-preview-complete",
             version
         });
         
         socket.emit('update-progress', {
             raceId,
             userAddress: smartAccountAddress,
-            property: "game2-preview-complete",
+            property: "rabbithole-preview-complete",
             version
         });
 
@@ -50,7 +51,7 @@ export default function RabbitHoleCover() {
         */
 
 
-        const introPart = rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview");
+        const introPart = SCREEN_NAME;
 
         const currentScreenIndex = race?.screens.indexOf(introPart) as number;
         const redirectLink = generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId));
@@ -59,19 +60,23 @@ export default function RabbitHoleCover() {
     }
 
     const { totalSeconds, restart, pause } = useTimer({
-        expiryTimestamp: time,
+        expiryTimestamp: new Date(),
         onExpire: handleExpire,
-        autoStart: true
+        autoStart: false
     });
 
     useEffect(() => {
-        if (gameState) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 3);
-            restart(time);
-            setSecondsVisual(3);
+        if (race && SCREEN_NAME) {    
+            httpGetRaceDataById(`race-${race.id}`)
+                .then(({data}) => {
+                    const time = new Date();
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+                    time.setSeconds(time.getSeconds() + expectedTime);
+                    restart(time);
+                    setSecondsVisual(expectedTime);
+                });
         }
-    }, [gameState]);
+    }, [race, SCREEN_NAME]);
 
     // handle socket events
     useEffect(() => {
@@ -147,7 +152,7 @@ export default function RabbitHoleCover() {
                 socket.emit('update-progress', {
                     raceId,
                     userAddress: smartAccountAddress,
-                    property: "game2-preview-complete",
+                    property: "rabbithole-preview-complete",
                     version
                 });
                 
@@ -155,11 +160,11 @@ export default function RabbitHoleCover() {
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview")) {
+                if (screen !== SCREEN_NAME) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
-                        property: "game2-preview-complete",
+                        property: "rabbithole-preview-complete",
                         version
                     });
                     navigate(generateLink(screen, Number(raceId)));
@@ -178,8 +183,8 @@ export default function RabbitHoleCover() {
             if (!socket.connected) {
                 socket.connect();
             }
-            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
-            // socket.emit("get-latest-screen", { raceId, part: rabbitholeGetGamePart(version as TRabbitholeGameVersion, "preview") });
+            socket.emit("connect-live-game", { raceId, userAddress: smartAccountAddress, part: SCREEN_NAME });
+            // socket.emit("get-latest-screen", { raceId, part: SCREEN_NAME });
         }
     }, [smartAccountAddress, socket, raceId]);
     

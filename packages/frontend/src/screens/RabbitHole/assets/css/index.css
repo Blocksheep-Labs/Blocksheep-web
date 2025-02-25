@@ -257,3 +257,65 @@
     top: 12px;
     max-height: 75px;
   }
+
+
+
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.carrot {
+    position: absolute;
+    width: 40px;
+    height: 80px;
+    background: url('https://i.ibb.co/N9Ff4Mb/carrot.png') no-repeat center/contain;
+    animation: throwCarrot 1s ease-out forwards;
+}
+
+@keyframes throwCarrot {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+    50% { transform: translateY(-200px) translateX(calc(50vw - 50%)) rotate(180deg); }
+    100% { transform: translateY(100vh) translateX(calc(100vw - 50%)) rotate(360deg); opacity: 0; }
+}
+
+#counter {
+    position: absolute;
+    bottom: 78px;
+    left: 14%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 45px;
+    background: url('https://i.ibb.co/fzK9KrmQ/counter.png') no-repeat center/contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+#throw-button {
+    position: absolute;
+    bottom: -10px;
+    left: 14%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    background: url('https://i.ibb.co/RG10K8Cy/image1-removebg-preview.png') no-repeat center/cover;
+    background-size: contain;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    outline: none;
+    text-align: center;
+    z-index: 20;
+}
+
+#throw-button:active {
+    transform: translateX(-50%) scale(0.95);
+}

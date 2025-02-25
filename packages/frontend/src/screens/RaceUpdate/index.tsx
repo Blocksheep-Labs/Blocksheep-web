@@ -8,6 +8,8 @@ import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import { TRace, useRaceById } from "@/hooks/useRaceById";
+import getScreenTime from "@/utils/getScreenTime";
+import { useTimer } from "react-timer-hook";
 
 const getPart = (board: string) => {
   let selectedPart = "";
@@ -38,12 +40,12 @@ function RaceUpdateScreen() {
   const [progress, setProgress] = useState<TProgress[]>([]);
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [users, setUsers] = useState<any[]>([]);
-  const [secondsVisual, setSecondsVisual] = useState(1000);
   const { race } = useRaceById(Number(raceId));
 
   const SCREEN_NAME = getPart(board as string);
+
   
-  const handleClose = async() => {
+  const handleExpire = async() => {
     console.log("UPDATE PRGOGRESS:", {
       raceId, 
       userAddress: smartAccountAddress,
@@ -84,6 +86,12 @@ function RaceUpdateScreen() {
     
     navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
   };
+
+  const { totalSeconds, restart, pause } = useTimer({
+      expiryTimestamp: new Date(),
+      onExpire: handleExpire,
+      autoStart: false
+  });
 
   const getNewProgress = async(raceData: TRace, redirecting=false) => {
     let currentProgressVisual: TProgress[] = gameState?.raceProgressVisual || [];
@@ -130,30 +138,19 @@ function RaceUpdateScreen() {
   }, [raceId, smartAccountAddress, race]);
 
   useEffect(() => {
-    if (race) {
-      setSecondsVisual(10);
-      const interval = setInterval(() => {
-        setSeconds((old) => (old > 0 ? old - 1 : 0));
-      }, 1000);
+    if (race && SCREEN_NAME) {
+      httpGetRaceDataById(`race-${race.id}`)
+        .then(({ data }) => {
+          const time = new Date();
+          const expectedTime = getScreenTime(data, SCREEN_NAME);
+          time.setSeconds(time.getSeconds() + expectedTime);
 
-      return () => {
-        setSeconds(10);
-        clearInterval(interval);
-      };
+          setSeconds(expectedTime);
+          restart(time);
+        });
     }
-  }, [race]);
+  }, [race, SCREEN_NAME]);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-undef
-    let timer: NodeJS.Timeout;
-    if (seconds === 0 && race) {
-      timer = setTimeout(handleClose, 1000);
-      handleClose();
-    }
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [seconds, race]);
 
   // handle socket events
   useEffect(() => {
@@ -164,7 +161,15 @@ function RaceUpdateScreen() {
           setAmountOfConnected(amount);
           // handle amount of connected === AMOUNT_OF_PLAYERS_PER_RACE
           if (amount === race.numOfPlayersRequired) {
-            setSecondsVisual(10);
+            httpGetRaceDataById(`race-${race.id}`)
+              .then(({ data }) => {
+                const time = new Date();
+                const expectedTime = getScreenTime(data, SCREEN_NAME);
+                time.setSeconds(time.getSeconds() + expectedTime);
+
+                setSeconds(expectedTime);
+                restart(time);
+              });
           }
         }
       });
@@ -184,7 +189,7 @@ function RaceUpdateScreen() {
             console.log("LEAVED")
             setAmountOfConnected(amountOfConnected - 1);
           } else {
-            handleClose();
+            handleExpire();
           }
           /*
           if (!modalIsOpen) {
@@ -278,7 +283,7 @@ function RaceUpdateScreen() {
   return (
     <>
       <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
-        <TopPageTimer duration={secondsVisual * 1000} />
+        <TopPageTimer duration={seconds * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           { 
             <RaceBoard progress={progress} users={users}/>

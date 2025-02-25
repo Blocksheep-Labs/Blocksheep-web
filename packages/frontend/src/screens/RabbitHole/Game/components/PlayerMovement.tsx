@@ -28,7 +28,7 @@ const PlayerMovement = ({
   useEffect(() => {
       // Check if the phase is not 'Default' before sorting
       if (phase == 'OpenTunnel') {
-        const sorted = [...players].sort((a, b) => b.Fuel - a.Fuel);
+        const sorted = [...players].toSorted((a, b) => a.address.localeCompare(b.address)).toSorted((a, b) => a.Fuel - b.Fuel);
         setSortedPlayers(sorted);
       } else {
         setSortedPlayers(players); // Keep the original order if phase is 'Default'

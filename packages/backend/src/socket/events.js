@@ -102,12 +102,15 @@ export const applySocketEvents = (io) => {
                     part: userConnection.part
                 });
                 */
+                await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
+
                 io.to(userConnection.room).emit('leaved', {
                     socketId: socket.id,
                     userAddress: userConnection.userAddress,
                     raceId: userConnection.raceId,
                     movedToNext: false,
-                    part: userConnection.part
+                    part: userConnection.part,
+                    connectedCount: await ConnectedUser.countDocuments({ raceId: userConnection.raceId })
                 });
                 
 
@@ -142,7 +145,7 @@ export const applySocketEvents = (io) => {
                         // Update required games to new value
                         await GamesRequired.findOneAndUpdate(
                             { raceId: userConnection.raceId, userAddress: player.userAddress }, 
-                            { requiredGames: newRequiredGames },
+                            { $inc: { requiredGames: -1 } },
                             { upsert: true }
                         );
 
@@ -153,6 +156,7 @@ export const applySocketEvents = (io) => {
                         });
 
                         // if user was not playing against leaving player
+
                         if (!matchesPlayedAgainstPlayer.find(i => i.player1 == userConnection.userAddress || i.player2 == userConnection.userAddress)) {
                             await GameCounts.findOneAndUpdate(
                                 { raceId: userConnection.raceId, userAddress: player.userAddress },
@@ -174,7 +178,7 @@ export const applySocketEvents = (io) => {
 
                     // Notify remaining players about updates
                     const roomName = `race-${userConnection.raceId}`;
-                    io.to(roomName).emit('bullrun-required-games-descreased', {
+                    io.to(roomName).emit('bullrun-required-games-decreased', {
                         raceId: userConnection.raceId,
                     });
 
@@ -192,7 +196,7 @@ export const applySocketEvents = (io) => {
                     });
                 }
 
-                await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
+                // await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
             }
         });
     

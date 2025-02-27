@@ -10,8 +10,8 @@ import { useGameContext } from "@/utils/game-context";
 import storiesData from "@/config/stories.json";
 import { useRaceById } from "@/hooks/useRaceById";
 import { httpGetRaceDataById } from "@/utils/http-requests";
-import defaultScreenTimings from "@/config/default_screen_timings.json";
 import getScreenTime from "@/utils/getScreenTime";
+import { getRaceScreens } from "@/utils/getRaceScreens";
 
 
 const videos = [
@@ -53,60 +53,34 @@ export default function StoryScreen() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [seconds, setSeconds] = useState(1000);
     const { race } = useRaceById(Number(raceId));
+    const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
 
-    console.log({gameState})
 
     const SCREEN_NAME = getStoryPart(part as string);
 
+    // navigator
+    useEffect(() => {
+        if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined) {
+            console.log("UPDATE PROGRESS", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: `story-${part}`,
+            });
+            socket.emit('update-progress', {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: `story-${part}`,
+            });
 
-    const handleExpire = () => {
-        console.log("UPDATE PROGRESS", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: `story-${part}`,
-        });
-        socket.emit('update-progress', {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: `story-${part}`,
-        });
-
-        /*
-        let redirectLink = "/";
-     
-        switch (part) {
-            case "intro":
-                redirectLink = generateLink("RACE_START", Number(raceId)); 
-                break;
-            case "part1": 
-                redirectLink = generateLink("UNDERDOG_PREVIEW", Number(raceId)); 
-                break;
-            case "part2": 
-                redirectLink = generateLink("BULLRUN_PREVIEW", Number(raceId)); 
-                break;
-            case "part3": 
-                // redirectLink = generateLink("RABBIT_HOLE_V2_PREVIEW", Number(raceId)); 
-                redirectLink = generateLink("RATE", Number(raceId));
-                break;
-            case "part4":
-                redirectLink = generateLink("RATE", Number(raceId));
-                break;
-            case "conclusion":
-                redirectLink = generateLink("PODIUM", Number(raceId));
-                break;
-            default:
-                break;
+            const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+            socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+            navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
         }
-        */
-        
-        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
-        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
-        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
-    }
+    }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId]);
 
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: new Date(),
-        onExpire: handleExpire,
+        onExpire: () => setReadyToNavigateNext(true),
         autoStart: false
     });
 
@@ -164,7 +138,7 @@ export default function StoryScreen() {
                         setModalType("waiting");
                         */
                     } else {
-                        handleExpire();
+                        setReadyToNavigateNext(true);
                     }
                 }
             });
@@ -179,24 +153,26 @@ export default function StoryScreen() {
 
     
     useEffect(() => {
-        if (raceId && socket) {
+        if (raceId && socket && race && SCREEN_NAME) {
             if (!socket.connected) {
                 socket.connect();
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                socket.emit('update-progress', {
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    property: `story-${part}`,
-                });
-                // alert(`screen-changed = ${screen}`)
-                navigate(generateLink(screen, Number(raceId)));
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `story-${part}`,
+                    });
+                    // alert(`screen-changed = ${screen}`)
+                    navigate(generateLink(screen, Number(raceId)));
+                }
             });
             
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== SCREEN_NAME) {
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -213,7 +189,7 @@ export default function StoryScreen() {
                 socket.off('latest-screen');
             }
         }
-    }, [raceId, socket]);
+    }, [raceId, socket, race, SCREEN_NAME]);
     
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length && part) {

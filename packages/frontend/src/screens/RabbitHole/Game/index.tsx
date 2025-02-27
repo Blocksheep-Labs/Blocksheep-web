@@ -87,6 +87,7 @@ function RabbitHoleGame() {
   const [userIsLost, setUserIsLost] = useState(false);
   const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 20);
   const [isRolling, setIsRolling] = useState(false);
+  const [lastEliminatedUserAddress, setLastEliminatedUserAddress] = useState("");
 
   // Player counts
   const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -514,18 +515,19 @@ function RabbitHoleGame() {
 
   
   useEffect(() => {
-    if (raceId && socket) {
+    if (raceId && socket && race && GAME_NAME_SCREEN) {
         if (!socket.connected) {
             socket.connect();
         }
         
         socket.on('screen-changed', ({ screen }) => {
-          //alert('Navigate screen-changed')
-          navigate(generateLink(screen, Number(raceId)));
+          if (race.screens.indexOf(screen) > race.screens.indexOf(GAME_NAME_SCREEN)) {
+            navigate(generateLink(screen, Number(raceId)));
+          }
         });
 
         socket.on('latest-screen', ({ screen }) => {
-            if (screen !== rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game")) {
+            if (race.screens.indexOf(screen) > race.screens.indexOf(GAME_NAME_SCREEN)) {
               // alert(`complete 508 ${screen}, ${rabbitholeGetGamePart(version as TRabbitholeGameVersion, "game")}`)
               socket.emit("update-progress", {
                 raceId,
@@ -546,7 +548,7 @@ function RabbitHoleGame() {
             socket.off('latest-screen');
         }
     }
-  }, [raceId, socket]);
+  }, [raceId, socket, race, GAME_NAME_SCREEN]);
 
 
   useEffect(() => {
@@ -650,7 +652,14 @@ function RabbitHoleGame() {
           try {
             await txAttempts(
               3,
-              async () => await makeMove(buildmakeMoveData(displayNumber, maxFuel - displayNumber, roundIndex, smartAccountAddress as string)),
+              async () => await makeMove(
+                buildmakeMoveData(
+                  displayNumber, 
+                  maxFuel - displayNumber, 
+                  roundIndex, 
+                  smartAccountAddress as string,
+                  players.map(i => i.address)
+                )),
               3000
             );
           } catch (error) {
@@ -717,34 +726,9 @@ function RabbitHoleGame() {
       console.log("OPEN_TUNNEL");
       setPhase("OpenTunnel");
       
-  
-      setTimeout(() => {
-        // reset and make calculations
-        socket.emit('rabbithole-set-tunnel-state', {
-          raceId, 
-          secondsLeft: 0,
-          addRoundsPlayed: 0,
-          gameState: "reset",
-        });
-        console.log("RESET_TUNNEL");
-        setPhase("Reset");
-        setWhoStoleIsShowed(true)
-        
-        setTimeout(() => {
-          socket.emit('rabbithole-set-tunnel-state', {
-            raceId, 
-            secondsLeft: 0,
-            addRoundsPlayed: 0,
-            gameState: "default",
-          });
-      
-          setRoundIsFinsihed(true);
-          setIsRolling(false);
-          console.log("DEFAULT_TUNNEL");
-          setPhase("Default");
-        }, 5000);
-        
-      }, 5000);
+      // this 2 state updates emitting the useEffect which calculates user fuels...
+      setRoundIsFinsihed(true);
+      setIsRolling(false);
     }, 1500);
   }
 
@@ -776,10 +760,11 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (players && !isRolling && roundIsFinished) {
-      calculateSubmittedFuelPerPlayers(players, gameOver);
+      console.log(`Calculate players, current round ${roundIndex - 1}, raceId: ${raceId}`);
+      calculateSubmittedFuelPerPlayers(players, gameOver, roundIndex - 1, raceId as string);
       setRoundIsFinsihed(false);
     }
-  }, [isRolling, players, roundIsFinished, gameOver]);
+  }, [isRolling, players, roundIsFinished, gameOver, roundIndex, raceId]);
 
 
   const handleFinishTunnelGame = async(
@@ -831,14 +816,14 @@ function RabbitHoleGame() {
 
 
   // function that will end the game for the user with the lowest fuel amount
-  const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean) => {
+  const calculateSubmittedFuelPerPlayers = async(players: ConnectedUser[], isGameOver: boolean, roundIndex: number, raceId: string) => {
     //console.log({ players, isGameOver })
     let newListOfPlayers: ConnectedUser[] = [];
     let bonuses: {address: string, amount: number}[] = [];
 
     switch (version) {
       case "v1":
-        newListOfPlayers = calculatePlayersV1(players).newListOfPlayers;
+        newListOfPlayers = (await calculatePlayersV1(players, roundIndex, Number(raceId))).newListOfPlayers;
         break;
       case "v2":
         const calculationResult = calculatePlayersV2(players);
@@ -853,6 +838,9 @@ function RabbitHoleGame() {
     // update Player List By Eliminating them
     players.forEach(player => {
       if (!newListOfPlayers.map(i => i.address).includes(player.address)) {
+        // CURRENTLY ELIMINATING USER WITH player.address
+        setLastEliminatedUserAddress(player.address);
+
         if (!player.isEliminated) {
           console.log("ELIMINATE!", player.address, player.Fuel)
           socket.emit("update-progress", {
@@ -897,10 +885,10 @@ function RabbitHoleGame() {
     });
 
     const remainingPlayersCount = newListOfPlayers.length;
+    const userLost = !newListOfPlayers.some(i => i.address === smartAccountAddress);
+    const userWon = remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress;
 
     if (bonuses.length <= 1) {
-      const userLost = !newListOfPlayers.some(i => i.address === smartAccountAddress);
-      const userWon = remainingPlayersCount === 1 && newListOfPlayers[0].address === smartAccountAddress;
       // const allPlayersEliminated = newListOfPlayers.every(i => i.maxAvailableFuel === 0);
 
       if (userLost) {
@@ -916,25 +904,57 @@ function RabbitHoleGame() {
           console.log("YOU WIN!");
           handleFinishTunnelGame(raceId as string, true, 3);
           setIsRolling(false);
-          return;
       }
     }
 
-    const restartTimerAfterRound = () => {
+    const restartTimerAndTunnelAfterRound = () => {
       setTimeout(() => {
-        setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
-        setDisplayNumber(0);
+        // reset and make calculations
+        socket.emit('rabbithole-set-tunnel-state', {
+          raceId, 
+          secondsLeft: 0,
+          addRoundsPlayed: 0,
+          gameState: "reset",
+        });
+        console.log("RESET_TUNNEL");
+        setPhase("Reset");
+        setWhoStoleIsShowed(true)
         
-        if (newListOfPlayers.length > 1) {
-          console.log("next round... time reset");
-          const time = new Date();
-          time.setSeconds(time.getSeconds() + 5);
-          restart(time);
-        }
-      }, 6000);
+        setTimeout(() => {
+          socket.emit('rabbithole-set-tunnel-state', {
+            raceId, 
+            secondsLeft: 0,
+            addRoundsPlayed: 0,
+            gameState: "default",
+          });
+      
+          
+          console.log("DEFAULT_TUNNEL");
+          setPhase("Default");
+
+          // if the user is won, do not need to restart a timer
+          if (userWon) {
+            return;
+          }
+
+          setTimeout(() => {
+            setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
+            setDisplayNumber(0);
+            
+            if (newListOfPlayers.length > 1) {
+              console.log("next round... time reset");
+              const time = new Date();
+              time.setSeconds(time.getSeconds() + 5);
+              restart(time);
+            }
+          }, 6000);
+
+        }, 5000);
+        
+      }, 5000);
     }
 
-    restartTimerAfterRound();
+    restartTimerAndTunnelAfterRound();
   }
 
   function onNextGameClicked() {
@@ -1030,6 +1050,7 @@ function RabbitHoleGame() {
             isRolling={isRolling} 
             amountOfComplteted={amountOfComplteted}
             version={version as string}
+            lastEliminatedUserAddress={lastEliminatedUserAddress}
           />
           <RabbitHead phase={phase} />
           <Darkness   phase={phase} />

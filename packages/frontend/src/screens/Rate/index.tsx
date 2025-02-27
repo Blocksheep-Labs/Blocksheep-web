@@ -52,30 +52,34 @@ export default function RateScreen() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const {race} = useRaceById(Number(raceId));
+    const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
 
-    
-    const handleExpire = () => {
-        console.log("UPDATE PROGRESS", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: `rate`,
-        });
-        socket.emit('update-progress', {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: `rate`,
-        });
-
-        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
-        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
-        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
-    }
 
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: new Date(),
-        onExpire: handleExpire,
+        onExpire: () => setReadyToNavigateNext(true),
         autoStart: false
     });
+
+    // navigator
+    useEffect(() => {
+        if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined) {
+            console.log("UPDATE PROGRESS", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: `rate`,
+            });
+            socket.emit('update-progress', {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: `rate`,
+            });
+
+            const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+            socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+            navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+        }
+    }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId]);
 
     // setups the timer
     useEffect(() => {
@@ -115,13 +119,6 @@ export default function RateScreen() {
                 console.log("JOINED", raceIdSocket, raceId);
                 if (raceId == raceIdSocket && socketPart == SCREEN_NAME ) {
                     console.log("JOINED++")
-                    /*
-                    setAmountOfConnected(amountOfConnected + 1);
-                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
-                        setModalIsOpen(false);
-                        setModalType(undefined);
-                    }
-                    */
                     socket.emit("get-connected", { raceId });
                 }
             });
@@ -132,14 +129,8 @@ export default function RateScreen() {
                     if (!movedToNext) {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
-                        /*
-                        if (!modalIsOpen) {
-                            setModalIsOpen(true);
-                        }
-                        setModalType("waiting");
-                        */
                     } else {
-                        handleExpire();
+                        setReadyToNavigateNext(true);
                     }
                 }
             });
@@ -165,24 +156,25 @@ export default function RateScreen() {
     }, [smartAccountAddress, socket, raceId]);
 
     useEffect(() => {
-        if (raceId && socket) {
+        if (raceId && socket && race) {
             if (!socket.connected) {
                 socket.connect();
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                
-                socket.emit('update-progress', {
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    property: `rate`,
-                });
-                
-                navigate(generateLink(screen, Number(raceId)));
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `rate`,
+                    });
+                    
+                    navigate(generateLink(screen, Number(raceId)));
+                }
             });
 
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== SCREEN_NAME) {
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -197,7 +189,7 @@ export default function RateScreen() {
                 socket.off('latest-screen');
             }
         }
-    }, [raceId, socket]);
+    }, [raceId, socket, race]);
 
     // kick player if page chnages (closes)
     useEffect(() => {

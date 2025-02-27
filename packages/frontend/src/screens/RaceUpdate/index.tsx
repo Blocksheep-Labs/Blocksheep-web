@@ -223,23 +223,25 @@ function RaceUpdateScreen() {
   
   
   useEffect(() => {
-    if (raceId && socket) {
+    if (raceId && socket && race) {
       if (!socket.connected) {
         socket.connect();
       }
       
       socket.on('screen-changed', ({ screen }) => {
-        socket.emit('update-progress', {
-          raceId, 
-          userAddress: smartAccountAddress,
-          property: board,
-          value: true,
-        });
-        navigate(generateLink(screen, Number(raceId)));
+        if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
+          socket.emit('update-progress', {
+            raceId, 
+            userAddress: smartAccountAddress,
+            property: board,
+            value: true,
+          });
+          navigate(generateLink(screen, Number(raceId)));
+        }
       });
       
       socket.on('latest-screen', ({ screen }) => {
-        if (screen !== SCREEN_NAME) {
+        if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
           socket.emit('update-progress', {
             raceId, 
             userAddress: smartAccountAddress,
@@ -255,7 +257,7 @@ function RaceUpdateScreen() {
         socket.off('latest-screen');
       }
     }
-  }, [raceId, socket]);
+  }, [raceId, socket, race]);
   
   useEffect(() => {
     if(smartAccountAddress && String(raceId).length && board && race) {

@@ -20,29 +20,34 @@ export default function UnderdogCover() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [seconds, setSeconds] = useState(1000);
     const { race } = useRaceById(Number(raceId));
+    const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
 
-    const handleExpire = () => {
-        console.log("UPDATE PROGRESS", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "game1-preview-complete",
-        });
-        socket.emit('update-progress', {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "game1-preview-complete",
-        });
-
-        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
-        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
-        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
-    }
 
     const { totalSeconds, restart, pause } = useTimer({
         expiryTimestamp: new Date(),
-        onExpire: handleExpire,
+        onExpire: () => setReadyToNavigateNext(true),
         autoStart: false
     });
+
+    // navigator
+    useEffect(() => {
+        if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined) {
+            console.log("UPDATE PROGRESS", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: "underdog-preview-complete",
+            });
+            socket.emit('update-progress', {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: "underdog-preview-complete",
+            });
+
+            const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+            socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+            navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+        }
+    }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId]);
 
 
     useEffect(() => {
@@ -74,13 +79,6 @@ export default function UnderdogCover() {
 
                 if (raceId == raceIdSocket && part == SCREEN_NAME) {
                     console.log("JOINED++")
-                    /*
-                    setAmountOfConnected(amountOfConnected + 1);
-                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
-                        setModalIsOpen(false);
-                        setModalType(undefined);
-                    }
-                    */
                     socket.emit("get-connected", { raceId });
                 }
             });
@@ -91,14 +89,8 @@ export default function UnderdogCover() {
                         console.log("LEAVED")
                         setAmountOfConnected(amountOfConnected - 1);
                     } else {
-                        handleExpire();
+                        setReadyToNavigateNext(true);
                     }
-                    /*
-                    if (!modalIsOpen) {
-                        setModalIsOpen(true);
-                    }
-                    setModalType("waiting");
-                    */
                 }
             });
 
@@ -126,22 +118,24 @@ export default function UnderdogCover() {
     
     
     useEffect(() => {
-        if (raceId && socket) {
+        if (raceId && socket && race) {
             if (!socket.connected) {
                 socket.connect();
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                socket.emit('update-progress', {
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    property: "game1-preview-complete",
-                });
-                navigate(generateLink(screen, Number(raceId)));
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "game1-preview-complete",
+                    });
+                    navigate(generateLink(screen, Number(raceId)));
+                }
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== SCREEN_NAME) {
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -156,7 +150,7 @@ export default function UnderdogCover() {
                 socket.off('latest-screen');
             }
         }
-    }, [raceId, socket]);
+    }, [raceId, socket, race]);
     
     useEffect(() => {
         if (smartAccountAddress && String(raceId).length) {

@@ -213,6 +213,20 @@ export default function Bullrun() {
         }
     }
 
+    // CHECK USER TO BE REGISTERED
+    useEffect(() => {
+        if (smartAccountAddress && raceData && socket) {
+        // VALIDATE USER FOR BEING REGISTERED
+            if (!raceData.registeredUsers.includes(smartAccountAddress)) {
+                if (socket.connected) {
+                socket.disconnect();
+                }
+                alert('Not registered!');
+                navigate('/', { replace: true });
+            }
+        }
+    }, [raceData, smartAccountAddress, socket]);
+
 
     useEffect(() => {
         if (previewPerk !== null && !holdToSelectWasShown) {
@@ -673,6 +687,8 @@ export default function Bullrun() {
     
     function endGame() {
         console.log("Trying to find next opponent in 1500ms >>>>")
+        setStatus('waiting');
+        
         setTimeout(() => {
             setYourLastPerk(-1);
             setLastOpponentPerk(-1);
@@ -686,28 +702,28 @@ export default function Bullrun() {
             setGamesPlayed(prev => prev + 1);
             
             // Calculate total required games using combination formula
-            const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
-            if (gamesPlayed + 1 >= totalRequiredGames) {
-                pause();
-                setStatus('finished');
-            }
+            // const totalRequiredGames = Math.floor((amountOfConnected * (amountOfConnected - 1)) / 2);
+            // if (gamesPlayed + 1 >= totalRequiredGames) {
+            //    pause();
+            //    // setStatus('finished');
+            // }
         }, 1500);
     }
     
     useEffect(() => {
-        if (raceId && socket) {
+        if (raceId && socket && raceData) {
             if (!socket.connected) {
                 socket.connect();
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                if (screen !== "BULLRUN") {
+                if (screen !== REGISTERED_CONTRACT_NAME && raceData.screens.indexOf(screen) > raceData.screens.indexOf(REGISTERED_CONTRACT_NAME)) {
                     navigate(generateLink(screen, Number(raceId)));
                 }
             });
 
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== "BULLRUN") {
+                if (screen !== REGISTERED_CONTRACT_NAME && raceData.screens.indexOf(screen) > raceData.screens.indexOf(REGISTERED_CONTRACT_NAME)) {
                     socket.emit("update-progress", {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -722,7 +738,7 @@ export default function Bullrun() {
                 socket.off('latest-screen');
             }
         }
-    }, [raceId, socket]);
+    }, [raceId, socket, raceData]);
     
 
     useEffect(() => {

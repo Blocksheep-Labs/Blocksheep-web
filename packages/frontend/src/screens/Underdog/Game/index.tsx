@@ -517,7 +517,9 @@ function UnderdogGame() {
       });
 
       socket.on("screen-changed", ({ screen }) => {
-        navigate(generateLink(screen, Number(raceId)));
+        if (raceData.screens.indexOf(screen) > raceData.screens.indexOf(REGISTERED_CONTRACT_NAME)) {
+          navigate(generateLink(screen, Number(raceId)));
+        }
       });
 
       socket.on('race-progress', ({ progress, questionsState }) => {
@@ -641,17 +643,19 @@ function UnderdogGame() {
 
 
   useEffect(() => {
-    if (raceId && socket) {
+    if (raceId && socket && raceData) {
       if (!socket.connected) {
         socket.connect();
       }
       
       socket.on('screen-changed', ({ screen }) => {
-        navigate(generateLink(screen, Number(raceId)));
+        if (raceData.screens.indexOf(screen) > raceData.screens.indexOf(REGISTERED_CONTRACT_NAME)) {
+          navigate(generateLink(screen, Number(raceId)));
+        }
       });
 
       socket.on('latest-screen', ({ screen }) => {
-        if (screen !== "UNDERDOG") {
+        if (raceData.screens.indexOf(screen) > raceData.screens.indexOf(REGISTERED_CONTRACT_NAME)) {
           navigate(generateLink(screen, Number(raceId)));
         }
       });
@@ -661,7 +665,7 @@ function UnderdogGame() {
         socket.off('latest-screen');
       }
     }
-  }, [raceId, socket]);
+  }, [raceId, socket, raceData]);
         
   useEffect(() => {
     if (smartAccountAddress && String(raceId).length && raceData) {

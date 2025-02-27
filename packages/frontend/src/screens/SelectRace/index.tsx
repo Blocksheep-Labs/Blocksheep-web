@@ -57,7 +57,7 @@ function SelectRaceScreen() {
     
     /*
       updateGameState(race, progress);
-      navigate(`/race/${raceId}/bullrun/rules`);
+      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
       return;
     */
     

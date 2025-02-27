@@ -9,13 +9,15 @@ const PlayerMovement = ({
   players, 
   isRolling, 
   amountOfComplteted,
-  version
+  version,
+  lastEliminatedUserAddress
 }: {
   phase: RabbitHolePhases; 
   players: ConnectedUser[];
   isRolling: boolean;
   amountOfComplteted: number;
   version: string;
+  lastEliminatedUserAddress: string;
 }) => {
   const [prevStage, setPrevStage] = useState<RabbitHolePhases | undefined>(undefined);
   const [sortedPlayers, setSortedPlayers] = useState<ConnectedUser[]>([]);
@@ -28,7 +30,7 @@ const PlayerMovement = ({
   useEffect(() => {
       // Check if the phase is not 'Default' before sorting
       if (phase == 'OpenTunnel') {
-        const sorted = [...players].toSorted((a, b) => a.address.localeCompare(b.address)).toSorted((a, b) => a.Fuel - b.Fuel);
+        const sorted = [...players].toSorted((a, b) => a.Fuel - b.Fuel);
         setSortedPlayers(sorted);
       } else {
         setSortedPlayers(players); // Keep the original order if phase is 'Default'
@@ -114,37 +116,40 @@ const PlayerMovement = ({
               // Get players who are not eliminated
               const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
 
-              // Ensure there are active players before proceeding
-              if (activePlayers.length > 0) {
-                // Get minimal fuel in the list
-                const minFuel = Math.min(...activePlayers.map(player => player.Fuel));
+              // Apply elimination logic
+              if (
+                activePlayers.length > 0 && 
+                playerElement && 
+                fuelElement && 
+                lastEliminatedUserAddress === player.address
+              ) {
+                console.log("TO ELIMINATE:", player.address, lastEliminatedUserAddress);
+                playerElement.style.transition = 'all 1.5s ease-out';
+                fuelElement.style.transition = 'all 1.5s ease-out';
 
-                // Count players with the minimum fuel
-                const listOfMinFuelPlayers = activePlayers.filter(i => i.Fuel === minFuel);
+                fuelElement.style.top = '600px';
+                fuelElement.style.opacity = "0";
 
-                // Only eliminate one player
-                if (listOfMinFuelPlayers.length > 0) {
-                  const playerToEliminate = listOfMinFuelPlayers[0]; // Get the first player with minimum fuel
-                  // Apply elimination logic
-                  if (playerElement && fuelElement && playerToEliminate.address === player.address) {
-                    console.log("TO ELIMINATE:", player.address, playerToEliminate.address);
-                    playerElement.style.transition = 'all 1.5s ease-out';
-                    fuelElement.style.transition = 'all 1.5s ease-out';
-
-                    fuelElement.style.top = '600px';
-                    fuelElement.style.opacity = "0";
-
-                    playerElement.style.top = '600px';
-                    playerElement.style.opacity = "0";
-                  }
-                }
+                playerElement.style.top = '600px';
+                playerElement.style.opacity = "0";
               }
+              
             }, 2000);
           }, delay);
         }
       });
     //}
-  }, [phase, sortedPlayers, prevStage, animationTrigger, playerRefs, fuelRefs, isRolling, players]);
+  }, [
+    phase, 
+    sortedPlayers, 
+    prevStage, 
+    animationTrigger, 
+    playerRefs, 
+    fuelRefs, 
+    isRolling, 
+    players,
+    lastEliminatedUserAddress
+  ]);
 
   // Handle phase changes to trigger animations
   useEffect(() => {

@@ -101,7 +101,7 @@ function CountDownScreen() {
 
   // handle socket events
   useEffect(() => {
-    if (smartAccountAddress && gameState) {
+    if (smartAccountAddress && gameState && race) {
       socket.on('amount-of-connected', ({amount, raceId: raceIdSocket}) => {
         console.log({amount})
         if (raceId === raceIdSocket) {
@@ -119,7 +119,7 @@ function CountDownScreen() {
       });
 
       socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
-        if (part == SCREEN_NAME && raceIdSocket == raceId && !movedToNext) {
+        if (part == SCREEN_NAME && raceIdSocket == raceId && !movedToNext && race) {
           
           if (!movedToNext) {
             console.log("LEAVED")
@@ -142,7 +142,7 @@ function CountDownScreen() {
         socket.off('race-progress');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, gameState, race]);
 
 
 
@@ -157,12 +157,13 @@ function CountDownScreen() {
   }, [smartAccountAddress, socket, raceId]);
 
   useEffect(() => {
-      if (raceId && socket) {
+      if (raceId && socket && race) {
           if (!socket.connected) {
               socket.connect();
           }
           
           socket.on('screen-changed', ({ screen }) => {
+            if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
               socket.emit('update-progress', {
                 raceId, 
                 userAddress: smartAccountAddress,
@@ -170,10 +171,11 @@ function CountDownScreen() {
                 value: true,
               });
               navigate(generateLink(screen, Number(raceId)));
+            }
           });
 
           socket.on('latest-screen', ({ screen }) => {
-            if (screen !== SCREEN_NAME) {
+            if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
               socket.emit('update-progress', {
                 raceId, 
                 userAddress: smartAccountAddress,
@@ -189,7 +191,7 @@ function CountDownScreen() {
               socket.off('latest-screen');
           }
       }
-  }, [raceId, socket]);
+  }, [raceId, socket, race]);
 
   // kick player if page chnages (closes)
   useEffect(() => {

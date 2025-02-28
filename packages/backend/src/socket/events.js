@@ -72,11 +72,12 @@ export const applySocketEvents = (io) => {
             if (userConnection) {
                 // console.log({ userConnection });
                 const usersInRace = connectedUsers.filter(u => (u.id !== socket.id) && (u.room == userConnection.room));
+                const roomScreenData = await Screen.findOne({ room: userConnection.room });
+
                 if (usersInRace.length == 0) {
                     //console.log("[alert] no users in game left!");
                     //console.log(userConnection)
 
-                    const roomScreenData = await Screen.findOne({ room: userConnection.room });
 
                     if (roomScreenData && ["UNDERDOG", "BULLRUN", "RABBIT_HOLE"].includes(roomScreenData.latestScreen)) {
                         const screenPos = roomScreenData.screens.indexOf(roomScreenData.latestScreen);
@@ -115,18 +116,12 @@ export const applySocketEvents = (io) => {
                 
 
                 // handling bullrun
-                if (userConnection.userAddress && userConnection.raceId) {
+                if (userConnection.userAddress && userConnection.raceId && roomScreenData && roomScreenData.latestScreen == "BULLRUN") {
                     // Remove the disconnected user 
                     await PlayersState.deleteMany({ raceId: userConnection.raceId, userAddress: userConnection.userAddress });
 
                     // Get all remaining players
-                    const waitingAndActivePlayers = await PlayersState.find({ raceId: userConnection.raceId });
-                    const inGamePlayers = await InGamePlayers.find({ raceId: userConnection.raceId });
-
-                    let remainingPlayers = [
-                        ...waitingAndActivePlayers,
-                        ...inGamePlayers
-                    ];
+                    const remainingPlayers = await PlayersState.find({ raceId: userConnection.raceId });
 
                     /*
                     console.log("Remaining players:", remainingPlayers.map(p => ({

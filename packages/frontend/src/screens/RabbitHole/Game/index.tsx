@@ -88,6 +88,7 @@ function RabbitHoleGame() {
   const [maxFuel, setMaxFuel] = useState(version == "v1" ? 10 : 20);
   const [isRolling, setIsRolling] = useState(false);
   const [lastEliminatedUserAddress, setLastEliminatedUserAddress] = useState("");
+  const [leavedPlayers, setLeavedPlayers] = useState<string[]>([]);
 
   // Player counts
   const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -241,6 +242,11 @@ function RabbitHoleGame() {
             }
           });
           setAmountOfPlayersNextClicked(prev => Math.max(0, prev - 1));
+          setLeavedPlayers(prev => {
+            prev.push(data.userAddress);
+            console.log({ LEAVED_USER: data.userAddress })
+            return prev;
+          });
 
           if (pendingTransactions.size > 0) {
             // remove from pending transactions
@@ -655,6 +661,7 @@ function RabbitHoleGame() {
             version,
           });
           
+          console.log("Submitting fuel, leaved players:", leavedPlayers);
           try {
             await txAttempts(
               3,
@@ -664,7 +671,7 @@ function RabbitHoleGame() {
                   maxFuel - displayNumber, 
                   roundIndex, 
                   smartAccountAddress as string,
-                  players.map(i => i.address)
+                  leavedPlayers
                 )),
               3000
             );
@@ -707,7 +714,8 @@ function RabbitHoleGame() {
     maxFuel, 
     displayNumber, 
     smartAccountAddress,
-    userIsLost
+    userIsLost,
+    leavedPlayers
   ]);
 
   // Reset animationsTriggered when a new round starts
@@ -718,7 +726,6 @@ function RabbitHoleGame() {
   }, [roundIsFinished]);
 
   const triggerAnimationsReset = async() => {
-    setRoundIndex(prev => prev + 1);
     socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
 
     setTimeout(() => {
@@ -766,11 +773,11 @@ function RabbitHoleGame() {
 
   useEffect(() => {
     if (players && !isRolling && roundIsFinished) {
-      console.log(`Calculate players, current round ${roundIndex - 1}, raceId: ${raceId}`);
-      calculateSubmittedFuelPerPlayers(players, gameOver, roundIndex - 1, raceId as string);
       setRoundIsFinsihed(false);
+      console.log(`Calculate players, current round ${roundIndex}, raceId: ${raceId}`);
+      calculateSubmittedFuelPerPlayers(players, gameOver, roundIndex, raceId as string);
     }
-  }, [isRolling, players, roundIsFinished, gameOver, roundIndex, raceId]);
+  }, [isRolling, players, roundIsFinished, gameOver, roundIndex, raceId, leavedPlayers]);
 
 
   const handleFinishTunnelGame = async(
@@ -846,6 +853,14 @@ function RabbitHoleGame() {
       if (!newListOfPlayers.map(i => i.address).includes(player.address)) {
         // CURRENTLY ELIMINATING USER WITH player.address
         setLastEliminatedUserAddress(player.address);
+
+        // remove eliminated player from the list of leaved players, as we dont care about him/her anymore
+        setLeavedPlayers(prev => {
+          console.log({prevLeavedPlayers: prev});
+          const newLeavedPlayers = prev.filter(i => i.toLowerCase() != player.address.toLowerCase());
+          console.log({newLeavedPlayers});
+          return newLeavedPlayers;
+        });
 
         if (!player.isEliminated) {
           console.log("ELIMINATE!", player.address, player.Fuel)
@@ -946,6 +961,7 @@ function RabbitHoleGame() {
           setTimeout(() => {
             setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
             setDisplayNumber(0);
+            setRoundIndex(prev => prev + 1);
             
             if (newListOfPlayers.length > 1) {
               console.log("next round... time reset");

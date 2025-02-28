@@ -487,6 +487,7 @@ export const applySocketEvents = (io) => {
             }
 
             // Sort players by points in descending order
+            playersPointsData.sort((a, b) => a.userAddress.localeCompare(b.userAddress));
             playersPointsData.sort((a, b) => b.points - a.points);
 
             const centralIndex = Math.floor(playersPointsData.length / 2);

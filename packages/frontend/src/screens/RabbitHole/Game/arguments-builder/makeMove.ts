@@ -5,10 +5,10 @@ export const build = (
   fuelLeft: number, 
   roundIndex: number, 
   userAddress: string, 
-  inGameUsers: string[]
+  inGameUsersAddrs: string[]
 ) => {
     return ethers.utils.defaultAbiCoder.encode(
       ["uint256", "uint256", "uint256", "address", "address[]"],
-      [fuelSubmission, fuelLeft, roundIndex, userAddress, inGameUsers.filter(i => i !== userAddress)]
+      [fuelSubmission, fuelLeft, roundIndex, userAddress, inGameUsersAddrs]
     )
 }

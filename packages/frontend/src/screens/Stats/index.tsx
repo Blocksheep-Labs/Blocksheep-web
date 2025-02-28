@@ -73,7 +73,7 @@ export default function StatsScreen() {
                 let newProgress: { curr: number; address: string }[] = race.progress.map(i => {
                     return { curr: Number(i.progress), address: i.user };
                 });
-                setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
+                setStats(newProgress.toSorted((a, b) => a.address.localeCompare(b.address)).toSorted((a, b) => b.curr - a.curr));
 
                 console.log("PROGRESS:", newProgress);
                 

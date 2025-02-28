@@ -30,10 +30,24 @@ export const CarrotBasketIncrement = ({
         const gameContainer = document.getElementById("game-container");
         const carrot = document.createElement("div");
         carrot.classList.add("carrot");
+        carrot.style.position = "absolute";
+        carrot.style.width = "20px";
+        carrot.style.height = "50px";
+        carrot.style.background = "orange";
+        carrot.style.borderRadius = "10px";
         carrot.style.left = `${Math.random() * window.innerWidth}px`;
+        carrot.style.top = "0px";
+        carrot.style.transition = "top 1s ease-out";
+
         gameContainer?.appendChild(carrot);
-        
-        setTimeout(() => carrot.remove(), 1000);
+
+        console.log({ carrot })
+
+        setTimeout(() => {
+            carrot.style.top = "80vh";
+        }, 50);
+
+        setTimeout(() => carrot.remove(), 3000);
 
         handleIncrease();
     };

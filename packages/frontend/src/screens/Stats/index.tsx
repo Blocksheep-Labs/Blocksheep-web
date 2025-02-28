@@ -162,6 +162,7 @@ export default function StatsScreen() {
         let centralIndex = Math.floor(stats.length / 2);
 
         // if scores are equal and we reached the centre of the table
+        // SCORE CHECK HERE !!!
         if (index >= centralIndex) {
             return false;
         }

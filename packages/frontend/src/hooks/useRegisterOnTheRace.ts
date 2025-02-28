@@ -50,17 +50,21 @@ export const useRegisterOnTheRace = () => {
             });
             console.log("Aprrove:", approveHash);
             
-            const depositHash = await smartAccountClient.sendTransaction({
-                account: smartAccountClient.account!,
-                chain: SELECTED_NETWORK,
-                to: BLOCK_SHEEP_CONTRACT,
-                data: encodeFunctionData({
-                    abi: BlockSheepAbi,
-                    functionName: "deposit",
-                    args: [amountToDepositAccordingToUserBalance]
-                }),
-            });
-            console.log("Deposit:", depositHash);
+            if (amountToDepositAccordingToUserBalance > 0) {
+                const depositHash = await smartAccountClient.sendTransaction({
+                    account: smartAccountClient.account!,
+                    chain: SELECTED_NETWORK,
+                    to: BLOCK_SHEEP_CONTRACT,
+                    data: encodeFunctionData({
+                        abi: BlockSheepAbi,
+                        functionName: "deposit",
+                        args: [amountToDepositAccordingToUserBalance]
+                    }),
+                });
+                console.log("Deposit:", depositHash);
+            } else {
+                console.log("Skipping deposit, user has enough balance...")
+            }
         //}
         
 

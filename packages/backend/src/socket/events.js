@@ -498,8 +498,9 @@ export const applySocketEvents = (io) => {
                 player.finished = true;
                 await player.save();
 
+                // SCORE CHECK HERE !!!
                 let property = "decrement";
-                if (index < centralIndex) {
+                if (index <= centralIndex) {
                     property = "increment";
                 }
 

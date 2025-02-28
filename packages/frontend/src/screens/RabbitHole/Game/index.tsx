@@ -95,7 +95,7 @@ function RabbitHoleGame() {
   const [amountOfPending, setAmountOfPending] = useState(0);
   const [amountOfComplteted, setAmountOfComplteted] = useState(0);
   const [amountOfPlayersnextClicked, setAmountOfPlayersNextClicked] = useState(0);
-  const [amountOfAllocatedPoints, setAmountOfAllocatedPoints] = useState(0);
+
 
   // UI states
   const [displayNumber, setDisplayNumber] = useState(0);
@@ -259,70 +259,6 @@ function RabbitHoleGame() {
             //console.log("Pending transactions:", pendingCount);
 
             tryToProcessAnimations(pendingCount, phase);
-          }
-          socket.emit("get-connected", { raceId });
-        }
-      });
-
-      socket.once('race-progress', ({progress, tunnelState}) => {        
-        if (tunnelState.roundsPlayed > 0) {
-          setGameOver(true);
-          setIsRolling(false);
-          setGameCompleted(true);
-          setUserIsLost(true);
-          setAmountOfAllocatedPoints(0);
-
-        } 
-        
-        if (tunnelState.isFinished) {
-          pause();
-          openLoseModal();
-          return;
-        }
-
-        if (tunnelState.secondsLeft >= 2) {
-          const time = new Date();
-          time.setSeconds(time.getSeconds() + tunnelState.secondsLeft);
-          restart(time);
-        } else {
-          pause();
-      
-          if (tunnelState.gameState !== "default") {
-            // Wait for tunnel to return to default state before restarting
-            const checkTunnelState = () => {
-              socket.emit("get-tunnel-state", { raceId }, (response: any) => {
-                if (response.data.gameState === "default") {
-                  // Restart timer and sync with other players
-                  const time = new Date();
-                  time.setSeconds(time.getSeconds() + 5); // Reset to 5 seconds
-                  restart(time);
-                } else {
-                  // Check again in 700ms if not in default state
-                  setTimeout(checkTunnelState, 700);
-                }
-              });
-            };
-            
-            checkTunnelState();
-          } else {
-            handleTunnelChange();
-          }
-        }
-
-        // @ts-ignore
-        setDisplayNumber(progress?.progress?.rabbithole?.[version]?.game?.fuel || 0);
-        // @ts-ignore
-        setMaxFuel(progress?.progress?.rabbithole?.[version]?.game?.maxAvailableFuel || (version == "v1" ? 10 : 20));
-      });
-
-      socket.on("rabbithole-results-shown-on-client", ({ socketId, raceId }) => {
-        // means that some player got a win-lose modal opened, finished the game and ready to navigate to the next screen
-        pause();
-        if (!winModalPermanentlyOpened || !loseModalPermanentlyOpened || !modalIsOpen) {
-          if (amountOfAllocatedPoints > 0) {
-            openWinModal();
-          } else {
-            openLoseModal();
           }
         }
       });
@@ -512,7 +448,6 @@ function RabbitHoleGame() {
     isRolling,
     pendingTransactions,
     phase,
-    amountOfAllocatedPoints,
     roundIndex
   ]);
 
@@ -570,8 +505,6 @@ function RabbitHoleGame() {
       }
       
       socket.emit("rabbithole-reach", { raceId, userAddress: smartAccountAddress })
-      socket.emit("get-progress", { raceId, userAddress: smartAccountAddress });
-      socket.emit("get-progress-all", { raceId });
       socket.emit("rabbithole-get-all-fuel-tunnel", { raceId });
     }
   }, [smartAccountAddress, socket, raceId, gameState]);
@@ -784,9 +717,7 @@ function RabbitHoleGame() {
     raceId: string, 
     isWon: boolean, 
     amountOfPointsToAllocate: number, 
-  ) => {
-    setAmountOfAllocatedPoints(amountOfPointsToAllocate);
-    
+  ) => {    
     if (!gameOver) {
       setGameOver(true);
       setTimeout(() => {

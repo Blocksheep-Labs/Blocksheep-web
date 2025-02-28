@@ -367,11 +367,13 @@ export default function Bullrun() {
         setAddressesCompleted([...addressesCompleted, smartAccountAddress as string]);
         setRulesModalIsOpened(false);
         setWinModalIsOpened(false);
-        socket.emit("update-progress", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "bullrun-complete",
-        });
+        setTimeout(() => {
+            socket.emit("update-progress", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: "bullrun-complete",
+            });
+        }, Math.random() * 2000);
         setLatestInteractiveModalWasClosed(true);
     }
 

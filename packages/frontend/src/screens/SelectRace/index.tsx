@@ -56,9 +56,9 @@ function SelectRaceScreen() {
     
     
     
-      //updateGameState(race, progress);
-      //navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
-      //return;
+    //  updateGameState(race, progress);
+    //  navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
+    //  return;
     
     
 

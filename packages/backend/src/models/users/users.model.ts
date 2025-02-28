@@ -31,35 +31,31 @@ const finishRace = async (address: string, type: "increment" | "decrement", race
         throw new Error("User was not found");
     }
 
-    // ensure that the user has been modified since the points distribution of the race
-    if (user.finishedRaces.map(i => Number(i.raceId)).includes(Number(raceId))) {
+    // Ensure the race isn't already recorded
+    const raceExists = user.finishedRaces.some(i => Number(i.raceId) === Number(raceId));
+    if (raceExists) {
         return;
     }
 
-    const stat: IFinishRaceStat = {
+    const incrementValue = type === "increment" ? 1 : type === "decrement" && user.gamesAboveAverage > 0 ? -1 : 0;
+    const stat = {
         raceId,
         previousGamesAboveAverage: user.gamesAboveAverage,
-        newGamesAboveAverage: 0,
+        newGamesAboveAverage: user.gamesAboveAverage + incrementValue
     };
 
-    // to track state on the frontend
-    user.previousGamesAboveAverage = user.gamesAboveAverage;
-    if (type === "increment") {
-        stat.newGamesAboveAverage = stat.previousGamesAboveAverage + 1;
-        user.gamesAboveAverage++;
-    }
-    
-    if (type === "decrement") {
-        if (user.gamesAboveAverage - 1 >= 0) {
-            stat.newGamesAboveAverage = stat.previousGamesAboveAverage - 1;
-            user.gamesAboveAverage--;
-        }
-    }
-    
-    user.finishedRaces.push(stat);
+    // Update the user in one atomic operation
+    return await User.findOneAndUpdate(
+        { address },
+        {
+            $inc: { gamesAboveAverage: incrementValue },
+            $addToSet: { finishedRaces: stat },
+            $set: { previousGamesAboveAverage: user.gamesAboveAverage }
+        },
+        { new: true }
+    );
+};
 
-    return await user.save();
-}
 
 export {
     setNameByAddress,

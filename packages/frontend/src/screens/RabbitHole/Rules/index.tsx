@@ -95,11 +95,11 @@ export default function RabbitHoleRules() {
                 }
             });
 
-            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext, connectedCount }) => {
                 if (["RABBIT_HOLE_RULES", "RABBIT_HOLE_V2_RULES"].includes(part) && raceIdSocket == raceId && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
-                        setAmountOfConnected(amountOfConnected - 1);
+                        setAmountOfConnected(connectedCount);
                     } else {
                         setReadyToNavigateNext(true);
                     }

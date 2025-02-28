@@ -137,13 +137,6 @@ export const applySocketEvents = (io) => {
 
                     // For each remaining player
                     remainingPlayers.forEach(async player => {
-                        // Update required games to new value
-                        await GamesRequired.findOneAndUpdate(
-                            { raceId: userConnection.raceId, userAddress: player.userAddress }, 
-                            { $inc: { requiredGames: -1 } },
-                            { upsert: true }
-                        );
-
                         // If they haven't played against the leaving player, increment their game count
                         const matchesPlayedAgainstPlayer = await MatchesPlayed.find({ 
                             raceId: userConnection.raceId, 
@@ -151,19 +144,25 @@ export const applySocketEvents = (io) => {
                         });
 
                         // if user was not playing against leaving player
-
                         if (!matchesPlayedAgainstPlayer.find(i => i.player1 == userConnection.userAddress || i.player2 == userConnection.userAddress)) {
-                            await GameCounts.findOneAndUpdate(
-                                { raceId: userConnection.raceId, userAddress: player.userAddress },
-                                { $inc: { count: 1 } },
+                            //await GameCounts.findOneAndUpdate(
+                            //    { raceId: userConnection.raceId, userAddress: player.userAddress },
+                            //    { $inc: { count: 1 } },
+                            //    { upsert: true }
+                            //);
+
+                            // Update required games to new value += -1
+                            await GamesRequired.findOneAndUpdate(
+                                { raceId: userConnection.raceId, userAddress: player.userAddress }, 
+                                { $inc: { requiredGames: -1 } },
                                 { upsert: true }
                             );
                         }
 
                         // Check if player has completed his games
-                        const playerGameCounts = await GameCounts.findOne({ raceId: userConnection.raceId, userAddress: player.userAddress });
+                        const playerGameCounts = (await GameCounts.findOne({ raceId: userConnection.raceId, userAddress: player.userAddress }))?.count || 0;
 
-                        if (playerGameCounts.count >= newRequiredGames) {
+                        if (playerGameCounts >= newRequiredGames) {
                             const gameCompletesUser = await GameCompletes.findOne({ raceId: userConnection.raceId, userAddress: player.userAddress });
                             if (!gameCompletesUser) {
                                 await GameCompletes.create({ raceId: userConnection.raceId, userAddress: player.userAddress, completed: true });

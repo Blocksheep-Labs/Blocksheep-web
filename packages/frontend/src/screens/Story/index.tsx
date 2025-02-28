@@ -126,11 +126,11 @@ export default function StoryScreen() {
                 }
             });
 
-            socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
+            socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext, connectedCount }) => {
                 if (partSocket == getStoryPart(part) && raceId == raceIdSocket) {
                     if (!movedToNext) {
                         console.log("LEAVED")
-                        setAmountOfConnected(amountOfConnected - 1);
+                        setAmountOfConnected(connectedCount);
                         /*
                         if (!modalIsOpen) {
                             setModalIsOpen(true);

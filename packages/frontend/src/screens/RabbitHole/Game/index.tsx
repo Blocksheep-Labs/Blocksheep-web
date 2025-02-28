@@ -233,7 +233,13 @@ function RabbitHoleGame() {
         //alert(`LEAVED: ${data.raceId} | ${raceId} ${data.raceId == raceId} | in: ${["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part)}`)
         if (data.raceId == raceId && ["RABBIT_HOLE", "RABBIT_HOLE_V2"].includes(data?.part)) {
           setAmountOfPending(prev => Math.max(0, prev - 1));
-          setAmountOfConnected(prev => Math.max(0, prev - 1));
+          setAmountOfConnected(prev => {
+            if (data?.connectedCount >= 0) {
+              return data.connectedCount;
+            } else {
+              return Math.max(0, prev - 1);
+            }
+          });
           setAmountOfPlayersNextClicked(prev => Math.max(0, prev - 1));
 
           if (pendingTransactions.size > 0) {

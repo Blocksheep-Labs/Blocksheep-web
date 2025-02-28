@@ -55,11 +55,11 @@ function SelectRaceScreen() {
 
     
     
-    /*
-      updateGameState(race, progress);
-      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
-      return;
-    */
+    
+      //updateGameState(race, progress);
+      //navigate(`/race/${raceId}/bullrun/rules`);
+      //return;
+    
     
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
@@ -185,7 +185,7 @@ function SelectRaceScreen() {
         }
       });
 
-      socket.on('leaved', ({ raceId: raceIdSocket, part, movedToNext }) => {
+      socket.on('leaved', ({ raceId: raceIdSocket, part, movedToNext, connectedCount }) => {
         // prevent amount of players tracking if we are waiting to synchronize with the game
         if (modalType == "synchronizing" && modalIsOpen) {
           console.log(modalType, modalIsOpen)
@@ -194,7 +194,7 @@ function SelectRaceScreen() {
 
         console.log("LEAVED", { raceId: raceIdSocket, part, movedToNext })
         if (raceId == raceIdSocket && part == 'RACE_SELECTION' && !movedToNext) {
-          setAmountOfConnected(amountOfConnected - 1);
+          setAmountOfConnected(connectedCount);
 
           if (!modalIsOpen) {
             setIsOpen(true);

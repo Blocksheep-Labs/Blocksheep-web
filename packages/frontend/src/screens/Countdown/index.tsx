@@ -118,12 +118,12 @@ function CountDownScreen() {
           }
       });
 
-      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext, connectedCount }) => {
         if (part == SCREEN_NAME && raceIdSocket == raceId && !movedToNext && race) {
           
           if (!movedToNext) {
             console.log("LEAVED")
-            setAmountOfConnected(amountOfConnected - 1);
+            setAmountOfConnected(connectedCount);
           } else {
             handleClose();
           }

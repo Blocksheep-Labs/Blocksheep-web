@@ -388,9 +388,9 @@ function UnderdogGame() {
         }
       });
 
-      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+      socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext, connectedCount }) => {
         if (part == "UNDERDOG" && raceId == raceIdSocket && !movedToNext) {
-          setAmountOfConnected(amountOfConnected - 1);
+          setAmountOfConnected(connectedCount);
         }
       });
 

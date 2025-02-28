@@ -123,12 +123,12 @@ export default function RateScreen() {
                 }
             });
 
-            socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext }) => {
+            socket.on('leaved', ({ part: partSocket, raceId: raceIdSocket, movedToNext, connectedCount }) => {
                 console.log({ part: partSocket, raceId: raceIdSocket, movedToNext });
                 if (partSocket == SCREEN_NAME && raceId == raceIdSocket) {
                     if (!movedToNext) {
                         console.log("LEAVED")
-                        setAmountOfConnected(amountOfConnected - 1);
+                        setAmountOfConnected(connectedCount);
                     } else {
                         setReadyToNavigateNext(true);
                     }

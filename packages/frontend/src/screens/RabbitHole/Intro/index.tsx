@@ -89,11 +89,11 @@ export default function RabbitHoleCover() {
                 }
             });
 
-            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext, connectedCount }) => {
                 if (["RABBIT_HOLE_PREVIEW", "RABBIT_HOLE_V2_PREVIEW"].includes(part) && raceIdSocket == raceId && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
-                        setAmountOfConnected(amountOfConnected - 1);
+                        setAmountOfConnected(connectedCount);
                     } else {
                         setReadyToNavigateNext(true);
                     }

@@ -93,11 +93,11 @@ export default function BullrunRules() {
                 }
             });
 
-            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext, connectedCount }) => {
                 if (part == SCREEN_NAME && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
-                        setAmountOfConnected(amountOfConnected - 1);
+                        setAmountOfConnected(connectedCount);
                     } else {
                         setReadyToNavigateNext(true);
                     }

@@ -975,7 +975,7 @@ function RabbitHoleGame() {
       <div className="relative z-50 py-6">
         <Timer seconds={totalSeconds} percentageRate={20}/>
         <div className="absolute right-4 top-6">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={gameState?.amountOfRegisteredUsers}/>
+          <UserCount currentAmount={amountOfConnected} requiredAmount={race?.numOfPlayersRequired || 9}/>
         </div>
       </div>
      

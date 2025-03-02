@@ -15,6 +15,7 @@ const UniqueRaceAnimation = (props) => {
   const [showFinalElements, setShowFinalElements] = useState(false);
   const [showButton, setShowButton] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,6 +45,12 @@ const UniqueRaceAnimation = (props) => {
     };
   }, []);
 
+  const handlePlayClick = () => {
+    setIsClicked(true);
+    setShowLoader(true);
+    handleClick();
+  };
+
   // REMOVE AFTER DRIVERS NAVIGATE TEST
   const handleDriversBtn = async () => {
     navigate("/race/299/drivers");
@@ -69,20 +76,21 @@ const UniqueRaceAnimation = (props) => {
       )}
 
       {showButton && (
-        <img
-          src={PlayImage}
-          alt="Play Button"
-          className={`play-button bg-transparent transition-all duration-300`}
-          style={{
-            opacity: isClicked ? 0 : 1,
-            bottom: isClicked ? "-25%" : "5%",
-          }}
-          onClick={() => {
-            setIsClicked(true);
-            handleClick();
-          }}
-        />
+        <div className={`play-button-container ${isClicked ? 'loading' : ''}`}>
+          <img
+            src={PlayImage}
+            alt="Play Button"
+            className={`play-button bg-transparent transition-all duration-300 ${isClicked ? 'clicked' : ''}`}
+            onClick={handlePlayClick}
+          />
+          {showLoader && (
+            <div className="loader">
+              <div className="loader-circle"></div>
+            </div>
+          )}
+        </div>
       )}
+      
       {showButton && (
         <button
           onClick={handleDriversBtn}

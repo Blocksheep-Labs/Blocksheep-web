@@ -111,42 +111,78 @@
 }
 
 /* ========== 2) PLAY BUTTON WITH Z-INDEX & CSS ANIMATION ========== */
+/* Play button container */
+.play-button-container {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Play button */
 .play-button {
-    position: absolute;
-    bottom: 5%;
-    left: 50%;
-    width: 40%;
-    transform: translate(-50%, 0) scale(0);
-    transform-origin: center center;
-    z-index: 9999; /* Ensures button is always on top */
-  
-    will-change: transform; /* No need to track background */
-    /* First grow after 3.5s (1s duration), then pulse from 4.5s onward */
-    animation:
-      button-grow 2s forwards 3.5s,
-      pulse 1.2s infinite 4.5s;
+  width: 40%;
+  transform: scale(0);
+  transform-origin: center center;
+  will-change: transform;
+  animation:
+    button-grow 2s forwards 3.5s,
+    pulse 1.2s infinite 4.5s;
+  transition: all 0.3s ease;
+}
 
-    transition: transform 0.2s;
-  }
-  
-  @keyframes button-grow {
-    0% {
-        background: transparent;
-        transform: translate(-50%, 0) scale(0);
-    }
-    100% {
-        background: transparent;
-        transform: translate(-50%, 0) scale(1);
-    }
-  }
+.play-button.clicked {
+  animation: none;
+  transform: scale(0.8);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
 
-@keyframes pulse {
-  0%, 100% {
-    transform: translate(-50%, 0) scale(1);
+/* Loader styles */
+.loader {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  opacity: 0;
+  animation: loader-fade-in 0.3s forwards;
+}
+
+.loader-circle {
+  width: 100%;
+  height: 100%;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes loader-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
   }
-  50% {
-    transform: translate(-50%, 0) scale(1.1);
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.play-button-container.loading .play-button {
+  transform: scale(0);
+  opacity: 0;
 }
 
 /* ========== 3) FRAME EDGES CSS ========== */

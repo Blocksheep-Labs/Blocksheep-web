@@ -30,10 +30,6 @@ export const useRacesWithPagination = (from: number) => {
     } 
 
     const fetchRaces = async() => {
-        if (Number(nextGameId) < from || Number(nextGameId) === 0) {
-            return [];
-        }
-
         let data = await readContract(config, {
             address: BLOCK_SHEEP_CONTRACT,
             abi: BlockSheepAbi,
@@ -97,10 +93,10 @@ export const useRacesWithPagination = (from: number) => {
     }
 
     useEffect(() => {
-        if (smartAccountAddress) {
+        if (smartAccountAddress && nextGameId) {
             const iId = setInterval(() => {
                 fetchRaces();
-            }, 2000);
+            }, 1000);
 
             return () => {
                 clearInterval(iId);

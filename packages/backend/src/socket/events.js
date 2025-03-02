@@ -72,11 +72,12 @@ export const applySocketEvents = (io) => {
             if (userConnection) {
                 // console.log({ userConnection });
                 const usersInRace = connectedUsers.filter(u => (u.id !== socket.id) && (u.room == userConnection.room));
+                const roomScreenData = await Screen.findOne({ room: userConnection.room });
+
                 if (usersInRace.length == 0) {
                     //console.log("[alert] no users in game left!");
                     //console.log(userConnection)
 
-                    const roomScreenData = await Screen.findOne({ room: userConnection.room });
 
                     if (roomScreenData && ["UNDERDOG", "BULLRUN", "RABBIT_HOLE"].includes(roomScreenData.latestScreen)) {
                         const screenPos = roomScreenData.screens.indexOf(roomScreenData.latestScreen);
@@ -102,28 +103,25 @@ export const applySocketEvents = (io) => {
                     part: userConnection.part
                 });
                 */
+                await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
+
                 io.to(userConnection.room).emit('leaved', {
                     socketId: socket.id,
                     userAddress: userConnection.userAddress,
                     raceId: userConnection.raceId,
                     movedToNext: false,
-                    part: userConnection.part
+                    part: userConnection.part,
+                    connectedCount: await ConnectedUser.countDocuments({ raceId: userConnection.raceId })
                 });
                 
 
                 // handling bullrun
-                if (userConnection.userAddress && userConnection.raceId) {
+                if (userConnection.userAddress && userConnection.raceId && roomScreenData && roomScreenData.latestScreen == "BULLRUN") {
                     // Remove the disconnected user 
                     await PlayersState.deleteMany({ raceId: userConnection.raceId, userAddress: userConnection.userAddress });
 
                     // Get all remaining players
-                    const waitingAndActivePlayers = await PlayersState.find({ raceId: userConnection.raceId });
-                    const inGamePlayers = await InGamePlayers.find({ raceId: userConnection.raceId });
-
-                    let remainingPlayers = [
-                        ...waitingAndActivePlayers,
-                        ...inGamePlayers
-                    ];
+                    const remainingPlayers = await PlayersState.find({ raceId: userConnection.raceId });
 
                     /*
                     console.log("Remaining players:", remainingPlayers.map(p => ({
@@ -139,13 +137,6 @@ export const applySocketEvents = (io) => {
 
                     // For each remaining player
                     remainingPlayers.forEach(async player => {
-                        // Update required games to new value
-                        await GamesRequired.findOneAndUpdate(
-                            { raceId: userConnection.raceId, userAddress: player.userAddress }, 
-                            { requiredGames: newRequiredGames },
-                            { upsert: true }
-                        );
-
                         // If they haven't played against the leaving player, increment their game count
                         const matchesPlayedAgainstPlayer = await MatchesPlayed.find({ 
                             raceId: userConnection.raceId, 
@@ -154,17 +145,24 @@ export const applySocketEvents = (io) => {
 
                         // if user was not playing against leaving player
                         if (!matchesPlayedAgainstPlayer.find(i => i.player1 == userConnection.userAddress || i.player2 == userConnection.userAddress)) {
-                            await GameCounts.findOneAndUpdate(
-                                { raceId: userConnection.raceId, userAddress: player.userAddress },
-                                { $inc: { count: 1 } },
+                            //await GameCounts.findOneAndUpdate(
+                            //    { raceId: userConnection.raceId, userAddress: player.userAddress },
+                            //    { $inc: { count: 1 } },
+                            //    { upsert: true }
+                            //);
+
+                            // Update required games to new value += -1
+                            await GamesRequired.findOneAndUpdate(
+                                { raceId: userConnection.raceId, userAddress: player.userAddress }, 
+                                { $inc: { requiredGames: -1 } },
                                 { upsert: true }
                             );
                         }
 
                         // Check if player has completed his games
-                        const playerGameCounts = await GameCounts.findOne({ raceId: userConnection.raceId, userAddress: player.userAddress });
+                        const playerGameCounts = (await GameCounts.findOne({ raceId: userConnection.raceId, userAddress: player.userAddress }))?.count || 0;
 
-                        if (playerGameCounts.count >= newRequiredGames) {
+                        if (playerGameCounts >= newRequiredGames) {
                             const gameCompletesUser = await GameCompletes.findOne({ raceId: userConnection.raceId, userAddress: player.userAddress });
                             if (!gameCompletesUser) {
                                 await GameCompletes.create({ raceId: userConnection.raceId, userAddress: player.userAddress, completed: true });
@@ -174,7 +172,7 @@ export const applySocketEvents = (io) => {
 
                     // Notify remaining players about updates
                     const roomName = `race-${userConnection.raceId}`;
-                    io.to(roomName).emit('bullrun-required-games-descreased', {
+                    io.to(roomName).emit('bullrun-required-games-decreased', {
                         raceId: userConnection.raceId,
                     });
 
@@ -192,7 +190,7 @@ export const applySocketEvents = (io) => {
                     });
                 }
 
-                await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
+                // await ConnectedUser.deleteMany({ userAddress: userConnection.userAddress });
             }
         });
     
@@ -489,6 +487,7 @@ export const applySocketEvents = (io) => {
             }
 
             // Sort players by points in descending order
+            playersPointsData.sort((a, b) => a.userAddress.localeCompare(b.userAddress));
             playersPointsData.sort((a, b) => b.points - a.points);
 
             const centralIndex = Math.floor(playersPointsData.length / 2);
@@ -499,8 +498,9 @@ export const applySocketEvents = (io) => {
                 player.finished = true;
                 await player.save();
 
+                // SCORE CHECK HERE !!!
                 let property = "decrement";
-                if (index < centralIndex) {
+                if (index <= centralIndex) {
                     property = "increment";
                 }
 

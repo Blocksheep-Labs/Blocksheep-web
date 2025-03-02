@@ -73,7 +73,7 @@ export default function StatsScreen() {
                 let newProgress: { curr: number; address: string }[] = race.progress.map(i => {
                     return { curr: Number(i.progress), address: i.user };
                 });
-                setStats(newProgress.toSorted((a, b) => b.curr - a.curr));
+                setStats(newProgress.toSorted((a, b) => a.address.localeCompare(b.address)).toSorted((a, b) => b.curr - a.curr));
 
                 console.log("PROGRESS:", newProgress);
                 
@@ -107,23 +107,25 @@ export default function StatsScreen() {
     }, [smartAccountAddress, socket, raceId]);
 
     useEffect(() => {
-        if (raceId && socket) {
+        if (raceId && socket && race) {
             if (!socket.connected) {
                 socket.connect();
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                socket.emit('update-progress', {
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    property: `rate`,
-                });
-                
-                navigate(generateLink(screen, Number(raceId)));
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: `rate`,
+                    });
+                    
+                    navigate(generateLink(screen, Number(raceId)));
+                }
             });
 
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== SCREEN_NAME) {
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -138,7 +140,7 @@ export default function StatsScreen() {
                 socket.off('latest-screen');
             }
         }
-    }, [raceId, socket]);
+    }, [raceId, socket, race]);
 
     // kick player if page chnages (closes)
     useEffect(() => {
@@ -160,6 +162,7 @@ export default function StatsScreen() {
         let centralIndex = Math.floor(stats.length / 2);
 
         // if scores are equal and we reached the centre of the table
+        // SCORE CHECK HERE !!!
         if (index >= centralIndex) {
             return false;
         }

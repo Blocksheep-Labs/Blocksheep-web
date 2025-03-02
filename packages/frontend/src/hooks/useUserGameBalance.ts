@@ -11,14 +11,16 @@ export const useUserGameBalance = () => {
     const [userBalance, setUserBalance] = useState(0);
 
     useEffect(() => {
-        readContract(config, {
-            address: BLOCK_SHEEP_CONTRACT,
-            abi: blocksheepAbi,
-            functionName: "balances",
-            args: [smartAccountAddress],
-        }).then(b => {
-            setUserBalance(Number(b));
-        });
+        if (smartAccountAddress) {
+            readContract(config, {
+                address: BLOCK_SHEEP_CONTRACT,
+                abi: blocksheepAbi,
+                functionName: "balances",
+                args: [smartAccountAddress],
+            }).then(b => {
+                setUserBalance(Number(b));
+            });
+        }
     }, [smartAccountAddress]);
 
     return userBalance;

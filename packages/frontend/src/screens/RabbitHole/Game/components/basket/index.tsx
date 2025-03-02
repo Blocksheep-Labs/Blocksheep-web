@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import "../../../assets/css/index.css";
 import BasketCarrotImage from "../../../assets/images/carrot-basket.png";
-import BasketCarrotIncrement from "../../../assets/images/carrot-increment.png";
-import BasketCarrotIncrementValue from "../../../assets/images/carrot-increment-value.png";
+
 
 export function CarrotBasket({fuelLeft}: {fuelLeft: number}) {
     return (
@@ -12,35 +12,61 @@ export function CarrotBasket({fuelLeft}: {fuelLeft: number}) {
     );
 }
 
-export function CarrotBasketIncrement({ setDisplayNumber, disabled, max, displayNumber }: { setDisplayNumber: (fuel: number) => void; disabled: boolean; max: number; displayNumber: number }) {
-  const handleIncrease = () => {
-    if (disabled || displayNumber >= max) return;
-    const newValue = Math.min(max, displayNumber + 1);
-    setDisplayNumber(newValue);
-  };
 
-  return (
-    <div className={`relative ${disabled ? "opacity-50" : ""}`}>
-      <img src={BasketCarrotIncrement} alt="basket z-10" className="w-24" />
-      <img
-        src={BasketCarrotIncrementValue}
-        alt="basketcounter"
-        className="absolute w-12 -top-4 left-2 -z-10"
-      />
-      <span
-        className="text-black absolute left-[17.5%] bottom-[62px] text-lg -z-10"
-        style={{ transform: "translate(-50%,-50%)" }}
-      >
-        {displayNumber}
-      </span>
-      <button
-        className={`text-black absolute left-[28%] bottom-[21px] text-lg`}
-        style={{ transform: "translate(-50%,-50%)" }}
-        onClick={handleIncrease}
-        disabled={disabled || displayNumber >= max}
-      >
-        DROP
-      </button>
-    </div>
-  );
-}
+export const CarrotBasketIncrement = ({
+    MAX_CARROTS,
+    displayNumber,
+    setDisplayNumber,
+    disabled,
+}: {
+    setDisplayNumber: (a: number) => void;
+    displayNumber: number;
+    MAX_CARROTS: number;
+    disabled: boolean;
+}) => {
+    const throwCarrot = () => {
+        if (displayNumber >= MAX_CARROTS || disabled) return;
+
+        const gameContainer = document.getElementById("game-container");
+        const carrot = document.createElement("div");
+        carrot.classList.add("carrot");
+        carrot.style.position = "absolute";
+        carrot.style.width = "20px";
+        carrot.style.height = "50px";
+        carrot.style.background = "orange";
+        carrot.style.borderRadius = "10px";
+        carrot.style.left = `${Math.random() * window.innerWidth}px`;
+        carrot.style.top = "0px";
+        carrot.style.transition = "top 1s ease-out";
+
+        gameContainer?.appendChild(carrot);
+
+        console.log({ carrot })
+
+        setTimeout(() => {
+            carrot.style.top = "80vh";
+        }, 50);
+
+        setTimeout(() => carrot.remove(), 3000);
+
+        handleIncrease();
+    };
+
+    const handleIncrease = () => {
+        if (displayNumber >= MAX_CARROTS || disabled) return;
+        const newValue = Math.min(MAX_CARROTS, displayNumber + 1);
+        setDisplayNumber(newValue);
+    };
+
+    return (
+        <div id="game-container">
+            <button id="throw-button" 
+                onClick={throwCarrot} 
+                style={{ opacity: (displayNumber >= MAX_CARROTS || disabled) ? "0.6" : "1" }}
+            >
+                <span className="pl-3">DROP</span>
+            </button>
+            <div id="counter">{displayNumber}</div>
+        </div>
+    );
+};

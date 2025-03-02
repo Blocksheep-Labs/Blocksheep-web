@@ -218,6 +218,19 @@
 				"type": "uint256"
 			}
 		],
+		"name": "refundWinningBalance",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "raceId",
+				"type": "uint256"
+			}
+		],
 		"name": "register",
 		"outputs": [],
 		"stateMutability": "nonpayable",
@@ -723,6 +736,30 @@
 				"internalType": "uint256",
 				"name": "id",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "gameName",
+				"type": "string"
+			},
+			{
+				"internalType": "bytes",
+				"name": "functionSignature",
+				"type": "bytes"
+			}
+		],
+		"name": "staticCallAnyGameFunction",
+		"outputs": [
+			{
+				"internalType": "bytes",
+				"name": "",
+				"type": "bytes"
 			}
 		],
 		"stateMutability": "view",

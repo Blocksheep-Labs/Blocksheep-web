@@ -7,6 +7,8 @@ import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import { useGameContext } from "@/utils/game-context";
 import { useRaceById } from "@/hooks/useRaceById";
+import { httpGetRaceDataById } from "@/utils/http-requests";
+import getScreenTime from "@/utils/getScreenTime";
 
 const SCREEN_NAME = "BULLRUN_PREVIEW";
 
@@ -18,41 +20,49 @@ export default function BullrunCover() {
     const [amountOfConnected, setAmountOfConnected] = useState(0);
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const { race } = useRaceById(Number(raceId));
+    const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
 
-    const time = new Date();
-    time.setSeconds(time.getSeconds() + 3);
-
-    const handleExpire = () => {
-        console.log("UPDATE PROGRESS", {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "bullrun-preview-complete",
-        });
-        socket.emit('update-progress', {
-            raceId,
-            userAddress: smartAccountAddress,
-            property: "bullrun-preview-complete",
-        });
-
-        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
-        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
-        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
-    };
 
     const { totalSeconds, restart, pause } = useTimer({
-        expiryTimestamp: time,
-        onExpire: handleExpire,
-        autoStart: true
+        expiryTimestamp: new Date(),
+        onExpire: () => setReadyToNavigateNext(true),
+        autoStart: false
     });
 
+
+    // navigator
     useEffect(() => {
-        if (gameState) {    
-            const time = new Date();
-            time.setSeconds(time.getSeconds() + 3);
-            restart(time);
-            setSecondsVisual(3);
+        if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined) {
+            console.log("UPDATE PROGRESS", {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: "bullrun-preview-complete",
+            });
+            socket.emit('update-progress', {
+                raceId,
+                userAddress: smartAccountAddress,
+                property: "bullrun-preview-complete",
+            });
+    
+            const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+            socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+            navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
         }
-    }, [gameState]);
+    }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId]);
+
+
+    useEffect(() => {
+        if (race && SCREEN_NAME) {  
+            httpGetRaceDataById(`race-${race.id}`)
+                .then(({data}) => {
+                    const time = new Date();
+                    const expectedTime = getScreenTime(data, SCREEN_NAME);
+                    time.setSeconds(time.getSeconds() + expectedTime);
+                    restart(time);
+                    setSecondsVisual(expectedTime);
+                });
+            }
+    }, [race, SCREEN_NAME]);
 
     // handle socket events
     useEffect(() => {
@@ -69,31 +79,18 @@ export default function BullrunCover() {
 
                 if (raceId == raceIdSocket && part == SCREEN_NAME) {
                     console.log("JOINED++")
-                    /*
-                    setAmountOfConnected(amountOfConnected + 1);
-                    if (amountOfConnected + 1 >= location.state.amountOfRegisteredUsers) {
-                        setModalIsOpen(false);
-                        setModalType(undefined);
-                    }
-                    */
                     socket.emit("get-connected", { raceId });
                 }
             });
 
-            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext }) => {
+            socket.on('leaved', ({ part, raceId: raceIdSocket, movedToNext, connectedCount }) => {
                 if (part == SCREEN_NAME && raceId == raceIdSocket && !movedToNext) {
                     if (!movedToNext) {
                         console.log("LEAVED")
-                        setAmountOfConnected(amountOfConnected - 1);
+                        setAmountOfConnected(connectedCount);
                     } else {
-                        handleExpire();
+                        setReadyToNavigateNext(true);
                     }
-                    /*
-                    if (!modalIsOpen) {
-                        setModalIsOpen(true);
-                    }
-                    setModalType("waiting");
-                    */
                 }
             });
 
@@ -120,23 +117,25 @@ export default function BullrunCover() {
 
     
     useEffect(() => {
-        if (raceId && socket) {
+        if (raceId && socket && race) {
             if (!socket.connected) {
                 socket.connect();
             }
             
             socket.on('screen-changed', ({ screen }) => {
-                socket.emit('update-progress', {
-                    raceId,
-                    userAddress: smartAccountAddress,
-                    property: "bullrun-preview-complete",
-                });
-                console.log("NAVIGATE_1")
-                navigate(generateLink(screen, Number(raceId)));
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
+                    socket.emit('update-progress', {
+                        raceId,
+                        userAddress: smartAccountAddress,
+                        property: "bullrun-preview-complete",
+                    });
+                    console.log("NAVIGATE_1")
+                    navigate(generateLink(screen, Number(raceId)));
+                }
             });
             
             socket.on('latest-screen', ({ screen }) => {
-                if (screen !== SCREEN_NAME) {
+                if (race.screens.indexOf(screen) > race.screens.indexOf(SCREEN_NAME)) {
                     socket.emit('update-progress', {
                         raceId,
                         userAddress: smartAccountAddress,
@@ -152,7 +151,7 @@ export default function BullrunCover() {
                 socket.off('latest-screen');
             }
         }
-    }, [raceId, socket]);
+    }, [raceId, socket, race]);
     
     useEffect(() => {
         if(smartAccountAddress && String(raceId).length) {

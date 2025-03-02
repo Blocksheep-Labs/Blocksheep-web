@@ -19,6 +19,19 @@ const queryClient = new QueryClient();
 
 // init telegram if not in dev mode
 try {
+  document.addEventListener("contextmenu", (event) => event.preventDefault());
+  document.addEventListener("selectstart", (event) => event.preventDefault());
+  document.addEventListener("copy", (event) => event.preventDefault());
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+  
   init();
   postEvent('web_app_set_header_color', { color_key: 'bg_color' });
   //postEvent('web_app_request_fullscreen');
@@ -27,7 +40,6 @@ try {
   console.error("Telegram mini-app init error")
   console.log(error)
 }
-
 
 
 

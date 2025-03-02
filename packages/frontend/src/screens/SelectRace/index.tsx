@@ -16,14 +16,12 @@ import SynchronizingModal from "@/components/modals/SynchronizingModal";
 import { useRegisterOnTheRace } from "../../hooks/useRegisterOnTheRace";
 import { useRaceById } from "../../hooks/useRaceById";
 import { useRacesWithPagination } from "../../hooks/useRacesWithPagination";
-import { useMintTestETH } from "@/hooks/useMintTestETH";
 
 
 function SelectRaceScreen() {
   const { smartAccountAddress } = useSmartAccount();
 
   const { processTransaction } = useRegisterOnTheRace();
-  const { processTransaction: mintTestETH } = useMintTestETH();
   const navigate = useNavigate();
   const { updateGameState } = useGameContext();
 
@@ -57,11 +55,11 @@ function SelectRaceScreen() {
 
     
     
-    /*
-      updateGameState(race, progress);
-      navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
-      return;
-    */
+    
+    //  updateGameState(race, progress);
+    //  navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
+    //  return;
+    
     
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
@@ -187,7 +185,7 @@ function SelectRaceScreen() {
         }
       });
 
-      socket.on('leaved', ({ raceId: raceIdSocket, part, movedToNext }) => {
+      socket.on('leaved', ({ raceId: raceIdSocket, part, movedToNext, connectedCount }) => {
         // prevent amount of players tracking if we are waiting to synchronize with the game
         if (modalType == "synchronizing" && modalIsOpen) {
           console.log(modalType, modalIsOpen)
@@ -196,7 +194,7 @@ function SelectRaceScreen() {
 
         console.log("LEAVED", { raceId: raceIdSocket, part, movedToNext })
         if (raceId == raceIdSocket && part == 'RACE_SELECTION' && !movedToNext) {
-          setAmountOfConnected(amountOfConnected - 1);
+          setAmountOfConnected(connectedCount);
 
           if (!modalIsOpen) {
             setIsOpen(true);
@@ -291,12 +289,6 @@ function SelectRaceScreen() {
   const onClickRegister = useCallback(async(id: number) => {
     setIsOpen(true);
     setModalType("registering");
-    console.log('Requesting test ETH if needed.');
-    await mintTestETH(30, Number(ETHBalance?.formatted))
-        .then(() => {
-          console.log('Got test ETH!')
-        })
-        .catch(console.error);
     
     processTransaction(id).then(async _ => {
       console.log("REGISTERED, fetching list of races...");

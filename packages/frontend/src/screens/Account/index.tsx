@@ -40,7 +40,6 @@ function AccountScreen() {
   const { processTransaction: buyTokens } = useBuyTokens();
   const { processTransaction: withdrawTokens } = useWithdrawTokens();
 
-  console.log({userBalance})
 
   const openDepositModal = () => {
     handleDeposit(30);

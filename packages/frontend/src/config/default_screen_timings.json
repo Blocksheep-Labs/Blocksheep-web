@@ -1,4 +1,8 @@
 {
+    "DRIVERS": {
+        "time": -1,
+        "editable": false
+    },
     "STORY_INTRO": {
         "time": 6,
         "editable": true
@@ -7,7 +11,6 @@
         "time": 7,
         "editable": false
     },  
-    
     "UNDERDOG_PREVIEW": {
         "time": 3,
         "editable": true

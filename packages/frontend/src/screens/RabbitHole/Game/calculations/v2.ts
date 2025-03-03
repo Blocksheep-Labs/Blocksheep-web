@@ -12,7 +12,7 @@ export default function calculatePlayersV2(players: ConnectedUser[]) {
 
     let newListOfPlayers;
     // if (!submittedFuelIsSimilar) {
-      const sorted = actualListOfPlayers.toSorted((a, b) => a.id - b.id).toSorted((a, b) => a.Fuel - b.Fuel);
+      const sorted = actualListOfPlayers.toSorted((a, b) => a.id - b.id).toSorted((a, b) => b.Fuel - a.Fuel);
       console.log({actualListOfPlayers});
         
       // last one doesn’t get eliminated if difference with second-to-last one is > 4. He'll get +3 fuel bonus.

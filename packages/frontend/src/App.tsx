@@ -24,6 +24,7 @@ import RaceUpdateScreen from "./screens/RaceUpdate";
 import AccountScreen from "./screens/Account";
 import LevelUpdateScreen from "./screens/LevelUpdate";
 import DriversScreen from "./screens/Drivers/SelectColor";
+import TEST from "./screens/TEST";
 
 function App() {
   import("eruda").then((eruda) => eruda.default.init());
@@ -36,6 +37,14 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<HomeScreen />} />
+
+        <Route
+          path="TEST/:raceId"
+          element={
+            <TEST/>
+          }
+        />
+
         <Route
           path="select"
           element={

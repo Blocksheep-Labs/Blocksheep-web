@@ -30,15 +30,31 @@ const PlayerMovement = ({
   useEffect(() => {
       // Check if the phase is not 'Default' before sorting
       if (phase == 'OpenTunnel') {
-        const sorted = [...players].toSorted((a, b) => a.Fuel - b.Fuel);
+        let sorted = [...players].toSorted((a, b) => b.Fuel - a.Fuel);
+
+        // justify the eliminatinmg user to be the last one
+        if (lastEliminatedUserAddress != sorted[sorted.length - 1].address) {
+          // remove the last eliminated user from the original array
+          let eliminatedUser = sorted.find(i => i.address == lastEliminatedUserAddress);
+          
+          // if the user exists (not eliminated yet)
+          if (eliminatedUser) {
+            sorted = sorted.filter(i => i.address != lastEliminatedUserAddress);
+
+            // push the last eliminated user to the last position of the players array
+            sorted.push(eliminatedUser);
+          }
+        }
+
         setSortedPlayers(sorted);
       } else {
         setSortedPlayers(players); // Keep the original order if phase is 'Default'
       }
+
       
       playerRefs.current = players.map((_, i) => playerRefs.current[i] || React.createRef());
       fuelRefs.current = players.map((_, i) => fuelRefs.current[i] || React.createRef());
-  }, [players, players.length, phase]);
+  }, [players, players.length, phase, lastEliminatedUserAddress]);
 
   
   useEffect(() => {

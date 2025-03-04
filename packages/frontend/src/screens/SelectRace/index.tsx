@@ -56,9 +56,9 @@ function SelectRaceScreen() {
     
     
     
-    //  updateGameState(race, progress);
-    //  navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
-    //  return;
+    // updateGameState(race, progress);
+    // navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
+    // return;
     
     
 
@@ -68,7 +68,7 @@ function SelectRaceScreen() {
       if (screen) {
         navigate(generateLink(screen, rIdNumber));
         return;
-      }
+      }2
 
       navigate(generateLink(race?.screens?.[0] as TFlowPhases, rIdNumber))
     //});

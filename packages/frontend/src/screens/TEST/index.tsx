@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 import RabbitHoleGame from "../RabbitHole/Game";
+import DriversScreen from "../Drivers/SelectColor";
 
 export default function TEST() {
-    const [displayNumber, setDisplayNumber] = useState(0);
     return (
-        <RabbitHoleGame/>
+        <DriversScreen/>
     );
     
 }

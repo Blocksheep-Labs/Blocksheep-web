@@ -4,6 +4,8 @@ interface IRace extends Document {
     raceId: string;
     users: mongoose.Types.ObjectId[];
     screenTimings: Record<string, any>;
+    usersSheeps: Record<string, number> 
+    usersWarCry: Record<string, number>
 }
 
 const racesSchema: Schema<IRace> = new Schema({
@@ -20,6 +22,17 @@ const racesSchema: Schema<IRace> = new Schema({
             autopopulate: true
         }],
     },
+    usersSheeps: {
+        type: Map,
+        of: String, // Stores userAddress as key and selected sheep (number) as value
+        default: {}
+    },
+    usersWarCry: {
+        type: Map,
+        of: String, // Stores userAddress as key and selected audio (number) as value
+        default: {}
+    }
+
 }, { timestamps: true });
 
 racesSchema.plugin(require("mongoose-autopopulate"));

@@ -11,6 +11,7 @@ import { finishRace } from "../models/users/users.model";
 import initUnderdog from './events-by-games/underdog';
 import initRabbithole from './events-by-games/rabbithole';
 import initBullrun from './events-by-games/bullrun';
+import initDrivers from "./events-default/drivers";
 
 import module from '../models/games-socket/index';
 
@@ -53,6 +54,7 @@ export const applySocketEvents = (io) => {
         initUnderdog(socket, io);
         initRabbithole(socket, io);
         initBullrun(socket, io);
+        initDrivers(socket, io);
 
         // when user disconnects
         socket.on('disconnect', async() => {

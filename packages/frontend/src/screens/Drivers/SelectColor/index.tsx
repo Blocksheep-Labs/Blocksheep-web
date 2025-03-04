@@ -23,14 +23,14 @@ function DriversScreen() {
   const [step, setStep] = useState(1);
   const [dots, setDots] = useState(".");
   const [selectedIcon, setSelectedIcon] = useState<number | null>(null);
-  const [selectedWarCry, setSelectedWarCry] = useState<string | null>(null);
+  const [selectedWarCry, setSelectedWarCry] = useState<number | null>(null);
   const [selectedIconsByAllUsers, setSelectedIconsByAllUsers] = useState([1,2,3]);
+  const [selectedWarCryByAllUsers, setSelectedWarCryByAllUsers] = useState([1,2,3]);
 
   const navigate = useNavigate();
   const {raceId} = useParams();
   const {smartAccountAddress} = useSmartAccount();
   const [amountOfConnected, setAmountOfConnected] = useState(0);
-  const [seconds, setSeconds] = useState(1000);
   const { race } = useRaceById(Number(raceId));
   const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
 
@@ -43,13 +43,28 @@ function DriversScreen() {
   }, []);
 
   const handleStep1Click = () => setStep(2);
-  const handleStep2Click = () => setStep(3);
-  const handleStep3Click = () => setStep(4);
-  const handleStep4Click = () => {
-    setSelectedIcon(null);
-    setSelectedWarCry(null);
-    setStep(1);
+  const handleStep2Click = () => {+
+    console.log({
+      raceId,
+      selectedSheep: selectedIcon,
+    });
+    socket.emit('drivers-select-sheep', {
+      raceId,
+      selectedSheep: selectedIcon,
+    });
+    setStep(3);
   };
+  const handleStep3Click = () => {
+    console.log({
+      raceId,
+      selectedWarCry: selectedWarCry,
+    });
+    socket.emit('drivers-select-warcry', {
+      raceId,
+      selectedWarCry: selectedWarCry,
+    });
+    setStep(4);
+  }
 
   const handleIconClick = (iconIndex: number, isAvailable: boolean) => {
     if (isAvailable) setSelectedIcon(iconIndex);
@@ -91,7 +106,6 @@ function DriversScreen() {
           const expectedTime = getScreenTime(data, SCREEN_NAME);
           time.setSeconds(time.getSeconds() + expectedTime);
           
-          setSeconds(expectedTime);
           //restart(time);
         });
     }
@@ -127,11 +141,35 @@ function DriversScreen() {
           }
         }
       });
+
+      socket.on('drivers-sheep-selected', ({ raceId: raceIdSocket, selectedSheep: selectedSheepSocket }) => {
+        setSelectedIconsByAllUsers(prev => {
+          return [...prev, selectedSheepSocket];
+        });
+      });
+
+      socket.on('drivers-sheep-selection-error', ({ error }) => {
+        setSelectedIcon(null);
+        console.warn(error);
+      });
+
+      socket.on('drivers-warcry-selected', ({ raceId: raceIdSocket, selectedWarCry: selectedWarCrySocket }) => {
+        setSelectedWarCryByAllUsers(prev => {
+          return [...prev, selectedWarCrySocket];
+        });
+      });
+
+      socket.on('drivers-warcry-selection-error', ({ error }) => {
+        setSelectedWarCry(null);
+        console.warn(error);
+      });
   
       return () => {
         socket.off('joined');
         socket.off('amount-of-connected');
         socket.off('leaved');
+        socket.off('drivers-sheep-selected');
+        socket.off('drivers-warcry-selected');
       }
     }
   }, [socket, raceId, smartAccountAddress, amountOfConnected]);
@@ -223,7 +261,11 @@ function DriversScreen() {
             />
           )}
           {step === 3 && (
-            <SelectWarCry selectedWarCry={selectedWarCry} setSelectedWarCry={setSelectedWarCry} />
+            <SelectWarCry 
+              selectedWarCry={selectedWarCry} 
+              selectedWarCryByAllUsers={selectedWarCryByAllUsers}
+              setSelectedWarCry={setSelectedWarCry} 
+            />
           )}
           {step === 4 && <Players />}
         </div>
@@ -258,7 +300,7 @@ function DriversScreen() {
       </div>
 
       {step === 4 && (
-        <Button text="Start" className="mt-2" onClick={handleStep4Click} />
+        <Button text="Waiting..." className="mt-2" onClick={undefined} />
       )}
     </div>
   );

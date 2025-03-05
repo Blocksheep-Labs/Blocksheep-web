@@ -17,7 +17,7 @@ export default (socket: any, io: any): void => {
     socket.on('drivers-select-sheep', async ({ raceId, selectedSheep, userAddress }: IDriversSelectSheep) => {
         const roomName = `race-${raceId}`;
     
-        const race = await RaceSchema.findOne({ raceId });
+        const race = await RaceSchema.findOne({ raceId: roomName });
     
         if (!race) return;
     
@@ -28,20 +28,18 @@ export default (socket: any, io: any): void => {
         }
     
         // Perform atomic update
-        const result = await RaceSchema.updateOne(
-            { raceId },
+        await RaceSchema.updateOne(
+            { raceId: roomName },
             { $set: { [`usersSheeps.${userAddress}`]: selectedSheep } }
         );
     
-        if (result.modifiedCount > 0) {
-            io.to(roomName).emit('drivers-sheep-selected', { raceId, selectedSheep, userAddress });
-        }
+        io.to(roomName).emit('drivers-sheep-selected', { raceId, selectedSheep, userAddress });
     });
     
     socket.on('drivers-select-warcry', async ({ raceId, selectedWarCry, userAddress }: IDriversSelectWarCry) => {
         const roomName = `race-${raceId}`;
     
-        const race = await RaceSchema.findOne({ raceId });
+        const race = await RaceSchema.findOne({ raceId: roomName });
     
         if (!race) return;
     
@@ -52,13 +50,11 @@ export default (socket: any, io: any): void => {
         }
     
         // Perform atomic update
-        const result = await RaceSchema.updateOne(
-            { raceId },
+        await RaceSchema.updateOne(
+            { raceId: roomName },
             { $set: { [`usersWarCry.${userAddress}`]: selectedWarCry } }
         );
     
-        if (result.modifiedCount > 0) {
-            io.to(roomName).emit('drivers-warcry-selected', { raceId, selectedWarCry, userAddress });
-        }
+        io.to(roomName).emit('drivers-warcry-selected', { raceId, selectedWarCry, userAddress });
     });
 }

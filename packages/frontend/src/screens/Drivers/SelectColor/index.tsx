@@ -24,8 +24,12 @@ function DriversScreen() {
   const [dots, setDots] = useState(".");
   const [selectedIcon, setSelectedIcon] = useState<number | null>(null);
   const [selectedWarCry, setSelectedWarCry] = useState<number | null>(null);
-  const [selectedIconsByAllUsers, setSelectedIconsByAllUsers] = useState([1,2,3]);
-  const [selectedWarCryByAllUsers, setSelectedWarCryByAllUsers] = useState([1,2,3]);
+  const [selectedIconsByAllUsers, setSelectedIconsByAllUsers] = useState<number[]>([]);
+  const [selectedWarCryByAllUsers, setSelectedWarCryByAllUsers] = useState<number[]>([]);
+
+  const [sheepsMap, setSheepsMap] = useState(new Map());
+  const [warcryMap, setWarcryMap] = useState(new Map());
+
 
   const navigate = useNavigate();
   const {raceId} = useParams();
@@ -33,6 +37,7 @@ function DriversScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const { race } = useRaceById(Number(raceId));
   const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
+  const [amountOfPlayersReady, setAmountOfPlayersReady] = useState(0);
 
 
   useEffect(() => {
@@ -47,23 +52,25 @@ function DriversScreen() {
     console.log({
       raceId,
       selectedSheep: selectedIcon,
+      userAddress: smartAccountAddress,
     });
     socket.emit('drivers-select-sheep', {
       raceId,
       selectedSheep: selectedIcon,
+      userAddress: smartAccountAddress,
     });
-    setStep(3);
   };
   const handleStep3Click = () => {
     console.log({
       raceId,
       selectedWarCry: selectedWarCry,
+      userAddress: smartAccountAddress,
     });
     socket.emit('drivers-select-warcry', {
       raceId,
       selectedWarCry: selectedWarCry,
+      userAddress: smartAccountAddress,
     });
-    setStep(4);
   }
 
   const handleIconClick = (iconIndex: number, isAvailable: boolean) => {
@@ -72,23 +79,26 @@ function DriversScreen() {
 
   // navigator
   useEffect(() => {
-    if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined) {
-      console.log("UPDATE PROGRESS", {
-        raceId,
-        userAddress: smartAccountAddress,
-        property: `drivers`,
-      });
-      socket.emit('update-progress', {
-        raceId,
-        userAddress: smartAccountAddress,
-        property: `drivers`,
-      });
-
-      const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
-      socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
-      navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+    if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined && amountOfPlayersReady >= race.numOfPlayersRequired) {
+      // timeout to update the ui for other players (selected items)
+      setTimeout(() => {
+        console.log("UPDATE PROGRESS", {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: `drivers`,
+        });
+        socket.emit('update-progress', {
+          raceId,
+          userAddress: smartAccountAddress,
+          property: `drivers`,
+        });
+  
+        const currentScreenIndex = race?.screens.indexOf(SCREEN_NAME) as number;
+        socket.emit('minimize-live-game', { part: SCREEN_NAME, raceId });
+        navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
+      }, 4000);
     }
-  }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId]);
+  }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId, amountOfPlayersReady]);
   
 
   //const { totalSeconds, restart, pause } = useTimer({
@@ -100,16 +110,55 @@ function DriversScreen() {
   // setups the timer
   useEffect(() => {
     if (race && SCREEN_NAME) {
-      httpGetRaceDataById(`race-${race.id}`)
-        .then(({data}) => {
-          const time = new Date();
-          const expectedTime = getScreenTime(data, SCREEN_NAME);
-          time.setSeconds(time.getSeconds() + expectedTime);
-          
-          //restart(time);
+      const fetchRaceData = () => {
+        httpGetRaceDataById(`race-${race.id}`)
+          .then(({data}) => {
+            const time = new Date();
+            const expectedTime = getScreenTime(data, SCREEN_NAME);
+            time.setSeconds(time.getSeconds() + expectedTime);
+            
+            
+            setSheepsMap(data.race.usersSheeps);
+            setSelectedIconsByAllUsers(prev => {
+              return Array.from(
+                new Set([
+                  ...Object.entries(data.race.usersSheeps)
+                    .map(([_, value]) => {
+                      return value as number;
+                    }),
+                  ...prev,
+                ])
+              );
+            });
+            
+            setWarcryMap(data.race.usersWarCry);
+            setSelectedWarCryByAllUsers(prev => {
+              return Array.from(
+                new Set([
+                  ...Object.entries(data.race.usersWarCry)
+                    .map(([_, value]) => {
+                      return value as number;
+                    }),
+                  ...prev,
+                ])
+              );
+            });
+  
         });
+      }
+
+      fetchRaceData();
+
+      // if we are on the final screen we have to update all player selections
+      if (step == 4) {
+        const intervalID = setInterval(fetchRaceData, 2000);
+
+        return () => {
+          clearInterval(intervalID);
+        }
+      }
     }
-  }, [race, SCREEN_NAME]);
+  }, [race, SCREEN_NAME, step]);
   
   
   // handle socket events
@@ -142,7 +191,15 @@ function DriversScreen() {
         }
       });
 
-      socket.on('drivers-sheep-selected', ({ raceId: raceIdSocket, selectedSheep: selectedSheepSocket }) => {
+      socket.on('drivers-sheep-selected', ({ raceId: raceIdSocket, selectedSheep: selectedSheepSocket, userAddress }) => {
+        if (selectedSheepSocket == selectedIcon) {
+          setSelectedIcon(null);
+
+          if (userAddress == smartAccountAddress) {
+            setStep(3);
+          }
+        }
+
         setSelectedIconsByAllUsers(prev => {
           return [...prev, selectedSheepSocket];
         });
@@ -153,7 +210,18 @@ function DriversScreen() {
         console.warn(error);
       });
 
-      socket.on('drivers-warcry-selected', ({ raceId: raceIdSocket, selectedWarCry: selectedWarCrySocket }) => {
+      socket.on('drivers-warcry-selected', ({ raceId: raceIdSocket, selectedWarCry: selectedWarCrySocket, userAddress }) => {
+        // update the amount of ready players
+        setAmountOfPlayersReady(prev => prev + 1);
+
+        if (selectedWarCrySocket == selectedWarCry) {
+          setSelectedWarCry(null);
+
+          if (userAddress == smartAccountAddress) {
+            setStep(4);
+          }
+        }
+
         setSelectedWarCryByAllUsers(prev => {
           return [...prev, selectedWarCrySocket];
         });
@@ -172,7 +240,7 @@ function DriversScreen() {
         socket.off('drivers-warcry-selected');
       }
     }
-  }, [socket, raceId, smartAccountAddress, amountOfConnected]);
+  }, [socket, raceId, smartAccountAddress, amountOfConnected, selectedIcon, selectedWarCry]);
   
       
   useEffect(() => {
@@ -227,6 +295,7 @@ function DriversScreen() {
     }, [smartAccountAddress, socket, raceId]);
 
 
+
   return (
     <div
       className={`mx-auto flex w-full flex-col bg-divers_bg bg-cover bg-bottom justify-center`}
@@ -267,7 +336,7 @@ function DriversScreen() {
               setSelectedWarCry={setSelectedWarCry} 
             />
           )}
-          {step === 4 && <Players />}
+          {step === 4 && <Players sheepsMap={sheepsMap} warcryMap={warcryMap} />}
         </div>
       </div>
 
@@ -285,7 +354,7 @@ function DriversScreen() {
           text="Confirm"
           className="mb-4"
           onClick={handleStep3Click}
-          disabled={!selectedWarCry}
+          disabled={selectedWarCry == null}
         />
       )}
 

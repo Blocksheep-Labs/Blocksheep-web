@@ -3,10 +3,19 @@ import Sheep from "../assets/gameplay/sheeepy.png";
 import BlackSheep from "../assets/common/blacksheep.png";
 import { motion } from "framer-motion";
 import { useSmartAccount } from "../hooks/smartAccountProvider";
+import { sheepImages } from "@/utils/sheepsImagesArray";
 
 const percent = 61 / 9;
 
-function RaceBoard({ progress, users }: { progress: { curr: number; delta: number; address: string; }[], users: any[] }) {
+function RaceBoard({ 
+  progress, 
+  users,
+  raceUsersDataColors,
+}: { 
+  progress: { curr: number; delta: number; address: string; }[], 
+  users: any[],
+  raceUsersDataColors: Map<string, number>
+}) {
   const { smartAccountAddress } = useSmartAccount();
 
   if (!smartAccountAddress) {
@@ -41,7 +50,7 @@ function RaceBoard({ progress, users }: { progress: { curr: number; delta: numbe
                 })()
               }
             </p>
-            <img src={address === smartAccountAddress ? BlackSheep : Sheep} alt="sheep" />
+            <img src={sheepImages[raceUsersDataColors.get(address) || 0]} alt="sheep" />
           </motion.div>
         );
       })}

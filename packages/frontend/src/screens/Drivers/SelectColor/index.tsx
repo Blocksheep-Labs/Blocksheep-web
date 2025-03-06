@@ -29,6 +29,7 @@ function DriversScreen() {
 
   const [sheepsMap, setSheepsMap] = useState(new Map());
   const [warcryMap, setWarcryMap] = useState(new Map());
+  const [usersData, setUsersData] = useState<any[]>([]);
 
 
   const navigate = useNavigate();
@@ -36,7 +37,6 @@ function DriversScreen() {
   const {smartAccountAddress} = useSmartAccount();
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const { race } = useRaceById(Number(raceId));
-  const [readyToNavigateNext, setReadyToNavigateNext] = useState(false);
   const [amountOfPlayersReady, setAmountOfPlayersReady] = useState(0);
 
 
@@ -79,7 +79,8 @@ function DriversScreen() {
 
   // navigator
   useEffect(() => {
-    if (race && readyToNavigateNext && smartAccountAddress && raceId != undefined && amountOfPlayersReady >= race.numOfPlayersRequired) {
+    console.log()
+    if (race && smartAccountAddress && raceId != undefined && amountOfPlayersReady >= race.numOfPlayersRequired) {
       // timeout to update the ui for other players (selected items)
       setTimeout(() => {
         console.log("UPDATE PROGRESS", {
@@ -98,7 +99,7 @@ function DriversScreen() {
         navigate(generateLink(race?.screens?.[currentScreenIndex + 1] as TFlowPhases, Number(raceId)));
       }, 4000);
     }
-  }, [race, readyToNavigateNext, SCREEN_NAME, smartAccountAddress, raceId, amountOfPlayersReady]);
+  }, [race, SCREEN_NAME, smartAccountAddress, raceId, amountOfPlayersReady]);
   
 
   //const { totalSeconds, restart, pause } = useTimer({
@@ -109,7 +110,7 @@ function DriversScreen() {
   
   // setups the timer
   useEffect(() => {
-    if (race && SCREEN_NAME) {
+    if (race && SCREEN_NAME && smartAccountAddress) {
       const fetchRaceData = () => {
         httpGetRaceDataById(`race-${race.id}`)
           .then(({data}) => {
@@ -117,6 +118,7 @@ function DriversScreen() {
             const expectedTime = getScreenTime(data, SCREEN_NAME);
             time.setSeconds(time.getSeconds() + expectedTime);
             
+            setUsersData(data.race.users);
             
             setSheepsMap(data.race.usersSheeps);
             setSelectedIconsByAllUsers(prev => {
@@ -124,12 +126,22 @@ function DriversScreen() {
                 new Set([
                   ...Object.entries(data.race.usersSheeps)
                     .map(([_, value]) => {
-                      return value as number;
+                      return Number(value);
                     }),
                   ...prev,
                 ])
               );
             });
+
+            // parse user phase based on items selection history
+            if (
+              Object
+                .entries(data.race.usersSheeps)
+                .map(([addr, _]) => addr.toString())
+                .includes(smartAccountAddress as string)
+            ) {
+              setStep(3);
+            }
             
             setWarcryMap(data.race.usersWarCry);
             setSelectedWarCryByAllUsers(prev => {
@@ -137,13 +149,26 @@ function DriversScreen() {
                 new Set([
                   ...Object.entries(data.race.usersWarCry)
                     .map(([_, value]) => {
-                      return value as number;
+                      return Number(value);
                     }),
                   ...prev,
                 ])
               );
             });
-  
+
+            // parse user phase based on items selection history
+            if (
+              Object
+                .entries(data.race.usersWarCry)
+                .map(([addr, _]) => addr.toString())
+                .includes(smartAccountAddress as string)
+            ) {
+              setStep(4);
+            }
+
+            // update the users ready amount (ready users are whom who selected the warcry)
+            const lengthOfPlayersReady = Object.entries(data.race.usersWarCry).map(([addr, _]: any[]) => { return addr }).length;
+            setAmountOfPlayersReady(lengthOfPlayersReady);
         });
       }
 
@@ -158,9 +183,10 @@ function DriversScreen() {
         }
       }
     }
-  }, [race, SCREEN_NAME, step]);
+  }, [race, SCREEN_NAME, step, smartAccountAddress]);
+ 
   
-  
+
   // handle socket events
   useEffect(() => {
     console.log("EFFECT >>>>", {smartAccountAddress});
@@ -185,8 +211,6 @@ function DriversScreen() {
           if (!movedToNext) {
             console.log("LEAVED")
             setAmountOfConnected(connectedCount);
-          } else {
-            setReadyToNavigateNext(true);
           }
         }
       });
@@ -336,11 +360,11 @@ function DriversScreen() {
               setSelectedWarCry={setSelectedWarCry} 
             />
           )}
-          {step === 4 && <Players sheepsMap={sheepsMap} warcryMap={warcryMap} />}
+          {step === 4 && <Players sheepsMap={sheepsMap} warcryMap={warcryMap} usersData={usersData}/>}
         </div>
       </div>
 
-      {step === 1 && <Button text="Pick Color" className="mb-4" onClick={handleStep1Click} disabled={!race || (race.numOfPlayersRequired != amountOfConnected)} />}
+      {step === 1 && <Button text="Pick Color" className="mb-4" onClick={handleStep1Click} disabled={!race} />}
       {step === 2 && (
         <Button
           text="Confirm"
@@ -369,7 +393,11 @@ function DriversScreen() {
       </div>
 
       {step === 4 && (
-        <Button text="Waiting..." className="mt-2" onClick={undefined} />
+        <Button 
+          text={(race && (amountOfPlayersReady == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."} 
+          className="mt-2" 
+          onClick={undefined} 
+        />
       )}
     </div>
   );

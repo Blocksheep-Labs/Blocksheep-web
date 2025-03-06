@@ -11,6 +11,7 @@ import ArrowDownImage from "./assets/images/arrow-down.png";
 import FlagsImage from "./assets/images/flags.png";
 import { useRaceById } from "@/hooks/useRaceById";
 import { socket } from "@/utils/socketio";
+import { sheepImages } from "@/utils/sheepsImagesArray";
 
 const SCREEN_NAME = "PODIUM";
 
@@ -24,6 +25,7 @@ export default function StatsScreen() {
     const averageLineRef = useRef<HTMLDivElement | null>(null);
     const tableRef = useRef<HTMLDivElement | null>(null);
     const {race} = useRaceById(Number(raceId));
+    const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
     
     const date = new Date();
 
@@ -64,6 +66,8 @@ export default function StatsScreen() {
 
             httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
                 console.log({data});
+
+                setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
 
                 if (!race.registeredUsers.includes(smartAccountAddress)) {
                     navigate('/', { replace: true });
@@ -204,7 +208,7 @@ export default function StatsScreen() {
         <div className={`relative mx-auto flex w-full flex-col bg-center bg-cover`} style={{ height: `${window.innerHeight}px`, backgroundImage: `url(${PodiumBGImage})` }}>
             <div className="h-full w-full flex justify-center relative">
                 {
-                    users && users.length >= 2 &&
+                    users && users.length >= 2 && raceUsersDataColors && stats &&
                     <div 
                         className={`absolute w-12 flex items-center justify-center flex-col`} 
                         style={{ 
@@ -219,12 +223,12 @@ export default function StatsScreen() {
                         <p className="bg-black text-center text-white text-[8px] p-1 rounded-md z-10 w-full">
                             {stats && users && (users.find(j => j.address == stats[1]?.address)?.name || "Unknown")} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[1]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-12" alt="left"/>
+                        <img src={sheepImages[raceUsersDataColors.get(stats[1].address) || 0]} className="h-12" alt="left"/>
                     </div>
                 }
                 
                 {
-                    users && users.length >= 1 &&
+                    users && users.length >= 1 && raceUsersDataColors && stats &&
                     <div 
                         className={`absolute w-12 flex items-center justify-center flex-col`} 
                         style={{ 
@@ -239,12 +243,12 @@ export default function StatsScreen() {
                         <p className="bg-black text-center text-white text-[8px] p-1 rounded-md z-10 w-full">
                             {stats && users && users.find(j => j.address == stats[0]?.address)?.name || "Unknown"} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[0]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-12" alt="center"/>
+                        <img src={sheepImages[raceUsersDataColors.get(stats[0].address) || 0]} className="h-12" alt="center"/>
                     </div>
                 }
 
                 {
-                    users && users.length >= 3 &&
+                    users && users.length >= 3 && raceUsersDataColors && stats &&
                     <div 
                         className={`absolute w-12 flex items-center justify-center flex-col`}
                         style={{ 
@@ -259,7 +263,7 @@ export default function StatsScreen() {
                         <p className="bg-black text-center text-white text-[8px] p-1 rounded-md z-10 w-full">
                             {stats && users && (users.find(j => j.address == stats[2]?.address)?.name || "Unknown")} 
                         </p>
-                        <img src={`${stats && (smartAccountAddress === stats[2]?.address) ? BlackSheepImage : WhiteSheepImage}`} className="h-12" alt="right"/>
+                        <img src={sheepImages[raceUsersDataColors.get(stats[2].address) || 0]} className="h-12" alt="right"/>
                     </div>
                 }
 
@@ -293,7 +297,7 @@ export default function StatsScreen() {
                             <div className="w-[45%] bg-[#e9f1f3] p-1 px-3 rounded-xl">Score</div>
                         </div>
                         {
-                            stats && stats.map((i, key) => {
+                            stats && raceUsersDataColors && stats.map((i, key) => {
                                 return (
                                     <div 
                                         key={key} 
@@ -305,9 +309,9 @@ export default function StatsScreen() {
                                                     <div>{key + 1}</div>
                                                     {
                                                         smartAccountAddress == i.address ? 
-                                                        <img src={BlackSheepImage} alt="you" className="w-[16px] h-[16px]"/> 
+                                                        <img src={sheepImages[raceUsersDataColors.get(i.address) || 0]} alt="you" className="w-[16px] h-[16px]"/> 
                                                         :
-                                                        <img src={WhiteSheepImage} alt="opponent" className="w-[14px] h-[16px]"/>
+                                                        <img src={sheepImages[raceUsersDataColors.get(i.address) || 0]} alt="opponent" className="w-[14px] h-[16px]"/>
                                                     }
                                                 </div>
                                                 <div>
@@ -354,7 +358,7 @@ export default function StatsScreen() {
                                         {
                                             (key + 1 <= stats.length - 1) &&
                                             !scoreAboveAverage(stats[key + 1].curr, key + 1) &&
-                                            (belowAverageShown = true)// Set the flag to true after showing the msg
+                                            (belowAverageShown = true) // Set the flag to true after showing the msg
                                         }
                                     </div>
                                 );

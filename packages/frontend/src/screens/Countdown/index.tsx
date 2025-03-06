@@ -21,6 +21,7 @@ function CountDownScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [users, setUsers] = useState<any[]>([]);
   const {race} = useRaceById(Number(raceId));
+  const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
 
   const handleClose = async() => {
     console.log("UPDATE PRGOGRESS:", {
@@ -57,6 +58,8 @@ function CountDownScreen() {
       console.log({ race })
       httpGetRaceDataById(`race-${raceId}`).then(({ data }) => {
         console.log({data});
+
+        setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
 
         if (!race?.registeredUsers.includes(smartAccountAddress)) {
           // console.log("USER IS NOT LOGGED IN")
@@ -209,7 +212,7 @@ function CountDownScreen() {
     <>
       <div className="mx-auto flex w-full flex-col bg-race_bg_track bg-cover bg-bottom" style={{ height: `${window.innerHeight}px` }}>
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
-          <RaceBoard progress={progress} users={users}/>
+          <RaceBoard progress={progress} users={users} raceUsersDataColors={raceUsersDataColors}/>
           <div className="absolute left-0 top-0 flex size-full items-center justify-center">
             { seconds <= 5 && <Countdown321/> }
           </div>

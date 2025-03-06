@@ -41,6 +41,7 @@ function RaceUpdateScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [users, setUsers] = useState<any[]>([]);
   const { race } = useRaceById(Number(raceId));
+  const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
 
   const SCREEN_NAME = getPart(board as string);
 
@@ -124,6 +125,8 @@ function RaceUpdateScreen() {
       console.log({ race })
       httpGetRaceDataById(`race-${raceId}`).then(async ({ data }) => {
         console.log({data});
+
+        setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
 
         if (!race?.registeredUsers.includes(smartAccountAddress)) {
           // console.log("USER IS NOT LOGGED IN")
@@ -288,7 +291,7 @@ function RaceUpdateScreen() {
         <TopPageTimer duration={seconds * 1000} />
         <div className="absolute inset-0 bg-[rgb(153,161,149)]">
           { 
-            <RaceBoard progress={progress} users={users}/>
+            <RaceBoard progress={progress} users={users} raceUsersDataColors={raceUsersDataColors}/>
           }
         </div>
       </div>

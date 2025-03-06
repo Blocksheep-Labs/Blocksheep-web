@@ -11,6 +11,7 @@ import TopPageTimer from "@/components/top-page-timer/TopPageTimer";
 import levelsData from "@/config/levels.json";
 import { useRaceById } from "@/hooks/useRaceById";
 import getScreenTime from "@/utils/getScreenTime";
+import { sheepImages } from "@/utils/sheepsImagesArray";
 
 // bottom - px, left - %
 const positionsByLevel = {
@@ -65,6 +66,7 @@ export default function LevelUpdateScreen() {
     const [secondsVisual, setSecondsVisual] = useState(1000);
     const [level, setLevel] = useState<number | null>(null);
     const { race } = useRaceById(Number(raceId));
+    const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
 
     const tipRefAbove = useRef<HTMLDivElement>(null);
     const tipRefBelow = useRef<HTMLDivElement>(null);
@@ -148,6 +150,10 @@ export default function LevelUpdateScreen() {
             httpGetRaceDataById(`race-${raceId}`)
             .then(({data}) => {
                 console.log({data});
+
+                setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
+
+
                 // VALIDATE USER FOR BEING REGISTERED
                 if (!race.registeredUsers.includes(smartAccountAddress)) {
                     //console.log("USER IS NOT LOGGED IN !!!!!!!!!!!!!!", data.registeredUsers, smartAccountAddress)
@@ -244,7 +250,15 @@ export default function LevelUpdateScreen() {
                 <div className="relative">
                     <img src={StairsImage} alt="stairs" className="scale-[1.07] w-full"/>
 
-                    <img ref={sheepRef} src={SheepImage} alt="sheep" className="w-16 absolute z-30 -bottom-[5px] left-[22%] transition-all opacity-0 duration-[1500ms]"/>
+                    {
+                        smartAccountAddress && raceUsersDataColors &&
+                        <img 
+                            ref={sheepRef} 
+                            src={sheepImages[raceUsersDataColors.get(smartAccountAddress) || 0]} 
+                            alt="sheep" 
+                            className="w-16 absolute z-30 -bottom-[5px] left-[22%] transition-all opacity-0 duration-[1500ms]"
+                        />
+                    }
                 </div>
             </div>
         </div>

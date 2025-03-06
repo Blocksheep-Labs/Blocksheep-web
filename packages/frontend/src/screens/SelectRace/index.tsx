@@ -53,14 +53,9 @@ function SelectRaceScreen() {
     const currentUserActiveGames = JSON.parse(localStorage.getItem("races") as string) || [];
     localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
 
-    
-    
-    
     // updateGameState(race, progress);
     // navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
     // return;
-    
-    
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress);
@@ -94,9 +89,9 @@ function SelectRaceScreen() {
           setProgress(progress.progress);
 
           // if we are on the first screen and not enough users connected (prevent connect without waiting for others)
-          if (race.screens.indexOf(latestScreen) == -1 && amountOfConnected != race?.numOfPlayersRequired) {
-            return;
-          }
+          //if (race.screens.indexOf(latestScreen) == -1 && amountOfConnected != race?.numOfPlayersRequired) {
+          //  return;
+          //}
 
           // if teh user left on not-playable screen, we have to navigate him to the actual screen
           if (!["UNDERDOG", "RABBIT_HOLE", "BULLRUN"].includes(latestScreen)) {
@@ -152,9 +147,9 @@ function SelectRaceScreen() {
           setModalType(undefined);
 
           // if we are on the first screen and not enough users connected (prevent connect without waiting for others)
-          if (race.screens.indexOf(screen) == -1 && amountOfConnected != race?.numOfPlayersRequired) {
-            return;
-          }
+          //if (race.screens.indexOf(screen) == -1 && amountOfConnected != race?.numOfPlayersRequired) {
+          //  return;
+          //}
           
           if (!["UNDERDOG", "RABBIT_HOLE", "BULLRUN"].includes(screen)) {
             handleNavigate(progress, screen);

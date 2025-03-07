@@ -502,7 +502,7 @@ export const applySocketEvents = (io) => {
 
                 // SCORE CHECK HERE !!!
                 let property = "decrement";
-                if (index > centralIndex) {
+                if (index >= centralIndex) {
                     property = "increment";
                 }
 

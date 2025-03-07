@@ -1012,7 +1012,7 @@ function RabbitHoleGame() {
           <Darkness   phase={phase} />
           <RabbitTail phase={phase} />
 
-          <div className="absolute -bottom-48 w-full h-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)', zIndex: 9999999999 }}>
+          <div className="absolute -bottom-48 w-full h-36 left-[50%]" style={{ transform: 'translate(-50%, -50%)', zIndex: 50 }}>
               {/* <CarrotSlider 
                 min={0} 
                 max={maxFuel} 

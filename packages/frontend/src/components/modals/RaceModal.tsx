@@ -23,7 +23,8 @@ function RaceModal({ progress, handleClose, disableBtn, raceId }: RaceModalProps
 
   return (
     <div className="race-board absolute inset-0 bg-[rgb(153,161,149)]">
-      <RaceBoard progress={progress} users={users}/>
+      { // <RaceBoard progress={progress} users={users}/>
+      }
 
       <div className="absolute bottom-0 right-0 w-2/5">
         <button

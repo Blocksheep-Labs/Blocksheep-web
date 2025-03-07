@@ -490,7 +490,7 @@ export const applySocketEvents = (io) => {
 
             // Sort players by points in descending order
             playersPointsData.sort((a, b) => a.userAddress.localeCompare(b.userAddress));
-            playersPointsData.sort((a, b) => b.points - a.points);
+            playersPointsData.sort((a, b) => a.points - b.points);
 
             const centralIndex = Math.floor(playersPointsData.length / 2);
             // const centralScore = playersPointsData[centralIndex]?.points || 0;
@@ -502,7 +502,7 @@ export const applySocketEvents = (io) => {
 
                 // SCORE CHECK HERE !!!
                 let property = "decrement";
-                if (index <= centralIndex) {
+                if (index > centralIndex) {
                     property = "increment";
                 }
 

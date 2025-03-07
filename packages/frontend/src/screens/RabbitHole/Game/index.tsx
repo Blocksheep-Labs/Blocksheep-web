@@ -46,6 +46,7 @@ import { useGetRules } from "@/hooks/useGetRules";
 import { useRaceById } from "@/hooks/useRaceById";
 import { build as buildmakeMoveData } from "./arguments-builder/makeMove";
 import { build as buildDistributeData } from "./arguments-builder/distribute";
+import { sheepImages } from "@/utils/sheepsImagesArray";
 
 
 export type ConnectedUser = {
@@ -295,12 +296,14 @@ function RabbitHoleGame() {
         setAmountOfComplteted(amountOfCompleted);
 
         // set players list
-        const usersDATADB = await httpGetRaceDataById(`race-${raceId}`);
+        const raceData = await httpGetRaceDataById(`race-${raceId}`);
         setPlayers(prevPlayers => {
           const updatedPlayers = [...prevPlayers];
+
+          const usersSheeps: Map<string, number> = new Map(Object.entries(raceData.data.race.usersSheeps));
           
           usersData.forEach((i: any) => {
-            const user = usersDATADB.data.race.users.find((j: any) => j.address == i.userAddress);
+            const user = raceData.data.race.users.find((j: any) => j.address == i.userAddress);
             // @ts-ignore
             const dataByTunnelVersion = i.rabbithole?.[version];
             
@@ -308,7 +311,7 @@ function RabbitHoleGame() {
             const updatedPlayer = {
               id: existingPlayerIndex !== -1 ? updatedPlayers[existingPlayerIndex].id : updatedPlayers.length,
               address: i.userAddress,
-              src: i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
+              src: sheepImages[usersSheeps.get(i.userAddress as string) || 0], // i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
               PlayerPosition: dataByTunnelVersion.game.fuel / 9,
               Fuel: dataByTunnelVersion.game.fuel,
               maxAvailableFuel: dataByTunnelVersion.game.maxAvailableFuel,

@@ -53,9 +53,9 @@ function SelectRaceScreen() {
     const currentUserActiveGames = JSON.parse(localStorage.getItem("races") as string) || [];
     localStorage.setItem("races", JSON.stringify(Array.from(new Set([...currentUserActiveGames, raceId]))));
 
-    // updateGameState(race, progress);
-    // navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
-    // return;
+    //updateGameState(race, progress);
+    //navigate(`/race/${raceId}/rabbit-hole/v1/rules`);
+    //return;
 
     //getRaceById(rIdNumber, smartAccountAddress as `0x${string}`).then(data => {
       updateGameState(race, progress);

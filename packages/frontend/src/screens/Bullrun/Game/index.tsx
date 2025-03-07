@@ -40,6 +40,7 @@ import { useGetUserPoints } from "@/hooks/useGetPoints";
 import { useGetRules } from "@/hooks/useGetRules";
 import { useGetUserChoices } from "@/hooks/useGetUserChoices";
 import { BigNumber } from "ethers";
+import { sheepImages } from "@/utils/sheepsImagesArray";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 const REGISTERED_CONTRACT_NAME = "BULLRUN";
@@ -74,6 +75,7 @@ export default function Bullrun() {
     const [amountOfPlayersCompleted, setAmountOfPlayersCompleted] = useState(0);
     const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
     const [latestInteractiveModalWasClosed, setLatestInteractiveModalWasClosed] = useState(false);
+    const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
 
     // Connection state
     const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -395,6 +397,7 @@ export default function Bullrun() {
         if (smartAccountAddress && String(raceId).length) {
             httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
                 setUsers(data?.race?.users || []);
+                setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
             });
         }
         //start();
@@ -904,18 +907,24 @@ export default function Bullrun() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                 </svg>
             </div>
-
-            <div className="relative flex items-center flex-col w-full h-44">
-                <img src={Horns} alt="horns" className="w-[80px] top-[30px] absolute"/>
-                <img src={WhiteSheep} alt="whitesheep" className="w-10 top-[60px] absolute"/>
-            </div>
-
-            <div className="absolute bottom-28 flex w-full">
+            
+            {
+                raceUsersDataColors && smartAccountAddress && opponent &&
                 <div className="relative flex items-center flex-col w-full h-44">
-                    <img src={Horns} alt="horns" className="w-[180px] top-[0px] absolute"/>
-                    <img src={BlackSheep} alt="whitesheep" className="w-32 top-[60px] absolute"/>
+                    <img src={Horns} alt="horns" className="w-[80px] top-[30px] absolute"/>
+                    <img src={sheepImages[raceUsersDataColors.get(opponent?.userAddress as string) || 0]} alt="whitesheep" className="w-10 top-[60px] absolute"/>
                 </div>
-            </div>
+            }
+
+            {
+                raceUsersDataColors && smartAccountAddress &&
+                <div className="absolute bottom-28 flex w-full">
+                    <div className="relative flex items-center flex-col w-full h-44">
+                        <img src={Horns} alt="horns" className="w-[180px] top-[0px] absolute"/>
+                        <img src={sheepImages[raceUsersDataColors.get(smartAccountAddress as string) || 0]} alt="whitesheep" className="w-32 top-[60px] absolute"/>
+                    </div>
+                </div>
+            }
 
             <div className="bottom-2 absolute flex flex-row gap-3 items-center justify-center">
                 <div className="relative w-20 h-20 bg-gray-200 bg-opacity-75 p-2 rounded-xl shadow-xl border-[1px] border-black">

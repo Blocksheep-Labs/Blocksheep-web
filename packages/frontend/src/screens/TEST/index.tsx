@@ -6,7 +6,7 @@ import StatsScreen from "../Stats";
 
 export default function TEST() {
     return (
-        <StatsScreen/>
+        <DriversScreen/>
     );
     
 }

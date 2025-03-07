@@ -42,7 +42,7 @@ export const CarrotBasketIncrement: React.FC<CarrotThrowerProps> = ({
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true });
 
-    renderer.setSize(175, 300);
+    renderer.setSize(200, 380);
 
     mountRef.current.appendChild(renderer.domElement);
 

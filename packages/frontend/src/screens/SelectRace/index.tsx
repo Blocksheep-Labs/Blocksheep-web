@@ -5,17 +5,17 @@ import { useNavigate } from "react-router-dom";
 
 import RegisteringModal from "../../components/modals/RegisteringModal";
 import RegisteredModal from "../../components/modals/RegisteredModal";
-import { socket } from "../../utils/socketio";
+import { socket } from "@/utils/socketio";
 import WaitingForPlayersModal from "../../components/modals/WaitingForPlayersModal";
-import { useSmartAccount } from "../../hooks/smartAccountProvider";
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import generateLink, { TFlowPhases } from "../../utils/linkGetter";
-import { useGameContext } from "../../utils/game-context";
-import { httpGetUserDataByAddress, httpRaceInsertUser } from "../../utils/http-requests";
+import { useGameContext } from "@/utils/game-context";
+import { httpGetUserDataByAddress, httpRaceInsertUser } from "@/utils/http-requests";
 import { useBalance } from "wagmi";
 import SynchronizingModal from "@/components/modals/SynchronizingModal";
-import { useRegisterOnTheRace } from "../../hooks/useRegisterOnTheRace";
-import { useRaceById } from "../../hooks/useRaceById";
-import { useRacesWithPagination } from "../../hooks/useRacesWithPagination";
+import { useRegisterOnTheRace } from "@/hooks/useRegisterOnTheRace";
+import { useRaceById } from "@/hooks/useRaceById";
+import { useRacesWithPagination } from "@/hooks/useRacesWithPagination";
 
 
 function SelectRaceScreen() {

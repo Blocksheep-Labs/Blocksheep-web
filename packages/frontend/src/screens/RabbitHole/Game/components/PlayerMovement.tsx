@@ -7,15 +7,15 @@ import calculatePlayersV2 from "../calculations/v2";
 const PlayerMovement = ({ 
   phase, 
   players, 
-  isRolling, 
-  amountOfComplteted,
+  isRolling,
+  amountOfCompleted,
   version,
   lastEliminatedUserAddress
 }: {
   phase: RabbitHolePhases; 
   players: ConnectedUser[];
   isRolling: boolean;
-  amountOfComplteted: number;
+  amountOfCompleted: number;
   version: string;
   lastEliminatedUserAddress: string;
 }) => {
@@ -32,7 +32,7 @@ const PlayerMovement = ({
       if (phase == 'OpenTunnel') {
         let sorted = [...players].toSorted((a, b) => b.Fuel - a.Fuel);
 
-        // justify the eliminatinmg user to be the last one
+        // justify the eliminating user to be the last one
         if (lastEliminatedUserAddress != sorted[sorted.length - 1].address) {
           // remove the last eliminated user from the original array
           let eliminatedUser = sorted.find(i => i.address == lastEliminatedUserAddress);
@@ -58,7 +58,6 @@ const PlayerMovement = ({
 
   
   useEffect(() => {
-    //if (animationTrigger) {
       sortedPlayers.forEach((player, index) => {
         const playerElement = playerRefs.current[index]?.current;
         const fuelElement = fuelRefs.current[index]?.current;
@@ -87,11 +86,11 @@ const PlayerMovement = ({
           setTimeout(() => {            
             //console.log("DEFAULT")
             if (!player.isCompleted && !player.isEliminated) {
-              playerElement.style.transition = 'all 1.5s ease-out';
+              playerElement.style.transition = 'all 1.25s ease-out';
               playerElement.style.left = leftPosition;
               playerElement.style.top = topPosition;
     
-              fuelElement.style.transition = 'all 1.5s ease-out';
+              fuelElement.style.transition = 'all 1.25s ease-out';
               fuelElement.style.left = leftPosition;
               fuelElement.style.top = topPosition;
               fuelElement.style.opacity = '0';
@@ -113,48 +112,46 @@ const PlayerMovement = ({
           }, 1500);
         } else if (phase === 'Reset') {
           const delay = index * 1000;
+          // Get players who are not eliminated
+          const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
+
+          // Apply elimination logic
+          if (
+              activePlayers.length > 0 &&
+              playerElement &&
+              fuelElement &&
+              lastEliminatedUserAddress === player.address
+          ) {
+            console.log("TO ELIMINATE:", player.address, lastEliminatedUserAddress);
+            playerElement.style.transition = 'all 0.1s ease-out';
+            fuelElement.style.transition = 'all 0.1s ease-out';
+
+            fuelElement.style.top = '600px';
+            fuelElement.style.opacity = "0";
+
+            playerElement.style.top = '600px';
+            playerElement.style.opacity = "0";
+          } else {
+            playerElement.style.opacity = '1';
+            fuelElement.style.opacity = '1';
+          }
+
           setTimeout(() => {
-            //console.log("RESET")
-            playerElement.style.top = topPosition;
-            playerElement.style.left = leftPosition;
-            playerElement.style.transition = 'all 3s ease-out';
+            if (!player.isCompleted && !player.isEliminated && lastEliminatedUserAddress !== player.address) {
+              playerElement.style.top = topPosition;
+              playerElement.style.left = leftPosition;
+              playerElement.style.transition = 'all 2s ease-out';
             
-            fuelElement.style.top = topPosition;
-            fuelElement.style.left = leftPosition;
-            fuelElement.style.transition = 'all 3s ease-out';
-            
-            if (!player.isCompleted && !player.isEliminated) {
+              fuelElement.style.top = topPosition;
+              fuelElement.style.left = leftPosition;
+              fuelElement.style.transition = 'all 2s ease-out';
+
               playerElement.style.opacity = '1';
               fuelElement.style.opacity = '1';
             }
-  
-            setTimeout(() => {
-              // Get players who are not eliminated
-              const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
-
-              // Apply elimination logic
-              if (
-                activePlayers.length > 0 && 
-                playerElement && 
-                fuelElement && 
-                lastEliminatedUserAddress === player.address
-              ) {
-                console.log("TO ELIMINATE:", player.address, lastEliminatedUserAddress);
-                playerElement.style.transition = 'all 1.5s ease-out';
-                fuelElement.style.transition = 'all 1.5s ease-out';
-
-                fuelElement.style.top = '600px';
-                fuelElement.style.opacity = "0";
-
-                playerElement.style.top = '600px';
-                playerElement.style.opacity = "0";
-              }
-              
-            }, 2000);
           }, delay);
         }
       });
-    //}
   }, [
     phase, 
     sortedPlayers, 

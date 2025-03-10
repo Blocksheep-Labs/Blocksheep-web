@@ -493,30 +493,18 @@ export const applySocketEvents = (io) => {
             playersPointsData.sort((a, b) => a.points - b.points);
 
             const centralIndex = Math.floor(playersPointsData.length / 2);
-            // const centralScore = playersPointsData[centralIndex]?.points || 0;
+            const centralScore = playersPointsData[centralIndex]?.points || 0;
 
-            // Use Promise.all to handle multiple async operations
-            await Promise.all(playersPointsData.map(async (player, index) => {
+            await Promise.all(playersPointsData.map(async (player) => {
                 player.finished = true;
                 await player.save();
 
-                // SCORE CHECK HERE !!!
-                let property = "decrement";
-                if (index >= centralIndex) {
-                    property = "increment";
-                }
+                // Determine increment or decrement based on the central score
+                let property = player.points < centralScore ? "decrement" : "increment";
 
-                console.log(
-                    player.userAddress,
-                    property,
-                    raceId
-                );
+                console.log(player.userAddress, property, raceId);
 
-                await finishRace(
-                    player.userAddress,
-                    property,
-                    raceId
-                );
+                await finishRace(player.userAddress, property, raceId);
             }));
         });
     });

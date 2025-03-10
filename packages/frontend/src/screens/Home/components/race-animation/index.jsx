@@ -83,14 +83,6 @@ const UniqueRaceAnimation = (props) => {
           }}
         />
       )}
-      {showButton && (
-        <button
-          onClick={handleDriversBtn}
-          className="border py-1 px-2 text-xl text-black z-10 absolute bottom-5 left-1/2"
-        >
-          DRIVERS
-        </button>
-      )}
     </>
   );
 };

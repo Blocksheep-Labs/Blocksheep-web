@@ -94,8 +94,8 @@ function RabbitHoleGame() {
   // Player counts
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const [amountOfPending, setAmountOfPending] = useState(0);
-  const [amountOfComplteted, setAmountOfComplteted] = useState(0);
-  const [amountOfPlayersnextClicked, setAmountOfPlayersNextClicked] = useState(0);
+  const [amountOfCompleted, setAmountOfCompleted] = useState(0);
+  const [amountOfPlayersNextClicked, setAmountOfPlayersNextClicked] = useState(0);
 
 
   // UI states
@@ -132,11 +132,11 @@ function RabbitHoleGame() {
   time_10.setSeconds(time_10.getSeconds() + 10);
 
   useEffect(() => {
-    //console.log({phase, players})
+    console.log({phase, players})
   }, [phase, players])
 
   // after game finish
-  const { totalSeconds: totlaSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
+  const { totalSeconds: totalSecondsToMoveNext, restart: restartNextTimer, start: startNextTimer, } = useTimer({
     expiryTimestamp: time_10,
     autoStart: false,
     onExpire: () => closeWinLoseModal()
@@ -145,9 +145,7 @@ function RabbitHoleGame() {
   // in-game
   const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
     expiryTimestamp: time_5,
-    onExpire: () => {
-      handleTunnelChange(); 
-    },
+    onExpire: () => triggerAnimations(),
     autoStart: false,
   });
 
@@ -293,7 +291,7 @@ function RabbitHoleGame() {
           i.rabbithole?.[version].game.isCompleted && amountOfCompleted++;
         });
 
-        setAmountOfComplteted(amountOfCompleted);
+        setAmountOfCompleted(amountOfCompleted);
 
         // set players list
         const raceData = await httpGetRaceDataById(`race-${raceId}`);
@@ -374,10 +372,10 @@ function RabbitHoleGame() {
         }
 
         if (progress.property === "rabbithole-complete") {
-          //if (amountOfComplteted + 1 >= amountOfConnected) {
+          //if (amountOfCompleted + 1 >= amountOfConnected) {
           //  await distribute(buildDistributeData());
           //} else {
-            setAmountOfComplteted(amountOfComplteted + 1);
+            setAmountOfCompleted(amountOfCompleted + 1);
           //}
         }
 
@@ -412,10 +410,8 @@ function RabbitHoleGame() {
 
       socket.on('race-progress-all', ({ progress }) => {
         let amountOfNextClicked = 0;
-        const playersClickedNextAddrs: string[] = [];
         progress.forEach((i: any) => {
           if (i.progress.rabbithole.waitingToFinish) {
-            playersClickedNextAddrs.push(i.userAddress);
             amountOfNextClicked++;
           }
         });
@@ -442,9 +438,9 @@ function RabbitHoleGame() {
     socket, 
     amountOfConnected, 
     smartAccountAddress, 
-    amountOfComplteted, 
+    amountOfCompleted, 
     gameState, 
-    amountOfPlayersnextClicked, 
+    amountOfPlayersNextClicked, 
     playersNextClicked,
     amountOfPending, 
     gameCompleted,
@@ -457,10 +453,10 @@ function RabbitHoleGame() {
 
   // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
   useEffect(() => {
-    if (amountOfPlayersnextClicked >= amountOfConnected && amountOfPlayersnextClicked > 0 && amountOfConnected > 0) {
+    if (amountOfPlayersNextClicked >= amountOfConnected && amountOfPlayersNextClicked > 0 && amountOfConnected > 0) {
       navigateToNextScreen();
     }
-  }, [ amountOfConnected, amountOfPlayersnextClicked ]);
+  }, [ amountOfConnected, amountOfPlayersNextClicked ]);
   
 
   
@@ -702,10 +698,6 @@ function RabbitHoleGame() {
     }
   }
 
-  const handleTunnelChange = async () => {
-    //console.log("handleTunnelChange - start");
-    await triggerAnimations(); 
-  };
 
   useEffect(() => {
     if (players && !isRolling && roundIsFinished) {
@@ -788,16 +780,13 @@ function RabbitHoleGame() {
         // CURRENTLY ELIMINATING USER WITH player.address
         setLastEliminatedUserAddress(player.address);
 
-        // remove eliminated player from the list of leaved players, as we dont care about him/her anymore
+        // remove eliminated player from the list of leaved players, as we don't care about him/her anymore
         setLeavedPlayers(prev => {
-          console.log({prevLeavedPlayers: prev});
-          const newLeavedPlayers = prev.filter(i => i.toLowerCase() != player.address.toLowerCase());
-          console.log({newLeavedPlayers});
-          return newLeavedPlayers;
+          return prev.filter(i => i.toLowerCase() != player.address.toLowerCase());
         });
 
         if (!player.isEliminated) {
-          console.log("ELIMINATE!", player.address, player.Fuel)
+          // console.log("ELIMINATE!", player.address, player.Fuel)
           socket.emit("update-progress", {
             raceId,
             userAddress: player.address,
@@ -807,7 +796,7 @@ function RabbitHoleGame() {
         }
 
         if (!player.isCompleted) {
-          console.log("COMPLETE!", player.address, player.Fuel)
+          // console.log("COMPLETE!", player.address, player.Fuel)
           // alert("complete 855")
           socket.emit("update-progress", {
             raceId,
@@ -873,7 +862,7 @@ function RabbitHoleGame() {
         });
         console.log("RESET_TUNNEL");
         setPhase("Reset");
-        setWhoStoleIsShowed(true)
+        setWhoStoleIsShowed(true);
         
         setTimeout(() => {
           socket.emit('rabbithole-set-tunnel-state', {
@@ -895,7 +884,10 @@ function RabbitHoleGame() {
           setTimeout(() => {
             setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
             setDisplayNumber(0);
-            setRoundIndex(prev => prev + 1);
+            setRoundIndex(prev => {
+              console.log("NEW ROUND INDEX", prev + 1);
+              return prev + 1;
+            });
             
             if (newListOfPlayers.length > 1) {
               console.log("next round... time reset");
@@ -1004,7 +996,7 @@ function RabbitHoleGame() {
             phase={phase} 
             players={players} 
             isRolling={isRolling} 
-            amountOfComplteted={amountOfComplteted}
+            amountOfCompleted={amountOfCompleted}
             version={version as string}
             lastEliminatedUserAddress={lastEliminatedUserAddress}
           />
@@ -1039,7 +1031,7 @@ function RabbitHoleGame() {
           loseModalPermanentlyOpened && 
           !latestInteractiveModalWasClosed && 
           <LoseModal 
-            secondsLeft={totlaSecondsToMoveNext}
+            secondsLeft={totalSecondsToMoveNext}
             handleClose={closeWinLoseModal} 
             raceId={Number(raceId)} 
             getScoreOfTheUser={getPoints}
@@ -1050,7 +1042,7 @@ function RabbitHoleGame() {
           !latestInteractiveModalWasClosed && 
           <WinModal 
             raceId={Number(raceId)}
-            secondsLeft={totlaSecondsToMoveNext}
+            secondsLeft={totalSecondsToMoveNext}
             handleClose={closeWinLoseModal} 
             getScoreOfTheUser={getPoints}
           />

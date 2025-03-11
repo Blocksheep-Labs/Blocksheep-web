@@ -1,6 +1,6 @@
-import { triggers as bullrunTriggers, updateBullrunProgress } from "./update-progress-by-games/bullrun";
-import { triggers as rabbitHoleTriggers, updateRabbitHoleProgress } from "./update-progress-by-games/rabbithole";
-import { triggers as underdogTriggers, updateUnderdogProgress } from "./update-progress-by-games/underdog";
+import { triggers as bullrunTriggers, updateBullrunProgress } from "./game-state-updaters/bullrun";
+import { triggers as rabbitHoleTriggers, updateRabbitHoleProgress } from "./game-state-updaters/rabbithole";
+import { triggers as underdogTriggers, updateUnderdogProgress } from "./game-state-updaters/underdog";
 
 
 type Property =

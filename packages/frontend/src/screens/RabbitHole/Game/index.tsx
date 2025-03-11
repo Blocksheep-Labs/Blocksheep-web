@@ -81,7 +81,7 @@ function RabbitHoleGame() {
   const [gameOver, setGameOver] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
   const [roundIsFinished, setRoundIsFinsihed] = useState(false);
-  const [roundIndex, setRoundIndex] = useState(0);
+  const [roundIndex, setRoundIndex] = useState(-1); // -1 means no rounds were played, on every timer expiration it will be incremented by 1
 
   // Player states
   const [players, setPlayers] = useState<ConnectedUser[]>([]);
@@ -145,7 +145,13 @@ function RabbitHoleGame() {
   // in-game
   const { totalSeconds, restart, start, pause, resume, isRunning: timerIsRunning } = useTimer({
     expiryTimestamp: time_5,
-    onExpire: () => triggerAnimations(),
+    onExpire: () => {
+      setRoundIndex(prev => {
+        console.log("NEW ROUND INDEX", prev + 1);
+        return prev + 1;
+      });
+      triggerAnimations();
+    },
     autoStart: false,
   });
 
@@ -884,10 +890,6 @@ function RabbitHoleGame() {
           setTimeout(() => {
             setMaxFuel(newListOfPlayers.find(i => i.address == smartAccountAddress)?.maxAvailableFuel || 0);
             setDisplayNumber(0);
-            setRoundIndex(prev => {
-              console.log("NEW ROUND INDEX", prev + 1);
-              return prev + 1;
-            });
             
             if (newListOfPlayers.length > 1) {
               console.log("next round... time reset");

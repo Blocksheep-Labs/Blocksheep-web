@@ -117,7 +117,7 @@ const PlayerMovement = ({
 
           // Apply elimination logic
           if (
-              activePlayers.length > 0 &&
+              //activePlayers.length > 0 &&
               playerElement &&
               fuelElement &&
               lastEliminatedUserAddress === player.address
@@ -163,6 +163,29 @@ const PlayerMovement = ({
     players,
     lastEliminatedUserAddress
   ]);
+
+
+  /*
+  useEffect(() => {
+    sortedPlayers.forEach((player, index) => {
+      const playerElement = playerRefs.current[index]?.current;
+      const fuelElement = fuelRefs.current[index]?.current;
+
+      // Apply elimination logic
+      if (playerElement && fuelElement && lastEliminatedUserAddress === player.address) {
+        playerElement.style.transition = 'all 0.1s ease-out';
+        fuelElement.style.transition = 'all 0.1s ease-out';
+
+        fuelElement.style.top = '600px';
+        fuelElement.style.opacity = "0";
+
+        playerElement.style.top = '600px';
+        playerElement.style.opacity = "0";
+      }
+    });
+  }, [lastEliminatedUserAddress, playerRefs, fuelRefs]);
+  */
+
 
   // Handle phase changes to trigger animations
   useEffect(() => {

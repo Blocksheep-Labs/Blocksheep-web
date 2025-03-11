@@ -1,7 +1,7 @@
 import Race from "./races.mongo";
 
 const insertUser = async (raceId: string, userId: string): Promise<any> => {
-    return await Race.findOneAndUpdate(
+    return Race.findOneAndUpdate(
         { 
             raceId,
         }, 
@@ -18,7 +18,7 @@ const insertUser = async (raceId: string, userId: string): Promise<any> => {
 }
 
 const getRaceDataById = async (raceId: string): Promise<any> => {
-    return await Race.findOne({ raceId });
+    return Race.findOne({ raceId });
 }
 
 const createRace = async (raceId: string, screenTimings: any): Promise<any> => {
@@ -26,7 +26,7 @@ const createRace = async (raceId: string, screenTimings: any): Promise<any> => {
 }
 
 const getUserParticipatesIn = async (userAddress: string): Promise<any[]> => {
-    return await Race.find({ users: userAddress });
+    return Race.find({ users: userAddress });
 }
 
 export {

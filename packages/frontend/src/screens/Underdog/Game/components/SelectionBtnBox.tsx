@@ -77,7 +77,7 @@ function SelectionBtnBox({
       </div>
 
       <div className="absolute bottom-0 flex justify-center w-full">
-        <img src={sheepImages[userSelectedSheepIndex]} alt="user-sheep" className="w-24" />
+        <img src={(userSelectedSheepIndex <= sheepImages.length - 1) ? sheepImages[userSelectedSheepIndex] : sheepImages[0]} alt="user-sheep" className="w-24" />
       </div>
 
       <div className="absolute inset-x-0 top-0 flex h-[70%] justify-between">

@@ -4,6 +4,8 @@ import BlackSheep from "../../assets/blacksheep.png";
 import Sign from "../../assets/signage.png";
 import Crown from "../../assets/crown.png";
 
+import { sheepImages } from "@/utils/sheepsImagesArray";
+
 export type SelectionBtnBoxProps = {
   leftLabel: string;
   rightLabel: string;
@@ -13,6 +15,7 @@ export type SelectionBtnBoxProps = {
   selectedAnswer: "left" | "right" | "unknown" | null;
   leftCount: number;
   rightCount: number;
+  userSelectedSheepIndex: number
 };
 function SelectionBtnBox({
   leftLabel,
@@ -22,7 +25,7 @@ function SelectionBtnBox({
   disabled,
   selectedAnswer,
   leftCount,
-  rightCount,
+  rightCount, userSelectedSheepIndex
 }: SelectionBtnBoxProps) {
   return (
     <div className="relative">
@@ -74,7 +77,7 @@ function SelectionBtnBox({
       </div>
 
       <div className="absolute bottom-0 flex justify-center w-full">
-        <img src={BlackSheep} alt="blacksheep" className="w-24" />
+        <img src={sheepImages[userSelectedSheepIndex]} alt="user-sheep" className="w-24" />
       </div>
 
       <div className="absolute inset-x-0 top-0 flex h-[70%] justify-between">

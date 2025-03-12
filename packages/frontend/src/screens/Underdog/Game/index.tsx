@@ -33,6 +33,7 @@ import DogLoaderImage from "../assets/background_head.webp";
 
 import LoseTears from "../assets/LoseTears.png";
 import WinHat from "../assets/WinHat.png";
+import {httpGetRaceDataById} from "@/utils/http-requests";
 
 
 export interface SwipeSelectionAPI {
@@ -80,6 +81,7 @@ function UnderdogGame() {
   const [waitingAfterFinishPlayersCount, setWaitingAfterFinishPlayersCount] = useState(0);
   const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
   const [answersSubmittedBy, setAnswersSubmittedBy] = useState<string[]>([]);
+  const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
 
   // State for answer selection
   const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | "unknown" | null>(null);
@@ -119,6 +121,12 @@ function UnderdogGame() {
       // @ts-ignore
       setQuestions(data[0] as any);
     }).catch(console.log);
+
+    httpGetRaceDataById(`race-${raceId}`).then(({data}) => {
+      console.log({data});
+
+      setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
+    });
   }, []);
 
   // after game finish
@@ -775,6 +783,7 @@ function UnderdogGame() {
             selectedAnswer={selectedAnswer}
             leftCount={amountOfAnswersLeft}
             rightCount={amountOfAnswersRight}
+            userSelectedSheepIndex={raceUsersDataColors.get(smartAccountAddress as string) || 0}
           />
         </div>
       }

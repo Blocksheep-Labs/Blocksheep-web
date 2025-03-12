@@ -1,6 +1,7 @@
 import {ethers} from "ethers";
+require('dotenv').config();
 
-
+const CONTRACT_ADDRESS = process.env.BLOCKSHEEP_CONTRACT_ADDRESS as string;
 
 // ===================================================================
 // ======================== ARGUMENT BUILDERS ========================
@@ -73,7 +74,7 @@ export const makeMove = async(
 
     try {
         const contract = new ethers.Contract(
-            "", // TODO: pass contract address
+            CONTRACT_ADDRESS, // TODO: pass contract address
             "", // TODO: pass contract ABI
             signer,
         );

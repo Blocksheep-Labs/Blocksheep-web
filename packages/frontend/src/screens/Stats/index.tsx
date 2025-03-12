@@ -164,16 +164,7 @@ export default function StatsScreen() {
         }
 
         let centralIndex = Math.floor(stats.length / 2);
-
-        // if scores are equal, and we reached the centre of the table
-        // SCORE CHECK HERE !!!
-        //if (index > centralIndex) {
-        //    return false;
-        //}
-
-        const centralScore = stats[centralIndex]?.curr || 0; // 0 if no score exists
-
-        return score >= centralScore; // Check if the score is greater than the central score
+        return index < centralIndex;
     }
 
     const formattedDate = date.toLocaleDateString("en-GB", {

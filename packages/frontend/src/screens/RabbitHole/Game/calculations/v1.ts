@@ -36,5 +36,5 @@ export default async function calculatePlayersV1(players: ConnectedUser[], round
     //console.log({actualListOfPlayers});
     //newListOfPlayers = sorted.slice(1, actualListOfPlayers.length);
 
-    return { newListOfPlayers, bonuses };
+    return { newListOfPlayers, bonuses, eliminatedUserAddress };
 }

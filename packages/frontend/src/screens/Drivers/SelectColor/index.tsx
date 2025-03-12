@@ -14,6 +14,9 @@ import generateLink, { TFlowPhases } from "@/utils/linkGetter";
 import { useTimer } from "react-timer-hook";
 import { httpGetRaceDataById } from "@/utils/http-requests";
 import getScreenTime from "@/utils/getScreenTime";
+import ArrowUpImage from "@/screens/Stats/assets/images/arrow-up.png";
+import {useCheckAdminAccess} from "@/hooks/useCheckAdminAccess";
+import {user} from "@telegram-apps/sdk/dist/dts/scopes/components/init-data/init-data";
 
 
 const SCREEN_NAME = "DRIVERS";
@@ -30,6 +33,7 @@ function DriversScreen() {
   const [sheepsMap, setSheepsMap] = useState(new Map());
   const [warcryMap, setWarcryMap] = useState(new Map());
   const [usersData, setUsersData] = useState<any[]>([]);
+  const [forceNextClicked, setForceNextClicked] = useState<boolean>(false);
 
 
   const navigate = useNavigate();
@@ -38,6 +42,7 @@ function DriversScreen() {
   const [amountOfConnected, setAmountOfConnected] = useState(0);
   const { race } = useRaceById(Number(raceId));
   const [amountOfPlayersReady, setAmountOfPlayersReady] = useState(0);
+  const { hasAccess: userIsAdmin } = useCheckAdminAccess();
 
 
   useEffect(() => {
@@ -321,85 +326,111 @@ function DriversScreen() {
 
 
   return (
-    <div
-      className={`mx-auto flex w-full flex-col bg-divers_bg bg-cover bg-bottom justify-center`}
-      style={{ height: `${window.innerHeight}px` }}
-    >
       <div
-        className={`relative w-[280px] h-[410px] mt-16 ${step === 4 && "h-[460px] mt-20"} mx-auto p-1 mb-3`}
+          className={`mx-auto flex w-full flex-col bg-divers_bg bg-cover bg-bottom justify-center`}
+          style={{height: `${window.innerHeight}px`}}
       >
-        <div
-          className={`absolute z-10 left-0 top-0 w-full h-[136px] rounded-3xl ${step === 3 && "h-[230px]"}`}
-          style={{
-            background: "linear-gradient(90deg, rgba(81,112,218,1) 0%, rgba(42,63,134,1) 100%)",
-          }}
-        >
-          <img src={Drivers} alt="drivers" className="translate-y-[-80px] translate-x-[32px]" />
-          {step === 3 && (
-            <div className="translate-y-[-85px] flex flex-col text-white">
-              <span className="mx-auto text-2xl">WAR CRY</span>
-              <span className="mx-auto">select your defining roar</span>
+          <div
+              className={`relative w-[280px] h-[410px] mt-16 ${step === 4 && "h-[460px] mt-20"} mx-auto p-1 mb-3`}
+          >
+            <div
+                className={`absolute z-10 left-0 top-0 w-full h-[136px] rounded-3xl ${step === 3 && "h-[230px]"}`}
+                style={{
+                  background: "linear-gradient(90deg, rgba(81,112,218,1) 0%, rgba(42,63,134,1) 100%)",
+                }}
+            >
+              <img src={Drivers} alt="drivers" className="translate-y-[-80px] translate-x-[32px]"/>
+              {step === 3 && (
+                  <div className="translate-y-[-85px] flex flex-col text-white">
+                    <span className="mx-auto text-2xl">WAR CRY</span>
+                    <span className="mx-auto">select your defining roar</span>
+                  </div>
+              )}
             </div>
-          )}
-        </div>
-        <div className="border-[6px] pt-[140px] border-[#2a3f86] rounded-3xl w-full h-full m-auto bg-white bg-opacity-70">
-          {step === 1 && (
-            <img src={AreYouSmarter} alt="are u smarter" className="w-[90%] mx-auto" />
-          )}
+            <div
+                className="border-[6px] pt-[140px] border-[#2a3f86] rounded-3xl w-full h-full m-auto bg-white bg-opacity-70">
+              {step === 1 && (
+                  <img src={AreYouSmarter} alt="are u smarter" className="w-[90%] mx-auto"/>
+              )}
+              {step === 2 && (
+                  <ChooseSheepIcon
+                      selectedIcon={selectedIcon}
+                      selectedIconsByAllUsers={selectedIconsByAllUsers}
+                      onIconSelect={handleIconClick}
+                  />
+              )}
+              {step === 3 && (
+                  <SelectWarCry
+                      selectedWarCry={selectedWarCry}
+                      selectedWarCryByAllUsers={selectedWarCryByAllUsers}
+                      setSelectedWarCry={setSelectedWarCry}
+                  />
+              )}
+              {step === 4 && <Players sheepsMap={sheepsMap} warcryMap={warcryMap} usersData={usersData}/>}
+            </div>
+          </div>
+
+          {step === 1 && <Button text="Pick Color" className="mb-4" onClick={handleStep1Click} disabled={!race}/>}
           {step === 2 && (
-            <ChooseSheepIcon 
-              selectedIcon={selectedIcon} 
-              selectedIconsByAllUsers={selectedIconsByAllUsers}
-              onIconSelect={handleIconClick} 
-            />
+              <Button
+                  text="Confirm"
+                  className="mb-4"
+                  onClick={handleStep2Click}
+                  disabled={selectedIcon == null}
+              />
           )}
           {step === 3 && (
-            <SelectWarCry 
-              selectedWarCry={selectedWarCry} 
-              selectedWarCryByAllUsers={selectedWarCryByAllUsers}
-              setSelectedWarCry={setSelectedWarCry} 
-            />
+              <Button
+                  text="Confirm"
+                  className="mb-4"
+                  onClick={handleStep3Click}
+                  disabled={selectedWarCry == null}
+              />
           )}
-          {step === 4 && <Players sheepsMap={sheepsMap} warcryMap={warcryMap} usersData={usersData}/>}
-        </div>
+
+          <div className="uppercase text-white mx-auto pt-1.5">
+            {
+              race && (amountOfConnected == race.numOfPlayersRequired)
+                  ?
+                  <>ALL PLAYERS JOINED.</>
+                  :
+                  <>WAITING FOR ALL PLAYERS TO JOIN ({amountOfConnected} / {race?.numOfPlayersRequired || 9})<span
+                      className="inline-block w-4 text-left">{dots}</span></>
+            }
+          </div>
+
+          {
+              step === 4 && (
+                  <Button
+                    text={(race && (amountOfPlayersReady == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."}
+                    className="mt-2"
+                    onClick={undefined}
+                  />
+              )
+          }
+
+          {
+              userIsAdmin &&
+              !forceNextClicked &&
+              race &&
+              step === 4 &&
+              (amountOfConnected != race.numOfPlayersRequired) &&
+              (amountOfPlayersReady == amountOfConnected) &&
+              <div className="absolute top-3 right-3 w-14 rotate-90 bg-white rounded-full opacity-70">
+                <img
+                    onClick={
+                        () => {
+                            setAmountOfPlayersReady(race.numOfPlayersRequired);
+                            setForceNextClicked(true);
+                        }
+                    }
+                    src={ArrowUpImage}
+                    alt="go-next"
+                    className="opacity-70"
+                />
+              </div>
+          }
       </div>
-
-      {step === 1 && <Button text="Pick Color" className="mb-4" onClick={handleStep1Click} disabled={!race} />}
-      {step === 2 && (
-        <Button
-          text="Confirm"
-          className="mb-4"
-          onClick={handleStep2Click}
-          disabled={selectedIcon == null}
-        />
-      )}
-      {step === 3 && (
-        <Button
-          text="Confirm"
-          className="mb-4"
-          onClick={handleStep3Click}
-          disabled={selectedWarCry == null}
-        />
-      )}
-
-      <div className="uppercase text-white mx-auto pt-1.5">
-        {
-          race && (amountOfConnected == race.numOfPlayersRequired)
-          ?
-          <>ALL PLAYERS JOINED.</>
-          :
-          <>WAITING FOR ALL PLAYERS TO JOIN ({amountOfConnected} / {race?.numOfPlayersRequired || 9})<span className="inline-block w-4 text-left">{dots}</span></>
-        }
-      </div>
-
-      {step === 4 && (
-        <Button 
-          text={(race && (amountOfPlayersReady == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."} 
-          className="mt-2" 
-          onClick={undefined} 
-        />
-      )}
-    </div>
   );
 }
 

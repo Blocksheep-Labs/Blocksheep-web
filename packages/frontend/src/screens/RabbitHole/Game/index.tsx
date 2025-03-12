@@ -768,7 +768,31 @@ function RabbitHoleGame() {
 
     switch (version) {
       case "v1":
-        newListOfPlayers = (await calculatePlayersV1(players, roundIndex, Number(raceId))).newListOfPlayers;
+        const {newListOfPlayers: newPls, eliminatedUserAddress: eliminatedPlayer} = (await calculatePlayersV1(players, roundIndex, Number(raceId)));
+        newListOfPlayers = newPls;
+        setLastEliminatedUserAddress(eliminatedPlayer);
+
+        setLeavedPlayers(prev => {
+          return prev.filter(i => i.toLowerCase() != player.address.toLowerCase());
+        });
+
+        const player = players.find(i => i.address == eliminatedPlayer) as ConnectedUser;
+
+        if (!player.isEliminated) {
+          socket.emit("update-progress", {
+            raceId, userAddress: player.address, property: "rabbithole-eliminate",
+            version,
+          });
+        }
+
+        if (!player.isCompleted) {
+          socket.emit("update-progress", {
+            raceId, userAddress: player.address, property: "rabbithole-complete",
+            value: { isWon: false, pointsAllocated: 0 },
+            version,
+          });
+        }
+
         break;
       case "v2":
         const calculationResult = calculatePlayersV2(players);
@@ -780,44 +804,6 @@ function RabbitHoleGame() {
     }
 
     console.log("NEW LIST OF PLAYERS:", newListOfPlayers, newListOfPlayers.map(i => i.address).includes(smartAccountAddress as string));
-    // update Player List By Eliminating them
-    players.forEach(player => {
-      if (!newListOfPlayers.map(i => i.address).includes(player.address)) {
-        // CURRENTLY ELIMINATING USER WITH player.address
-        setLastEliminatedUserAddress(player.address);
-
-        // remove eliminated player from the list of leaved players, as we don't care about him/her anymore
-        setLeavedPlayers(prev => {
-          return prev.filter(i => i.toLowerCase() != player.address.toLowerCase());
-        });
-
-        if (!player.isEliminated) {
-          // console.log("ELIMINATE!", player.address, player.Fuel)
-          socket.emit("update-progress", {
-            raceId,
-            userAddress: player.address,
-            property: "rabbithole-eliminate",
-            version,
-          });
-        }
-
-        if (!player.isCompleted) {
-          // console.log("COMPLETE!", player.address, player.Fuel)
-          // alert("complete 855")
-          socket.emit("update-progress", {
-            raceId,
-            userAddress: player.address,
-            property: "rabbithole-complete",
-            value: {
-              isWon: false,
-              pointsAllocated: 0,
-            },
-            version,
-          });
-          
-        }
-      }
-    })
 
     // get bonus for current user
     const currentUserBonus = bonuses.find(i => i.address == smartAccountAddress)?.amount || 0;

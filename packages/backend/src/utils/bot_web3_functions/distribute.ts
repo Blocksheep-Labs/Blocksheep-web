@@ -1,5 +1,9 @@
 import {ethers} from "ethers";
+import BlocksheepAbi from "../../config/abis/blocksheep.json";
 
+require('dotenv').config();
+
+const CONTRACT_ADDRESS = process.env.BLOCKSHEEP_CONTRACT_ADDRESS as string;
 
 
 // ===================================================================
@@ -53,8 +57,8 @@ export const distribute = async(
 
     try {
         const contract = new ethers.Contract(
-            "", // TODO: pass contract address
-            "", // TODO: pass contract ABI
+            CONTRACT_ADDRESS,
+            BlocksheepAbi,
             signer,
         );
 

@@ -112,42 +112,34 @@ const PlayerMovement = ({
           }, 1500);
         } else if (phase === 'Reset') {
           const delay = index * 1000;
-          // Get players who are not eliminated
-          const activePlayers = sortedPlayers.filter(i => !i.isCompleted && !i.isEliminated);
-
-          // Apply elimination logic
-          if (
-              //activePlayers.length > 0 &&
-              playerElement &&
-              fuelElement &&
-              lastEliminatedUserAddress === player.address
-          ) {
-            console.log("TO ELIMINATE:", player.address, lastEliminatedUserAddress);
-            playerElement.style.transition = 'all 0.1s ease-out';
-            fuelElement.style.transition = 'all 0.1s ease-out';
-
-            fuelElement.style.top = '600px';
-            fuelElement.style.opacity = "0";
-
-            playerElement.style.top = '600px';
-            playerElement.style.opacity = "0";
-          } else {
-            playerElement.style.opacity = '1';
-            fuelElement.style.opacity = '1';
-          }
 
           setTimeout(() => {
-            if (!player.isCompleted && !player.isEliminated && lastEliminatedUserAddress !== player.address) {
-              playerElement.style.top = topPosition;
-              playerElement.style.left = leftPosition;
-              playerElement.style.transition = 'all 2s ease-out';
-            
-              fuelElement.style.top = topPosition;
-              fuelElement.style.left = leftPosition;
-              fuelElement.style.transition = 'all 2s ease-out';
+            playerElement.style.top = topPosition;
+            playerElement.style.left = leftPosition;
+            playerElement.style.transition = 'all 2s ease-out';
 
+            fuelElement.style.top = topPosition;
+            fuelElement.style.left = leftPosition;
+            fuelElement.style.transition = 'all 2s ease-out';
+
+            if (!player.isEliminated) {
               playerElement.style.opacity = '1';
               fuelElement.style.opacity = '1';
+            } else {
+              playerElement.style.opacity = '0';
+              fuelElement.style.opacity = '0';
+            }
+
+            // Apply elimination logic
+            if (lastEliminatedUserAddress.toLowerCase() == player.address.toLowerCase()) {
+              setTimeout(() => {
+                console.log("ELIMINATION ANIM APPLIED ON:", player.address);
+                fuelElement.style.top = '600px';
+                fuelElement.style.opacity = "0";
+
+                playerElement.style.top = '600px';
+                playerElement.style.opacity = "0";
+              }, 1400);
             }
           }, delay);
         }

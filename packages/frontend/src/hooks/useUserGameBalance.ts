@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { readContract } from "@wagmi/core";
-import { BLOCK_SHEEP_CONTRACT } from "../config/constants";
+import { BLOCK_SHEEP_CONTRACT } from "@/config/constants";
 import blocksheepAbi from "../contracts/BlockSheep.json";
 import { useSmartAccount } from "./smartAccountProvider";
 import { config } from "@/config/wagmi";

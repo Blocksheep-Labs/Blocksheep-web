@@ -46,6 +46,7 @@ export default function AdminScreen() {
         // Extract the form values
         const duration = Number(formData.get('duration'));
         const playersRequired = Number(formData.get('playersRequired'));
+        const numberOfBots = Number(formData.get('numberOfBots'));
         
         // get 3 random questions
         const questions: TUnderdogQuestion[] = [];
@@ -90,7 +91,11 @@ export default function AdminScreen() {
         )
         .catch(console.log)
         .then(async() => {
-            await httpCreateRace(`race-${rid}`, Object.fromEntries(timingsMap)).then(() => {
+            await httpCreateRace(
+                `race-${rid}`,
+                Object.fromEntries(timingsMap),
+                numberOfBots,
+            ).then(() => {
                 alert("Race created");
             });
         }).finally(() => {
@@ -107,15 +112,23 @@ export default function AdminScreen() {
                 <hr/>
 
                 <h2>Basic</h2>
-                <input type="number" placeholder="Duration (1,2,3...)" name="duration"></input>
-                <input type="number" placeholder="Players required" name="playersRequired"></input>
+                <span className="text-[12px] text-yellow-600">Duration (1,2,3...):</span>
+                <input type="number" min={1} defaultValue={1} placeholder="Duration (1,2,3...)" name="duration"></input>
+
+                <span className="text-[12px] text-yellow-600">Players required</span>
+                <input type="number" min={0} max={9} defaultValue={2} placeholder="Players required"
+                       name="playersRequired"></input>
+
+                <span className="text-[12px] text-yellow-600">Number of bots:</span>
+                <input type="number" min={0} max={8} defaultValue={0} placeholder="Number of bots"
+                       name="numberOfBots"></input>
                 <hr/>
 
                 <h2>Screens order</h2>
                 <div className="h-64 overflow-y-auto overflow-x-hidden">
-                    <ReordableList 
-                        items={screensOrder} 
-                        setItems={setScreensOrder} 
+                    <ReordableList
+                        items={screensOrder}
+                        setItems={setScreensOrder}
                         toggledItems={toggledOffScreens}
                         setToggledItems={setToggledOffScreens}
                         timingsMap={timingsMap}
@@ -140,9 +153,9 @@ export default function AdminScreen() {
                 <span className="text-yellow-600">[[-1, -2, 3], [1, 0, 0], [-1, 1, 1]]</span>
                 <hr/>
 
-                <button 
-                    type="submit" 
-                    className="btn border-[2px] border-black h-12 disabled:opacity-30" 
+                <button
+                    type="submit"
+                    className="btn border-[2px] border-black h-12 disabled:opacity-30"
                     disabled={rIdLoading || isProcessingTX}
                 >
                     {isProcessingTX ? "Creating..." : "Create race"}

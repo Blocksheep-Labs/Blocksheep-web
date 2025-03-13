@@ -9,6 +9,8 @@ export const registerBotAtRace = async (raceId: string) => {
         throw new Error("No bots was found");
     }
 
+
+
     // Use MongoDB's atomic update ($addToSet) to avoid duplicates
     return BotSchema.findOneAndUpdate(
         { _id: botWithMinimumPayload._id },

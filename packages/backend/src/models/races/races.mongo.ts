@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 interface IRace extends Document {
     raceId: string;
+    amountOfBots: number;
     users: mongoose.Types.ObjectId[];
     screenTimings: Record<string, any>;
     usersSheeps: Record<string, number> 
@@ -13,6 +14,11 @@ const racesSchema: Schema<IRace> = new Schema({
         type: String,
         required: true,
         unique: true,
+    },
+    amountOfBots: {
+        type: Number,
+        required: true,
+        default: 0,
     },
     screenTimings: Object,
     users: {

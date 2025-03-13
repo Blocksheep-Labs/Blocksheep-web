@@ -21,8 +21,8 @@ const getRaceDataById = async (raceId: string): Promise<any> => {
     return Race.findOne({ raceId });
 }
 
-const createRace = async (raceId: string, screenTimings: any): Promise<any> => {
-    return await Race.insertMany([{ raceId, screenTimings }]);
+const createRace = async (raceId: string, screenTimings: any, amountOfBots: number): Promise<any> => {
+    return await Race.insertMany([{ raceId, screenTimings, amountOfBots }]);
 }
 
 const getUserParticipatesIn = async (userAddress: string): Promise<any[]> => {

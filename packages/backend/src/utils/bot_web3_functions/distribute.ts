@@ -37,6 +37,9 @@ export const distribute = async(
     raceId: number,
     botAddress: string,
     signer: ethers.Signer,
+    bullrunData?: {
+        opponentAddress: string,
+    }
 ) => {
 
     const getSendingParams = (contractName: string) => {
@@ -47,7 +50,7 @@ export const distribute = async(
                 return buildRabbithole(botAddress);
             case "BULLRUN":
                 return buildBullrun(
-                    "", // TODO: pass current bot opponent
+                    bullrunData?.opponentAddress as string,
                     botAddress,
                 );
             default:

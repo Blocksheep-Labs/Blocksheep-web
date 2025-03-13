@@ -37,7 +37,12 @@ export const useRegisterOnTheRace = () => {
         await mintTestETH(needToDeposit, Number(ETHBalance?.formatted)).catch(console.log);
         
         //if ((Number(userBalance) < needToDeposit) || (!userBalance && !entryCost)) {
-            const amountToDepositAccordingToUserBalance = needToDeposit - Number(userBalance);
+            let amountToDepositAccordingToUserBalance = needToDeposit - Number(userBalance);
+
+            if (amountToDepositAccordingToUserBalance < 0) {
+                amountToDepositAccordingToUserBalance = needToDeposit;
+            }
+
             const approveHash = await smartAccountClient.sendTransaction({
                 account: smartAccountClient.account!,
                 chain: SELECTED_NETWORK,

@@ -1,4 +1,5 @@
 import {ethers} from "ethers";
+import BlocksheepAbi from "../../config/abis/blocksheep.json";
 require('dotenv').config();
 
 const CONTRACT_ADDRESS = process.env.BLOCKSHEEP_CONTRACT_ADDRESS as string;
@@ -43,28 +44,40 @@ export const makeMove = async(
     raceId: number,
     botAddress: string,
     signer: ethers.Signer,
+    underdogData?: {
+        questionIndex: number;
+    },
+    rabbitholeData?: {
+        fuelSubmission: number,
+        fuelLeft: number,
+        roundIndex: number,
+        leavedUsersAddresses: string[]
+    },
+    bullrunData?: {
+        opponentAddress: string,
+    }
 ) => {
 
     const getSendingParams = (contractName: string) => {
         switch (contractName) {
             case "UNDERDOG":
                 return buildUnderdog(
-                    0, // TODO: change question index
+                    underdogData?.questionIndex as number,
                     Math.random() < 0.5 ? 0 : 1,
                     botAddress,
                 );
             case "RABBITHOLE":
                 return buildRabbithole(
-                    0, // TODO: change bot fuel submission count
-                    0, // TODO: change bot fuel left
-                    0, // TODO: change round index
+                    rabbitholeData?.fuelSubmission as number,
+                    rabbitholeData?.fuelLeft as number,
+                    rabbitholeData?.roundIndex as number,
                     botAddress,
-                    [] // TODO: change the users left array
+                    rabbitholeData?.leavedUsersAddresses as string[]
                 );
             case "BULLRUN":
                 return buildBullrun(
                     Math.floor(Math.random() * 3), // perk index 0, 1 or 2
-                    "", // TODO: change the opponent address
+                    bullrunData?.opponentAddress as string,
                     botAddress,
                 );
             default:
@@ -74,8 +87,8 @@ export const makeMove = async(
 
     try {
         const contract = new ethers.Contract(
-            CONTRACT_ADDRESS, // TODO: pass contract address
-            "", // TODO: pass contract ABI
+            CONTRACT_ADDRESS,
+            BlocksheepAbi,
             signer,
         );
 

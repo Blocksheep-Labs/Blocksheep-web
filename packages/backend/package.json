@@ -17,7 +17,8 @@
     "mongoose": "^8.7.0",
     "mongoose-autopopulate": "^1.1.0",
     "nodemon": "^3.1.4",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "web3": "^4.16.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",

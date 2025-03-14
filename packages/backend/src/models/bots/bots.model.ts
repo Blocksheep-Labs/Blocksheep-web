@@ -1,5 +1,8 @@
-import mongoose from "mongoose";
 import BotSchema from "./bots.mongo";
+import {registerOnTheRace} from "../../utils/bot_web3_functions/registerOnTheRace";
+import {insertUser as insertUserIntoRace} from "../races/races.model";
+
+
 
 export const registerBotAtRace = async (raceId: string) => {
     const botWithMinimumPayload = await BotSchema.findOne()
@@ -9,7 +12,8 @@ export const registerBotAtRace = async (raceId: string) => {
         throw new Error("No bots was found");
     }
 
-
+    await registerOnTheRace(Number(raceId), botWithMinimumPayload.address);
+    await insertUserIntoRace(raceId, botWithMinimumPayload._id as string);
 
     // Use MongoDB's atomic update ($addToSet) to avoid duplicates
     return BotSchema.findOneAndUpdate(

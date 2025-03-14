@@ -7,7 +7,7 @@ interface IFinishRaceStat {
 }
 
 const setNameByAddress = async (name: string, address: string): Promise<any> => {
-    return await User.findOneAndUpdate(
+    return User.findOneAndUpdate(
         { 
             address 
         },
@@ -22,7 +22,7 @@ const setNameByAddress = async (name: string, address: string): Promise<any> => 
 }
 
 const getUserDataByAddress = async (address: string): Promise<any> => {
-    return await User.findOne({ address });
+    return User.findOne({ address });
 }
 
 const finishRace = async (address: string, type: "increment" | "decrement", raceId: number): Promise<any> => {
@@ -45,7 +45,7 @@ const finishRace = async (address: string, type: "increment" | "decrement", race
     };
 
     // Update the user in one atomic operation
-    return await User.findOneAndUpdate(
+    return User.findOneAndUpdate(
         { address },
         {
             $inc: { gamesAboveAverage: incrementValue },

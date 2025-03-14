@@ -1,4 +1,7 @@
 import BotsSchema from "../models/bots/bots.mongo";
+import UsersSchema from "../models/users/users.mongo";
+import {setNameByAddress} from "../models/users/users.model";
+
 require('dotenv').config();
 
 
@@ -12,9 +15,18 @@ export default async function initBotsInDatabase() {
     await Promise.all(BOTS_ADDRS.map(async address => {
         if (!botsDBAddresses.includes(address.toLowerCase())) {
             console.log(`[BOTS] Adding bot with address: ${address.toLowerCase()} ...`);
-            return BotsSchema.create({address}).catch(console.error);
+
+            return {
+                bot:  await BotsSchema.create({address}).catch(console.error),
+                user: await setNameByAddress(`bot-${address.substring(address.length - 3, address.length)}`, address),
+            }
         }
-        return new Promise<void>((resolve, reject) => { resolve(); });
+        return new Promise((resolve, reject) => {
+            resolve({
+                bot: null,
+                user: null,
+            });
+        });
     }));
 
     console.log("[BOTS] Initialized.");

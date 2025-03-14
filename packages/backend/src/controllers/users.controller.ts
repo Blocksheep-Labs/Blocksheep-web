@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as userModel from "../models/users/users.model";
 
+
 // Set name by address
 const setNameByAddress = async (req: Request, res: Response): Promise<Response> => {
     const { name, address } = req.body;

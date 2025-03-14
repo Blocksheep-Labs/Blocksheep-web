@@ -1,9 +1,10 @@
 import {ethers} from "ethers";
 import BlocksheepAbi from "../../config/abis/blocksheep.json";
+import envCfg from "../../config/env";
+import Web3 from "web3";
 
 require('dotenv').config();
 
-const CONTRACT_ADDRESS = process.env.BLOCKSHEEP_CONTRACT_ADDRESS as string;
 
 
 // ===================================================================
@@ -36,7 +37,6 @@ export const distribute = async(
     contractName: string,
     raceId: number,
     botAddress: string,
-    signer: ethers.Signer,
     bullrunData?: {
         opponentAddress: string,
     }
@@ -58,21 +58,31 @@ export const distribute = async(
         }
     }
 
+    const botAddrIndex = envCfg.BOTS_ADDRS.indexOf(botAddress);
+    if (botAddrIndex === -1) {
+        throw new Error(`Bot address ${botAddress} not found in BOTS_ADDRS.`);
+    }
+
     try {
-        const contract = new ethers.Contract(
-            CONTRACT_ADDRESS,
+        const web3 = new Web3(new Web3.providers.HttpProvider(envCfg.RPC_URL));
+        const account = web3.eth.accounts.privateKeyToAccount(envCfg.BOTS_PRIVATE_KEYS[botAddrIndex]);
+
+        if (!web3.eth.accounts.wallet.get(account.address)) {
+            web3.eth.accounts.wallet.add(account);
+        }
+
+        const blocksheepContract = new web3.eth.Contract(
             BlocksheepAbi,
-            signer,
+            envCfg.BLOCKSHEEP_CONTRACT_ADDRESS
         );
 
-        const tx = await contract.makeMove(
+        const txDistribute = await  blocksheepContract.methods.distribute(
             contractName,
             raceId,
-            getSendingParams(contractName),
-        );
+            getSendingParams(contractName)
+        ).send({ from: account.address });
 
-        const receipt = await tx.wait(1);
-        return receipt.transactionHash;
+        return txDistribute.transactionHash;
     } catch (err) {
         console.log("Error sending distribute TX, reason: ", err);
     }

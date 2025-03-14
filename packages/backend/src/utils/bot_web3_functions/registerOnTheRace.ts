@@ -1,6 +1,7 @@
 import {ethers} from "ethers";
 import BlocksheepAbi from "../../config/abis/blocksheep.json";
-import {getNativeBalance} from "./getnativeBalance";
+import USDCAbi from "../../config/abis/usdc.json";
+
 require('dotenv').config();
 
 
@@ -21,7 +22,7 @@ export const registerOnTheRace = async(
 
         const usdcContract = new ethers.Contract(
             USDC_ADDRESS,
-            BlocksheepAbi,
+            USDCAbi,
             signer
         );
 

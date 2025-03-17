@@ -26,6 +26,7 @@ const triggers: string[] = [
 
 const updateRabbitHoleProgress = (
     property: string,
+    raceId: number,
     value: UpdateValue,
     rProgress: RProgress,
     version: string

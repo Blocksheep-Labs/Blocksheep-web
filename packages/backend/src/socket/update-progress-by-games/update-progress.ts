@@ -19,20 +19,20 @@ type Property =
 
 
 interface UpdateProgressFn {
-    (property: Property, value: any, rProgress: any, version?: string): any;
+    (property: Property, value: any, rProgress: any, raceId: number, version?: string): any;
 }
 
-export const updateProgress: UpdateProgressFn = (property, value, rProgress, version?) => {
+export const updateProgress: UpdateProgressFn = (property, value, rProgress, raceId, version?) => {
     if (underdogTriggers.includes(property)) {
-        return updateUnderdogProgress(property, value, rProgress);
+        return updateUnderdogProgress(property, raceId, value, rProgress);
     }
 
     if (rabbitHoleTriggers.includes(property)) {
-        return updateRabbitHoleProgress(property, value, rProgress, version as string);
+        return updateRabbitHoleProgress(property, raceId, value, rProgress, version as string);
     }
 
     if (bullrunTriggers.includes(property)) {
-        return updateBullrunProgress(property, value, rProgress);
+        return updateBullrunProgress(property, raceId, value, rProgress);
     }
 
     // Handling generic properties not part of the specific game progress

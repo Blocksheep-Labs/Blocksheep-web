@@ -16,7 +16,12 @@ const triggers: string[] = [
     "bullrun-add-item",
 ];
 
-const updateBullrunProgress = (property: string, value: UpdateValue, rProgress: RProgress): RProgress => {
+const updateBullrunProgress = (
+    property: string,
+    raceId: number,
+    value: UpdateValue,
+    rProgress: RProgress
+): RProgress => {
     switch (property) {
         case "bullrun-preview-complete":
             rProgress.progress.bullrun_preview = true;

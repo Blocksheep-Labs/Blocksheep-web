@@ -1,4 +1,5 @@
 import config from "../default-states-by-games/underdog";
+import handleUserChoiceWithBot from "../../events-bots/game-handlers";
 
 interface RaceProgress {
     progress: typeof config
@@ -20,6 +21,7 @@ const triggers: string[] = [
 
 const updateUnderdogProgress = (
     property: string,
+    raceId: number,
     value: UpdateValue,
     rProgress: RaceProgress
 ): RaceProgress => {
@@ -30,9 +32,11 @@ const updateUnderdogProgress = (
         case "underdog-rules-complete":
             rProgress.progress.underdog_rules = true;
             break;
+        // user makes a move
         case "underdog++":
             if (value.answer && value.answer.toString().length) {
                 console.log("+ANSW", value.answer, rProgress.progress.underdog.answers + value.answer);
+
                 rProgress.progress.underdog = {
                     ...rProgress.progress.underdog,
                     completed: rProgress.progress.underdog.completed + 1,
@@ -47,6 +51,19 @@ const updateUnderdogProgress = (
                     of: value.of,
                 };
             }
+
+            // bot makes move
+            handleUserChoiceWithBot({
+                type: "makeMove",
+                game: "UNDERDOG",
+                raceId,
+                data: {
+                    // index could be extracted by subtracting rProgress.progress.underdog.completed
+                    questionIndex: rProgress.progress.underdog.completed - 1,
+                }
+            }).catch((err) => {
+                console.log("Bot make move failed :(", err);
+            });
             break;
         case "underdog-confirm-last-answer": {
             console.log("confirm", property, value);

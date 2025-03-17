@@ -154,7 +154,7 @@ export const applySocketEvents = (io) => {
             }
             
             const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
-            const updatedProgress = updateProgress(property, value, progressToUpdate, version);
+            const updatedProgress = updateProgress(property, value, progressToUpdate, Number(raceId), version);
 
             // update event sender progress
             // await updatedProgress.save();

@@ -53,7 +53,7 @@ function DriversScreen() {
   }, []);
 
   const handleStep1Click = () => setStep(2);
-  const handleStep2Click = () => {+
+  const handleStep2Click = () => {
     console.log({
       raceId,
       selectedSheep: selectedIcon,
@@ -85,7 +85,12 @@ function DriversScreen() {
   // navigator
   useEffect(() => {
     console.log()
-    if (race && smartAccountAddress && raceId != undefined && amountOfPlayersReady >= race.numOfPlayersRequired) {
+    if (
+        race &&
+        smartAccountAddress &&
+        raceId != undefined &&
+        amountOfPlayersReady + usersData.filter(i => i?.isBot).length >= race.numOfPlayersRequired
+    ) {
       // timeout to update the ui for other players (selected items)
       setTimeout(() => {
         console.log("UPDATE PROGRESS", {
@@ -390,7 +395,7 @@ function DriversScreen() {
 
           <div className="uppercase text-white mx-auto pt-1.5">
             {
-              race && (amountOfConnected == race.numOfPlayersRequired)
+              race && (amountOfConnected + usersData.filter(i => i?.isBot).length == race.numOfPlayersRequired)
                   ?
                   <>ALL PLAYERS JOINED.</>
                   :
@@ -402,7 +407,7 @@ function DriversScreen() {
           {
               step === 4 && (
                   <Button
-                    text={(race && (amountOfPlayersReady == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."}
+                    text={(race && (amountOfPlayersReady + usersData.filter(i => i?.isBot).length == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."}
                     className="mt-2"
                     onClick={undefined}
                   />
@@ -414,8 +419,8 @@ function DriversScreen() {
               !forceNextClicked &&
               race &&
               step === 4 &&
-              (amountOfConnected != race.numOfPlayersRequired) &&
-              (amountOfPlayersReady == amountOfConnected) &&
+              (amountOfConnected + usersData.filter(i => i?.isBot).length != race.numOfPlayersRequired) &&
+              (amountOfPlayersReady == amountOfConnected + usersData.filter(i => i?.isBot).length) &&
               <div className="absolute top-3 right-3 w-14 rotate-90 bg-white rounded-full opacity-70">
                 <img
                     onClick={

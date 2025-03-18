@@ -27,7 +27,7 @@ const createRace = async (raceId: string, screenTimings: any, amountOfBots: numb
         // register bots at the race if the amount is > 0
         if (amountOfBots) {
             for (let i = 0; i < amountOfBots; i++) {
-                await registerBotAtRace(raceId.split('-')[1]);
+                await registerBotAtRace(raceId);
             }
         }
     } catch (err) {

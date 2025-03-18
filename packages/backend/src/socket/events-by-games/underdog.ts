@@ -1,5 +1,6 @@
 import { Socket, Server } from 'socket.io';
 import module from '../../models/games-socket/index';
+import handleUserChoiceWithBot from "../events-bots/game-handlers";
 
 
 const { QuestionsState } = module.underdog;
@@ -15,7 +16,7 @@ interface QuestionsStateData {
 const questionsGameStates = [["answering", "submitting"], ["distributing", "distributed"]];
 
 export default (socket: Socket, io: Server): void => {
-    socket.on('underdog-set-questions-state', async ({ raceId, newIndex, secondsLeft, state }: { raceId: string, newIndex: number, secondsLeft: number, state: string }) => {
+    socket.on('underdog-set-questions-state', async ({ raceId, newIndex, secondsLeft, state }: { raceId: number, newIndex: number, secondsLeft: number, state: string }) => {
         const roomName = `race-${raceId}`;
         let currData = await QuestionsState.findOne({ room: roomName }) as QuestionsStateData | null;
     
@@ -48,6 +49,18 @@ export default (socket: Socket, io: Server): void => {
             { room: roomName },
             { $set: { index: currData.index, secondsLeft: currData.secondsLeft, state } }
         );
+
+        if (state == "distributing") {
+            // make all bots send distribute tx
+            handleUserChoiceWithBot({
+                type: "distribute",
+                game: "UNDERDOG",
+                raceId,
+                data: null
+            }).catch(err => {
+               console.log("Bot distribute error:", err);
+            });
+        }
     
         io.to(roomName).emit('underdog-questions-state', { raceId, data: currData });
     });

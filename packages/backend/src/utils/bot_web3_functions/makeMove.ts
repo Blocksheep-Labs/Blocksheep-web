@@ -2,6 +2,9 @@ import {ethers} from "ethers";
 import envCfg from "../../config/env";
 import BlocksheepAbi from "../../config/abis/blocksheep.json";
 import Web3 from "web3";
+import {socket} from "frontend/src/utils/socketio";
+import {getIO} from "../../socket/init.";
+import {handleUpdateProgress} from "../../socket/events";
 require('dotenv').config();
 
 
@@ -39,49 +42,84 @@ export const buildBullrun = (perkIndex: number, opponentAddress: string, userAdd
 // ===================================================================
 // ========================= CALLER FUNCTION =========================
 // ===================================================================
+type TContractName = "UNDERDOG" | "RABBITHOLE" | "BULLRUN";
 
 export const makeMove = async(
-    contractName: string,
+    contractName: TContractName,
     raceId: number,
     botAddress: string,
     underdogData?: {
+        amountOfQuestions: number;
         questionIndex: number;
     },
     rabbitholeData?: {
         fuelSubmission: number,
         fuelLeft: number,
         roundIndex: number,
-        leavedUsersAddresses: string[]
+        leavedUsersAddresses: string[],
+        version: string,
     },
     bullrunData?: {
         opponentAddress: string,
     }
 ) => {
 
-    const getSendingParams = (contractName: string) => {
+    const getSendingParams = (contractName: TContractName) => {
         switch (contractName) {
             case "UNDERDOG":
-                return buildUnderdog(
-                    underdogData?.questionIndex as number,
-                    Math.random() < 0.5 ? 0 : 1,
+                const dataU = {
+                    questionIndex: underdogData?.questionIndex as number,
+                    answerIndex: Math.random() < 0.5 ? 0 : 1,
                     botAddress,
-                );
+                };
+
+                return {
+                    packed: buildUnderdog(
+                        dataU.questionIndex,
+                        dataU.answerIndex as (0 | 1),
+                        dataU.botAddress,
+                    ),
+                    raw: dataU,
+                };
             case "RABBITHOLE":
-                return buildRabbithole(
-                    rabbitholeData?.fuelSubmission as number,
-                    rabbitholeData?.fuelLeft as number,
-                    rabbitholeData?.roundIndex as number,
+                const dataR = {
+                    fuelSubmission: rabbitholeData?.fuelSubmission as number,
+                    fuelLeft: rabbitholeData?.fuelLeft as number,
+                    roundIndex: rabbitholeData?.roundIndex as number,
                     botAddress,
-                    rabbitholeData?.leavedUsersAddresses as string[]
-                );
+                    leavedUsersAddresses: rabbitholeData?.leavedUsersAddresses as string[]
+                };
+
+                return {
+                    packed: buildRabbithole(
+                        dataR.fuelSubmission,
+                        dataR.fuelLeft,
+                        dataR.roundIndex,
+                        dataR.botAddress,
+                        dataR.leavedUsersAddresses
+                    ),
+                    raw: dataR,
+                };
             case "BULLRUN":
-                return buildBullrun(
-                    Math.floor(Math.random() * 3), // perk index 0, 1 or 2
-                    bullrunData?.opponentAddress as string,
+                const dataB = {
+                    perkIndex: Math.floor(Math.random() * 3), // perk index 0, 1 or 2
+                    opponentAddress: bullrunData?.opponentAddress as string,
                     botAddress,
-                );
+                };
+
+                return {
+                    packed: buildBullrun(
+                        dataB.perkIndex,
+                        dataB.opponentAddress,
+                        dataB.botAddress,
+                    ),
+                    raw: dataB,
+                };
             default:
-                return;
+                return {
+                    packed: "0x",
+                    raw: {},
+                }
         }
     }
 
@@ -103,12 +141,68 @@ export const makeMove = async(
             envCfg.BLOCKSHEEP_CONTRACT_ADDRESS
         );
 
+        const sendingParams = getSendingParams(contractName);
 
+        // PRE-SUBMIT EVENTS
+        switch (contractName) {
+            case "RABBITHOLE":
+                await handleUpdateProgress({
+                    raceId,
+                    userAddress: botAddress,
+                    property: "rabbithole-set-fuel",
+                    value: {
+                        fuel: rabbitholeData?.fuelSubmission as number,
+                        maxAvailableFuel: rabbitholeData?.fuelLeft as number,
+                        isPending: true,
+                    },
+                    version: rabbitholeData?.version as string,
+                });
+                break;
+            default:
+                break;
+        }
+
+        // make move
         const txMakeMove = await blocksheepContract.methods.makeMove(
             contractName,
             raceId,
-            getSendingParams(contractName)
+            sendingParams.packed
         ).send({ from: account.address });
+
+        // AFTER-SUBMIT EVENTS
+        switch (contractName) {
+            case "UNDERDOG":
+                await handleUpdateProgress({
+                    raceId,
+                    userAddress: botAddress,
+                    property: "underdog++",
+                    value: {
+                        completed: (underdogData?.questionIndex as number) + 1,
+                        of: underdogData?.amountOfQuestions || 3,
+                        // @ts-ignore
+                        answer: sendingParams.raw?.answerIndex,
+                    }
+                });
+                break;
+            case "RABBITHOLE":
+                await handleUpdateProgress({
+                    raceId,
+                    userAddress: botAddress,
+                    property: "rabbithole-set-fuel",
+                    value: {
+                        fuel: rabbitholeData?.fuelSubmission as number,
+                        maxAvailableFuel: rabbitholeData?.fuelLeft as number,
+                        isPending: false,
+                    },
+                    version: rabbitholeData?.version as string,
+                });
+                break;
+            case "BULLRUN":
+
+                break;
+            default:
+                break;
+        }
 
         return txMakeMove.transactionHash;
     } catch (err) {

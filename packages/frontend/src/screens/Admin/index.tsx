@@ -95,6 +95,7 @@ export default function AdminScreen() {
                 `race-${rid}`,
                 Object.fromEntries(timingsMap),
                 numberOfBots,
+                rid
             ).then(() => {
                 alert("Race created");
             });

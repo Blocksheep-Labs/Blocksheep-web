@@ -67,7 +67,7 @@ export const registerOnTheRace = async (raceId: number, botAddress: string) => {
         }
 
         // Register bot for the race
-        const txRegister = await blocksheepContract.methods.register(Number(raceId))
+        const txRegister = await blocksheepContract.methods.register(raceId)
             .send({ from: account.address });
 
         console.log(`Register transaction successful: ${txRegister.transactionHash} for bot: ${account.address}`);

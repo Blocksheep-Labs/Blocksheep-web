@@ -16,19 +16,19 @@ import WinModal from "../../../components/modals/WinModal";
 import LoseModal from "../../../components/modals/LoseModal";
 
 // Web3 and Contract
-import { useSmartAccount } from "../../../hooks/smartAccountProvider";
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
 
 
 // Socket and HTTP
-import { socket } from "../../../utils/socketio";
-import { httpGetRaceDataById } from "../../../utils/http-requests";
+import { socket } from "@/utils/socketio";
+import { httpGetRaceDataById } from "@/utils/http-requests";
 
 // Game Logic
 import generateLink, { TFlowPhases } from "../../../utils/linkGetter";
-import { txAttempts } from "../../../utils/txAttempts";
+import { txAttempts } from "@/utils/txAttempts";
 import calculatePlayersV1 from "./calculations/v1";
 import calculatePlayersV2 from "./calculations/v2";
-import { useGameContext } from "../../../utils/game-context";
+import { useGameContext } from "@/utils/game-context";
 import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGamePart";
 
 // Assets

@@ -2,8 +2,9 @@ import RaceBackground from "../assets/common/race-background.png";
 import Sheep from "../assets/gameplay/sheeepy.png";
 import BlackSheep from "../assets/common/blacksheep.png";
 import { motion } from "framer-motion";
-import { useSmartAccount } from "../hooks/smartAccountProvider";
+import { useSmartAccount } from "@/hooks/smartAccountProvider";
 import { sheepImages } from "@/utils/sheepsImagesArray";
+import BotImage from "../assets/common/bot.png";
 
 const percent = 61 / 9;
 
@@ -50,7 +51,16 @@ function RaceBoard({
                 })()
               }
             </p>
-            <img src={sheepImages[raceUsersDataColors.get(address) || 0]} alt="sheep" />
+            <img
+                src={
+                    (users.find(i => i.address === address))?.isBot
+                    ?
+                    BotImage
+                    :
+                    sheepImages[raceUsersDataColors.get(address) || 0]
+                }
+                alt="sheep"
+            />
           </motion.div>
         );
       })}

@@ -12,6 +12,7 @@ import FlagsImage from "./assets/images/flags.png";
 import { useRaceById } from "@/hooks/useRaceById";
 import { socket } from "@/utils/socketio";
 import { sheepImages } from "@/utils/sheepsImagesArray";
+import BotImage from "../../assets/common/bot.png";
 
 const SCREEN_NAME = "PODIUM";
 
@@ -302,7 +303,17 @@ export default function StatsScreen() {
                                                         smartAccountAddress == i.address ? 
                                                         <img src={sheepImages[raceUsersDataColors.get(i.address) || 0]} alt="you" className="w-[16px] h-[16px]"/> 
                                                         :
-                                                        <img src={sheepImages[raceUsersDataColors.get(i.address) || 0]} alt="opponent" className="w-[14px] h-[16px]"/>
+                                                        <img
+                                                            src={
+                                                                (users.find(j => j.address === i.address))?.isBot
+                                                                ?
+                                                                BotImage
+                                                                :
+                                                                sheepImages[raceUsersDataColors.get(i.address) || 0]
+                                                            }
+                                                            alt="opponent"
+                                                            className="w-[14px] h-[16px]"
+                                                        />
                                                     }
                                                 </div>
                                                 <div>

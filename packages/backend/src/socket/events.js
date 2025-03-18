@@ -79,99 +79,7 @@ export const applySocketEvents = (io) => {
 
         // Listen for 'update-progress' events
         socket.on('update-progress', async ({ raceId, userAddress, property, value, version }) => {
-            // console.log({ raceId, userAddress, property, value, version })
-            const roomName = `race-${raceId}`;
-            
-            let rProgress = await RaceProgress.findOneAndUpdate(
-                { 
-                    room: roomName, 
-                    userAddress 
-                },
-                {
-                    $setOnInsert: {
-                        room: roomName,
-                        userAddress,
-                        progress: {
-                            countdown: false,
-                            board1: false,
-                            board2: false,
-                            board3: false,
-                            board4: false,
-                            nicknameSet: false,
-                            story: {
-                                intro: false,
-                                part1: false,
-                                part2: false,
-                                part3: false,
-                                part4: false,
-                                conclusion: false,
-                            },
-                            ...underdogBaseState,
-                            ...rabbitHoleBaseState,
-                            ...bullrunBaseState,
-                        }
-                    }
-                },
-                { 
-                    new: true,
-                    upsert: true 
-                }
-            );
-
-
-            if (property === 'rabbithole-eliminate') {
-                const racesProgresses = await RaceProgress.find({ room: roomName });
-                const connectedUsers = await ConnectedUser.find({ room: roomName });
-
-                // Set the fuel of all players who are not connected to 0
-                await Promise.all(racesProgresses.map(async progress => {
-                    // Check if the player is not the eliminating player and is not connected
-                    if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
-                        progress.progress.rabbithole[version] = {
-                            ...progress.progress.rabbithole[version],
-                            game: {
-                                ...progress.progress.rabbithole[version].game,
-                                fuel: 0, // Set fuel to 0 for players who are not connected
-                            }
-                        };
-            
-                        await progress.save();
-                    }
-                }));
-
-                // Set the fuel of the eliminating player to 0
-                const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
-                if (eliminatingPlayerProgress) {
-                    eliminatingPlayerProgress.progress.rabbithole[version] = {
-                        ...eliminatingPlayerProgress.progress.rabbithole[version],
-                        game: {
-                            ...eliminatingPlayerProgress.progress.rabbithole[version].game,
-                            fuel: 0, // Set fuel to 0 for the eliminating player
-                        }
-                    };
-                    await eliminatingPlayerProgress.save();
-                }
-            }
-            
-            const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
-            const updatedProgress = updateProgress(property, value, progressToUpdate, Number(raceId), version);
-
-            // update event sender progress
-            // await updatedProgress.save();
-
-            // Update the progress in MongoDB
-            try {
-                await RaceProgress.updateOne(
-                    { room: roomName, userAddress },
-                    { $set: updatedProgress },
-                    { upsert: true }
-                );
-            } catch (error) {
-                console.log("[!] Update progress error", error);
-            }
-            
-
-            io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
+            await handleUpdateProgress({ raceId, userAddress, property, value, version });
         });
 
 
@@ -291,3 +199,101 @@ export const applySocketEvents = (io) => {
 
   console.log("[SOCKET] Events applied.");
 };
+
+
+export const handleUpdateProgress = async(data) => {
+    const { raceId, userAddress, property, value, version } = data;
+    // console.log({ raceId, userAddress, property, value, version })
+    const roomName = `race-${raceId}`;
+
+    let rProgress = await RaceProgress.findOneAndUpdate(
+        {
+            room: roomName,
+            userAddress
+        },
+        {
+            $setOnInsert: {
+                room: roomName,
+                userAddress,
+                progress: {
+                    countdown: false,
+                    board1: false,
+                    board2: false,
+                    board3: false,
+                    board4: false,
+                    nicknameSet: false,
+                    story: {
+                        intro: false,
+                        part1: false,
+                        part2: false,
+                        part3: false,
+                        part4: false,
+                        conclusion: false,
+                    },
+                    ...underdogBaseState,
+                    ...rabbitHoleBaseState,
+                    ...bullrunBaseState,
+                }
+            }
+        },
+        {
+            new: true,
+            upsert: true
+        }
+    );
+
+
+    if (property === 'rabbithole-eliminate') {
+        const racesProgresses = await RaceProgress.find({ room: roomName });
+        const connectedUsers = await ConnectedUser.find({ room: roomName });
+
+        // Set the fuel of all players who are not connected to 0
+        await Promise.all(racesProgresses.map(async progress => {
+            // Check if the player is not the eliminating player and is not connected
+            if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
+                progress.progress.rabbithole[version] = {
+                    ...progress.progress.rabbithole[version],
+                    game: {
+                        ...progress.progress.rabbithole[version].game,
+                        fuel: 0, // Set fuel to 0 for players who are not connected
+                    }
+                };
+
+                await progress.save();
+            }
+        }));
+
+        // Set the fuel of the eliminating player to 0
+        const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
+        if (eliminatingPlayerProgress) {
+            eliminatingPlayerProgress.progress.rabbithole[version] = {
+                ...eliminatingPlayerProgress.progress.rabbithole[version],
+                game: {
+                    ...eliminatingPlayerProgress.progress.rabbithole[version].game,
+                    fuel: 0, // Set fuel to 0 for the eliminating player
+                }
+            };
+            await eliminatingPlayerProgress.save();
+        }
+    }
+
+    const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
+    const updatedProgress = updateProgress(property, value, progressToUpdate, Number(raceId), version);
+
+    // update event sender progress
+    // await updatedProgress.save();
+
+    // Update the progress in MongoDB
+    try {
+        await RaceProgress.updateOne(
+            { room: roomName, userAddress },
+            { $set: updatedProgress },
+            { upsert: true }
+        );
+    } catch (error) {
+        console.log("[!] Update progress error", error);
+    }
+
+
+    io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
+}

@@ -144,7 +144,7 @@ function UnderdogGame() {
       if (!submittingAnswer) {
         console.log("TIME EXPIRED!")
         setFlipState(!flipState);
-        socket.emit('set-questions-state', {
+        socket.emit('underdog-set-questions-state', {
           raceId,
           newIndex: currentQuestionIndex,
           secondsLeft: 0,
@@ -158,7 +158,7 @@ function UnderdogGame() {
   // updates seconds on server
   useEffect(() => {
     if (totalSeconds > 0) {
-      socket.emit('set-questions-state', {
+      socket.emit('underdog-set-questions-state', {
         raceId,
         newIndex: currentQuestionIndex,
         secondsLeft: totalSeconds,
@@ -256,7 +256,7 @@ function UnderdogGame() {
 
   function openLoadingModal() {
     pause();
-    socket.emit('set-questions-state', {
+    socket.emit('underdog-set-questions-state', {
       raceId,
       newIndex: currentQuestionIndex,
       secondsLeft: 0,
@@ -289,7 +289,7 @@ function UnderdogGame() {
   function openWinModal() {
     setIsOpen(true);
     console.log("win modal opened");
-    socket.emit('set-questions-state', {
+    socket.emit('underdog-set-questions-state', {
       raceId,
       newIndex: currentQuestionIndex,
       secondsLeft: 0,
@@ -362,7 +362,7 @@ function UnderdogGame() {
           setAmountOfAnswersRight(0);
 
           if (currentQuestionIndex !== questions.length - 1) {
-            socket.emit('set-questions-state', {
+            socket.emit('underdog-set-questions-state', {
               raceId,
               newIndex: currentQuestionIndex + 1,
               secondsLeft: totalSeconds,

@@ -6,13 +6,14 @@ interface IFinishRaceStat {
     newGamesAboveAverage: number;
 }
 
-const setNameByAddress = async (name: string, address: string): Promise<any> => {
+const setNameByAddress = async (name: string, address: string, isBot=false): Promise<any> => {
     return User.findOneAndUpdate(
         { 
             address 
         },
         { 
-            name 
+            name,
+            isBot,
         },
         { 
             new: true, 

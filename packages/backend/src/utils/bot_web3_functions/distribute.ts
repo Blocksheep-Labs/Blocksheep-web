@@ -76,7 +76,7 @@ export const distribute = async(
             envCfg.BLOCKSHEEP_CONTRACT_ADDRESS
         );
 
-        const txDistribute = await  blocksheepContract.methods.distribute(
+        const txDistribute = await blocksheepContract.methods.distribute(
             contractName,
             raceId,
             getSendingParams(contractName)

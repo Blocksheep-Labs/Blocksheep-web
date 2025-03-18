@@ -18,7 +18,11 @@ export default async function initBotsInDatabase() {
 
             return {
                 bot:  await BotsSchema.create({address}).catch(console.error),
-                user: await setNameByAddress(`bot-${address.substring(address.length - 3, address.length)}`, address),
+                user: await setNameByAddress(
+                    `bot-${address.substring(address.length - 3, address.length)}`,
+                    address,
+                    true
+                ),
             }
         }
         return new Promise((resolve, reject) => {

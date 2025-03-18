@@ -12,6 +12,7 @@ interface IUser extends Document {
     gamesAboveAverage: number;
     previousGamesAboveAverage: number;
     finishedRaces: IFinishedRace[];
+    isBot: boolean;
 }
 
 const usersSchema: Schema<IUser> = new Schema({
@@ -44,7 +45,11 @@ const usersSchema: Schema<IUser> = new Schema({
             type: Number,
             required: true,
         }
-    }]
+    }],
+    isBot: {
+        type: Boolean,
+        default: false,
+    }
 }, { timestamps: true });
 
 export default mongoose.model<IUser>("User", usersSchema);

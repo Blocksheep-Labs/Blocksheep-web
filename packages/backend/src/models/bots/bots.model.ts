@@ -1,10 +1,13 @@
 import BotSchema from "./bots.mongo";
+import UsersSchema from "../users/users.mongo";
 import {registerOnTheRace} from "../../utils/bot_web3_functions/registerOnTheRace";
 import {insertUser as insertUserIntoRace} from "../races/races.model";
 
 
 
 export const registerBotAtRace = async (raceId: string) => {
+    const rid = Number(raceId.split('-')[1]);
+
     const botWithMinimumPayload = await BotSchema.findOne()
         .sort({ connectedRaceIds: 1 })
 
@@ -12,13 +15,19 @@ export const registerBotAtRace = async (raceId: string) => {
         throw new Error("No bots was found");
     }
 
-    await registerOnTheRace(Number(raceId), botWithMinimumPayload.address);
-    await insertUserIntoRace(raceId, botWithMinimumPayload._id as string);
+    const botAsUserEntity = await UsersSchema.findOne({ address: botWithMinimumPayload.address });
+
+    if (!botAsUserEntity) {
+        throw new Error(`Bot ${botWithMinimumPayload.address} is not initialized as user`);
+    }
+
+    await registerOnTheRace(rid, botWithMinimumPayload.address);
+    await insertUserIntoRace(raceId, botAsUserEntity._id as string);
 
     // Use MongoDB's atomic update ($addToSet) to avoid duplicates
     return BotSchema.findOneAndUpdate(
         { _id: botWithMinimumPayload._id },
-        { $addToSet: { connectedRaceIds: raceId } },
+        { $addToSet: { connectedRaceIds: rid } },
         { new: true }
     );
 };

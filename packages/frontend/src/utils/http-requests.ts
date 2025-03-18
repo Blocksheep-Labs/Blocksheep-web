@@ -41,11 +41,12 @@ export const httpRaceInsertUser = async(raceId: string, userId: string) => {
 }
 
 
-export const httpCreateRace = async(raceId: string, screenTimings: any, numberOfBots: number) => {
+export const httpCreateRace = async(raceId: string, screenTimings: any, numberOfBots: number, rid: number) => {
     return await axios.post(`${SERVER_BASE}/races/create`, {
         raceId,
         screenTimings,
-        numberOfBots
+        numberOfBots,
+        rid
     });
 }
 

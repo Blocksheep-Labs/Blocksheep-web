@@ -60,6 +60,7 @@ const updateUnderdogProgress = (
                 data: {
                     // index could be extracted by subtracting rProgress.progress.underdog.completed
                     questionIndex: rProgress.progress.underdog.completed - 1,
+                    amountOfQuestions: value.of,
                 }
             }).catch((err) => {
                 console.log("Bot make move failed :(", err);

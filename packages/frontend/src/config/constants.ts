@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { baseSepolia } from "viem/chains";
 import { addRpcUrlOverrideToChain } from "@privy-io/react-auth";
 

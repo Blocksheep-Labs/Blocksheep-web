@@ -44,6 +44,8 @@ function DriversScreen() {
   const [amountOfPlayersReady, setAmountOfPlayersReady] = useState(0);
   const { hasAccess: userIsAdmin } = useCheckAdminAccess();
 
+  const AMOUNT_OF_BOTS = usersData.filter(i => i?.isBot).length
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -89,7 +91,7 @@ function DriversScreen() {
         race &&
         smartAccountAddress &&
         raceId != undefined &&
-        amountOfPlayersReady + usersData.filter(i => i?.isBot).length >= race.numOfPlayersRequired
+        amountOfPlayersReady + AMOUNT_OF_BOTS >= race.numOfPlayersRequired
     ) {
       // timeout to update the ui for other players (selected items)
       setTimeout(() => {
@@ -328,7 +330,7 @@ function DriversScreen() {
       }
     }, [smartAccountAddress, socket, raceId]);
 
-
+  console.log(amountOfPlayersReady + AMOUNT_OF_BOTS == race?.numOfPlayersRequired, amountOfPlayersReady, AMOUNT_OF_BOTS)
 
   return (
       <div
@@ -395,7 +397,7 @@ function DriversScreen() {
 
           <div className="uppercase text-white mx-auto pt-1.5">
             {
-              race && (amountOfConnected + usersData.filter(i => i?.isBot).length == race.numOfPlayersRequired)
+              race && (amountOfConnected + AMOUNT_OF_BOTS == race.numOfPlayersRequired)
                   ?
                   <>ALL PLAYERS JOINED.</>
                   :
@@ -407,7 +409,7 @@ function DriversScreen() {
           {
               step === 4 && (
                   <Button
-                    text={(race && (amountOfPlayersReady + usersData.filter(i => i?.isBot).length == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."}
+                    text={(race && (amountOfPlayersReady + AMOUNT_OF_BOTS == race.numOfPlayersRequired)) ? "Processing..." : "Waiting..."}
                     className="mt-2"
                     onClick={undefined}
                   />
@@ -419,8 +421,8 @@ function DriversScreen() {
               !forceNextClicked &&
               race &&
               step === 4 &&
-              (amountOfConnected + usersData.filter(i => i?.isBot).length != race.numOfPlayersRequired) &&
-              (amountOfPlayersReady == amountOfConnected + usersData.filter(i => i?.isBot).length) &&
+              (amountOfConnected + AMOUNT_OF_BOTS != race.numOfPlayersRequired) &&
+              (amountOfPlayersReady == amountOfConnected + AMOUNT_OF_BOTS) &&
               <div className="absolute top-3 right-3 w-14 rotate-90 bg-white rounded-full opacity-70">
                 <img
                     onClick={

@@ -2,6 +2,8 @@ import {ethers} from "ethers";
 import BlocksheepAbi from "../../config/abis/blocksheep.json";
 import envCfg from "../../config/env";
 import Web3 from "web3";
+import {handleUpdateProgress} from "../../socket/events";
+import {getIO} from "../../socket/init";
 
 require('dotenv').config();
 
@@ -58,6 +60,16 @@ export const distribute = async(
         }
     }
 
+    // PRE-SUBMIT EVENTS
+    switch (contractName) {
+        case "UNDERDOG":
+            break;
+        case "RABBITHOLE":
+            break;
+        case "BULLRUN":
+            break;
+    }
+
     const botAddrIndex = envCfg.BOTS_ADDRS.indexOf(botAddress);
     if (botAddrIndex === -1) {
         throw new Error(`Bot address ${botAddress} not found in BOTS_ADDRS.`);
@@ -76,11 +88,37 @@ export const distribute = async(
             envCfg.BLOCKSHEEP_CONTRACT_ADDRESS
         );
 
+        const currentNonce = await web3.eth.getTransactionCount(account.address, 'pending');
         const txDistribute = await blocksheepContract.methods.distribute(
             contractName,
             raceId,
             getSendingParams(contractName)
-        ).send({ from: account.address });
+        ).send({
+            from: account.address,
+            nonce: currentNonce.toString(), // Correct nonce
+            gas: "3000000", // Set adequate gas limit
+            gasPrice: String(await web3.eth.getGasPrice()) // Fetch latest gas price
+        });
+
+        // AFTER-SUBMIT EVENTS
+        switch (contractName) {
+            case "UNDERDOG":
+                await handleUpdateProgress({
+                    raceId,
+                    userAddress: botAddress,
+                    property: "underdog-distribute",
+                    value: {
+                        completed: null,
+                        of: null,
+                        isDistributed: true,
+                    }
+                }, getIO());
+                break;
+            case "RABBITHOLE":
+                break;
+            case "BULLRUN":
+                break;
+        }
 
         return txDistribute.transactionHash;
     } catch (err) {

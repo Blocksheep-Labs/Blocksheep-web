@@ -1,6 +1,6 @@
 import app from "./app";
 import { createServer } from "http";
-import { initializeSocket } from "./socket/init.";
+import { initializeSocket } from "./socket/init";
 import connectMongo from "./utils/connectMongo";
 import dotenv from "dotenv";
 import initBotsInDatabase from "./utils/initBotsInDatabase";

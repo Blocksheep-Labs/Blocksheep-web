@@ -3,10 +3,10 @@ import mongoose, {Document, Schema} from "mongoose";
 interface IBot extends Document {
     address: string;
     connectedRaceIds: string[];
-    usersGameMapping: Map<number, string>; // user address -> game name
-    isMakingMoveMap: Map<number, boolean>;
-    isDistributingMap: Map<number, boolean>;
-    underdogPassedQuestionIndexes: Map<number, number[]>;
+    usersGameMapping: Map<string, string>; // user address -> game name
+    isMakingMoveMap: Map<string, boolean>;
+    isDistributingMap: Map<string, boolean>;
+    underdogPassedQuestionIndexes: Map<string, number[]>;
 }
 
 const botsSchema: Schema<IBot> = new Schema({

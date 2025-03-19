@@ -2,9 +2,8 @@ import {ethers} from "ethers";
 import envCfg from "../../config/env";
 import BlocksheepAbi from "../../config/abis/blocksheep.json";
 import Web3 from "web3";
-import {socket} from "frontend/src/utils/socketio";
-import {getIO} from "../../socket/init.";
 import {handleUpdateProgress} from "../../socket/events";
+import {getIO} from "../../socket/init";
 require('dotenv').config();
 
 
@@ -156,18 +155,24 @@ export const makeMove = async(
                         isPending: true,
                     },
                     version: rabbitholeData?.version as string,
-                });
+                }, getIO());
                 break;
             default:
                 break;
         }
 
         // make move
+        const currentNonce = await web3.eth.getTransactionCount(account.address, 'pending');
         const txMakeMove = await blocksheepContract.methods.makeMove(
             contractName,
             raceId,
             sendingParams.packed
-        ).send({ from: account.address });
+        ).send({
+            from: account.address,
+            nonce: currentNonce.toString(), // Correct nonce
+            gas: "3000000", // Set adequate gas limit
+            gasPrice: String(await web3.eth.getGasPrice()) // Fetch latest gas price
+        });
 
         // AFTER-SUBMIT EVENTS
         switch (contractName) {
@@ -182,7 +187,7 @@ export const makeMove = async(
                         // @ts-ignore
                         answer: sendingParams.raw?.answerIndex,
                     }
-                });
+                }, getIO());
                 break;
             case "RABBITHOLE":
                 await handleUpdateProgress({
@@ -195,7 +200,7 @@ export const makeMove = async(
                         isPending: false,
                     },
                     version: rabbitholeData?.version as string,
-                });
+                }, getIO());
                 break;
             case "BULLRUN":
 

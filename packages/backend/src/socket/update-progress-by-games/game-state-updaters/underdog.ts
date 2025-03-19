@@ -1,5 +1,5 @@
 import config from "../default-states-by-games/underdog";
-import handleUserChoiceWithBot from "../../events-bots/game-handlers";
+import handleUserChoiceWithBot from "../../../utils/botGameHandlers";
 
 interface RaceProgress {
     progress: typeof config
@@ -67,7 +67,7 @@ const updateUnderdogProgress = (
             });
             break;
         case "underdog-confirm-last-answer": {
-            console.log("confirm", property, value);
+            // console.log("confirm", property, value);
             rProgress.progress.underdog = {
                 ...rProgress.progress.underdog,
                 lastAnswerIsConfirmed: true,

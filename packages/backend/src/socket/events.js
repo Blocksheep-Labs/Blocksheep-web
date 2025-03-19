@@ -79,7 +79,7 @@ export const applySocketEvents = (io) => {
 
         // Listen for 'update-progress' events
         socket.on('update-progress', async ({ raceId, userAddress, property, value, version }) => {
-            await handleUpdateProgress({ raceId, userAddress, property, value, version });
+            await handleUpdateProgress({ raceId, userAddress, property, value, version }, io);
         });
 
 
@@ -201,7 +201,7 @@ export const applySocketEvents = (io) => {
 };
 
 
-export const handleUpdateProgress = async(data) => {
+export const handleUpdateProgress = async(data, io) => {
     const { raceId, userAddress, property, value, version } = data;
     // console.log({ raceId, userAddress, property, value, version })
     const roomName = `race-${raceId}`;

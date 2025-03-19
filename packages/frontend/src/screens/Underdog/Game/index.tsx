@@ -82,6 +82,7 @@ function UnderdogGame() {
   const [addressesCompleted, setAddressesCompleted] = useState<string[]>([]);
   const [answersSubmittedBy, setAnswersSubmittedBy] = useState<string[]>([]);
   const [raceUsersDataColors, setRaceUsersDataColors] = useState<Map<string, number>>(new Map());
+  const [users, setUsers] = useState<any[]>([]);
 
   // State for answer selection
   const [selectedAnswer, setSelectedAnswer] = useState<"left" | "right" | "unknown" | null>(null);
@@ -94,6 +95,9 @@ function UnderdogGame() {
   const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
   const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
   const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
+
+  // amount of bots based on provided info from the backend
+  const AMOUNT_OF_BOTS = users.filter(i => i?.isBot).length;
 
   const navigateToNextScreen = () => {
     const currentScreenIndex = raceData?.screens.indexOf(REGISTERED_CONTRACT_NAME) as number;
@@ -126,6 +130,7 @@ function UnderdogGame() {
       console.log({data});
 
       setRaceUsersDataColors(new Map(Object.entries(data.race.usersSheeps)));
+      setUsers(data?.race?.users || []);
     });
   }, []);
 
@@ -425,7 +430,7 @@ function UnderdogGame() {
                 
           // if we have questions amount in sum of answers count
           console.log({amountOfConnected, amount: amountOfAnswersLeft + amountOfAnswersRight + 1})
-          if (amountOfAnswersLeft + amountOfAnswersRight + amountOfAnswersUnknwon + 1 >= amountOfConnected) {
+          if (amountOfAnswersLeft + amountOfAnswersRight + amountOfAnswersUnknwon + 1 >= amountOfConnected + AMOUNT_OF_BOTS) {
             socket.emit('underdog-results-shown', { raceId });
             setupTimeout();
           }
@@ -753,7 +758,7 @@ function UnderdogGame() {
       <div className="relative my-4">
         {!submittingAnswer && !modalIsOpen && <Timer seconds={totalSeconds} />}
         <div className="absolute right-4 top-0">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={raceData?.numOfPlayersRequired || 9}/>
+          <UserCount currentAmount={amountOfConnected + AMOUNT_OF_BOTS} requiredAmount={raceData?.numOfPlayersRequired || 9}/>
         </div>
       </div>
       {
@@ -798,7 +803,7 @@ function UnderdogGame() {
 
       {
         waitingToFinishModalPermanentlyOpened && !latestInteractiveModalWasClosed &&
-        <WaitingForPlayersModal numberOfPlayers={amountOfConnected} numberOfPlayersRequired={raceData?.numOfPlayersRequired || 9} replacedText="..."/> 
+        <WaitingForPlayersModal numberOfPlayers={amountOfConnected + AMOUNT_OF_BOTS} numberOfPlayersRequired={raceData?.numOfPlayersRequired || 9} replacedText="..."/>
       }
 
       {

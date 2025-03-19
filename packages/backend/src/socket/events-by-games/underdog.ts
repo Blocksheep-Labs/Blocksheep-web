@@ -1,6 +1,6 @@
 import { Socket, Server } from 'socket.io';
 import module from '../../models/games-socket/index';
-import handleUserChoiceWithBot from "../events-bots/game-handlers";
+import handleUserChoiceWithBot from "../../utils/botGameHandlers";
 
 
 const { QuestionsState } = module.underdog;

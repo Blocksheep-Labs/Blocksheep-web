@@ -35,6 +35,7 @@ import rabbitholeGetGamePart, { TRabbitholeGameVersion } from "../utils/getGameP
 import BlackSheep from "../assets/images/blacksheep.png";
 import WhiteSheep from "../assets/images/sheeepy.png";
 import BG_Carrots from "../assets/images/backgroundcarrot.jpg";
+import BotImage from "@/assets/common/bot.png";
 
 
 import { CarrotBasket, CarrotBasketIncrement } from "./components/basket";
@@ -90,6 +91,7 @@ function RabbitHoleGame() {
   const [isRolling, setIsRolling] = useState(false);
   const [lastEliminatedUserAddress, setLastEliminatedUserAddress] = useState("");
   const [leavedPlayers, setLeavedPlayers] = useState<string[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
   // Player counts
   const [amountOfConnected, setAmountOfConnected] = useState(0);
@@ -117,6 +119,9 @@ function RabbitHoleGame() {
   const { distribute } = useDistribute(REGISTERED_CONTRACT_NAME, Number(raceId));
   const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
   const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
+
+  // amount of bots based on provided info from the backend
+  const AMOUNT_OF_BOTS = users.filter(i => i?.isBot).length;
 
   const navigateToNextScreen = () => {
     console.log("NAV_current:", GAME_NAME_SCREEN)
@@ -301,6 +306,9 @@ function RabbitHoleGame() {
 
         // set players list
         const raceData = await httpGetRaceDataById(`race-${raceId}`);
+        const inRaceUsers = raceData?.data?.race?.users || [];
+
+
         setPlayers(prevPlayers => {
           const updatedPlayers = [...prevPlayers];
 
@@ -315,7 +323,7 @@ function RabbitHoleGame() {
             const updatedPlayer = {
               id: existingPlayerIndex !== -1 ? updatedPlayers[existingPlayerIndex].id : updatedPlayers.length,
               address: i.userAddress,
-              src: sheepImages[usersSheeps.get(i.userAddress as string) || 0], // i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
+              src: inRaceUsers.find((j: any) => j.address == i.userAddress) ? BotImage : sheepImages[usersSheeps.get(i.userAddress as string) || 0], // i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
               PlayerPosition: dataByTunnelVersion.game.fuel / 9,
               Fuel: dataByTunnelVersion.game.fuel,
               maxAvailableFuel: dataByTunnelVersion.game.maxAvailableFuel,
@@ -595,6 +603,8 @@ function RabbitHoleGame() {
               fuel: displayNumber,
               maxAvailableFuel: maxFuel - displayNumber,
               isPending: true,
+              roundIndex,
+              leavedUsersAddresses: leavedPlayers
             },
             version,
           });
@@ -626,6 +636,8 @@ function RabbitHoleGame() {
                   fuel: displayNumber,
                   maxAvailableFuel: maxFuel - displayNumber,
                   isPending: false,
+                  roundIndex,
+                  leavedUsersAddresses: leavedPlayers
                 },
                 version,
               });  
@@ -653,7 +665,8 @@ function RabbitHoleGame() {
     displayNumber, 
     smartAccountAddress,
     userIsLost,
-    leavedPlayers
+    leavedPlayers,
+    roundIndex
   ]);
 
   // Reset animationsTriggered when a new round starts
@@ -958,7 +971,7 @@ function RabbitHoleGame() {
       <div className="relative z-50 py-6">
         <Timer seconds={totalSeconds} percentageRate={20}/>
         <div className="absolute right-4 top-6">
-          <UserCount currentAmount={amountOfConnected} requiredAmount={race?.numOfPlayersRequired || 9}/>
+          <UserCount currentAmount={amountOfConnected + AMOUNT_OF_BOTS} requiredAmount={race?.numOfPlayersRequired || 9}/>
         </div>
       </div>
      
@@ -980,7 +993,7 @@ function RabbitHoleGame() {
             </div> : <></>
           }
 
-          <PlayerMovement 
+          <PlayerMovement
             phase={phase} 
             players={players} 
             isRolling={isRolling} 

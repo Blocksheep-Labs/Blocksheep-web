@@ -1,4 +1,5 @@
 import botsSchema from "../models/bots/bots.mongo";
+import progressSchema from "../models/games-socket/default/race-progress.mongo";
 import {makeMove} from "./bot_web3_functions/makeMove";
 import {distribute} from "./bot_web3_functions/distribute";
 
@@ -24,11 +25,104 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
         return;
     }
 
+    async function unlockForDistribute(botAddress: string) {
+        await botsSchema.findOneAndUpdate(
+            {address: botAddress},
+            { $set: { [`isDistributingMap.${raceId}`]: false } },
+            { upsert: true }
+        );
+    }
+
+    async function lockForDistribute(botAddress: string) {
+        await botsSchema.findOneAndUpdate(
+            {address: botAddress},
+            { $set: { [`isDistributingMap.${raceId}`]: true } },
+            { upsert: true }
+        );
+    }
+
+    async function unlockForMakeMove(botAddress: string) {
+        await botsSchema.findOneAndUpdate(
+            { address: botAddress },
+            {
+                $set: { [`isMakingMoveMap.${raceId}`]: false },
+            },
+            { upsert: true }
+        );
+    }
+
+
     switch (game) {
         case "BULLRUN":
             break;
+
         case "RABBITHOLE":
+            bots.map(async (i) => {
+                if (
+                    !i.isMakingMoveMap.get(String(raceId)) &&
+                    type == "makeMove" &&
+                    !(i.rabbitholeRoundsPlayed.get(String(raceId)) || []).includes(Number(data.roundIndex))
+                ) {
+                    // check for bot not to be eliminated
+                    const botProgressData = await progressSchema.findOne({ room: `race-${raceId}`, userAddress: i.address });
+                    const botGameData = botProgressData?.progress.rabbithole[data.version].game;
+                    const botIsCompleted = botGameData?.isCompleted || false;
+                    const botIsEliminated = botGameData?.isEliminated || false;
+
+                    // if bot is eliminated - it must not do any txs
+                    if (botIsEliminated || botIsCompleted) {
+                        return;
+                    }
+
+                    console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: RABBITHOLE`);
+                    // lock bot in race id (making move)
+                    await botsSchema.findOneAndUpdate(
+                        { address: i.address },
+                        {
+                            $set: { [`isMakingMoveMap.${raceId}`]: true },
+                            $push: { [`rabbitholeRoundsPlayed.${raceId}`]: Number(data.roundIndex) }
+                        },
+                        { upsert: true }
+                    );
+
+                    const makeMoveData = await makeMove(
+                        "RABBITHOLE",
+                        raceId,
+                        i.address,
+                        undefined, // underdog data should be empty
+                        {
+                            ...data,
+                            fuelLeft: botGameData.maxAvailableFuel,
+                            fuelSubmission: Math.floor(Math.random() * (botGameData.maxAvailableFuel + 1)),
+                        }, // rabbithole data
+                        undefined // bullrun data should be empty
+                    );
+
+                    // unlock bot in race id (making move)
+                    await unlockForMakeMove(i.address);
+
+                    return makeMoveData;
+                } else if (!i.isDistributingMap.get(String(raceId)) && type == "distribute") {
+                    console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: UNDERDOG`);
+                    // lock bot in race id (distributing reward)
+                    await lockForDistribute(i.address);
+
+                    const distributeData = await distribute(
+                        "RABBITHOLE",
+                        raceId,
+                        i.address,
+                        undefined // bullrun data should be empty
+                    );
+
+                    // unlock bot in race id (distributing reward)
+                    await unlockForDistribute(i.address);
+
+                    return distributeData;
+                }
+                return new Promise((resolve, _) => { resolve(true); });
+            });
             break;
+
         case "UNDERDOG":
             await Promise.all(
                 bots.map(async (i) => {
@@ -56,24 +150,15 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
                             undefined // bullrun data should be empty
                         );
 
-                        // lock bot in race id (making move)
-                        await botsSchema.findOneAndUpdate(
-                            { address: i.address },
-                            {
-                                $set: { [`isMakingMoveMap.${raceId}`]: false },
-                            },
-                            { upsert: true }
-                        );
+                        // unlock bot in race id (making move)
+                        await unlockForMakeMove(i.address);
 
                         return makeMoveData;
                     } else if (!i.isDistributingMap.get(String(raceId)) && type == "distribute") {
-                        console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}`);
+                        console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: UNDERDOG`);
                         // lock bot in race id (distributing reward)
-                        await botsSchema.findOneAndUpdate(
-                            {address: i.address},
-                            { $set: { [`isDistributingMap.${raceId}`]: true } },
-                            { upsert: true }
-                        );
+                        await lockForDistribute(i.address);
+
                         const distributeData = await distribute(
                             "UNDERDOG",
                             raceId,
@@ -82,11 +167,7 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
                         );
 
                         // unlock bot in race id (distributing reward)
-                        await botsSchema.findOneAndUpdate(
-                            {address: i.address},
-                            { $set: { [`isDistributingMap.${raceId}`]: false } },
-                            { upsert: true }
-                        );
+                        await unlockForDistribute(i.address);
 
                         return distributeData;
                     }

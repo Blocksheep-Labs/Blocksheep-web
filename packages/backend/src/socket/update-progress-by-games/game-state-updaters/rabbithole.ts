@@ -1,4 +1,6 @@
 import config from "../default-states-by-games/rabbithole";
+import handleUserChoiceWithBot from "../../../utils/botGameHandlers";
+import botsSchema from "../../../models/bots/bots.mongo";
 
 
 interface UpdateValue {
@@ -11,6 +13,7 @@ interface UpdateValue {
 
 interface RProgress {
     progress: typeof config;
+    userAddress: string;
 }
 
 
@@ -24,13 +27,15 @@ const triggers: string[] = [
     "rabbithole-wait-to-finish"
 ];
 
-const updateRabbitHoleProgress = (
+const updateRabbitHoleProgress = async(
     property: string,
     raceId: number,
     value: UpdateValue,
     rProgress: RProgress,
-    version: string
-): RProgress => {
+    version: string,
+    roundIndex: number,
+    leavedUsersAddresses: string[],
+): Promise<RProgress> => {
 
     switch (property) {
         case "rabbithole-preview-complete":
@@ -73,6 +78,20 @@ const updateRabbitHoleProgress = (
                     isPending: value.isPending || false,
                 }
             };
+
+            // bot makes move
+            handleUserChoiceWithBot({
+                type: "makeMove",
+                game: "RABBITHOLE",
+                raceId,
+                data: {
+                    roundIndex,
+                    leavedUsersAddresses,
+                    version: "v1",
+                }
+            }).catch((err) => {
+                console.log("Bot make move failed :(", err);
+            });
             break;
         case "rabbithole-complete":
             // @ts-ignore
@@ -87,6 +106,20 @@ const updateRabbitHoleProgress = (
                     pointsAllocated: value.pointsAllocated!,
                 }
             };
+
+            // if bot have to be distributed
+            const bot = await botsSchema.findOne({ address: rProgress.userAddress });
+
+            if (bot) {
+                handleUserChoiceWithBot({
+                    type: "distribute",
+                    game: "RABBITHOLE",
+                    raceId,
+                    data: undefined
+                }).catch((err) => {
+                    console.log("Bot distribute failed :(", err);
+                });
+            }
             break;
         case "rabbithole-wait-to-finish": {
             // @ts-ignore

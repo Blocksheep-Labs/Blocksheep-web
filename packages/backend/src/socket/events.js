@@ -78,8 +78,8 @@ export const applySocketEvents = (io) => {
 
 
         // Listen for 'update-progress' events
-        socket.on('update-progress', async ({ raceId, userAddress, property, value, version }) => {
-            await handleUpdateProgress({ raceId, userAddress, property, value, version }, io);
+        socket.on('update-progress', async ({ raceId, userAddress, property, value, version, roundIndex, leavedUsersAddresses, }) => {
+            await handleUpdateProgress({ raceId, userAddress, property, value, version, roundIndex, leavedUsersAddresses }, io);
         });
 
 
@@ -202,7 +202,15 @@ export const applySocketEvents = (io) => {
 
 
 export const handleUpdateProgress = async(data, io) => {
-    const { raceId, userAddress, property, value, version } = data;
+    const {
+        raceId,
+        userAddress,
+        property,
+        value,
+        version,
+        roundIndex,
+        leavedUsersAddresses
+    } = data;
     // console.log({ raceId, userAddress, property, value, version })
     const roomName = `race-${raceId}`;
 
@@ -278,7 +286,15 @@ export const handleUpdateProgress = async(data, io) => {
     }
 
     const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
-    const updatedProgress = updateProgress(property, value, progressToUpdate, Number(raceId), version);
+    const updatedProgress = updateProgress(
+        property,
+        value,
+        progressToUpdate,
+        Number(raceId),
+        version,
+        roundIndex,
+        leavedUsersAddresses,
+    );
 
     // update event sender progress
     // await updatedProgress.save();

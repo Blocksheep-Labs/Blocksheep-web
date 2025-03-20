@@ -115,6 +115,9 @@ export const distribute = async(
                 }, getIO());
                 break;
             case "RABBITHOLE":
+                // there is no need to await handleUpdateProgress(...),
+                // because from the client, all other players have called rabbithole-game-complete with bot user address
+                // as he lost
                 break;
             case "BULLRUN":
                 break;

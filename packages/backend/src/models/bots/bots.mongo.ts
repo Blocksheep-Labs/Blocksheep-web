@@ -7,6 +7,7 @@ interface IBot extends Document {
     isMakingMoveMap: Map<string, boolean>;
     isDistributingMap: Map<string, boolean>;
     underdogPassedQuestionIndexes: Map<string, number[]>;
+    rabbitholeRoundsPlayed: Map<string, number[]>;
 }
 
 const botsSchema: Schema<IBot> = new Schema({
@@ -42,7 +43,13 @@ const botsSchema: Schema<IBot> = new Schema({
         type: Map,
         of: [Number],
         default: {}
-    }
+    },
+
+    rabbitholeRoundsPlayed: {
+        type: Map,
+        of: [Number],
+        default: {}
+    },
 }, { timestamps: true });
 
 export default mongoose.model<IBot>("Bot", botsSchema);

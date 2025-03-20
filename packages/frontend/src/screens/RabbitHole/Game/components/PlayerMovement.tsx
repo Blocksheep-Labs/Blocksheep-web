@@ -10,7 +10,7 @@ const PlayerMovement = ({
   isRolling,
   amountOfCompleted,
   version,
-  lastEliminatedUserAddress
+  lastEliminatedUserAddress,
 }: {
   phase: RabbitHolePhases; 
   players: ConnectedUser[];

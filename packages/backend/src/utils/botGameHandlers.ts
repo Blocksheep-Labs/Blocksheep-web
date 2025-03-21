@@ -103,7 +103,7 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
 
                     return makeMoveData;
                 } else if (!i.isDistributingMap.get(String(raceId)) && type == "distribute") {
-                    console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: UNDERDOG`);
+                    console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: RABBITHOLE`);
                     // lock bot in race id (distributing reward)
                     await lockForDistribute(i.address);
 
@@ -111,6 +111,7 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
                         "RABBITHOLE",
                         raceId,
                         i.address,
+                        data,
                         undefined // bullrun data should be empty
                     );
 
@@ -163,6 +164,7 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
                             "UNDERDOG",
                             raceId,
                             i.address,
+                            data,
                             undefined // bullrun data should be empty
                         );
 

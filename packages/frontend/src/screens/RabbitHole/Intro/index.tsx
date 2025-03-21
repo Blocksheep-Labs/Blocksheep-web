@@ -38,14 +38,14 @@ export default function RabbitHoleCover() {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "rabbithole-preview-complete",
-                version
+                value: { version }
             });
             
             socket.emit('update-progress', {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "rabbithole-preview-complete",
-                version
+                value: { version }
             });
 
             const introPart = SCREEN_NAME;
@@ -146,7 +146,7 @@ export default function RabbitHoleCover() {
                         raceId,
                         userAddress: smartAccountAddress,
                         property: "rabbithole-preview-complete",
-                        version
+                        value: { version }
                     });
                     navigate(generateLink(screen, Number(raceId)));
                 }

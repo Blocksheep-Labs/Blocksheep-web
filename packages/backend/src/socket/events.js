@@ -78,8 +78,8 @@ export const applySocketEvents = (io) => {
 
 
         // Listen for 'update-progress' events
-        socket.on('update-progress', async ({ raceId, userAddress, property, value, version, roundIndex, leavedUsersAddresses, }) => {
-            await handleUpdateProgress({ raceId, userAddress, property, value, version, roundIndex, leavedUsersAddresses }, io);
+        socket.on('update-progress', async ({ raceId, userAddress, property, value }) => {
+            await handleUpdateProgress({ raceId, userAddress, property, value }, io);
         });
 
 
@@ -201,17 +201,13 @@ export const applySocketEvents = (io) => {
 };
 
 
-export const handleUpdateProgress = async(data, io) => {
+export const handleUpdateProgress = async(data, io, justInsertNew=false) => {
     const {
         raceId,
         userAddress,
         property,
         value,
-        version,
-        roundIndex,
-        leavedUsersAddresses
     } = data;
-    // console.log({ raceId, userAddress, property, value, version })
     const roomName = `race-${raceId}`;
 
     let rProgress = await RaceProgress.findOneAndUpdate(
@@ -250,66 +246,76 @@ export const handleUpdateProgress = async(data, io) => {
         }
     );
 
+    if (!justInsertNew) {
+        console.log("[TESTING] Updating user state:", userAddress);
+        if (property === 'rabbithole-eliminate') {
+            const racesProgresses = await RaceProgress.find({ room: roomName });
+            const connectedUsers = await ConnectedUser.find({ room: roomName });
 
-    if (property === 'rabbithole-eliminate') {
-        const racesProgresses = await RaceProgress.find({ room: roomName });
-        const connectedUsers = await ConnectedUser.find({ room: roomName });
+            // Set the fuel of all players who are not connected to 0
+            await Promise.all(racesProgresses.map(async progress => {
+                // Check if the player is not the eliminating player and is not connected
+                if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
+                    progress.progress.rabbithole[value.version] = {
+                        ...progress.progress.rabbithole[value.version],
+                        game: {
+                            ...progress.progress.rabbithole[value.version].game,
+                            fuel: 0, // Set fuel to 0 for players who are not connected
+                        }
+                    };
 
-        // Set the fuel of all players who are not connected to 0
-        await Promise.all(racesProgresses.map(async progress => {
-            // Check if the player is not the eliminating player and is not connected
-            if (progress.userAddress !== userAddress && !connectedUsers.some(user => user.userAddress === progress.userAddress)) {
-                progress.progress.rabbithole[version] = {
-                    ...progress.progress.rabbithole[version],
+                    await progress.save();
+                }
+            }));
+
+            // Set the fuel of the eliminating player to 0
+            const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
+            if (eliminatingPlayerProgress) {
+                eliminatingPlayerProgress.progress.rabbithole[value.version] = {
+                    ...eliminatingPlayerProgress.progress.rabbithole[value.version],
                     game: {
-                        ...progress.progress.rabbithole[version].game,
-                        fuel: 0, // Set fuel to 0 for players who are not connected
+                        ...eliminatingPlayerProgress.progress.rabbithole[value.version].game,
+                        fuel: 0, // Set fuel to 0 for the eliminating player
                     }
                 };
-
-                await progress.save();
+                await eliminatingPlayerProgress.save();
             }
-        }));
-
-        // Set the fuel of the eliminating player to 0
-        const eliminatingPlayerProgress = racesProgresses.find(progress => progress.userAddress === userAddress);
-        if (eliminatingPlayerProgress) {
-            eliminatingPlayerProgress.progress.rabbithole[version] = {
-                ...eliminatingPlayerProgress.progress.rabbithole[version],
-                game: {
-                    ...eliminatingPlayerProgress.progress.rabbithole[version].game,
-                    fuel: 0, // Set fuel to 0 for the eliminating player
-                }
-            };
-            await eliminatingPlayerProgress.save();
         }
-    }
 
-    const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
-    const updatedProgress = updateProgress(
-        property,
-        value,
-        progressToUpdate,
-        Number(raceId),
-        version,
-        roundIndex,
-        leavedUsersAddresses,
-    );
-
-    // update event sender progress
-    // await updatedProgress.save();
-
-    // Update the progress in MongoDB
-    try {
-        await RaceProgress.updateOne(
-            { room: roomName, userAddress },
-            { $set: updatedProgress },
-            { upsert: true }
+        const progressToUpdate = JSON.parse(JSON.stringify(rProgress));
+        const updatedProgress = updateProgress(
+            property,
+            value,
+            progressToUpdate,
+            Number(raceId)
         );
-    } catch (error) {
-        console.log("[!] Update progress error", error);
+
+        // update event sender progress
+        // await updatedProgress.save();
+
+        // Update the progress in MongoDB
+        try {
+            await RaceProgress.updateOne(
+                { room: roomName, userAddress },
+                { $set: updatedProgress },
+                { upsert: true }
+            );
+        } catch (error) {
+            console.log("[!] Update progress error", error);
+        }
+        io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
+    } else {
+        // set default progress (initial)
+        console.log("[TESTING] Set initial state for:", userAddress);
+        try {
+            await RaceProgress.updateOne(
+                { room: roomName, userAddress },
+                { $set: JSON.parse(JSON.stringify(rProgress)) },
+                { upsert: true }
+            );
+        } catch (error) {
+            console.log("[!] Set initial progress error", error);
+        }
+        io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: JSON.parse(JSON.stringify(rProgress)) });
     }
-
-
-    io.to(roomName).emit('progress-updated', { raceId, property, value, userAddress, rProgress: updatedProgress });
 }

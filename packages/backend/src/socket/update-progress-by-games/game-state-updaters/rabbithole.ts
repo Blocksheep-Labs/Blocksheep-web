@@ -9,6 +9,9 @@ interface UpdateValue {
     isPending?: boolean;
     isWon?: boolean;
     pointsAllocated?: number;
+    roundIndex?: number,
+    leavedUsersAddresses?: string[],
+    version: string,
 }
 
 interface RProgress {
@@ -27,33 +30,30 @@ const triggers: string[] = [
     "rabbithole-wait-to-finish"
 ];
 
-const updateRabbitHoleProgress = async(
+const updateRabbitHoleProgress = (
     property: string,
     raceId: number,
     value: UpdateValue,
     rProgress: RProgress,
-    version: string,
-    roundIndex: number,
-    leavedUsersAddresses: string[],
-): Promise<RProgress> => {
+): RProgress => {
 
     switch (property) {
         case "rabbithole-preview-complete":
             // @ts-ignore
-            rProgress.progress.rabbithole[version].preview = true;
+            rProgress.progress.rabbithole[value.version].preview = true;
             break;
         case "rabbithole-rules-complete":
             // @ts-ignore
-            rProgress.progress.rabbithole[version].rules = true;
+            rProgress.progress.rabbithole[value.version].rules = true;
             break;
         case "rabbithole-reach": {
             // @ts-ignore
-            rProgress.progress.rabbithole[version] = {
+            rProgress.progress.rabbithole[value.version] = {
                 // @ts-ignore
-                ...rProgress.progress.rabbithole[version],
+                ...rProgress.progress.rabbithole[value.version],
                 game: {
                     // @ts-ignore
-                    ...rProgress.progress.rabbithole[version].game,
+                    ...rProgress.progress.rabbithole[value.version].game,
                     gameReached: true,
                 }
             };
@@ -61,18 +61,18 @@ const updateRabbitHoleProgress = async(
         }
         case "rabbithole-eliminate":
             // @ts-ignore
-            rProgress.progress.rabbithole[version].game.isEliminated = true;
+            rProgress.progress.rabbithole[value.version].game.isEliminated = true;
             break;
         case "rabbithole-set-fuel":
             // @ts-ignore
             console.log("rabbithole-set-fuel", value.fuel, rProgress.userAddress);
             // @ts-ignore
-            rProgress.progress.rabbithole[version] = {
+            rProgress.progress.rabbithole[value.version] = {
                 // @ts-ignore
-                ...rProgress.progress.rabbithole[version],
+                ...rProgress.progress.rabbithole[value.version],
                 game: {
                     // @ts-ignore
-                    ...rProgress.progress.rabbithole[version].game,
+                    ...rProgress.progress.rabbithole[value.version].game,
                     fuel: value.fuel!,
                     maxAvailableFuel: value.maxAvailableFuel!,
                     isPending: value.isPending || false,
@@ -85,9 +85,9 @@ const updateRabbitHoleProgress = async(
                 game: "RABBITHOLE",
                 raceId,
                 data: {
-                    roundIndex,
-                    leavedUsersAddresses,
-                    version: "v1",
+                    roundIndex: value.roundIndex,
+                    leavedUsersAddresses: value.leavedUsersAddresses,
+                    version: value.version,
                 }
             }).catch((err) => {
                 console.log("Bot make move failed :(", err);
@@ -95,31 +95,28 @@ const updateRabbitHoleProgress = async(
             break;
         case "rabbithole-complete":
             // @ts-ignore
-            rProgress.progress.rabbithole[version] = {
+            rProgress.progress.rabbithole[value.version] = {
                 // @ts-ignore
-                ...rProgress.progress.rabbithole[version],
+                ...rProgress.progress.rabbithole[value.version],
                 game: {
                     // @ts-ignore
-                    ...rProgress.progress.rabbithole[version].game,
+                    ...rProgress.progress.rabbithole[value.version].game,
                     isCompleted: true,
                     isWon: value.isWon!,
                     pointsAllocated: value.pointsAllocated!,
                 }
             };
 
-            // if bot have to be distributed
-            const bot = await botsSchema.findOne({ address: rProgress.userAddress });
-
-            if (bot) {
-                handleUserChoiceWithBot({
-                    type: "distribute",
-                    game: "RABBITHOLE",
-                    raceId,
-                    data: undefined
-                }).catch((err) => {
-                    console.log("Bot distribute failed :(", err);
-                });
-            }
+            handleUserChoiceWithBot({
+                type: "distribute",
+                game: "RABBITHOLE",
+                raceId,
+                data: {
+                    version: value.version,
+                }
+            }).catch((err) => {
+                console.log("Bot distribute failed :(", err);
+            });
             break;
         case "rabbithole-wait-to-finish": {
             // @ts-ignore

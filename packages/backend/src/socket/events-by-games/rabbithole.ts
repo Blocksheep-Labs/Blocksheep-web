@@ -1,5 +1,9 @@
 import { Socket, Server } from 'socket.io';
 import module from '../../models/games-socket/index';
+import usersMongo from "../../models/users/users.mongo";
+import racesMongo from "../../models/races/races.mongo";
+import {handleUpdateProgress} from "../events";
+import {getIO} from "../init";
 
 const { RaceProgress } = module.default;
 const { TunnelState } = module.rabbithole;
@@ -88,8 +92,37 @@ export default (socket: Socket, io: Server): void => {
 
     socket.on('rabbithole-get-all-fuel-tunnel', async ({ raceId }: { raceId: string }) => {
         const roomName = `race-${raceId}`;
-        const progresses = await RaceProgress.find({ room: roomName });
-    
+        let progresses = await RaceProgress.find({ room: roomName });
+
+        // @ts-ignore
+        // get all users at requested race
+        const usersInRace = (await racesMongo.findOne({ raceId: roomName })).users;
+
+        let updateDataRequired = false;
+
+        // create empty progress if not done yet
+        await Promise.all(
+            // @ts-ignore
+            usersInRace.map(async (user: { address: string }) => {
+                // if user has no progress, but we have to show it on FE
+                if (user.address && !Array.from(progresses).find(i => i.userAddress == user.address)) {
+                    updateDataRequired = true;
+                    return handleUpdateProgress(
+                        { raceId, userAddress: user.address },
+                        getIO(),
+                        true
+                    );
+                }
+                return new Promise((resolve, _) => { resolve(true) });
+            })
+        );
+
+        // get new progresses if required
+        if (updateDataRequired) {
+            progresses = await RaceProgress.find({ room: roomName });
+        }
+
+        // send the data to FE
         io.to(socket.id).emit('rabbithole-race-fuel-all-tunnel', {
             progresses: progresses.map(i => ({
                 userAddress: i.userAddress,

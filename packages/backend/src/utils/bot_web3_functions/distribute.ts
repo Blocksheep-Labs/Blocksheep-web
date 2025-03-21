@@ -4,6 +4,7 @@ import envCfg from "../../config/env";
 import Web3 from "web3";
 import {handleUpdateProgress} from "../../socket/events";
 import {getIO} from "../../socket/init";
+import {socket} from "frontend/src/utils/socketio";
 
 require('dotenv').config();
 
@@ -39,6 +40,9 @@ export const distribute = async(
     contractName: string,
     raceId: number,
     botAddress: string,
+    rabbitholeData?: {
+        version: string,
+    },
     bullrunData?: {
         opponentAddress: string,
     }
@@ -115,9 +119,12 @@ export const distribute = async(
                 }, getIO());
                 break;
             case "RABBITHOLE":
-                // there is no need to await handleUpdateProgress(...),
-                // because from the client, all other players have called rabbithole-game-complete with bot user address
-                // as he lost
+                await handleUpdateProgress({
+                    raceId,
+                    userAddress: botAddress,
+                    property: "rabbithole-wait-to-finish",
+                    version: rabbitholeData?.version
+                });
                 break;
             case "BULLRUN":
                 break;

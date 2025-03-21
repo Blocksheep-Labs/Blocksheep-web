@@ -279,23 +279,27 @@ function RabbitHoleGame() {
         let amountPendingPerGame2 = 0;
         let amountOfCompleted = 0;
 
-        usersData.forEach((i: {
+        type TUserData = {
           userAddress: string,
-          v1: {
-            fuel: number, 
-            maxAvailableFuel: number, 
-            gameReached: boolean, 
-            isPending: boolean, 
-            isCompleted: boolean
-          },
-          v2: {
-            fuel: number, 
-            maxAvailableFuel: number, 
-            gameReached: boolean, 
-            isPending: boolean, 
-            isCompleted: boolean
+          rabbithole: {
+            v1: {
+              fuel: number,
+              maxAvailableFuel: number,
+              gameReached: boolean,
+              isPending: boolean,
+              isCompleted: boolean
+            },
+            v2: {
+              fuel: number,
+              maxAvailableFuel: number,
+              gameReached: boolean,
+              isPending: boolean,
+              isCompleted: boolean
+            }
           }
-        }) => {
+        };
+
+        usersData.forEach((i: TUserData) => {
           // @ts-ignore
           i.rabbithole?.[version].game.isPending && amountPendingPerGame2++;
           // @ts-ignore
@@ -314,7 +318,8 @@ function RabbitHoleGame() {
 
           const usersSheeps: Map<string, number> = new Map(Object.entries(raceData.data.race.usersSheeps));
           
-          usersData.forEach((i: any) => {
+          usersData.forEach((i: TUserData) => {
+            console.log({i});
             const user = raceData.data.race.users.find((j: any) => j.address == i.userAddress);
             // @ts-ignore
             const dataByTunnelVersion = i.rabbithole?.[version];
@@ -323,7 +328,7 @@ function RabbitHoleGame() {
             const updatedPlayer = {
               id: existingPlayerIndex !== -1 ? updatedPlayers[existingPlayerIndex].id : updatedPlayers.length,
               address: i.userAddress,
-              src: inRaceUsers.find((j: any) => j.address == i.userAddress) ? BotImage : sheepImages[usersSheeps.get(i.userAddress as string) || 0], // i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
+              src: inRaceUsers.find((j: any) => j.address == i.userAddress)?.isBot ? BotImage : sheepImages[usersSheeps.get(i.userAddress as string) || 0], // i.userAddress === smartAccountAddress ? BlackSheep : WhiteSheep,
               PlayerPosition: dataByTunnelVersion.game.fuel / 9,
               Fuel: dataByTunnelVersion.game.fuel,
               maxAvailableFuel: dataByTunnelVersion.game.maxAvailableFuel,
@@ -405,7 +410,7 @@ function RabbitHoleGame() {
             // Increment the count based on the new Set size
             setAmountOfPlayersNextClicked(updatedPlayersNextClicked.size); // Use the size of the new Set
             
-            if (updatedPlayersNextClicked.size >= amountOfConnected) { // Check against the updated count
+            if (updatedPlayersNextClicked.size >= amountOfConnected + AMOUNT_OF_BOTS) { // Check against the updated count
               navigateToNextScreen();
             }
           }
@@ -496,8 +501,8 @@ function RabbitHoleGame() {
                 value: {
                   isWon: false,
                   pointsAllocated: 0,
+                  version
                 },
-                version,
               });
               navigate(generateLink(screen, Number(raceId)));
             }
@@ -604,9 +609,9 @@ function RabbitHoleGame() {
               maxAvailableFuel: maxFuel - displayNumber,
               isPending: true,
               roundIndex,
-              leavedUsersAddresses: leavedPlayers
+              leavedUsersAddresses: leavedPlayers,
+              version,
             },
-            version,
           });
           
           console.log("Submitting fuel, leaved players:", leavedPlayers);
@@ -637,9 +642,9 @@ function RabbitHoleGame() {
                   maxAvailableFuel: maxFuel - displayNumber,
                   isPending: false,
                   roundIndex,
-                  leavedUsersAddresses: leavedPlayers
+                  leavedUsersAddresses: leavedPlayers,
+                  version,
                 },
-                version,
               });  
             }, 1500 + Number(players.find(i => i.address == smartAccountAddress)?.id) * 350);
           }
@@ -711,8 +716,10 @@ function RabbitHoleGame() {
           fuel: fuel,
           maxAvailableFuel: maxFuel - fuel,
           isPending: false,
+          roundIndex,
+          leavedUsersAddresses: leavedPlayers,
+          version,
         },
-        version,
       });
     }
   }
@@ -746,8 +753,8 @@ function RabbitHoleGame() {
         value: {
           isWon,
           pointsAllocated: amountOfPointsToAllocate,
+          version
         },
-        version,
       });
     }
 
@@ -794,15 +801,14 @@ function RabbitHoleGame() {
         if (!player.isEliminated) {
           socket.emit("update-progress", {
             raceId, userAddress: player.address, property: "rabbithole-eliminate",
-            version,
+            value: { version }
           });
         }
 
         if (!player.isCompleted) {
           socket.emit("update-progress", {
             raceId, userAddress: player.address, property: "rabbithole-complete",
-            value: { isWon: false, pointsAllocated: 0 },
-            version,
+            value: { isWon: false, pointsAllocated: 0, version },
           });
         }
 
@@ -911,7 +917,7 @@ function RabbitHoleGame() {
       raceId,
       userAddress: smartAccountAddress,
       property: "rabbithole-wait-to-finish",
-      version
+      value: { version }
     });
     setLatestInteractiveModalWasClosed(true);
   }

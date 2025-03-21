@@ -44,13 +44,13 @@ export default function RabbitHoleRules() {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "rabbithole-rules-complete",
-                version
+                value: { version }
             });
             socket.emit('update-progress', {
                 raceId,
                 userAddress: smartAccountAddress,
                 property: "rabbithole-rules-complete",
-                version
+                value: { version }
             });
 
             const rulesPart = rabbitholeGetGamePart(version as TRabbitholeGameVersion, "rules");
@@ -138,7 +138,7 @@ export default function RabbitHoleRules() {
                         raceId,
                         userAddress: smartAccountAddress,
                         property: "game2-rules-complete",
-                        version
+                        value: { version }
                     });
                     
                     navigate(generateLink(screen, Number(raceId)));
@@ -151,7 +151,7 @@ export default function RabbitHoleRules() {
                         raceId,
                         userAddress: smartAccountAddress,
                         property: "game2-rules-complete",
-                        version
+                        value: { version }
                     });
                     navigate(generateLink(screen, Number(raceId)));
                 }

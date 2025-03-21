@@ -153,8 +153,8 @@ export const makeMove = async(
                         fuel: rabbitholeData?.fuelSubmission as number,
                         maxAvailableFuel: rabbitholeData?.fuelLeft as number,
                         isPending: true,
+                        version: rabbitholeData?.version as string,
                     },
-                    version: rabbitholeData?.version as string,
                 }, getIO());
                 break;
             default:
@@ -198,8 +198,8 @@ export const makeMove = async(
                         fuel: rabbitholeData?.fuelSubmission as number,
                         maxAvailableFuel: rabbitholeData?.fuelLeft as number,
                         isPending: false,
+                        version: rabbitholeData?.version as string,
                     },
-                    version: rabbitholeData?.version as string,
                 }, getIO());
                 break;
             case "BULLRUN":

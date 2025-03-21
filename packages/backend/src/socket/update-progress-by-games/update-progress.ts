@@ -24,9 +24,6 @@ interface UpdateProgressFn {
         value: any,
         rProgress: any,
         raceId: number,
-        version?: string,
-        roundIndex?: number,
-        leavedUsersAddresses?: string[]
     ): any;
 }
 
@@ -35,24 +32,13 @@ export const updateProgress: UpdateProgressFn = (
     value,
     rProgress,
     raceId,
-    version?,
-    roundIndex?,
-    leavedUsersAddresses?,
 ) => {
     if (underdogTriggers.includes(property)) {
         return updateUnderdogProgress(property, raceId, value, rProgress);
     }
 
     if (rabbitHoleTriggers.includes(property)) {
-        return updateRabbitHoleProgress(
-            property,
-            raceId,
-            value,
-            rProgress,
-            version as string,
-            roundIndex as number,
-            leavedUsersAddresses as string[]
-        );
+        return updateRabbitHoleProgress(property, raceId, value, rProgress);
     }
 
     if (bullrunTriggers.includes(property)) {

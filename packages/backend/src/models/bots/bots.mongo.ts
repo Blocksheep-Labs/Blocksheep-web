@@ -8,6 +8,8 @@ interface IBot extends Document {
     isDistributingMap: Map<string, boolean>;
     underdogPassedQuestionIndexes: Map<string, number[]>;
     rabbitholeRoundsPlayed: Map<string, number[]>;
+    bullrunOpponentsPassed: Map<string, string[]>;
+    bullrunPlaying: Map<string, boolean>;
 }
 
 const botsSchema: Schema<IBot> = new Schema({
@@ -42,14 +44,25 @@ const botsSchema: Schema<IBot> = new Schema({
     underdogPassedQuestionIndexes: {
         type: Map,
         of: [Number],
-        default: {}
+        default: {},
     },
 
     rabbitholeRoundsPlayed: {
         type: Map,
         of: [Number],
-        default: {}
+        default: {},
     },
+
+    bullrunOpponentsPassed: {
+        type: Map,
+        of: [String],
+        default: {},
+    },
+    bullrunPlaying: {
+        type: Map,
+        of: [Boolean],
+        default: {},
+    }
 }, { timestamps: true });
 
 export default mongoose.model<IBot>("Bot", botsSchema);

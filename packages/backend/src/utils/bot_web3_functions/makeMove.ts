@@ -4,6 +4,8 @@ import BlocksheepAbi from "../../config/abis/blocksheep.json";
 import Web3 from "web3";
 import {handleUpdateProgress} from "../../socket/events";
 import {getIO} from "../../socket/init";
+import {bullrunSetPending} from "../../socket/events-by-games/bullrun";
+import ConnectedUserSchema from "../../models/games-socket/default/connected-user.mongo";
 require('dotenv').config();
 
 
@@ -157,6 +159,19 @@ export const makeMove = async(
                     },
                 }, getIO());
                 break;
+            case "BULLRUN":
+                const opponentSocketId = (await ConnectedUserSchema.findOne({ userAddress: bullrunData?.opponentAddress as string }))?.id;
+                await bullrunSetPending(
+                    undefined, // socket instance is not required for bot
+                    getIO(),
+                    {
+                        id: "unknown", // bot is not actually connected to the socket
+                        opponentId: opponentSocketId,
+                        userAddress: botAddress,
+                        isPending: true,
+                        raceId
+                    }
+                );
             default:
                 break;
         }
@@ -203,7 +218,18 @@ export const makeMove = async(
                 }, getIO());
                 break;
             case "BULLRUN":
-
+                const opponentSocketId = (await ConnectedUserSchema.findOne({ userAddress: bullrunData?.opponentAddress as string }))?.id;
+                await bullrunSetPending(
+                    undefined, // socket instance is not required for bot
+                    getIO(),
+                    {
+                        id: "unknown", // bot is not actually connected to the socket
+                        opponentId: opponentSocketId,
+                        userAddress: botAddress,
+                        isPending: false,
+                        raceId
+                    }
+                );
                 break;
             default:
                 break;

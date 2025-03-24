@@ -312,6 +312,9 @@ function RabbitHoleGame() {
         const raceData = await httpGetRaceDataById(`race-${raceId}`);
         const inRaceUsers = raceData?.data?.race?.users || [];
 
+        setUsers(inRaceUsers);
+
+
 
         setPlayers(prevPlayers => {
           const updatedPlayers = [...prevPlayers];

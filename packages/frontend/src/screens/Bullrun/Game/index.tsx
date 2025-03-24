@@ -41,6 +41,7 @@ import { useGetRules } from "@/hooks/useGetRules";
 import { useGetUserChoices } from "@/hooks/useGetUserChoices";
 import { BigNumber } from "ethers";
 import { sheepImages } from "@/utils/sheepsImagesArray";
+import BotImage from "@/assets/common/bot.png";
 
 export type BullrunPerks = "shield" | "swords" | "run";
 const REGISTERED_CONTRACT_NAME = "BULLRUN";
@@ -100,6 +101,10 @@ export default function Bullrun() {
     const { getPoints } = useGetUserPoints(REGISTERED_CONTRACT_NAME, Number(raceId), String(smartAccountAddress));
     const { getRules } = useGetRules(REGISTERED_CONTRACT_NAME, Number(raceId));
     const { getUserChoices } = useGetUserChoices(REGISTERED_CONTRACT_NAME, Number(raceId));
+
+
+    // amount of bots based on provided info from the backend
+    const AMOUNT_OF_BOTS = users.filter(i => i?.isBot).length;
 
 
     const redirectToNextScreen = () => {
@@ -258,6 +263,12 @@ export default function Bullrun() {
             // Prevent ghost submissions
             if (isSubmitting) return; // Exit if already submitting
             setIsSubmitting(true); // Set submitting flag
+
+            socket.emit("bullrun-started-distributing", {
+                raceId,
+                userAddress: smartAccountAddress,
+                opponentAddress: opponent?.userAddress,
+            });
 
             distribute(buildDistributeData(opponent?.userAddress as string, smartAccountAddress as string))
             .catch(console.log)
@@ -538,14 +549,14 @@ export default function Bullrun() {
 
             socket.on('bullrun-amount-of-completed-games', ({ gameCompletesAmount, connectedCount }) => {
                 console.log({
-                    "gameCompletesAmount >= connectedCount": gameCompletesAmount >= connectedCount,
+                    "gameCompletesAmount >= connectedCount": gameCompletesAmount >= connectedCount + AMOUNT_OF_BOTS,
                     connectedCount,
                     gameCompletesAmount
                 });
                 setAmountOfConnected(connectedCount);
 
                 // check if all users completed all the games  [required amount of games per user] * [players amount]
-                if (gameCompletesAmount >= connectedCount && gameCompletesAmount > 0) {
+                if ((gameCompletesAmount >= connectedCount + AMOUNT_OF_BOTS) && gameCompletesAmount > 0) {
                     bullrunOpenWinModalAndStartTimer();
                 }
             });
@@ -575,7 +586,8 @@ export default function Bullrun() {
         raceData, 
         winModalIsOpened, 
         amountOfConnected, 
-        gamesPlayed
+        gamesPlayed,
+        AMOUNT_OF_BOTS
     ]);
 
     useEffect(() => {
@@ -614,7 +626,7 @@ export default function Bullrun() {
                         console.log("bullrun-complete", amountOfConnected, newAmount);
                         
                         // Check if all players have completed
-                        if (amountOfConnected <= newAmount) {
+                        if (amountOfConnected + AMOUNT_OF_BOTS <= newAmount) {
                             redirectToNextScreen();
                         }
                         
@@ -645,7 +657,7 @@ export default function Bullrun() {
                 setAddressesCompleted(completedAddrs);
                 setAmountOfPlayersCompleted(completedAmount);
 
-                if (amountOfConnected <= amountOfPlayersCompleted && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
+                if (amountOfConnected + AMOUNT_OF_BOTS <= amountOfPlayersCompleted && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
                     //alert(1133);
                     redirectToNextScreen();
                 }
@@ -667,16 +679,17 @@ export default function Bullrun() {
         amountOfPlayersCompleted, 
         winModalIsOpened, 
         gamesPlayed, 
-        amountOfConnected
+        amountOfConnected,
+        AMOUNT_OF_BOTS
     ]);
 
     // this ensures that connected users will be redirected if someone disconnects on the part of closing the modal
     useEffect(() => {
-        if (amountOfPlayersCompleted >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
+        if (amountOfPlayersCompleted + AMOUNT_OF_BOTS >= amountOfConnected && amountOfConnected > 0 && amountOfPlayersCompleted > 0) {
           //alert("navigate in useEffect");
           redirectToNextScreen();
         }
-    }, [amountOfPlayersCompleted, amountOfConnected]);
+    }, [amountOfPlayersCompleted, amountOfConnected, AMOUNT_OF_BOTS]);
 
 
     function getPerkPointsColor(perkNumericValue: number) {
@@ -912,7 +925,20 @@ export default function Bullrun() {
                 raceUsersDataColors && smartAccountAddress && opponent &&
                 <div className="relative flex items-center flex-col w-full h-44">
                     <img src={Horns} alt="horns" className="w-[80px] top-[30px] absolute"/>
-                    <img src={sheepImages[raceUsersDataColors.get(opponent?.userAddress as string) || 0]} alt="whitesheep" className="w-10 top-[60px] absolute"/>
+                    <img
+                        src={
+                            (
+                                users.find(i => i.address == opponent?.userAddress)?.isBot ||
+                                String(users.find(i => i.address == opponent?.userAddress)?.name).startsWith("bot-")
+                            )
+                            ?
+                            BotImage
+                            :
+                            sheepImages[raceUsersDataColors.get(opponent?.userAddress as string) || 0]
+                        }
+                        alt="opponent-sheep"
+                        className="w-10 top-[60px] absolute"
+                    />
                 </div>
             }
 
@@ -921,7 +947,11 @@ export default function Bullrun() {
                 <div className="absolute bottom-28 flex w-full">
                     <div className="relative flex items-center flex-col w-full h-44">
                         <img src={Horns} alt="horns" className="w-[180px] top-[0px] absolute"/>
-                        <img src={sheepImages[raceUsersDataColors.get(smartAccountAddress as string) || 0]} alt="whitesheep" className="w-32 top-[60px] absolute"/>
+                        <img
+                            src={sheepImages[raceUsersDataColors.get(smartAccountAddress as string) || 0]}
+                            alt="whitesheep"
+                            className="w-32 top-[60px] absolute"
+                        />
                     </div>
                 </div>
             }

@@ -54,6 +54,70 @@ export default async function handleUserChoiceWithBot({ game, raceId, type, data
 
     switch (game) {
         case "BULLRUN":
+            bots.map(async (i) => {
+               if (
+                   !i.isMakingMoveMap.get(String(raceId)) &&
+                   type == "makeMove" &&
+                   !(i.bullrunOpponentsPassed.get(String(raceId)) || []).includes(data.opponentAddress)
+               ) {
+                   const botProgressData = await progressSchema.findOne({ room: `race-${raceId}`, userAddress: i.address });
+                   const botGameData = botProgressData?.progress.bullrun;
+                   const botIsCompleted = botGameData?.isCompleted;
+
+                   // if bot has finished playing
+                   if (botIsCompleted) {
+                       return;
+                   }
+
+                   console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: BULLRUN`);
+                   // lock bot (making move) and add opponentAddress played against
+                   await botsSchema.findOneAndUpdate(
+                       { address: i.address },
+                       {
+                           $set: { [`isMakingMoveMap.${raceId}`]: true },
+                           $push: { [`bullrunOpponentsPassed.${raceId}`]: data.opponentAddress }
+                       },
+                       { upsert: true }
+                   );
+
+                   // make move
+                   const makeMoveData = await makeMove(
+                       "BULLRUN",
+                       raceId,
+                       i.address,
+                       undefined,
+                       undefined,
+                       {
+                           opponentAddress: data.opponentAddress,
+                       }
+                   );
+
+                   // unlock bot for make move
+                   await unlockForMakeMove(i.address);
+
+                   return makeMoveData;
+               } else {
+                   console.log(`Performing operation: ${type.toUpperCase()} for: ${raceId}, botAddress ${i.address}, game: BULLRUN`);
+
+                   // lock bot distributing at race
+                   await lockForDistribute(i.address);
+
+                   const distributeData = await distribute(
+                       "BULLRUN",
+                       raceId,
+                       i.address,
+                       undefined,
+                       {
+                           opponentAddress: data.opponentAddress,
+                       }
+                   );
+
+                   // unlock bot
+                   await unlockForDistribute(i.address);
+
+                   return distributeData;
+               }
+            });
             break;
 
         case "RABBITHOLE":

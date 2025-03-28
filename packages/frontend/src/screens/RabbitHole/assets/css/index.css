@@ -1,0 +1,321 @@
+.slider-container {
+    position: relative;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+  
+.number-display-rh {
+    position: absolute;
+    font-size: 2.3rem;
+    color: white;
+    
+    z-index: 3;
+    top: 10px;
+}
+  
+.slider-bar {
+    position: relative;
+    width: 200px;
+    height: 100px;
+    background-image: url("../images/slider.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    display: flex;
+    align-items: center;
+    
+}
+  
+  /* New slider track to constrain knob movement */
+.slider-track {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 133px; /* Constrained width for knob movement */
+    height: 30px;
+    top: 65px; /* Positioned to align with the slider groove */
+}
+  
+.knob {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    background: url("../images/lever.png") no-repeat center;
+    background-size: contain;
+    cursor: none;
+    touch-action: none;
+    z-index: 5;
+}
+
+.knob::after {
+    content: "";
+    position: absolute;
+    width: 60px; /* Adjust to match your cursor size */
+    height: 60px;
+    background: url("../../assets/images/cursor-swipe.png") no-repeat center;
+    background-size: contain;
+    pointer-events: none;
+    top: 2px;
+    left: -30px;
+    z-index: 10
+}
+  
+.carrot-btn {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    cursor: pointer;
+    top: 80px;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+  
+.minus-btn {
+    left: -8px;
+    background-image: url("../images/carrot-.png");
+    width: 25px;
+    height: 25px;
+    z-index: -1
+}
+  
+.plus-btn {
+    right: -23px;
+    background-image: url("../images/carrot+.png");
+    z-index: -1
+}
+
+
+
+.tunnel {
+    position: relative; 
+    z-index: 1; 
+    height: 175px;
+    width: 100%;
+    background: url('../images/tunnel-light.png') no-repeat center;
+  }
+  
+  #StartTunnel{
+    width:200px;
+  }
+  
+  .darkness {
+    position: absolute;
+    top: -5px;
+    left: 100%;
+    height: 140px;
+    width: 125%;
+    background: url('../images/tunnel-dark.png');  
+    transition: width 1.5s ease-in-out, left 1.5s ease-in-out;
+    z-index: 10;
+  }
+  
+  .rabbit-head, .rabbit-tail {
+    position: absolute;
+    transition: transform 1.5s ease-in-out;
+    z-index: 4;
+    
+  }
+  
+  .rabbit-head {
+    right: -180px;
+    height: 300px;
+    top:-120px;
+    z-index: 30;
+  }
+  
+  .rabbit-tail {
+    left: 100%;
+    height: 150px;
+    z-index: 20;
+  }
+  
+  
+  
+  .player-container div {
+    transition: all 0.5s ease-out;
+    height: 50px;
+    width: 50px;
+    left:0px;
+  }
+  
+  .player-container img {
+    transition: all 0.5s ease-out;
+    height: 50px;
+    left:0px;
+  }
+  
+  .player-container .fuel-text {
+    transition: all 0.5s ease-out;
+    position: absolute;
+    z-index: 3;
+    left:-10px;
+  }
+
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: fit-content;
+    margin: 0;
+    padding:0;
+    position: relative;
+    
+  }
+
+  #carrot_fuel{
+    position:absolute;
+  }
+  
+  
+  .fuel-bar-container {
+    position: absolute;
+    top: 0;
+    width: calc(100%); /* Adjust based on your margin needs */
+    height: 50px; /* Adjust as needed */
+  }
+  
+  .fuel-line {
+    position: absolute;
+    width: 100%;
+    height: 5px; /* Adjust as needed */
+    background-color: black;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .fuel-circle {
+    position: absolute;
+    width: 20px; 
+    height: 20px; 
+    border-radius: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .control-panels{
+    z-index: 200;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .panel{
+    background: url('../images/box-1.png') no-repeat center center;
+    background-size: cover;
+    border:0;
+    width: 100px;
+    height: 100px;
+    margin: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+  }
+  
+  
+  
+  .lever-container {
+    background: url('../images/Lever-Base.png') no-repeat center center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    width:100px;
+  }
+  
+  /* Styles for the number display */
+  .number-display {
+    
+    color: white; 
+    font-size: 48px; 
+    padding: 20px;
+    user-select: none; 
+   
+  }
+  
+  .gasoline-gauge {
+    width: 80%;
+    background-position: bottom;
+    transition: height 0.5s ease-out;
+    background: linear-gradient(orange, rgb(255, 224, 168));
+    position:absolute;
+    top: 12px;
+    max-height: 75px;
+  }
+
+
+
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.carrot {
+    position: absolute;
+    width: 40px;
+    height: 80px;
+    background: url('https://i.ibb.co/N9Ff4Mb/carrot.png') no-repeat center/contain;
+    animation: throwCarrot 1s ease-out forwards;
+}
+
+@keyframes throwCarrot {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+    50% { transform: translateY(-200px) translateX(calc(50vw - 50%)) rotate(180deg); }
+    100% { transform: translateY(100vh) translateX(calc(100vw - 50%)) rotate(360deg); opacity: 0; }
+}
+
+#counter {
+    position: absolute;
+    bottom: 78px;
+    left: 14%;
+    transform: translateX(-50%);
+    width: 45px;
+    height: 45px;
+    background: url('https://i.ibb.co/fzK9KrmQ/counter.png') no-repeat center/contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+#throw-button {
+    position: absolute;
+    bottom: -10px;
+    left: 14%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    background: url('https://i.ibb.co/RG10K8Cy/image1-removebg-preview.png') no-repeat center/cover;
+    background-size: contain;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    outline: none;
+    text-align: center;
+    z-index: 20;
+}
+
+#throw-button:active {
+    transform: translateX(-50%) scale(0.95);
+}

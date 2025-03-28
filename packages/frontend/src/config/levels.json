@@ -1,0 +1,46 @@
+[
+    {
+        "level": 1,
+        "requiredGames": 0
+    },
+    {
+        "level": 2,
+        "requiredGames": 1
+    },
+    {
+        "level": 3,
+        "requiredGames": 2
+    },
+    {
+        "level": 3,
+        "requiredGames": 4
+    },
+    {
+        "level": 4,
+        "requiredGames": 6
+    },
+    {
+        "level": 5,
+        "requiredGames": 8
+    },
+    {
+        "level": 6,
+        "requiredGames": 10
+    },
+    {
+        "level": 7,
+        "requiredGames": 12
+    },
+    {
+        "level": 8,
+        "requiredGames": 14
+    },
+    {
+        "level": 9,
+        "requiredGames": 16
+    },
+    {
+        "level": 10,
+        "requiredGames": 18
+    }
+]

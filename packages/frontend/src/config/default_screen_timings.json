@@ -1,0 +1,94 @@
+{
+    "DRIVERS": {
+        "time": -1,
+        "editable": false
+    },
+    "STORY_INTRO": {
+        "time": 6,
+        "editable": true
+    }, 
+    "RACE_START": {
+        "time": 7,
+        "editable": false
+    },  
+    "UNDERDOG_PREVIEW": {
+        "time": 3,
+        "editable": true
+    }, 
+    "UNDERDOG_RULES": {
+        "time": 10,
+        "editable": true
+    },
+    "UNDERDOG": {
+        "time": -1,
+        "editable": false
+    },  
+    "RACE_UPDATE_1": {
+        "time": 10,
+        "editable": true
+    }, 
+    "STORY_PART_1": {
+        "time": 6,
+        "editable": true
+    }, 
+
+    "RABBIT_HOLE_PREVIEW": {
+        "time": 3,
+        "editable": true
+    },   
+    "RABBIT_HOLE_RULES": {
+        "time": 10,
+        "editable": true
+    },   
+    "RABBIT_HOLE": {
+        "time": -1,
+        "editable": false
+    },  
+    "RACE_UPDATE_2": {
+        "time": 10,
+        "editable": true
+    }, 
+    "STORY_PART_2": {
+        "time": 6,
+        "editable": true
+    },  
+
+    "BULLRUN_PREVIEW": {
+        "time": 3,
+        "editable": true
+    }, 
+    "BULLRUN_RULES": {
+        "time": 10,
+        "editable": true
+    },   
+    "BULLRUN": {
+        "time": -1,
+        "editable": false
+    },  
+    "RACE_UPDATE_3": {
+        "time": 10,
+        "editable": true
+    }, 
+    "STORY_PART_3": {
+        "time": 6,
+        "editable": true
+    }, 
+
+    "STORY_CONCLUSION": {
+        "time": 6,
+        "editable": true
+    }, 
+
+    "RATE": {
+        "time": 10,
+        "editable": true
+    },  
+    "PODIUM": {
+        "time": -1,
+        "editable": false
+    }, 
+    "LEVEL_UPDATE": {
+        "time": 10,
+        "editable": true
+    }
+}
